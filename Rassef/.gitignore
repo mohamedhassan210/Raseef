@@ -1,0 +1,68 @@
+# Build
+bin/
+obj/
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+
+# Visual Studio
+.vs/
+
+# Visual Studio Code
+.vscode/
+
+# Rider
+.idea/
+
+# JetBrains Rider
+*.sln.iml
+
+# Test Results
+TestResults/
+*.trx
+
+# Coverage
+coverage/
+coverage.cobertura.xml
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# Logs
+*.log
+logs/
+Logs/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Secrets
+secrets.json
+
+# ASP.NET User Secrets
+**/secrets.json
+
+# Publish output
+publish/
+Publish/
+
+# EF Core Local Database
+*.db
+*.db-shm
+*.db-wal
+
+# SQL Server LocalDB
+*.mdf
+*.ldf
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Generated files
+Generated/
