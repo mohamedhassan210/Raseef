@@ -7,7 +7,6 @@
         public virtual DbSet<Dock> Docks => Set<Dock>();
         public virtual DbSet<DockAssignment> DockAssignments => Set<DockAssignment>();
         public virtual DbSet<Driver> Drivers => Set<Driver>();
-        public virtual DbSet<Employee> Employees => Set<Employee>();
         public virtual DbSet<QueueAction> QueueActions => Set<QueueAction>();
         public virtual DbSet<QueueTicket> QueueTickets => Set<QueueTicket>();
         public virtual DbSet<Supplier> Suppliers => Set<Supplier>();

@@ -4,7 +4,7 @@
     {
         public string Name { get; set; }
         public string Location { get; set; }
-        public int CreatedBy { get; set; }
+        public User CreatedBy { get; set; }
 
     }
 }

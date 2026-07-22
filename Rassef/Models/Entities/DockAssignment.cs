@@ -6,7 +6,7 @@
         public int TicketId { get; set; }
         public DateTimeOffset AssignedAt { get; set; }
         public DateTimeOffset FinishedAt { get; set; }
-        public int CreatedBy { get; set; }
+        public User CreatedBy { get; set; }
 
 
     }

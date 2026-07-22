@@ -12,7 +12,7 @@
         public string DriverNationalCardPhoto { get; set; }
         public string DriverPhone { get; set; }
         public string PermitNumber { get; set; }
-        public int CreatedBy { get; set; }
+        public User CreatedBy { get; set; }
 
     }
 }
