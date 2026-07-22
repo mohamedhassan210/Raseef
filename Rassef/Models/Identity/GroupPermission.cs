@@ -1,7 +1,4 @@
-﻿using System.Security;
-using System.Text.RegularExpressions;
-
-namespace Rassef.Models.Identity
+﻿namespace Rassef.Models.Identity
 {
     public class GroupPermission
     {

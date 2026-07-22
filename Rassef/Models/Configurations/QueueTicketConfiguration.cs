@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Rassef.Models.Entities;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Rassef.Models.Configurations
 {

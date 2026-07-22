@@ -3,7 +3,7 @@
     public class Permissions : BaseEntity
     {
         public string Name { get; set; }
-        public ICollection<GroupPermission> GroupPermissions { get; set; } 
+        public ICollection<GroupPermission> GroupPermissions { get; set; }
             = new HashSet<GroupPermission>();
     }
 }

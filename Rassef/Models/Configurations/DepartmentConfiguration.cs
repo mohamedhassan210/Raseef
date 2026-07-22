@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Rassef.Models.Configurations
 {
@@ -7,7 +6,7 @@ namespace Rassef.Models.Configurations
     {
         public void Configure(EntityTypeBuilder<DepartmentConfiguration> builder)
         {
-            
+
         }
     }
 }

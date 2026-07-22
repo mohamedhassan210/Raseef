@@ -1,6 +1,8 @@
-﻿global using Microsoft.EntityFrameworkCore;
+﻿global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.EntityFrameworkCore;
+global using Rassef.Common.Interfaces;
+global using Rassef.Common.Interfaces.Services;
+global using Rassef.Data;
 global using Rassef.Models.Common;
 global using Rassef.Models.Entities;
 global using Rassef.Models.Identity;
-global using Rassef.Data;
-global using Rassef.Common.Interfaces;

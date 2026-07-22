@@ -8,5 +8,5 @@
 
         public ICollection<Dock> Docks { get; set; }
         public ICollection<Department> Departments { get; set; }
-    } 
+    }
 }

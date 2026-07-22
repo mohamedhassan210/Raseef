@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Rassef.Models.Entities;
-using System.Data;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Rassef.Models.Configurations
 {
@@ -9,7 +6,7 @@ namespace Rassef.Models.Configurations
     {
         public void Configure(EntityTypeBuilder<CheckOut> builder)
         {
-                                                                  
+
         }
     }
 }
