@@ -12,6 +12,12 @@
       public string PermitNumber { get; set; }
       public User CreatedBy { get; set; }
 
+        public Truck Truck { get; set; }
+        public Driver Driver { get; set; }
+        public Department Department { get; set; }
+        public Permit_types PermitType { get; set; }
+        public Request_statuses  RequestStatus { get; set; }
+        public ICollection<QueueTicket> QueueTickets { get; set; }
 
     }
 }

@@ -7,7 +7,8 @@
         public DateTimeOffset AssignedAt { get; set; }
         public DateTimeOffset FinishedAt { get; set; }
         public User CreatedBy { get; set; }
-
+        public Dock Dock { get; set; }
+        public QueueTicket QueueTicket { get; set; }
 
     }
 }

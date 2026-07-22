@@ -13,6 +13,14 @@
         public string DriverPhone { get; set; }
         public string PermitNumber { get; set; }
         public User CreatedBy { get; set; }
+        public Supplier Supplier { get; set; }
+        public Truck Truck { get; set; }
+        public Driver Driver { get; set; }
+        public Department Department { get; set; }
+        public Permit_types PermitType { get; set; }
+        public Commodity_types CommodityType { get; set; }
+        public Request_statuses RequestStatus { get; set; }
+        public ICollection<QueueTicket> QueueTickets { get; set; }
 
     }
 }
