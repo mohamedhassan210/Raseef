@@ -1,5 +1,4 @@
-﻿using Azure.Core.Pipeline;
-
+﻿
 namespace Rassef.Models.Identity
 {
     public class User : BaseEntity
