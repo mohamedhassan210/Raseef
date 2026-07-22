@@ -6,7 +6,7 @@
         public string NationalId { get; set; }
         public string Phone { get; set; }
         public string NationalCardPhoto { get; set; }
-        public int CreatedBy { get; set; }
+        public User CreatedBy { get; set; }
 
     }
 }

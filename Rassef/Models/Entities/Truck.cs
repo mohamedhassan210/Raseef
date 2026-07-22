@@ -7,7 +7,7 @@
         public float StorageCapacity { get; set; }
         public bool IsRefrigerated { get; set; }
         public bool IsFood { get; set; }
-        public int CreatedBy { get; set; }
+        public User CreatedBy { get; set; }
 
     }
 }

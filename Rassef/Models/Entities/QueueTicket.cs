@@ -10,6 +10,6 @@
         public DateTimeOffset QueueTime { get; set; }
         public DateTimeOffset EntryTime { get; set; }
         public DateTimeOffset ExitTime { get; set; }
-        public int CreatedBy { get; set; }
+        public User CreatedBy { get; set; }
     }
 }

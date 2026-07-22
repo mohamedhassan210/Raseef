@@ -5,7 +5,7 @@ namespace Rassef.Models.Entities
     {
         public string Name { get; set; }
         public int WarehouseId { get; set; }
-        public int CreatedBy { get; set; }
+        public User CreatedBy { get; set; }
 
     }
 }
