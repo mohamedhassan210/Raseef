@@ -1,4 +1,6 @@
 ﻿
+using Rassef.Models.Identity;
+
 namespace Rassef.Models.Entities
 {
     public class Department : BaseEntity
