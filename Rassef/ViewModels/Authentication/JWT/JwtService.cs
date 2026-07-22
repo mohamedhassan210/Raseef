@@ -1,8 +1,9 @@
-﻿namespace Rassef.ViewModels.Authentication.JWT
+﻿
+namespace Rassef.ViewModels.Authentication.JWT
 {
     public class JwtService : IJwtService
     {
-        public string GenerateToken()
+        public string GenerateToken(Guid UserId, Email Email)
         {
             throw new NotImplementedException();
         }

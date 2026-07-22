@@ -6,3 +6,5 @@ global using Rassef.Data;
 global using Rassef.Models.Common;
 global using Rassef.Models.Entities;
 global using Rassef.Models.Identity;
+global using Rassef.Models.ValueObjects;
+global using Rassef.Models.StatusesAndActions;
