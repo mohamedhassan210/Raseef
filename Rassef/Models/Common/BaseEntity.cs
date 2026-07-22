@@ -1,11 +1,12 @@
-﻿namespace Rassef.Models.Common
+﻿using Rassef.Models.Entities;
+
+namespace Rassef.Models.Common
 {
     public class BaseEntity
     {
         public Guid Id { get; protected set; }
         public DateTimeOffset CreatedAT { get; protected set; }
         public DateTimeOffset UpdatedAT { get; protected set; }
-
         public  void MarkAsUpdated() => UpdatedAT = DateTimeOffset.Now;
         
     }
