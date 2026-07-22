@@ -9,7 +9,7 @@ namespace Rassef.Models.Configurations
     {
         public void Configure(EntityTypeBuilder<CheckOut> builder)
         {
-            
+                                                                  
         }
     }
 }
