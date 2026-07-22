@@ -6,5 +6,7 @@
         public string Location { get; set; }
         public User CreatedBy { get; set; }
 
-    }
+        public ICollection<Dock> Docks { get; set; }
+        public ICollection<Department> Departments { get; set; }
+    } 
 }
