@@ -2,14 +2,14 @@
 {
     public class TransferRequest : BaseEntity
     {
-        public string AvizNumber { get; set; }
+        public string AvizNumber { get; set; }=string.Empty;
         public int TruckId { get; set; }
         public int DriverId { get; set; }
         public int PermitTypeId { get; set; }
         public int DepartmentId { get; set; }
         public int RequestStatusId { get; set; }
-        public string DriverPhone { get; set; }
-        public string PermitNumber { get; set; }
+        public string DriverPhone { get; set; }=string.Empty;
+        public string PermitNumber { get; set; }=string.Empty;
         public User CreatedBy { get; set; }
 
         public Truck Truck { get; set; }
@@ -17,7 +17,7 @@
         public Department Department { get; set; }
         public Permit_types PermitType { get; set; }
         public Request_statuses RequestStatus { get; set; }
-        public ICollection<QueueTicket> QueueTickets { get; set; }
+        public ICollection<QueueTicket> QueueTickets { get; set; }=new HashSet<QueueTicket>();
 
     }
 }

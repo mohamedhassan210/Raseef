@@ -1,8 +1,11 @@
 {
   "ExpandedNodes": [
     "",
-    "\\Rassef"
+    "\\Rassef",
+    "\\Rassef\\Exception",
+    "\\Rassef\\Models",
+    "\\Rassef\\Models\\Entities"
   ],
-  "SelectedNode": "\\Rassef\\Rassef.sln",
+  "SelectedNode": "\\Rassef\\Models\\Entities\\QueueTicket.cs",
   "PreviewInSolutionExplorer": false
 }

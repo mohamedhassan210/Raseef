@@ -3,7 +3,7 @@ namespace Rassef.Models.Entities
 {
     public class QueueTicket : BaseEntity
     {
-        public int TicketNumber { get; set; }
+        public string TicketNumber { get; set; }=string.Empty;
         public int TransferRequestId { get; set; }
         public int SupplierRequestId { get; set; }
         public int DepartmentId { get; set; }
@@ -17,8 +17,8 @@ namespace Rassef.Models.Entities
         public Department Department { get; set; }
         public Ticket_statuses TicketStatus { get; set; }
         public CheckOut CheckOut { get; set; }
-        public ICollection<DockAssignment> DockAssignments { get; set; }
-        public ICollection<QueueAction> QueueActions { get; set; }
+        public ICollection<DockAssignment> DockAssignments { get; set; }=new HashSet<DockAssignment>();
+        public ICollection<QueueAction> QueueActions { get; set; }=new HashSet<QueueAction>();
 
     }
 }
