@@ -1,12 +1,30 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Rassef.Models.Entities;
 
-namespace Rassef.Models.Configurations
+namespace Rassef.Configurations
 {
-    public class SupplierConfiguration : IEntityTypeConfiguration<SupplierConfiguration>
+    public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
     {
-        public void Configure(EntityTypeBuilder<SupplierConfiguration> builder)
+        public void Configure(EntityTypeBuilder<Supplier> builder)
         {
+            builder.ToTable("Suppliers");
 
+            builder.Property(s => s.Name)
+                   .IsRequired()
+                   .HasMaxLength(150);
+
+            builder.Property(s => s.Phone)
+                   .IsRequired()
+                   .HasMaxLength(20);
+
+            builder.Property(s => s.LogoURL)
+                   .IsRequired(false)
+                   .HasMaxLength(500);
+
+            builder.HasOne(s => s.CreatedBy)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
