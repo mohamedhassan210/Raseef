@@ -1,5 +1,4 @@
-﻿global using FluentValidation;
-global using Microsoft.AspNetCore.Mvc;
+﻿global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.EntityFrameworkCore;
 global using Rassef.Common.Interfaces.Services;
 global using Rassef.Data;
@@ -17,7 +16,6 @@ global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 global using Rassef.Common.Interfaces;
 global using Rassef.Common.Repository;
 global using Rassef.Common.Repository.EntitiesRepository;
-global using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 global using Microsoft.Extensions.Options;
 global using Microsoft.IdentityModel.Tokens;
 global using System.IdentityModel.Tokens.Jwt;
