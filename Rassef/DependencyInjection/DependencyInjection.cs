@@ -1,11 +1,9 @@
-﻿
-
-namespace Rassef.Dependencyinjection
+﻿namespace Rassef.Dependencyinjection
 {
     // Eexstension Method
     public static class DependencyInjection
     {
-        public static IServiceCollection AddDependcyInjection(this IServiceCollection services)
+        public static IServiceCollection AddDependcyInjection(this IServiceCollection services , IConfiguration configuration)
         {
             // add services 
             services.AddControllersWithViews();
@@ -26,8 +24,10 @@ namespace Rassef.Dependencyinjection
             services.AddScoped<ITransferRequestRepository,TransferRequestRepository >();
             services.AddScoped<ITruckRepository,TruckRepository >();
             services.AddScoped<IWarehouseRepository,WarehouseRepository >();
+            services.Configure<JwtSettings>(
+              configuration.GetSection("Jwt"));
 
-            
+
 
             return services;
         }
