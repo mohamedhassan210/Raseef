@@ -1,3 +1,4 @@
+
 namespace Rassef
 {
     public class Program
@@ -8,7 +9,8 @@ namespace Rassef
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
-
+            builder.Services.Configure<JwtSettings>(
+    builder.Configuration.GetSection("Jwt"));
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

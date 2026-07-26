@@ -3,7 +3,8 @@ namespace Rassef.Controllers
 {
     public class AuthenticationController : Controller
     {
-        public IActionResult Index()
+        [HttpGet]
+        public IActionResult Login()
         {
             return View();
         }
