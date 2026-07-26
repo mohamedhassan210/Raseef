@@ -1,4 +1,5 @@
 ﻿
+using Rassef.Common.Interfaces;
 
 namespace Rassef.Common.Repository.EntitiesRepository
 {

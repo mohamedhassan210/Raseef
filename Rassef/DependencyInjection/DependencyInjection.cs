@@ -1,18 +1,32 @@
-﻿
-namespace Rassef.Dependencyinjection
+﻿namespace Rassef.Dependencyinjection
 {
     // Eexstension Method
     public static class DependencyInjection
     {
-        public static IServiceCollection AddDependcyInjection(this IServiceCollection services)
+        public static IServiceCollection AddDependcyInjection(this IServiceCollection services , IConfiguration configuration)
         {
             // add services 
             services.AddControllersWithViews();
             services.AddExceptionHandler<GlobalExceptionHandling>();
             services.AddFluentValidationAutoValidation();
             services.AddValidatorsFromAssemblyContaining<Program>();
-            services.AddScoped(typeof(IRepository<>),typeof( Repository<>));
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            //add services 
             services.AddScoped<ICheckOutRepository, CheckOutRepository>();
+            services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+            services.AddScoped<IDockAssignmentRepository, DockAssignmentRepository>();
+            services.AddScoped<IDockRepository, DockRepository>();
+            services.AddScoped<IDriverRepository, DriverRepository>();
+            services.AddScoped<IQueueActionRepository,QueueActionRepository >();
+            services.AddScoped<IQueueTicketRepository,QueueTicketRepository >();
+            services.AddScoped<ISupplierRepository,SupplierRepository >();
+            services.AddScoped<ISupplierRequestRepository,SupplierRequestRepository >();
+            services.AddScoped<ITransferRequestRepository,TransferRequestRepository >();
+            services.AddScoped<ITruckRepository,TruckRepository >();
+            services.AddScoped<IWarehouseRepository,WarehouseRepository >();
+            services.Configure<JwtSettings>(
+              configuration.GetSection("Jwt"));
+
 
 
             return services;

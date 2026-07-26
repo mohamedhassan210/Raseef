@@ -1,5 +1,4 @@
-﻿
-namespace Rassef.ViewModels.Authentication
+﻿namespace Rassef.ViewModels.Authentication
 {
     public class LoginViewModel
     {

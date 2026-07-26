@@ -6,7 +6,7 @@ namespace Rassef
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddDependcyInjection();
+            builder.Services.AddDependcyInjection(builder.Configuration);
 
             var app = builder.Build();
 
