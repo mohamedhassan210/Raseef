@@ -1,4 +1,4 @@
-﻿namespace Rassef.Repositories
+﻿  namespace Rassef.Repositories
 {
     public class CheckOutRepository
     {
