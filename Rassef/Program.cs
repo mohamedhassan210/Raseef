@@ -28,7 +28,7 @@ namespace Rassef
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Authentication}/{action=Index}/{id?}");
 
             app.Run();
         }
