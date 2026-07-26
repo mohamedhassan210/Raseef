@@ -2,11 +2,11 @@
 {
     public class Supplier : BaseEntity
     {
-        public string Name { get; set; }=string.Empty;
-        public string Phone { get; set; }=string.Empty;
-        public string Address { get; set; }=string.Empty;
+        public string Name { get; set; }
+        public string Phone { get; set; }
         public User CreatedBy { get; set; }
-        public ICollection<SupplierRequest> SupplierRequests { get; set; }=new HashSet<SupplierRequest>();
+        public string LogoURL {  get; set; }
+        public ICollection<SupplierRequest> SupplierRequests { get; set; }
 
     }
 }
