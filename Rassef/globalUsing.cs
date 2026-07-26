@@ -14,3 +14,7 @@ global using Rassef.Piplines;
 global using Rassef.ViewModels.Authentication;
 global using System.ComponentModel.DataAnnotations;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Rassef.Common.Interfaces;
+global using Rassef.Common.Repository;
+global using Rassef.Common.Repository.EntitiesRepository;
+global using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;

@@ -1,6 +1,4 @@
-﻿using Rassef.Common.Repository;
-using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
-
+﻿
 namespace Rassef.Dependencyinjection
 {
     // Eexstension Method
@@ -14,6 +12,7 @@ namespace Rassef.Dependencyinjection
             services.AddFluentValidationAutoValidation();
             services.AddValidatorsFromAssemblyContaining<Program>();
             services.AddScoped(typeof(IRepository<>),typeof( Repository<>));
+            services.AddScoped<ICheckOutRepository, CheckOutRepository>();
 
 
             return services;
