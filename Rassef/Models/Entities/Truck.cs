@@ -4,7 +4,7 @@
     {
         public string PlateNumber { get; set; }
         public Guid TruckTypeId { get; set; }
-        public float StorageCapacity { get; set; }
+        public double StorageCapacity { get; set; }
         public bool IsRefrigerated { get; set; }
         public bool IsFood { get; set; }
         public User CreatedBy { get; set; }
