@@ -1,4 +1,6 @@
-﻿namespace Rassef.Models.Identity
+﻿
+
+namespace Rassef.Models.Identity
 {
     public class GroupPermission
     {
