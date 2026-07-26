@@ -1,6 +1,7 @@
-﻿namespace Rassef.Validators.AuthenticationValidators
+﻿
+namespace Rassef.Validators.AuthenticationValidators
 {
-    public class RegisterValidator
+    public class RegisterValidator : AbstractValidator<RegisterViewModel>
     {
     }
 }

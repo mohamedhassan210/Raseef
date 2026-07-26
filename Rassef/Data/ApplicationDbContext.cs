@@ -16,7 +16,7 @@ namespace Rassef.Data
         public virtual DbSet<TransferRequest> TransferRequests => Set<TransferRequest>();
         public virtual DbSet<Truck> Trucks => Set<Truck>();
         public virtual DbSet<Warehouse> Warehouses => Set<Warehouse>();
-        public ApplicationDbContext(DbContextOptions<DbContext> options) : base (options){}
+        public ApplicationDbContext(DbContextOptions<DbContext> options) : base(options) { }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

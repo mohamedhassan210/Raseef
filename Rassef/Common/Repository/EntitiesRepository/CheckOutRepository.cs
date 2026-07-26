@@ -1,8 +1,10 @@
-﻿namespace Rassef.Common.Repository.EntitiesRepository
+﻿
+using Rassef.Common.Interfaces;
+
+namespace Rassef.Common.Repository.EntitiesRepository
 {
-    public class CheckOutRepository : Repository<CheckOut>
+    public class CheckOutRepository : Repository<CheckOut> , ICheckOutRepository
     {
-        public CheckOutRepository(ApplicationDbContext db) : base(db){}
+        public CheckOutRepository(ApplicationDbContext db) : base(db) { }
     }
 }
- 
