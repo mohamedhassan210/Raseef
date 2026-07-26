@@ -17,6 +17,7 @@ namespace Rassef.Dependencyinjection
             services.AddScoped<ICheckOutRepository, CheckOutRepository>();
             services.AddScoped<IDepartmentRepository, DepartmentRepository>();
             services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+            
 
             return services;
         }
