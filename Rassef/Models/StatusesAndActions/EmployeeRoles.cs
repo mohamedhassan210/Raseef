@@ -1,6 +1,6 @@
 ﻿namespace Rassef.Models.StatusesAndActions
 {
-    public class Employee_roles : BaseEntity
+    public class EmployeeRoles : BaseEntity
     {
         public string Name { get; protected set; } = string.Empty;
 
