@@ -1,11 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Rassef.ViewModels.Authentication
+﻿namespace Rassef.ViewModels.Authentication
 {
     public class RegisterViewModel
     {
         [Required(ErrorMessage = "User Name is required. ")]
-        [StringLength(50,MinimumLength = 3)]
+        [StringLength(50, MinimumLength = 3)]
         [Display(Name = "username")]
         public string userName { get; set; } = string.Empty;
 
@@ -16,8 +14,8 @@ namespace Rassef.ViewModels.Authentication
 
 
         [StringLength(100)]
-        [EmailAddress] 
-        [Required(ErrorMessage ="Email is required")]
+        [EmailAddress]
+        [Required(ErrorMessage = "Email is required")]
         public string? Email { get; set; }
 
         [Required(ErrorMessage = "Password is required. ")]
