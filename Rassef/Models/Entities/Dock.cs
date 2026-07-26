@@ -8,6 +8,6 @@
         public User CreatedBy { get; set; } = null!;
         public Department Department { get; set; }
         public Dock_statuses DockStatus { get; set; }
-        public ICollection<DockAssignment> DockAssignments { get; set; }    
+        public ICollection<DockAssignment> DockAssignments { get; set; } = new HashSet<DockAssignment>();
     }
 }
