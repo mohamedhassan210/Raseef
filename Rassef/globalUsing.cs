@@ -8,3 +8,4 @@ global using Rassef.Models.Entities;
 global using Rassef.Models.Identity;
 global using Rassef.Models.ValueObjects;
 global using Rassef.Models.StatusesAndActions;
+global using System.ComponentModel.DataAnnotations;
