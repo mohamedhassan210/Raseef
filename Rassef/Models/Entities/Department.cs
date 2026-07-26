@@ -3,7 +3,7 @@
     public class Department : BaseEntity
     {
         public string Name { get; set; }
-        public int WarehouseId { get; set; }
+        public Guid WarehouseId { get; set; }
         public User CreatedBy { get; set; }
         public Warehouse Warehouse { get; set; }
         public ICollection<Dock> Docks { get; set; }

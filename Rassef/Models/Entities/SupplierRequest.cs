@@ -2,13 +2,13 @@
 {
     public class SupplierRequest : BaseEntity
     {
-        public int SupplierId { get; set; }
-        public int TruckId { get; set; }
-        public int DriverId { get; set; }
-        public int DepartmentId { get; set; }
-        public int PermitTypeId { get; set; }
-        public int CommodityTypeId { get; set; }
-        public int RequestStatusId { get; set; }
+        public Guid SupplierId { get; set; }
+        public Guid TruckId { get; set; }
+        public Guid DriverId { get; set; }
+        public Guid DepartmentId { get; set; }
+        public Guid PermitTypeId { get; set; }
+        public Guid CommodityTypeId { get; set; }
+        public Guid RequestStatusId { get; set; }
         public string DriverNationalCardPhoto { get; set; }
         public string DriverPhone { get; set; }
         public string PermitNumber { get; set; }

@@ -2,11 +2,11 @@
 {
     public class Dock : BaseEntity
     {
-        public int DepartmentId { get; set; }
+        public Guid DepartmentId { get; set; }
         public string DockName { get; set; } = string.Empty;
-        public int WarehouseId { get; set; }
-        public int DockStatusId { get; set; }
+        public Guid DockStatusId { get; set; }
         public User CreatedBy { get; set; } = null!;
-
+        public Department Department { get; set; }
+        public Warehouse Warehouse { get; set; }
     }
 }
