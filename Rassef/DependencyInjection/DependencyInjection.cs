@@ -16,7 +16,17 @@ namespace Rassef.Dependencyinjection
             //add services 
             services.AddScoped<ICheckOutRepository, CheckOutRepository>();
             services.AddScoped<IDepartmentRepository, DepartmentRepository>();
-            services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+            services.AddScoped<IDockAssignmentRepository, DockAssignmentRepository>();
+            services.AddScoped<IDockRepository, DockRepository>();
+            services.AddScoped<IDriverRepository, DriverRepository>();
+            services.AddScoped<IQueueActionRepository,QueueActionRepository >();
+            services.AddScoped<IQueueTicketRepository,QueueTicketRepository >();
+            services.AddScoped<ISupplierRepository,SupplierRepository >();
+            services.AddScoped<ISupplierRequestRepository,SupplierRequestRepository >();
+            services.AddScoped<ITransferRequestRepository,TransferRequestRepository >();
+            services.AddScoped<ITruckRepository,TruckRepository >();
+            services.AddScoped<IWarehouseRepository,WarehouseRepository >();
+
             
 
             return services;
