@@ -1,4 +1,4 @@
-﻿namespace Rassef.Common.Interfaces
+﻿namespace Rassef.Common.Interfaces.Services
 {
     public interface IRepository<T>
     {
