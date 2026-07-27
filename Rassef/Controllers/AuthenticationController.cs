@@ -6,7 +6,6 @@ namespace Rassef.Controllers
     public class AuthenticationController : Controller
     {
 
-        // login , register , foreget password , profile , logout and redirect , acesse denied
         [HttpGet]
         public IActionResult Login()
         {
