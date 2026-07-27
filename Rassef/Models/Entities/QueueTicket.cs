@@ -3,11 +3,11 @@ namespace Rassef.Models.Entities
 {
     public class QueueTicket : BaseEntity
     {
-        public int TicketNumber { get; set; }
-        public int TransferRequestId { get; set; }
-        public int SupplierRequestId { get; set; }
-        public int DepartmentId { get; set; }
-        public int TicketStatusId { get; set; }
+        public Guid TicketNumber { get; set; }
+        public Guid? TransferRequestId { get; set; }
+        public Guid? SupplierRequestId { get; set; }
+        public Guid DepartmentId { get; set; }
+        public Guid TicketStatusId { get; set; }
         public DateTimeOffset QueueTime { get; set; }
         public DateTimeOffset EntryTime { get; set; }
         public DateTimeOffset ExitTime { get; set; }
@@ -15,10 +15,10 @@ namespace Rassef.Models.Entities
         public TransferRequest? TransferRequest { get; set; }
         public SupplierRequest? SupplierRequest { get; set; }
         public Department Department { get; set; }
-        public Ticket_statuses TicketStatus { get; set; }
+        public TicketStatuses TicketStatus { get; set; }
         public CheckOut CheckOut { get; set; }
-        public ICollection<DockAssignment> DockAssignments { get; set; }
-        public ICollection<QueueAction> QueueActions { get; set; }
+        public ICollection<DockAssignment> DockAssignments { get; set; } = new HashSet<DockAssignment>();
+        public ICollection<QueueAction> QueueActions { get; set; } = new HashSet<QueueAction>();
 
     }
 }

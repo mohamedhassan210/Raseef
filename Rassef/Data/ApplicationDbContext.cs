@@ -1,4 +1,6 @@
-﻿namespace Rassef.Data
+﻿using System.Reflection;
+
+namespace Rassef.Data
 {
     public class ApplicationDbContext : DbContext
     {
@@ -14,10 +16,13 @@
         public virtual DbSet<TransferRequest> TransferRequests => Set<TransferRequest>();
         public virtual DbSet<Truck> Trucks => Set<Truck>();
         public virtual DbSet<Warehouse> Warehouses => Set<Warehouse>();
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public ApplicationDbContext(DbContextOptions<DbContext> options) : base(options) { }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnConfiguring(optionsBuilder);
+            base.OnModelCreating(modelBuilder);
+            // apply all configuration 
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
         }
     }
 }

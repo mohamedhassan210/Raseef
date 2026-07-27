@@ -1,3 +1,4 @@
+
 namespace Rassef
 {
     public class Program
@@ -6,8 +7,7 @@ namespace Rassef
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddDependcyInjection(builder.Configuration);
 
             var app = builder.Build();
 
@@ -19,16 +19,7 @@ namespace Rassef
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-
-            app.UseRouting();
-
-            app.UseAuthorization();
-
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Authentication}/{action=Index}/{id?}");
+            app.AddMiddleWares();
 
             app.Run();
         }
