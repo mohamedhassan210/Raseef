@@ -18,5 +18,7 @@
         => _dbSet.Remove(entity);
         public void UpdateAsync(T entity)
         => _dbSet.Update(entity);
+        public async Task<int> SaveChangesAsync()
+        => await _db.SaveChangesAsync();
     }
 }

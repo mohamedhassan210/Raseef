@@ -24,3 +24,7 @@ global using System.Security.Cryptography;
 global using System.Text;
 global using FluentValidation;
 global using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
+global using Microsoft.AspNetCore.Authentication;
+global using Microsoft.AspNetCore.Authentication.Cookies;
+global using Rassef.Common.Interfaces.Services.AuthenticationServices;
+global using BCrypt.Net;

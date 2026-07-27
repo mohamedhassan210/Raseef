@@ -1,4 +1,4 @@
-﻿namespace Rassef.Common.Interfaces.Services
+﻿namespace Rassef.Common.Interfaces.Services.AuthenticationServices
 {
     public interface IJwtService
     {

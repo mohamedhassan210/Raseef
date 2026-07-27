@@ -16,7 +16,7 @@
         [StringLength(100)]
         [EmailAddress]
         [Required(ErrorMessage = "Email is required")]
-        public string? Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password is required. ")]
         [DataType(DataType.Password)]

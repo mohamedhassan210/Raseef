@@ -1,47 +1,76 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class AuthenticationController : Controller
     {
+        private readonly IUserRepository _userRepository;
+        private readonly IJwtService _jwtService;
+        public AuthenticationController(IUserRepository userRepository, IJwtService jwtService)
+        { _userRepository = userRepository; _jwtService = jwtService; }
+
 
         [HttpGet]
-        public IActionResult Login()
+        public async Task<IActionResult> Login()
         {
-            if(User.Identity != null && User.Identity.IsAuthenticated)
+            if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("home","Home");
+                return RedirectToAction("home", "Home");
             }
             return View();
         }
         [HttpPost]
-        public IActionResult Login(LoginViewModel login)
+        public async Task<IActionResult> Login(LoginViewModel login)
         {
             return View();
         }
         [HttpGet]
-        public IActionResult Register()
-        {
-            return View();
-        }
+        public async Task<IActionResult> Register()
+        => View();
+
         [HttpPost]
-        public IActionResult Register(RegisterViewModel register)
+        // just for admin
+        public async Task<IActionResult> Register(RegisterViewModel register)
         {
-            return View();
+            if (!ModelState.IsValid)
+                return View(register);
+
+            if (await _userRepository.ExistsAsync(x => x.UserName == register.userName))
+            {
+                ModelState.AddModelError(nameof(register.userName), "Username already exists.");
+                return View(register);
+            }
+
+            if (await _userRepository.ExistsAsync(x => x.Email == Email.Create(register.Email)))
+            {
+                ModelState.AddModelError(nameof(register.Email), "Email already exists.");
+                return View(register);
+            }
+
+            var user = new User
+            {
+                Name = register.FullName,
+                UserName = register.userName,
+                Email = Email.Create(register.Email),
+                Password = BCrypt.Net.BCrypt.HashPassword(register.Password)
+            };
+
+            await _userRepository.AddAsync(user);
+            await _userRepository.SaveChangesAsync();
+
+            TempData["Success"] = "Registration completed successfully.";
+
+            return RedirectToAction(nameof(Login));
         }
         [HttpGet]
-        public IActionResult ForgetPassword()
-        {
-            return View();
-        }
+        public async Task<IActionResult> ForgetPassword()
+        => View();
+
         [HttpPost]
-        public IActionResult ForgetPassword(ForgetPasswordViewModel register)
+        public async Task<IActionResult> ForgetPassword(ForgetPasswordViewModel register)
         {
             return View();
         }
         [HttpGet]
-        public IActionResult UserProfile()
+        public async Task<IActionResult> UserProfile()
         {
             return View();
         }
@@ -49,7 +78,7 @@ namespace Rassef.Controllers
 
         //Helpers
         [HttpGet]
-        public IActionResult AccessDenied()
+        public async Task<IActionResult> AccessDenied()
         {
             return View();
         }
