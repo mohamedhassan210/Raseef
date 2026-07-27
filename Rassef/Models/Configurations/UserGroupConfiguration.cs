@@ -23,6 +23,8 @@ namespace Rassef.Configurations
                    .WithOne(gp => gp.Group)
                    .HasForeignKey(gp => gp.GroupId)
                    .OnDelete(DeleteBehavior.Restrict);
+
+
         }
     }
 }

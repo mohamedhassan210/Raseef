@@ -26,6 +26,20 @@ namespace Rassef.Configurations
                    .WithMany()
                    .HasForeignKey(u => u.GroupId)
                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasKey(u => u.Id);
+
+            builder.Property(u => u.UserName)
+                 .HasMaxLength(100)
+                 .IsRequired();
+
+            builder.OwnsOne(u => u.Email, email =>
+            {
+                email.Property(e => e.Value)
+                     .HasColumnName("Email") 
+                     .HasMaxLength(256)
+                     .IsRequired();
+            });
         }
     }
 }

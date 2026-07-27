@@ -7,6 +7,11 @@
         public AuthenticationController(IUserRepository userRepository, IJwtService jwtService)
         { _userRepository = userRepository; _jwtService = jwtService; }
 
+        [HttpGet]
+        public IActionResult Intro()
+        {
+            return View();
+        }
 
         [HttpGet]
         public async Task<IActionResult> Login()

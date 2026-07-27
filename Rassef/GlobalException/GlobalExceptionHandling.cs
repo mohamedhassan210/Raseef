@@ -4,8 +4,8 @@ namespace Rassef.GlobalException
 {
     public class GlobalExceptionHandling : IExceptionHandler
     {
-        private readonly ILogger _logger;
-        public GlobalExceptionHandling(ILogger logger)
+        private readonly ILogger<GlobalExceptionHandling> _logger;
+        public GlobalExceptionHandling(ILogger<GlobalExceptionHandling> logger)
          => _logger = logger;
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
