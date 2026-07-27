@@ -12,6 +12,13 @@ namespace Rassef.Models.ValueObjects
             {
                 throw new DomainException("Invalid Email");
             }
+            Value = value;
         }
+        public static Email Create(string value)
+        {
+            return new Email(value);
+        }
+
+        public override string ToString() => Value;
     }
 }

@@ -1,4 +1,5 @@
-﻿using Rassef.ViewModels.Authentication.JWT;
+﻿using FluentValidation;
+using Rassef.ViewModels.Authentication.JWT;
 
 namespace Rassef.Dependencyinjection
 {
