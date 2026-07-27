@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Rassef.Common.Interfaces.Services.AuthenticationServices;
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class AuthenticationController : Controller
     {
@@ -17,14 +13,47 @@ namespace Rassef.Controllers
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("home", "Home");
+                return RedirectToAction("SupOrTra", "Authentication");
             }
             return View();
         }
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel login)
         {
-            return View();
+            if (!ModelState.IsValid)
+                return View(login);
+
+            var user = await _userRepository.FindAsync(x =>
+                x.UserName == login.UserNameOrEmail ||
+                x.Email!.Value == login.UserNameOrEmail);
+
+            if (user is null)
+            {
+                ModelState.AddModelError(nameof(login.UserNameOrEmail),
+                    "اسم المستخدم أو البريد الإلكتروني غير موجود.");
+
+                return View(login);
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(login.Password, user.Password))
+            {
+                ModelState.AddModelError(nameof(login.Password),
+                    "كلمة المرور غير صحيحة.");
+
+                return View(login);
+            }
+
+            var token = _jwtService.GenerateToken(user.Id, user.Email);
+
+            Response.Cookies.Append("AccessToken", token, new CookieOptions
+            {
+                HttpOnly = true,                
+                Secure = true,                
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                IsEssential = true
+            });
+            return RedirectToAction(nameof(SupOrTra));
         }
         [HttpGet]
         public async Task<IActionResult> Register()
@@ -39,13 +68,13 @@ namespace Rassef.Controllers
 
             if (await _userRepository.ExistsAsync(x => x.UserName == register.UserName))
             {
-                ModelState.AddModelError(nameof(register.UserName), "Username already exists.");
+                ModelState.AddModelError(nameof(register.UserName), "اسم المستخدم هذا موجود بالقعل .");
                 return View(register);
             }
 
             if (await _userRepository.ExistsAsync(x => x.Email == Email.Create(register.Email)))
             {
-                ModelState.AddModelError(nameof(register.Email), "Email already exists.");
+                ModelState.AddModelError(nameof(register.Email), "هذا الايميل موجود بالفعل .");
                 return View(register);
             }
 
@@ -60,7 +89,7 @@ namespace Rassef.Controllers
             await _userRepository.AddAsync(user);
             await _userRepository.SaveChangesAsync();
 
-            TempData["Success"] = "Registration completed successfully.";
+            TempData["Success"] = "تم التسجيل بنجاح.";
 
             return RedirectToAction(nameof(Login));
         }
@@ -79,6 +108,12 @@ namespace Rassef.Controllers
             return View();
         }
 
+        // Supplier of Transfer 
+        [HttpGet]
+        public  async Task<IActionResult> SupOrTra()
+        { 
+            return View();
+        }
 
         //Helpers
         [HttpGet]
@@ -90,6 +125,7 @@ namespace Rassef.Controllers
         private RedirectToActionResult ForceLogoutAndRedirect()
         {
             HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            Response.Cookies.Delete("AccessToken");
             return RedirectToAction("Login");
         }
     }

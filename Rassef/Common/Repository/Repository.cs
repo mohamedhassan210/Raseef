@@ -1,4 +1,6 @@
-﻿namespace Rassef.Common.Repository
+﻿using System.Linq.Expressions;
+
+namespace Rassef.Common.Repository
 {
     public class Repository<T> : IRepository<T> where T : BaseEntity
     {
@@ -20,5 +22,11 @@
         => _dbSet.Update(entity);
         public async Task<int> SaveChangesAsync()
         => await _db.SaveChangesAsync();
+        public async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
+        => await _dbSet.AnyAsync(predicate);
+
+        public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate)
+        => await _dbSet.FirstOrDefaultAsync(predicate);
+
     }
 }

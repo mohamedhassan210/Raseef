@@ -1,7 +1,4 @@
-﻿using FluentValidation;
-using Rassef.ViewModels.Authentication.JWT;
-
-namespace Rassef.Dependencyinjection
+﻿namespace Rassef.Dependencyinjection
 {
     // Eexstension Method
     public static class DependencyInjection
