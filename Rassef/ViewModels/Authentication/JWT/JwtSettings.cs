@@ -1,4 +1,4 @@
-﻿namespace Rassef.ViewModels.Authentication
+﻿namespace Rassef.ViewModels.Authentication.JWT
 {
     public class JwtSettings
     {

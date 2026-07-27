@@ -6,6 +6,6 @@
         public Guid ActionTypeId { get; set; }
         public DateTimeOffset ActionTime { get; set; }
         public QueueTicket QueueTicket { get; set; }
-        public Action_types ActionType { get; set; }
+        public ActionTypes ActionType { get; set; }
     }
 }

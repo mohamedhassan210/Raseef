@@ -1,3 +1,4 @@
+
 namespace Rassef
 {
     public class Program

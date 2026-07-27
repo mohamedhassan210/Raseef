@@ -7,6 +7,6 @@
         public DateTimeOffset ExitTime { get; set; }
         public User CreatedBy { get; set; } = null!;
         public QueueTicket QueueTicket { get; set; }
-        public Exit_types ExitType { get; set; }
+        public ExitTypes ExitType { get; set; }
     }
 }

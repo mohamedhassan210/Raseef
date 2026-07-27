@@ -15,7 +15,7 @@ namespace Rassef.Models.Entities
         public TransferRequest? TransferRequest { get; set; }
         public SupplierRequest? SupplierRequest { get; set; }
         public Department Department { get; set; }
-        public Ticket_statuses TicketStatus { get; set; }
+        public TicketStatuses TicketStatus { get; set; }
         public CheckOut CheckOut { get; set; }
         public ICollection<DockAssignment> DockAssignments { get; set; } = new HashSet<DockAssignment>();
         public ICollection<QueueAction> QueueActions { get; set; } = new HashSet<QueueAction>();

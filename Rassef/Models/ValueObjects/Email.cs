@@ -12,6 +12,7 @@ namespace Rassef.Models.ValueObjects
             {
                 throw new DomainException("Invalid Email");
             }
+            Value = value;
         }
     }
 }
