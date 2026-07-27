@@ -5,6 +5,7 @@
         public string Name { get; set; }=string.Empty;
         public Guid WarehouseId { get; set; }
         public User CreatedBy { get; set; }
+        public Guid CreatedById { get; set; }
         public Warehouse Warehouse { get; set; }
         public ICollection<Dock> Docks { get; set; } = new HashSet<Dock>();
         public ICollection<QueueTicket> QueueTickets { get; set; } = new HashSet<QueueTicket>();
