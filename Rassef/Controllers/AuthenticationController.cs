@@ -1,4 +1,8 @@
-﻿namespace Rassef.Controllers
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Rassef.Common.Interfaces.Services.AuthenticationServices;
+
+namespace Rassef.Controllers
 {
     public class AuthenticationController : Controller
     {
@@ -33,9 +37,9 @@
             if (!ModelState.IsValid)
                 return View(register);
 
-            if (await _userRepository.ExistsAsync(x => x.UserName == register.userName))
+            if (await _userRepository.ExistsAsync(x => x.UserName == register.UserName))
             {
-                ModelState.AddModelError(nameof(register.userName), "Username already exists.");
+                ModelState.AddModelError(nameof(register.UserName), "Username already exists.");
                 return View(register);
             }
 
@@ -48,7 +52,7 @@
             var user = new User
             {
                 Name = register.FullName,
-                UserName = register.userName,
+                UserName = register.UserName,
                 Email = Email.Create(register.Email),
                 Password = BCrypt.Net.BCrypt.HashPassword(register.Password)
             };
