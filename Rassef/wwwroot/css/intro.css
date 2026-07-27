@@ -1,0 +1,174 @@
+@import url('https://googleapis.com');
+
+/* ==========================================
+   1. GLOBAL & RESET
+=========================================== */
+:root {
+    --brand-orange: #f7931e;
+}
+
+html, body {
+    font-family: 'IBM Plex Sans Arabic', "Segoe UI", Roboto, sans-serif;
+}
+
+body.is-loading {
+    overflow: hidden !important;
+    margin: 0;
+    padding: 0;
+    background-color: var(--brand-orange);
+    font-family: 'IBM Plex Sans', "Segoe UI", Roboto, sans-serif;
+}
+
+/* ==========================================
+   2. SPLASH OVERLAY
+=========================================== */
+.splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--brand-orange);
+    z-index: 99999;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* حالة الفيد أوت النهائي للـ Splash ككل */
+.splash-screen.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ==========================================
+   3. PHASE 1: RASEEFI ANIMATION
+=========================================== */
+.raseefi-wrapper {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.raseefi-logo {
+    max-width: 380px;
+    height: auto;
+    filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.12));
+    will-change: transform, opacity;
+    animation: raseefiDrive 4.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes raseefiDrive {
+    0% {
+        transform: translateX(120vw) scale(0.95);
+        opacity: 0;
+    }
+    9% {
+        opacity: 1;
+    }
+    33% {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+    55% {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+    88% {
+        transform: translateX(-120vw) scale(0.95);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(-120vw) scale(0.9);
+        opacity: 0;
+    }
+}
+
+/* ==========================================
+   4. PHASES 2 - 5: FATHALLA ANIMATION
+=========================================== */
+.fathalla-wrapper {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: -20px; /* مسافة صغيرة جداً ومضبوطة بين اللوجو والنص */
+    will-change: transform, opacity;
+}
+
+/* المرحلة 2: ظهور أيقونة فتح الله في منتصف الشاشة تماماً */
+.fathalla-logo {
+    max-width: 200px;
+    height: auto;
+    opacity: 0;
+    will-change: transform, opacity;
+    transition: opacity 0.8s ease-in-out, transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-right: 160px;
+}
+
+.fathalla-logo.is-visible {
+    opacity: 1;
+}
+
+/* المرحلة 3: تحرك أيقونة فتح الله جهة اليمين مسافة مناسبة لتفسح مجالاً للنص */
+.fathalla-logo.shift-right {
+    transform: translateX(100px);
+}
+
+/* المرحلة 4: ظهور النص متناسق وملاصق تقريباً على اليسار */
+.fathalla-text {
+    max-width: 280px;
+    height: auto;
+    opacity: 0;
+    transform: translateX(-100px);
+    will-change: transform, opacity;
+    transition: opacity 0.7s ease-out, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fathalla-text.is-visible {
+    opacity: 1;
+    transform: translateX(80px);
+}
+
+/* ==========================================
+   5. RESPONSIVE DESIGN
+=========================================== */
+@media (max-width: 768px) {
+    .raseefi-logo {
+        max-width: 200px;
+    }
+    .fathalla-logo {
+        max-width: 75px;
+    }
+    .fathalla-text {
+        max-width: 130px;
+    }
+    .fathalla-logo.shift-right {
+        transform: translateX(50px);
+    }
+    .fathalla-wrapper {
+        gap: 3px;
+    }
+}
+
+@media (max-width: 480px) {
+    .raseefi-logo {
+        max-width: 160px;
+    }
+    .fathalla-logo {
+        max-width: 60px;
+    }
+    .fathalla-text {
+        max-width: 100px;
+    }
+    .fathalla-logo.shift-right {
+        transform: translateX(40px);
+    }
+    .fathalla-wrapper {
+        gap: 2px;
+    }
+}
