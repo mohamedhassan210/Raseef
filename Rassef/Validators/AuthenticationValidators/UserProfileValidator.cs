@@ -1,6 +1,8 @@
-﻿namespace Rassef.Validators.AuthenticationValidators
+﻿using FluentValidation;
+
+namespace Rassef.Validators.AuthenticationValidators
 {
-    public class UserProfileValidator:AbstractValidator<UserProfileViewModel>
+    public class UserProfileValidator: AbstractValidator<UserProfileViewModel>
     {
         public UserProfileValidator()
         {
