@@ -1,4 +1,6 @@
-﻿namespace Rassef.Dependencyinjection
+﻿using Rassef.ViewModels.Authentication.JWT;
+
+namespace Rassef.Dependencyinjection
 {
     // Eexstension Method
     public static class DependencyInjection
