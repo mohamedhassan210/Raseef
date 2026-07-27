@@ -1,6 +1,4 @@
-﻿
-
-namespace Rassef.Models.Identity
+﻿namespace Rassef.Models.Identity
 {
     public class GroupPermission
     {
@@ -8,7 +6,7 @@ namespace Rassef.Models.Identity
         public UserGroup? Group { get; set; }
 
         public Guid PermissionId { get; set; }
-        public Permissions? Permission { get; set; }
+        public Permission? Permission { get; set; }
 
     }
 }
