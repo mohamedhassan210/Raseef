@@ -2,8 +2,8 @@
   "ExpandedNodes": [
     "",
     "\\Rassef",
-    "\\Rassef\\Common"
+    "\\Rassef\\Data"
   ],
-  "SelectedNode": "\\Rassef\\Rassef.sln",
+  "SelectedNode": "\\Rassef\\Data\\ApplicationDbContext.cs",
   "PreviewInSolutionExplorer": false
 }
