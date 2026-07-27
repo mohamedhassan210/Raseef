@@ -1,4 +1,6 @@
-﻿namespace Rassef.ViewModels.Authentication.JWT
+﻿using Rassef.Common.Interfaces.Services.AuthenticationServices;
+
+namespace Rassef.ViewModels.Authentication.JWT
 {
     public class JwtService : IJwtService
     {

@@ -18,10 +18,6 @@
                    .IsRequired()
                    .HasMaxLength(20);
 
-            builder.Property(d => d.NationalCardPhoto)
-                   .IsRequired(false)
-                   .HasMaxLength(500);
-
             builder.HasOne(d => d.CreatedBy)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);

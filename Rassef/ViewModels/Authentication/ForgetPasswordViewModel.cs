@@ -2,5 +2,9 @@
 {
     public class ForgetPasswordViewModel
     {
+    
+        [Display(Name = "Email Address")]
+        public Email Email { get; set; }
+
     }
 }

@@ -4,6 +4,10 @@ namespace Rassef.Data
 {
     public class ApplicationDbContext : DbContext
     {
+        public virtual DbSet<User> Users => Set<User>();
+        public virtual DbSet<GroupPermission> GroupPermissions => Set<GroupPermission>();
+        public virtual DbSet<UserGroup> UserGroups => Set<UserGroup>();
+        public virtual DbSet<Permission> Permissions => Set<Permission>();
         public virtual DbSet<CheckOut> CheckOuts => Set<CheckOut>();
         public virtual DbSet<Department> Departments => Set<Department>();
         public virtual DbSet<Dock> Docks => Set<Dock>();
