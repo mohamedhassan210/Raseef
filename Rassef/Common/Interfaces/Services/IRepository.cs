@@ -11,5 +11,6 @@ namespace Rassef.Common.Interfaces.Services
         void UpdateAsync(T entity);
         void RemoveAsync(T entity);
         Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
+        Task<T?> FindAsync(Expression<Func<T, bool>> predicate);
     }
 }
