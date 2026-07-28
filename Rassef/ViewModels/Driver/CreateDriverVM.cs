@@ -12,4 +12,4 @@
         [Display(Name = "رقم الهاتف")]
         public string Phone { get; set; } = string.Empty;
     }
-}
+}   

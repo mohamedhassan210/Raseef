@@ -11,7 +11,7 @@ namespace Rassef.Controllers
             _repository = department;
         }
 
-        // Get All Departments
+        
         public async Task<IActionResult> Index()
         {
             var departrments = await _repository.GetAllAsync();
@@ -59,6 +59,12 @@ namespace Rassef.Controllers
             if (!ModelState.IsValid)
                 return View(create);
 
+            if (await _repository.ExistsAsync(x => x.Name == create.Name))
+            {
+                ModelState.AddModelError(nameof(create.Name), "اسم القسم مسجل بالفعل.");
+                return View(create);
+            }
+
             var department = new Department
             {
                 Name = create.Name,
@@ -66,6 +72,7 @@ namespace Rassef.Controllers
             };
 
             await _repository.AddAsync(department);
+            await _repository.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
@@ -102,10 +109,17 @@ namespace Rassef.Controllers
             if (department == null)
                 return NotFound();
 
+            if (await _repository.ExistsAsync(x => x.Name == model.Name && x.Id != model.Id))
+            {
+                ModelState.AddModelError(nameof(model.Name), "اسم القسم مسجل بالفعل.");
+                return View(model);
+            }
+
             department.Name = model.Name;
             department.WarehouseId = model.WarehouseId;
 
             _repository.Update(department);
+            await _repository.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
@@ -140,6 +154,7 @@ namespace Rassef.Controllers
                 return NotFound();
 
             _repository.Remove(department);
+            await _repository.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
