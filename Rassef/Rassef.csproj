@@ -29,7 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Exstensions\" />
     <Folder Include="Validators\DepartmentValidators\" />
     <Folder Include="Validators\WarehouseValidators\" />
   </ItemGroup>

@@ -72,7 +72,7 @@
             if (id != warehouse.Id) return NotFound();
 
             bool isUnique = await _warehouseRepository.IsNameUniqueAsync(warehouse.Name);
-                if (!isUnique)
+            if (!isUnique)
             {
                 ModelState.AddModelError("Name", "اسم المستودع مستخدم بالفعل لمستودع آخر.");
             }

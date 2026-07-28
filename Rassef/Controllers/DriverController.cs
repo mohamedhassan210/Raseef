@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Rassef.ViewModels.Driver;
+﻿using Rassef.ViewModels.Driver;
 
 namespace Rassef.Controllers
 {
@@ -14,7 +13,7 @@ namespace Rassef.Controllers
         {
             var driver = await _repository.GetAllAsync();
 
-            var driverList = driver.Select(d=> new DriverListVM
+            var driverList = driver.Select(d => new DriverListVM
             {
                 Id = d.Id,
                 FullName = d.FullName,
