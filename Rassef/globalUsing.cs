@@ -35,6 +35,7 @@ global using Rassef.ViewModels.Warehouse;
 global using Rassef.ViewModels.Department;
 global using Rassef.ViewModels.Driver;
 global using Rassef.ViewModels.CheckOut;
+global using Rassef.ViewModels.Supplier;
 
 
 
