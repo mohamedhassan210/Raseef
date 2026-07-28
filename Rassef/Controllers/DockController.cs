@@ -63,7 +63,7 @@
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var vm = await PopulateDropdownsForCreateAsync();
+            var vm = await PopulateCreateDropdownsAsync(new CreateDockVM());
             return View(vm);
         }
 
@@ -74,7 +74,7 @@
         {
             if (!ModelState.IsValid)
             {
-                create = await PopulateDropdownsForCreateAsync(create);
+                create = await PopulateCreateDropdownsAsync(create);
                 return View(create);
             }
 
@@ -113,7 +113,7 @@
                 DockStatusId = dock.DockStatusId
             };
 
-            vm = await PopulateDropdownsForUpdateAsync(vm);
+            vm = await PopulateUpdateDropdownsAsync(vm);
 
             return View(vm);
         }
@@ -125,7 +125,7 @@
         {
             if (!ModelState.IsValid)
             {
-                updateVm = await PopulateDropdownsForUpdateAsync(updateVm);
+                updateVm = await PopulateUpdateDropdownsAsync(updateVm);
                 return View(updateVm);
             }
 
