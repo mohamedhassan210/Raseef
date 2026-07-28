@@ -26,6 +26,7 @@ namespace Rassef.Controllers
 
         public async Task<IActionResult> Details(Guid id)
         {
+
             return View();
         }
 
