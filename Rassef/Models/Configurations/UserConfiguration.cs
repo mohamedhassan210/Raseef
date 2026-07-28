@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Rassef.Models.Identity;
-
-namespace Rassef.Configurations
+﻿namespace Rassef.Configurations
 {
     public class UserConfiguration : IEntityTypeConfiguration<User>
     {
@@ -36,7 +32,7 @@ namespace Rassef.Configurations
             builder.OwnsOne(u => u.Email, email =>
             {
                 email.Property(e => e.Value)
-                     .HasColumnName("Email") 
+                     .HasColumnName("Email")
                      .HasMaxLength(256)
                      .IsRequired();
             });

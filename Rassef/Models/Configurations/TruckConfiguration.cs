@@ -16,8 +16,7 @@
             builder.Property(t => t.IsRefrigerated)
                    .IsRequired();
 
-            builder.Property(t => t.IsFood)
-                   .IsRequired();
+
 
             builder.HasOne(t => t.TruckType)
                    .WithMany()

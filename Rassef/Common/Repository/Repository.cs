@@ -11,14 +11,14 @@ namespace Rassef.Common.Repository
             _db = db;
             _dbSet = _db.Set<T>();
         }
-        public async Task<T?> GetById(Guid id) => await _dbSet.FindAsync(id);
-        public async Task<IReadOnlyList<T>> GetAll()
+        public async Task<T?> GetByIdAsync(Guid id) => await _dbSet.FindAsync(id);
+        public async Task<IReadOnlyList<T>> GetAllAsync()
         => await _dbSet.AsNoTracking().ToListAsync();
         public async Task AddAsync(T entity)
         => await _dbSet.AddAsync(entity);
-        public void RemoveAsync(T entity)
+        public void Remove(T entity)
         => _dbSet.Remove(entity);
-        public void UpdateAsync(T entity)
+        public void Update(T entity)
         => _dbSet.Update(entity);
         public async Task<int> SaveChangesAsync()
         => await _db.SaveChangesAsync();

@@ -2,7 +2,7 @@
 {
     public class Department : BaseEntity
     {
-        public string Name { get; set; }=string.Empty;
+        public string Name { get; set; } = string.Empty;
         public Guid WarehouseId { get; set; }
         public User CreatedBy { get; set; }
         public Guid CreatedById { get; set; }
