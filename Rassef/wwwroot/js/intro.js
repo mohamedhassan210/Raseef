@@ -30,9 +30,4 @@ document.addEventListener('DOMContentLoaded', () => {
             splashScreen.classList.add('fade-out');
         }
     }, 8400);
-
-    // (9.0s): التحويل لصفحة تسجيل الدخول
-    setTimeout(() => {
-        window.location.href = "index.html";
-    }, 9000);
 });

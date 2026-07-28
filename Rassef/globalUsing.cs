@@ -35,3 +35,4 @@ global using Microsoft.AspNetCore.Authentication.Cookies;
 global using Rassef.ViewModels.Authentication.JWT;
 global using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
+global using Microsoft.AspNetCore.Mvc.Rendering;

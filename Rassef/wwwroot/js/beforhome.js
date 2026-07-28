@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.classList.remove('state-hover-supply');
         // إخفاء اللوجوهين معاً
         logoFathallahState(true);
-        logoRaseefiState(false); 
+        logoRaseefiState(false);
     };
 
     const activateSupply = () => {
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.classList.remove('state-hover-transfer');
         // إخفاء اللوجوهين معاً
         logoRaseefiState(true);
-        logoFathallahState(false); 
+        logoFathallahState(false);
     };
 
     const resetState = () => {
@@ -42,11 +42,15 @@ document.addEventListener('DOMContentLoaded', () => {
     zoneTransfer.addEventListener('mouseenter', activateTransfer);
     zoneSupply.addEventListener('mouseenter', activateSupply);
     canvas.addEventListener('mouseleave', resetState);
-    zoneTransfer.addEventListener('click', () => {
-        window.location.href = 'transfer.html';
+
+    // التعديل الخاص بـ MVC Routing
+    zoneTransfer.addEventListener('click', (e) => {
+        const url = e.currentTarget.getAttribute('data-url');
+        if (url) window.location.href = url;
     });
-    
-    zoneSupply.addEventListener('click', () => {
-        window.location.href = 'suppliers.html';
+
+    zoneSupply.addEventListener('click', (e) => {
+        const url = e.currentTarget.getAttribute('data-url');
+        if (url) window.location.href = url;
     });
 });
