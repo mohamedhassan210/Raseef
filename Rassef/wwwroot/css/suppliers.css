@@ -178,7 +178,7 @@ html, body {
     flex-grow: 1;
     border: none;
     outline: none;
-    background: #FFFFFF;
+    background: #FCF3EE;
     color: var(--text-dark);
     font-family: var(--font-family);
     font-size: 1.1rem;
