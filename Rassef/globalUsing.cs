@@ -23,6 +23,8 @@ global using Rassef.Models.ValueObjects;
 global using Rassef.Piplines;
 global using Rassef.ViewModels.Authentication;
 global using Rassef.ViewModels.Authentication.JWT;
+global using Rassef.ViewModels.Dock;
+global using Rassef.ViewModels.Truck;
 global using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 global using System.ComponentModel.DataAnnotations;
 global using System.IdentityModel.Tokens.Jwt;
