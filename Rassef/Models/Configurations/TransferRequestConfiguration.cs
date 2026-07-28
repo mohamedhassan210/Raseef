@@ -10,10 +10,6 @@
                    .IsRequired()
                    .HasMaxLength(100);
 
-            builder.Property(tr => tr.DriverPhone)
-                   .IsRequired()
-                   .HasMaxLength(20);
-
             builder.Property(tr => tr.PermitNumber)
                    .IsRequired()
                    .HasMaxLength(100);
