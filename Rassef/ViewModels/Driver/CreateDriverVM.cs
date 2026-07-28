@@ -19,4 +19,4 @@
         [Phone(ErrorMessage = "رقم الهاتف غير صحيح.")]
         public string Phone { get; set; } = string.Empty;
     }
-}
+}   
