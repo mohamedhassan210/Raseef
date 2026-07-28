@@ -2,5 +2,6 @@
 {
     public interface IWarehouseRepository : IRepository<Warehouse>
     {
+
     }
 }
