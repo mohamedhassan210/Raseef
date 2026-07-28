@@ -32,3 +32,7 @@ global using System.Security.Claims;
 global using System.Security.Cryptography;
 global using System.Text;
 global using Rassef.ViewModels.Warehouse;
+global using Rassef.ViewModels.Department;
+global using Rassef.ViewModels.Driver;
+
+

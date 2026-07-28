@@ -28,9 +28,4 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.21.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Validators\DepartmentValidators\" />
-    <Folder Include="Validators\WarehouseValidators\" />
-  </ItemGroup>
-
 </Project>
