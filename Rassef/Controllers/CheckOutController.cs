@@ -16,7 +16,6 @@
             _exitTypeRepo = exitTypeRepo ?? throw new ArgumentNullException(nameof(exitTypeRepo));
         }
 
-        // Get All CheckOuts
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -33,7 +32,6 @@
             return View(checkOutViewModels);
         }
 
-        // Get CheckOut By Id
         [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
@@ -57,7 +55,6 @@
             return View(model);
         }
 
-        // Create Get
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -65,7 +62,6 @@
             return View(vm);
         }
 
-        // Create Post
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateCheckOutVM create)
@@ -89,7 +85,6 @@
             return RedirectToAction(nameof(Index));
         }
 
-        // Update Get
         [HttpGet]
         public async Task<IActionResult> Update(Guid id)
         {
@@ -114,7 +109,6 @@
             return View(vm);
         }
 
-        // Update Post
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Update(UpdateCheckOutVM updateVm)
@@ -143,7 +137,6 @@
             return RedirectToAction(nameof(Index));
         }
 
-        // Delete Get
         [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -164,7 +157,6 @@
             return View(vm);
         }
 
-        // Delete Confirm
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
