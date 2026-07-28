@@ -148,12 +148,5 @@
         {
             return View();
         }
-        [HttpGet]
-        private RedirectToActionResult ForceLogoutAndRedirect()
-        {
-            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            Response.Cookies.Delete("AccessToken");
-            return RedirectToAction("Login");
-        }
     }
 }
