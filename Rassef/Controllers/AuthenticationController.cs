@@ -4,12 +4,18 @@
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtService _jwtService;
-        public AuthenticationController(IUserRepository userRepository, IJwtService jwtService)
-        { _userRepository = userRepository; _jwtService = jwtService; }
+        private readonly ILogger<AuthenticationController> _logger;
+        public AuthenticationController(IUserRepository userRepository, IJwtService jwtService, ILogger<AuthenticationController> logger  )
+        {
+            _userRepository = userRepository ?? throw new ArgumentNullException( nameof( userRepository ) );
+            _jwtService = jwtService ?? throw new ArgumentNullException( nameof( jwtService ) ); 
+            _logger = logger ?? throw new ArgumentNullException( nameof( logger ) );
+        }
 
         [HttpGet]
         public IActionResult Intro()
         {
+            _logger.LogInformation("Home Page Opened");
             return View();
         }
 

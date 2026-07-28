@@ -1,4 +1,6 @@
 
+using Serilog;
+
 namespace Rassef
 {
     public class Program
@@ -8,7 +10,7 @@ namespace Rassef
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddDependcyInjection(builder.Configuration);
-
+            builder.Host.UseSerilog();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
