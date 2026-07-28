@@ -6,11 +6,11 @@
 
     {
 
-        Task<Warehouse?> GetWithDetailsByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<Warehouse?> GetWithDetailsByIdAsync(Guid id );
 
 
 
-        Task<bool> IsNameUniqueAsync(string name, Guid? excludedId = null, CancellationToken cancellationToken = default);
+        Task<bool> IsNameUniqueAsync(string name);
 
     }
 

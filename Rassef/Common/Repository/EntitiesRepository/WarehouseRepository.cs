@@ -20,7 +20,7 @@
 
 
 
-        public async Task<Warehouse?> GetWithDetailsByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<Warehouse?> GetWithDetailsByIdAsync(Guid id)
 
         {
 
@@ -32,19 +32,18 @@
 
                 .Include(w => w.Departments)
 
-                .FirstOrDefaultAsync(w => w.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(w => w.Id == id);
 
         }
 
 
 
-        public async Task<bool> IsNameUniqueAsync(string name, Guid? excludedId = null, CancellationToken cancellationToken = default)
+        public async Task<bool> IsNameUniqueAsync(string name)
 
         {
 
             return !await _db.Set<Warehouse>()
-
-                .AnyAsync(w => w.Name.ToLower() == name.ToLower() && (excludedId == null || w.Id != excludedId), cancellationToken);
+                .AnyAsync(w => w.Name.ToLower() == name.ToLower());
 
         }
 
