@@ -1,10 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Rassef.ViewModels.Department;
-using Rassef.ViewModels.Dock;
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
-    public class DockController  : Controller
+    public class DockController : Controller
     {
         private readonly IDockRepository _repository;
         private readonly IRepository<Department> _departmentRepo;
@@ -24,6 +20,7 @@ namespace Rassef.Controllers
         }
 
         // Get All Docks
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var docks = await _repository.GetAllAsync();
@@ -41,12 +38,13 @@ namespace Rassef.Controllers
         }
 
         // Get Dock By Id
-        public async Task<IActionResult> Details(Guid id)
+        [HttpGet("{id : Guid}")]
+        public async Task<IActionResult> Details([FromRoute] Guid id)
         {
             var dock = await _repository.GetByIdAsync(id);
 
             if (dock == null)
-                return NotFound();
+                return View(dock);
 
             var model = new DockDetailsVM
             {
@@ -178,7 +176,7 @@ namespace Rassef.Controllers
 
             if (dock == null)
             {
-                return NotFound();
+                return View(dock);
             }
 
             _repository.Remove(dock);
@@ -187,7 +185,7 @@ namespace Rassef.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-
+        // Helpers
         private async Task<CreateDockVM> PopulateDropdownsForCreateAsync(CreateDockVM vm = null)
         {
             vm ??= new CreateDockVM();
