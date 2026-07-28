@@ -25,16 +25,16 @@
         {
             var docks = await _repository.GetAllAsync();
 
-            var dock = docks.Select(x => new DockListVM
+            var dockViewModels = docks.Select(x => new DockListVM
             {
                 Id = x.Id,
                 DockName = x.DockName,
-                WarehouseName = x.Warehouse.Name,
-                DepartmentName = x.Department.Name,
-                DockStatusName = x.DockStatus.Name
+                WarehouseName = x.Warehouse?.Name ?? "غير محدد",
+                DepartmentName = x.Department?.Name ?? "غير محدد",
+                DockStatusName = x.DockStatus?.Name ?? "غير محدد"
             });
 
-            return View(dock);
+            return View(dockViewModels);
         }
 
         // Get Dock By Id
@@ -50,9 +50,9 @@
             {
                 Id = id,
                 DockName = dock.DockName,
-                WarehouseName = dock.Warehouse.Name,
-                DockStatusName = dock.DockStatus.Name,
-                DepartmentName = dock.Department.Name,
+                WarehouseName = dock.Warehouse.Name ?? "غير محدد",
+                DockStatusName = dock.DockStatus.Name ?? "غير محدد",
+                DepartmentName = dock.Department.Name ?? "غير محدد",
                 CreatedBy = dock.CreatedById
             };
 
@@ -185,34 +185,44 @@
 
             return RedirectToAction(nameof(Index));
         }
-        // Helpers
-        private async Task<CreateDockVM> PopulateDropdownsForCreateAsync(CreateDockVM vm = null)
-        {
-            vm ??= new CreateDockVM();
 
-            var departments = await _departmentRepo.GetAllAsync();
-            var warehouses = await _warehouseRepo.GetAllAsync();
-            var statuses = await _statusRepo.GetAllAsync();
+        #region Helpers
 
-            vm.Departments = departments.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name });
-            vm.Warehouses = warehouses.Select(w => new SelectListItem { Value = w.Id.ToString(), Text = w.Name });
-            vm.DockStatus = statuses.Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name });
-
-            return vm;
-        }
-
-        private async Task<UpdateDockVM> PopulateDropdownsForUpdateAsync(UpdateDockVM vm)
+        // 1. دالة مركزية لجلب البيانات من قاعدة البيانات (DRY)
+        private async Task<(IEnumerable<SelectListItem> Depts, IEnumerable<SelectListItem> Warehouses, IEnumerable<SelectListItem> Statuses)> GetDropdownDataAsync()
         {
             var departments = await _departmentRepo.GetAllAsync();
             var warehouses = await _warehouseRepo.GetAllAsync();
             var statuses = await _statusRepo.GetAllAsync();
 
-            vm.Departments = departments.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name });
-            vm.Warehouses = warehouses.Select(w => new SelectListItem { Value = w.Id.ToString(), Text = w.Name });
-            vm.DockStatus = statuses.Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name });
+            return (
+                departments.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name }),
+                warehouses.Select(w => new SelectListItem { Value = w.Id.ToString(), Text = w.Name }),
+                statuses.Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
+            );
+        }
 
+        // 2. تعبئة CreateVM
+        private async Task<CreateDockVM> PopulateCreateDropdownsAsync(CreateDockVM vm)
+        {
+            var data = await GetDropdownDataAsync();
+            vm.Departments = data.Depts;
+            vm.Warehouses = data.Warehouses;
+            vm.DockStatus = data.Statuses;
             return vm;
         }
+
+        // 3. تعبئة UpdateVM
+        private async Task<UpdateDockVM> PopulateUpdateDropdownsAsync(UpdateDockVM vm)
+        {
+            var data = await GetDropdownDataAsync();
+            vm.Departments = data.Depts;
+            vm.Warehouses = data.Warehouses;
+            vm.DockStatus = data.Statuses;
+            return vm;
+        }
+
+        #endregion
 
 
     }
