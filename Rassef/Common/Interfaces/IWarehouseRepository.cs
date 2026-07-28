@@ -6,7 +6,7 @@
 
     {
 
-        Task<Warehouse?> GetWithDetailsByIdAsync(Guid id );
+        Task<Warehouse?> GetWithDetailsByIdAsync(Guid id);
 
 
 

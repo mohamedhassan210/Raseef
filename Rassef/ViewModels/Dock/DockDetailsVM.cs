@@ -17,6 +17,6 @@ namespace Rassef.ViewModels.Dock
         public string DepartmentName { get; set; } = string.Empty;
 
         [Display(Name = "تم الإنشاء بواسطة")]
-        public string CreatedBy { get; set; } = string.Empty;
+        public Guid CreatedBy { get; set; }
     }
 }
