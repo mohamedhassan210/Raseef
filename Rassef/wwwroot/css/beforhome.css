@@ -1,87 +1,169 @@
 @import url('https://googleapis.com');
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-        width: 100%; height: 100%; overflow: hidden;
-        font-family: 'IBM Plex Sans Arabic', "Segoe UI", Roboto, sans-serif;
-        background-color: #f8f8f8;
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'IBM Plex Sans Arabic', "Segoe UI", Roboto, sans-serif;
+    background-color: #f8f8f8;
+}
+
+/* لضمان عمل التصميم داخل Layout الخاص بـ MVC دون مشاكل */
+.custom-mvc-wrapper {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+:root {
+    --gradient-transfer: linear-gradient(135deg, #EB842D 0%, #EB842D 100%);
+    --gradient-supply: linear-gradient(135deg, #F9F2F2 0%, #F9F2F2 100%);
+    --color-dark: #EB842D;
+    --color-white: #F9F2F2;
+    --easing-apple: cubic-bezier(0.22, 1, 0.36, 1);
+    --duration-standard: 800ms;
+}
+
+.svg-definitions {
+    position: absolute;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+#wave-path-desktop {
+    transition: d var(--duration-standard) var(--easing-apple);
+    d: path("M 0,0 L 0.50,0 C 0.62,0.28 0.38,0.72 0.50,1.0 L 0,1.0 Z");
+}
+
+.viewport-canvas.state-hover-transfer #wave-path-desktop {
+    d: path("M 0,0 L 1.20,0 C 1.25,0.28 1.15,0.72 1.20,1.0 L 0,1.0 Z");
+}
+
+.viewport-canvas.state-hover-supply #wave-path-desktop {
+    d: path("M 0,0 L -0.20,0 C -0.15,0.28 -0.25,0.72 -0.20,1.0 L 0,1.0 Z");
+}
+
+.app-header {
+    z-index: 100;
+    pointer-events: none; /* مهم جداً لمنع الحظر */
+}
+
+.logo-wrapper {
+    transition: transform 600ms var(--easing-apple), opacity 600ms var(--easing-apple);
+}
+
+/* التحكم في حجم لوجو رصيفي */
+#logo-raseefi img {
+    width: 90px; /* يمكنك تغيير هذا الرقم للمقاس الذي تريده */
+    max-width: 100%;
+    height: auto;
+}
+
+.brand-logo {
+    max-height: 52px;
+    width: auto;
+}
+
+.logo-hidden {
+    opacity: 0;
+    transform: translate3d(0, -15px, 0) scale(0.92);
+}
+
+.viewport-canvas {
+    perspective: 1000px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.panel {
+    backface-visibility: hidden;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.panel-content {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: left var(--duration-standard) var(--easing-apple), opacity var(--duration-standard) var(--easing-apple), transform var(--duration-standard) var(--easing-apple);
+}
+
+.panel-transfer {
+    background: var(--gradient-transfer);
+    z-index: 2;
+    clip-path: url(#wave-clip-desktop);
+}
+
+    .panel-transfer .panel-content {
+        left: 25%;
+        transform: translate(-50%, -50%);
+        opacity: 1;
     }
 
-    :root {
-        --gradient-transfer: linear-gradient(135deg, #EB842D 0%, #EB842D 100%);
-        --gradient-supply: linear-gradient(135deg, #F9F2F2 0%, #F9F2F2 100%);
-        --color-dark: #EB842D; 
-        --color-white: #F9F2F2;
-        --easing-apple: cubic-bezier(0.22, 1, 0.36, 1);
-        --duration-standard: 800ms;
+.panel-supply {
+    background: var(--gradient-supply);
+    z-index: 1;
+}
+
+    .panel-supply .panel-content {
+        left: 75%;
+        transform: translate(-50%, -50%);
+        opacity: 1;
     }
 
-    .svg-definitions { position: absolute; width: 0; height: 0; pointer-events: none; }
+.panel-title {
+    font-size: clamp(3.5rem, 8vw, 10rem);
+    font-weight: 800;
+    transition: all var(--duration-standard) var(--easing-apple);
+}
 
-    #wave-path-desktop {
-        transition: d var(--duration-standard) var(--easing-apple);
-        d: path("M 0,0 L 0.50,0 C 0.62,0.28 0.38,0.72 0.50,1.0 L 0,1.0 Z");
-    }
-    .viewport-canvas.state-hover-transfer #wave-path-desktop {
-        d: path("M 0,0 L 1.20,0 C 1.25,0.28 1.15,0.72 1.20,1.0 L 0,1.0 Z");
-    }
-    .viewport-canvas.state-hover-supply #wave-path-desktop {
-        d: path("M 0,0 L -0.20,0 C -0.15,0.28 -0.25,0.72 -0.20,1.0 L 0,1.0 Z");
-    }
+.panel-transfer .panel-title {
+    color: var(--color-white);
+}
 
-    .app-header {
-        z-index: 100; pointer-events: none; /* مهم جداً لمنع الحظر */
-    }
-    .logo-wrapper {
-        transition: transform 600ms var(--easing-apple), opacity 600ms var(--easing-apple);
-    }
-
-    /* التحكم في حجم لوجو رصيفي */
-    #logo-raseefi img {
-        width: 90px; /* يمكنك تغيير هذا الرقم للمقاس الذي تريده */
-        max-width: 100%;
-        height: auto;
-    }
-
-    .brand-logo { max-height: 52px; width: auto; }
-    .logo-hidden { opacity: 0; transform: translate3d(0, -15px, 0) scale(0.92); }
-
-    .viewport-canvas { perspective: 1000px; position: relative; width: 100%; height: 100vh; }
-    .panel { backface-visibility: hidden; position: absolute; top: 0; width: 100%; height: 100%; }
-    .panel-content {
-        position: absolute; top: 50%; transform: translateY(-50%);
-        transition: left var(--duration-standard) var(--easing-apple),
-                    opacity var(--duration-standard) var(--easing-apple),
-                    transform var(--duration-standard) var(--easing-apple);
-    }
-
-    .panel-transfer { background: var(--gradient-transfer); z-index: 2; clip-path: url(#wave-clip-desktop); }
-    .panel-transfer .panel-content { left: 25%; transform: translate(-50%, -50%); opacity: 1; }
-
-    .panel-supply { background: var(--gradient-supply); z-index: 1; }
-    .panel-supply .panel-content { left: 75%; transform: translate(-50%, -50%); opacity: 1; }
-
-    .panel-title {
-        font-size: clamp(3.5rem, 8vw, 10rem); font-weight: 800;
-        transition: all var(--duration-standard) var(--easing-apple);
-    }
-    .panel-transfer .panel-title { color: var(--color-white); }
-    .panel-supply .panel-title { color: var(--color-dark); }
+.panel-supply .panel-title {
+    color: var(--color-dark);
+}
 
 
-    /* Hover States */
-    .viewport-canvas.state-hover-transfer .panel-transfer .panel-content { left: 50%; transform: translate(-50%, -50%) scale(1.05); }
-    .viewport-canvas.state-hover-transfer .panel-supply .panel-content { left: 90%; opacity: 0; }
+/* Hover States */
+.viewport-canvas.state-hover-transfer .panel-transfer .panel-content {
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.05);
+}
 
-    .viewport-canvas.state-hover-supply .panel-supply .panel-content { left: 50%; transform: translate(-50%, -50%) scale(1.05); }
-    .viewport-canvas.state-hover-supply .panel-transfer .panel-content { left: 10%; opacity: 0; }
+.viewport-canvas.state-hover-transfer .panel-supply .panel-content {
+    left: 90%;
+    opacity: 0;
+}
 
-    /* Hover Zones */
-    .hover-zone {
-        position: absolute;
-        top: 0;
-        height: 100%;
-        width: 50%;
-        z-index: 999; /* تم رفع الـ Z-index لضمان التفاعل */
-        cursor: pointer;
-    }
+.viewport-canvas.state-hover-supply .panel-supply .panel-content {
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.05);
+}
+
+.viewport-canvas.state-hover-supply .panel-transfer .panel-content {
+    left: 10%;
+    opacity: 0;
+}
+
+/* Hover Zones */
+.hover-zone {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    z-index: 999; /* تم رفع الـ Z-index لضمان التفاعل */
+    cursor: pointer;
+}
