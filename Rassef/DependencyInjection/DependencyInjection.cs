@@ -1,4 +1,6 @@
-﻿namespace Rassef.Dependencyinjection
+﻿using Serilog;
+
+namespace Rassef.Dependencyinjection
 {
     // Eexstension Method
     public static class DependencyInjection
@@ -35,6 +37,15 @@
             services.Configure<JwtSettings>(
               configuration.GetSection("Jwt"));
 
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .MinimumLevel.Warning()
+                .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+                .WriteTo.File(
+                    "logs/log-.txt",
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 30)
+                .CreateLogger();
 
 
             return services;
@@ -52,12 +63,13 @@
 
             app.UseRouting();
 
+            app.UseMiddleware<LoggingBehavior>();
+
             app.UseAuthorization();
 
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Authentication}/{action=Intro}/{id?}");
-            app.UseMiddleware<LogginBehaviors>();
             return app;
         }
     }

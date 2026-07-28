@@ -199,7 +199,8 @@
 
             return RedirectToAction(nameof(Index));
         }
-        // Helpers 
+
+        #region Helpers
         private async Task LoadTruckTypesAsync(Guid? selectedTruckTypeId = null)
         {
             ViewBag.TruckTypes = new SelectList(
@@ -209,5 +210,6 @@
                 selectedTruckTypeId);
         }
 
+        #endregion
     }
 }
