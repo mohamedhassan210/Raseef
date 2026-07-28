@@ -14,6 +14,7 @@
         public string NationalId { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "رقم الهاتف مطلوب.")]
+        [RegularExpression("^01[0125][0-9]{8}$")]
         [Display(Name = "رقم الهاتف")]
         [Phone(ErrorMessage = "رقم الهاتف غير صحيح.")]
         public string Phone { get; set; } = string.Empty;

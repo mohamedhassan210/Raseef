@@ -66,6 +66,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // ragex "^01[0125][0-9]{8}$"
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name,Location")] Warehouse warehouse)
         {
             if (id != warehouse.Id) return NotFound();
