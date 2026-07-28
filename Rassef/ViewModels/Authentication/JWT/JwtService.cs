@@ -1,6 +1,4 @@
-﻿using Rassef.Common.Interfaces.Services.AuthenticationServices;
-
-namespace Rassef.ViewModels.Authentication.JWT
+﻿namespace Rassef.ViewModels.Authentication.JWT
 {
     public class JwtService : IJwtService
     {
@@ -8,7 +6,7 @@ namespace Rassef.ViewModels.Authentication.JWT
 
         public JwtService(IOptions<JwtSettings> options)
         => _jwtSettings = options.Value;
-        
+
         public string GenerateToken(Guid UserId, Email Email)
         {
             var cliams = new List<Claim>

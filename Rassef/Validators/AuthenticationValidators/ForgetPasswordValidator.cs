@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-
-namespace Rassef.Validators.AuthenticationValidators
+﻿namespace Rassef.Validators.AuthenticationValidators
 {
     public class ForgetPasswordValidator : AbstractValidator<ForgetPasswordViewModel>
     {

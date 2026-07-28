@@ -8,8 +8,8 @@ namespace Rassef.Common.Interfaces.Services
         Task<IReadOnlyList<T>> GetAll();
         Task AddAsync(T entity);
         Task<int> SaveChangesAsync();
-        void UpdateAsync(T entity);
-        void RemoveAsync(T entity);
+        void Update(T entity);
+        void Remove(T entity);
         Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
         Task<T?> FindAsync(Expression<Func<T, bool>> predicate);
     }

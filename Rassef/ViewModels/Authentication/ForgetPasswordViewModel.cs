@@ -2,8 +2,6 @@
 {
     public class ForgetPasswordViewModel
     {
-    
         public Email Email { get; set; }
-
     }
 }

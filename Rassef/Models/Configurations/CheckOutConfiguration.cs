@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Rassef.Models.Configurations
+﻿namespace Rassef.Models.Configurations
 {
     public class CheckOutConfiguration : IEntityTypeConfiguration<CheckOut>
     {
@@ -17,7 +15,7 @@ namespace Rassef.Models.Configurations
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(c => c.ExitType)
-                   .WithMany() 
+                   .WithMany()
                    .HasForeignKey(c => c.ExitTypeId)
                    .OnDelete(DeleteBehavior.Restrict);
 
