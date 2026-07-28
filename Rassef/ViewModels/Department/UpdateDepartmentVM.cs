@@ -1,4 +1,7 @@
-﻿namespace Rassef.ViewModels.Department
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel;
+
+namespace Rassef.ViewModels.Department
 {
     public class UpdateDepartmentVM
     {
