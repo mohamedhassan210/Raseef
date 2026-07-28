@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
+﻿
 namespace Rassef.ViewModels.Dock
 {
     public class DockListVM

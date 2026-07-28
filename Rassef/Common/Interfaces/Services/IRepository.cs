@@ -4,8 +4,8 @@ namespace Rassef.Common.Interfaces.Services
 {
     public interface IRepository<T>
     {
-        Task<T?> GetById(Guid id);
-        Task<IReadOnlyList<T>> GetAll();
+        Task<T?> GetByIdAsync(Guid id);
+        Task<IReadOnlyList<T>> GetAllAsync();
         Task AddAsync(T entity);
         Task<int> SaveChangesAsync();
         void Update(T entity);

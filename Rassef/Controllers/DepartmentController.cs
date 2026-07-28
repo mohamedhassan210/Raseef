@@ -14,7 +14,7 @@ namespace Rassef.Controllers
         // Get All Departments
         public async Task<IActionResult> Index()
         {
-            var departrments = await _repository.GetAll();
+            var departrments = await _repository.GetAllAsync();
 
             var depart = departrments.Select(x => new DepartmentListVM
             {
@@ -29,7 +29,7 @@ namespace Rassef.Controllers
         // Get Department By Id
         public async Task<IActionResult> Details(Guid id)
         {
-            var department = await _repository.GetById(id);
+            var department = await _repository.GetByIdAsync(id);
 
             if (department == null)
                 return NotFound();
@@ -74,7 +74,7 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Update(Guid id)
         {
-            var department = await _repository.GetById(id);
+            var department = await _repository.GetByIdAsync(id);
 
             if (department == null)
                 return NotFound();
@@ -97,7 +97,7 @@ namespace Rassef.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var department = await _repository.GetById(model.Id);
+            var department = await _repository.GetByIdAsync(model.Id);
 
             if (department == null)
                 return NotFound();
@@ -114,7 +114,7 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var department = await _repository.GetById(id);
+            var department = await _repository.GetByIdAsync(id);
 
             if (department == null)
                 return NotFound();
@@ -134,7 +134,7 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var department = await _repository.GetById(id);
+            var department = await _repository.GetByIdAsync(id);
 
             if (department == null)
                 return NotFound();

@@ -26,8 +26,9 @@
         public async Task<IActionResult> Login(LoginViewModel login)
         {
             if (!ModelState.IsValid)
+            {
                 return View(login);
-
+            }
             var user = await _userRepository.FindAsync(x =>
                 x.UserName == login.UserNameOrEmail ||
                 x.Email!.Value == login.UserNameOrEmail);
@@ -58,7 +59,7 @@
                 Expires = DateTimeOffset.UtcNow.AddDays(7),
                 IsEssential = true
             });
-            return RedirectToAction(nameof(SupOrTra));
+            return RedirectToAction("SupOrTra", "Authentication");
         }
         [HttpGet]
         public async Task<IActionResult> Register()
@@ -110,7 +111,7 @@
         [HttpGet]
         public async Task<IActionResult> UserProfile(Guid id)
         {
-            var user = await _userRepository.GetById(id);
+            var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
                 ModelState.AddModelError(nameof(user.UserName), "هذا الملف المستخدم غير موجود .");
