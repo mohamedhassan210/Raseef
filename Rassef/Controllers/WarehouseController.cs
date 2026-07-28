@@ -1,30 +1,31 @@
-﻿namespace Rassef.Controllers
+﻿using Microsoft.AspNetCore.Mvc;
+using Rassef.Common.Interfaces;
+using Rassef.Models.Entities;
+
+namespace Rassef.Controllers
 {
     public class WarehousesController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IWarehouseRepository _warehouseRepository;
 
-        public WarehousesController(ApplicationDbContext context)
+        public WarehousesController(IWarehouseRepository warehouseRepository)
         {
-            _context = context;
+            _warehouseRepository = warehouseRepository;
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var warehouses = await _context.Warehouses.ToListAsync();
+            var warehouses = await _warehouseRepository.GetAllAsync(cancellationToken);
             return View(warehouses);
         }
 
-        public async Task<IActionResult> Details(Guid? id)
+        [HttpGet]
+        public async Task<IActionResult> Details(Guid? id, CancellationToken cancellationToken)
         {
             if (id == null) return NotFound();
 
-            var warehouse = await _context.Warehouses
-                .Include(w => w.Docks)
-                .Include(w => w.Departments)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
+            var warehouse = await _warehouseRepository.GetWithDetailsByIdAsync(id.Value, cancellationToken);
             if (warehouse == null) return NotFound();
 
             return View(warehouse);
@@ -38,23 +39,30 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Location")] Warehouse warehouse)
+        public async Task<IActionResult> Create([Bind("Name,Location")] Warehouse warehouse, CancellationToken cancellationToken)
         {
+            bool isUnique = await _warehouseRepository.IsNameUniqueAsync(warehouse.Name, cancellationToken: cancellationToken);
+            if (!isUnique)
+            {
+                ModelState.AddModelError("Name", "اسم المستودع موجود بالفعل.");
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Add(warehouse);
-                await _context.SaveChangesAsync();
+                await _warehouseRepository.AddAsync(warehouse, cancellationToken);
+                await _warehouseRepository.SaveChangesAsync(cancellationToken);
                 return RedirectToAction(nameof(Index));
             }
+
             return View(warehouse);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(Guid? id)
+        public async Task<IActionResult> Edit(Guid? id, CancellationToken cancellationToken)
         {
             if (id == null) return NotFound();
 
-            var warehouse = await _context.Warehouses.FindAsync(id);
+            var warehouse = await _warehouseRepository.GetByIdAsync(id.Value, cancellationToken);
             if (warehouse == null) return NotFound();
 
             return View(warehouse);
@@ -62,59 +70,50 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name,Location")] Warehouse warehouse)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name,Location")] Warehouse warehouse, CancellationToken cancellationToken)
         {
             if (id != warehouse.Id) return NotFound();
 
+            bool isUnique = await _warehouseRepository.IsNameUniqueAsync(warehouse.Name, excludedId: id, cancellationToken: cancellationToken);
+            if (!isUnique)
+            {
+                ModelState.AddModelError("Name", "اسم المستودع مستخدم بالفعل لمستودع آخر.");
+            }
+
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(warehouse);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!WarehouseExists(warehouse.Id)) return NotFound();
-                    else throw;
-                }
+                _warehouseRepository.Update(warehouse);
+                await _warehouseRepository.SaveChangesAsync(cancellationToken);
                 return RedirectToAction(nameof(Index));
             }
+
             return View(warehouse);
         }
 
-
         [HttpGet]
-        public async Task<IActionResult> Delete(Guid? id)
+        public async Task<IActionResult> Delete(Guid? id, CancellationToken cancellationToken)
         {
             if (id == null) return NotFound();
 
-            var warehouse = await _context.Warehouses
-                .FirstOrDefaultAsync(m => m.Id == id);
-
+            var warehouse = await _warehouseRepository.GetByIdAsync(id.Value, cancellationToken);
             if (warehouse == null) return NotFound();
 
             return View(warehouse);
         }
 
+        
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        public async Task<IActionResult> DeleteConfirmed(Guid id, CancellationToken cancellationToken)
         {
-            var warehouse = await _context.Warehouses.FindAsync(id);
+            var warehouse = await _warehouseRepository.GetByIdAsync(id, cancellationToken);
             if (warehouse != null)
             {
-                _context.Warehouses.Remove(warehouse);
-                await _context.SaveChangesAsync();
+                _warehouseRepository.Delete(warehouse);
+                await _warehouseRepository.SaveChangesAsync(cancellationToken);
             }
+
             return RedirectToAction(nameof(Index));
-        }
-
-
-        // Helpers
-        private bool WarehouseExists(Guid id)
-        {
-            return _context.Warehouses.Any(e => e.Id == id);
         }
     }
 }
