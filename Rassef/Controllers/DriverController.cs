@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Rassef.ViewModels.Driver;
-using System.Security.Claims;
+﻿using Rassef.ViewModels.Driver;
 
 namespace Rassef.Controllers
 {

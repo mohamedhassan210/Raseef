@@ -10,6 +10,6 @@
 
         public string Phone { get; set; } = string.Empty;
 
-        public Guid CreatedBy { get; set; } 
+        public Guid CreatedBy { get; set; }
     }
 }

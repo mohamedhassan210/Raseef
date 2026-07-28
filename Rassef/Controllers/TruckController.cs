@@ -5,12 +5,12 @@
         private readonly IRepository<Truck> _truckRepository;
         private readonly IRepository<TruckTypes> _truckTypeRepository;
         private readonly IRepository<User> _userRepository;
-        public TruckController(IRepository<Truck> truckRepository, IRepository<TruckTypes> truckTypeRepository , IRepository<User> userRepository)
+        public TruckController(IRepository<Truck> truckRepository, IRepository<TruckTypes> truckTypeRepository, IRepository<User> userRepository)
         {
             _truckRepository = truckRepository;
             _truckTypeRepository = truckTypeRepository;
             _userRepository = userRepository;
-        } 
+        }
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {

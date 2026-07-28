@@ -101,7 +101,7 @@
 
             if (dock == null)
             {
-                ModelState.AddModelError("رصيف","هذا الرصيف غير موجود ");
+                ModelState.AddModelError("رصيف", "هذا الرصيف غير موجود ");
                 return View();
             }
 

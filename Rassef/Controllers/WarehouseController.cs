@@ -86,7 +86,7 @@
                 var allDocks = await _dockRepository.GetAllAsync();
                 var selectedDocks = allDocks.Where(d => model.SelectedDockIds.Contains(d.Id)).ToList();
 
-              
+
 
                 var warehouse = new Warehouse
                 {
@@ -210,6 +210,6 @@
                 Text = d.DockName
             });
         }
-        
+
     }
 }

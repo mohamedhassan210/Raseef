@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Rassef.ViewModels.CheckOut
+﻿namespace Rassef.ViewModels.CheckOut
 {
     public class CheckOutDetailsVM
     {
