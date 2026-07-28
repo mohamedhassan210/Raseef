@@ -52,8 +52,8 @@
 
             Response.Cookies.Append("AccessToken", token, new CookieOptions
             {
-                HttpOnly = true,                
-                Secure = true,                
+                HttpOnly = true,
+                Secure = true,
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTimeOffset.UtcNow.AddDays(7),
                 IsEssential = true
@@ -108,15 +108,36 @@
             return View();
         }
         [HttpGet]
-        public async Task<IActionResult> UserProfile()
+        public async Task<IActionResult> UserProfile(Guid id)
         {
-            return View();
+            var user = await _userRepository.GetById(id);
+            if (user == null)
+            {
+                ModelState.AddModelError(nameof(user.UserName), "هذا الملف المستخدم غير موجود .");
+                return View(user);
+            }
+            var profile = new UserProfileViewModel
+            {
+                Email = Email.Create(user.Email.Value),
+                UserName = user.UserName,
+                Name = user.Name,
+                Phone = user.Phone,
+                NationalId = user.NationalId
+            };
+            if (profile == null)
+            {
+                ModelState.AddModelError(nameof(profile.Name), "هذا الملف الشخصى غير موجود .");
+                return View(profile);
+            }
+
+            return View(profile);
+
         }
 
         // Supplier of Transfer 
         [HttpGet]
-        public  async Task<IActionResult> SupOrTra()
-        { 
+        public async Task<IActionResult> SupOrTra()
+        {
             return View();
         }
 

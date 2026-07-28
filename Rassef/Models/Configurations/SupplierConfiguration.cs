@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Rassef.Models.Entities;
-
-namespace Rassef.Configurations
+﻿namespace Rassef.Configurations
 {
     public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
     {

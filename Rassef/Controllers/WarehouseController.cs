@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class WarehousesController : Controller
     {
@@ -11,7 +9,7 @@ namespace Rassef.Controllers
             _context = context;
         }
 
-
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var warehouses = await _context.Warehouses.ToListAsync();
@@ -32,7 +30,7 @@ namespace Rassef.Controllers
             return View(warehouse);
         }
 
-
+        [HttpGet]
         public IActionResult Create()
         {
             return View();
@@ -51,7 +49,7 @@ namespace Rassef.Controllers
             return View(warehouse);
         }
 
-
+        [HttpGet]
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null) return NotFound();
@@ -86,7 +84,7 @@ namespace Rassef.Controllers
         }
 
 
-
+        [HttpGet]
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null) return NotFound();
@@ -113,7 +111,7 @@ namespace Rassef.Controllers
         }
 
 
-
+        // Helpers
         private bool WarehouseExists(Guid id)
         {
             return _context.Warehouses.Any(e => e.Id == id);

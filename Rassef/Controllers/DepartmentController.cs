@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Rassef.Common.Interfaces.Services;
-using Rassef.Models.Entities;
-using Rassef.ViewModels.Department;
+﻿using Rassef.ViewModels.Department;
 
 namespace Rassef.Controllers
 {
@@ -108,7 +105,7 @@ namespace Rassef.Controllers
             department.Name = model.Name;
             department.WarehouseId = model.WarehouseId;
 
-            _repository.UpdateAsync(department);
+            _repository.Update(department);
 
             return RedirectToAction(nameof(Index));
         }
@@ -135,14 +132,14 @@ namespace Rassef.Controllers
         // Delete (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed (Guid id)
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var department = await _repository.GetById(id);
 
             if (department == null)
                 return NotFound();
 
-            _repository.RemoveAsync(department);
+            _repository.Remove(department);
 
             return RedirectToAction(nameof(Index));
         }

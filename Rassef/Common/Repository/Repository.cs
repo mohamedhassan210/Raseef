@@ -16,9 +16,9 @@ namespace Rassef.Common.Repository
         => await _dbSet.AsNoTracking().ToListAsync();
         public async Task AddAsync(T entity)
         => await _dbSet.AddAsync(entity);
-        public void RemoveAsync(T entity)
+        public void Remove(T entity)
         => _dbSet.Remove(entity);
-        public void UpdateAsync(T entity)
+        public void Update(T entity)
         => _dbSet.Update(entity);
         public async Task<int> SaveChangesAsync()
         => await _db.SaveChangesAsync();

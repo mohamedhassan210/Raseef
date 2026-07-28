@@ -46,7 +46,7 @@ namespace Rassef.Common.Interfaces.Services.AuthenticationServices
         public async Task<bool> RemovePermissionFromGroupAsync(Guid groupId, Guid permissionId)
         {
             var groupPermission = await _context.GroupPermissions.FirstOrDefaultAsync(x => x.GroupId == groupId && x.PermissionId == permissionId);
-            
+
             if (groupPermission == null) return false;
 
             _context.Remove(groupPermission);

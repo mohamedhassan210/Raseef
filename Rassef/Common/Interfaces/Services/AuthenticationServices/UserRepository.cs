@@ -1,7 +1,4 @@
-﻿
-using Microsoft.EntityFrameworkCore;
-
-namespace Rassef.Common.Interfaces.Services.AuthenticationServices
+﻿namespace Rassef.Common.Interfaces.Services.AuthenticationServices
 {
     public class UserRepository : Repository<User>, IUserRepository
     {

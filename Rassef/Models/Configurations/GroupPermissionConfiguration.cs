@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Rassef.Models.Identity;
-
-namespace Rassef.Configurations
+﻿namespace Rassef.Configurations
 {
     public class GroupPermissionConfiguration : IEntityTypeConfiguration<GroupPermission>
     {

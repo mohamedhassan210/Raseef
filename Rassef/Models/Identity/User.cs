@@ -8,6 +8,8 @@
         public string Password { get; set; } = string.Empty;
         public string ConfirmPassword { get; set; } = string.Empty;
         public Guid GroupId { get; set; }
-        public UserGroup group { get; set; } 
+        public string Phone { get; set; } = string.Empty;
+        public string NationalId { get; set; }
+        public UserGroup group { get; set; }
     }
 }

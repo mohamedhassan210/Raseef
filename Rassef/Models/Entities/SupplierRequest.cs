@@ -9,9 +9,10 @@
         public Guid PermitTypeId { get; set; }
         public Guid CommodityTypeId { get; set; }
         public Guid RequestStatusId { get; set; }
-        public string DriverNationalCardPhoto { get; set; }=string.Empty;
-        public string DriverPhone { get; set; }=string.Empty;
+        public string DriverNationalCardPhoto { get; set; } = string.Empty;
+        public string DriverPhone { get; set; } = string.Empty;
         public string PermitNumber { get; set; } = string.Empty;
+        public bool IsFood { get; set; }
         public User CreatedBy { get; set; }
         public Supplier Supplier { get; set; }
         public Truck Truck { get; set; }

@@ -3,7 +3,7 @@
     // Eexstension Method
     public static class DependencyInjection
     {
-        public static IServiceCollection AddDependcyInjection(this IServiceCollection services , IConfiguration configuration)
+        public static IServiceCollection AddDependcyInjection(this IServiceCollection services, IConfiguration configuration)
         {
             // add sqlserver
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -24,13 +24,13 @@
             services.AddScoped<IDockAssignmentRepository, DockAssignmentRepository>();
             services.AddScoped<IDockRepository, DockRepository>();
             services.AddScoped<IDriverRepository, DriverRepository>();
-            services.AddScoped<IQueueActionRepository,QueueActionRepository >();
-            services.AddScoped<IQueueTicketRepository,QueueTicketRepository >();
-            services.AddScoped<ISupplierRepository,SupplierRepository >();
-            services.AddScoped<ISupplierRequestRepository,SupplierRequestRepository >();
-            services.AddScoped<ITransferRequestRepository,TransferRequestRepository >();
-            services.AddScoped<ITruckRepository,TruckRepository >();
-            services.AddScoped<IWarehouseRepository,WarehouseRepository >();
+            services.AddScoped<IQueueActionRepository, QueueActionRepository>();
+            services.AddScoped<IQueueTicketRepository, QueueTicketRepository>();
+            services.AddScoped<ISupplierRepository, SupplierRepository>();
+            services.AddScoped<ISupplierRequestRepository, SupplierRequestRepository>();
+            services.AddScoped<ITransferRequestRepository, TransferRequestRepository>();
+            services.AddScoped<ITruckRepository, TruckRepository>();
+            services.AddScoped<IWarehouseRepository, WarehouseRepository>();
             services.AddScoped<IJwtService, JwtService>();
             services.Configure<JwtSettings>(
               configuration.GetSection("Jwt"));
