@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace Rassef.ViewModels.Department
 {

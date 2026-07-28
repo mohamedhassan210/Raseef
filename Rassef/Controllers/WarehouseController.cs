@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Rassef.Common.Interfaces;
-using Rassef.Models.Entities;
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class WarehousesController : Controller
     {

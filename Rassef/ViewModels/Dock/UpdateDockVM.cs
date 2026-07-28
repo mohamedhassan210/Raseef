@@ -1,4 +1,5 @@
 ﻿
+
 namespace Rassef.ViewModels.Dock
 {
     public class UpdateDockVM

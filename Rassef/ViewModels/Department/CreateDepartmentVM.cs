@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-
-namespace Rassef.ViewModels.Department
+﻿namespace Rassef.ViewModels.Department
 {
     public class CreateDepartmentVM
     {
