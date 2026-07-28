@@ -1,0 +1,329 @@
+@import url('https://googleapis.com');
+
+/* ==========================================================================
+    1. DESIGN TOKENS (Variables)
+    ========================================================================== */
+:root {
+    /* Colors */
+    --color-primary: #F28C28;
+    --color-primary-hover: #E67E22;
+    --color-primary-tint: #FCE7D2;
+    --color-white: #FFFFFF;
+    --color-text-main: #222222;
+    --color-text-muted: #9A9A9A;
+    --color-placeholder: #BDBDBD;
+    --color-border: #DDDDDD;
+
+    /* Border Radii */
+    --radius-sm: 10px;
+    --radius-md: 12px;
+    --radius-lg: 22px;
+    --radius-xl: 24px;
+
+    /* Shadows */
+    --shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.08);
+
+    /* Spacing Scale */
+    --space-1: 8px; 
+    --space-2: 16px;
+    --space-3: 24px;
+    --space-4: 32px;
+    --space-5: 40px;
+    --space-6: 48px;
+}
+
+/* ==========================================================================
+    2. BASE & RESET
+    ========================================================================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family: 'IBM Plex Sans Arabic', "Segoe UI", Roboto, sans-serif;
+    color: var(--color-text-main);
+    background-image: url(''../img/Login back.png'');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+    3. LAYOUT COMPONENTS (Prefix: l-)
+    ========================================================================== */
+.l-page {
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--space-4) var(--space-6);
+}
+
+/* اللوجو أعلى اليمين */
+.l-brand-header {
+    position: absolute;
+    top: var(--space-3); 
+    right: var(--space-5); 
+    z-index: 10;
+}
+
+.l-brand-header img {
+    height: 130px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* منطقة العمل - كارت تسجيل الدخول جهة اليسار في RTL */
+.l-stage {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+/* ==========================================================================
+    4. UI COMPONENTS (BEM Methodology: c-)
+    ========================================================================== */
+
+/* --- Login Card --- */
+.c-card {
+    width: 100%;
+    max-width: 540px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    padding: 40px 36px 36px;
+    margin: 0;
+    animation: card-entry 0.45s ease-out;
+}
+
+.c-card__logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.c-card__logo img {
+    height: 82px;
+    width: auto;
+}
+
+/* --- Form Field --- */
+.c-field {
+    margin-bottom: 24px;
+}
+
+.c-field__label {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--color-text-main);
+    margin-bottom: var(--space-1);
+    display: block;
+}
+
+.c-field__control-wrap {
+    position: relative;
+}
+
+.c-field__input {
+    width: 100%;
+    height: 52px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-white);
+    padding: 0 48px 0 16px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--color-text-main);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.c-field__input::placeholder {
+    color: var(--color-placeholder);
+    font-weight: 400;
+}
+
+.c-field__input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-tint);
+}
+
+.c-field__icon {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    color: var(--color-text-muted);
+    display: flex;
+    pointer-events: none;
+}
+
+.c-field__icon svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+}
+
+/* --- Links & Buttons --- */
+.c-link {
+    display: block;
+    text-align: start;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--color-primary);
+    text-decoration: none;
+    margin-top: var(--space-1);
+    margin-bottom: var(--space-4);
+    transition: color 0.2s ease;
+}
+
+.c-link:hover {
+    color: var(--color-primary-hover);
+    text-decoration: underline;
+}
+
+.c-button {
+    width: 100%;
+    height: 52px;
+    margin-top: 8px;
+    background: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.c-button:hover {
+    background: var(--color-primary-hover);
+    transform: translateY(-1px);
+}
+
+.c-button:active {
+    transform: translateY(0);
+}
+
+.c-button:focus-visible {
+    outline: 3px solid var(--color-primary-tint);
+    outline-offset: 2px;
+}
+
+/* دعم ألوان الـ Validation مع الكلاسات الخاصة بك */
+.was-validated .c-field__input:invalid {
+    border-color: #dc3545 !important;
+    padding-left: 40px; /* مساحة لإيقونة تحذير Bootstrap إن وجدت */
+}
+
+.was-validated .c-field__input:valid {
+    border-color: #198754 !important;
+}
+
+/* ==========================================================================
+    5. ANIMATIONS & RESPONSIVE
+    ========================================================================== */
+@keyframes card-entry {
+    from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+    }
+    to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .c-card {
+    animation: none;
+    }
+}
+
+@media (max-width: 991px) {
+    .l-page {
+    padding: var(--space-3);
+    justify-content: flex-start;
+    }
+
+    .l-brand-header {
+    position: static;
+    margin-bottom: var(--space-4);
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    }
+
+    .l-stage {
+    justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .c-card {
+    padding: var(--space-5) var(--space-3) var(--space-4);
+    border-radius: var(--radius-xl);
+    }
+}
+
+
+
+
+
+
+
+
+/* ======================================================================== */
+/* ======================================================================== */
+/* ======================================================================== */
+
+/* تنسيق رسائل الخطأ أسفل الحقول */
+.c-error-message {
+    display: block;
+    color: #dc3545;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 4px;
+    min-height: 18px; /* للحفاظ على المساحة */
+  }
+  
+  /* تمييز الحقل المحتوي على خطأ */
+  .c-field__input.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
+  }
+  
+  /* تنسيق التنبيه المجمع أسفل الزر */
+  .c-alert {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    background-color: #fff3cd;
+    border: 1px solid #ffe69c;
+    color: #664d03;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-align: center;
+  }
+  
+  .d-none {
+    display: none !important;
+  }

@@ -2,5 +2,6 @@
 {
     public interface IDepartmentRepository : IRepository<Department>
     {
+        Task<IEnumerable<Department>> GetAllWithWareHouseName();
     }
 }

@@ -1,12 +1,10 @@
-﻿
-
-namespace Rassef.Validators.AuthenticationValidators
+﻿namespace Rassef.Validators.AuthenticationValidators
 {
     public class RegisterValidator : AbstractValidator<RegisterViewModel>
     {
         public RegisterValidator()
         {
-            RuleFor(x => x.userName).NotEmpty().WithMessage("User Name is required.")
+            RuleFor(x => x.UserName).NotEmpty().WithMessage("User Name is required.")
                 .Length(3, 50);
 
             RuleFor(x => x.FullName).NotEmpty().WithMessage("Full name is required.")
