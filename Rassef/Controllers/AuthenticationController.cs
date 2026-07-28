@@ -111,7 +111,7 @@
         [HttpGet]
         public async Task<IActionResult> UserProfile(Guid id)
         {
-            var user = await _userRepository.GetById(id);
+            var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
                 ModelState.AddModelError(nameof(user.UserName), "هذا الملف المستخدم غير موجود .");
