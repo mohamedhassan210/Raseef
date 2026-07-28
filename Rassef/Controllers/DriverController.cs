@@ -12,18 +12,23 @@ namespace Rassef.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            var driver = await _repository.GetAll();
+            var driver = await _repository.GetAllAsync();
 
-            var driverList = new DriverListVM
+            var driverList = driver.Select(d=> new DriverListVM
             {
+                Id = d.Id,
+                FullName = d.FullName,
+                NationalId = d.NationalId,
+                Phone = d.Phone
+            }).ToList();
 
-
-
-            };
-
-            return View();
+            return View(driverList);
         }
 
+        public async Task<IActionResult> Details(Guid id)
+        {
+            return View();
+        }
 
 
 
