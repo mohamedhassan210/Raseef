@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
+﻿
 namespace Rassef.ViewModels.Warehouse
 {
     public class WarehouseDetailsVM

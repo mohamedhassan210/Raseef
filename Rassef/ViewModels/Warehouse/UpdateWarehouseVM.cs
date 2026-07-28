@@ -1,4 +1,5 @@
 ﻿
+
 namespace Rassef.ViewModels.Warehouse
 {
     public class UpdateWarehouseVM
