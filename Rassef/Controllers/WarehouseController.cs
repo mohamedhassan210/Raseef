@@ -10,7 +10,7 @@
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        public async Task<IActionResult> Index()
         {
             var warehouses = await _warehouseRepository.GetAllAsync();
             return View(warehouses);
@@ -66,12 +66,13 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // ragex "^01[0125][0-9]{8}$"
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name,Location")] Warehouse warehouse)
         {
             if (id != warehouse.Id) return NotFound();
 
-            bool isUnique = await _warehouseRepository.IsNameUniqueAsync(warehouse.Name, excludedId: id);
-            if (!isUnique)
+            bool isUnique = await _warehouseRepository.IsNameUniqueAsync(warehouse.Name);
+                if (!isUnique)
             {
                 ModelState.AddModelError("Name", "اسم المستودع مستخدم بالفعل لمستودع آخر.");
             }
