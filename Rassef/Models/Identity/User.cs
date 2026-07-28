@@ -10,6 +10,7 @@
         public Guid GroupId { get; set; }
         public string Phone { get; set; } = string.Empty;
         public string NationalId { get; set; }
+        public string ?Code { get; set; }
         public UserGroup group { get; set; }
     }
 }
