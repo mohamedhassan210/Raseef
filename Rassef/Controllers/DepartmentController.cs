@@ -11,7 +11,7 @@ namespace Rassef.Controllers
             _repository = department;
         }
 
-        // Get All Departments
+        
         public async Task<IActionResult> Index()
         {
             var departrments = await _repository.GetAllAsync();

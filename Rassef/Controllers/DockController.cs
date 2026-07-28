@@ -101,7 +101,8 @@
 
             if (dock == null)
             {
-                return NotFound();
+                ModelState.AddModelError("رصيف","هذا الرصيف غير موجود ");
+                return View();
             }
 
             var vm = new UpdateDockVM
