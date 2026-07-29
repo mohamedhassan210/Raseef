@@ -12,7 +12,7 @@ namespace Rassef.Validators.CheckOut
             RuleFor(x => x.TicketId)
                 .NotEmpty().WithMessage("يرجى اختيار التذكرة.");
 
-           
+
             RuleFor(x => x.ExitTypeId)
                 .NotEmpty().WithMessage("يرجى اختيار نوع الخروج.");
 

@@ -1,8 +1,4 @@
-﻿using FluentValidation;
-using Rassef.Common.Interfaces;
-using Rassef.ViewModels.Warehouse;
-
-namespace Rassef.Validators.Warehouse
+﻿namespace Rassef.Validators.Warehouse
 {
     public class CreateWarehouseValidator : AbstractValidator<CreateWarehouseVM>
     {

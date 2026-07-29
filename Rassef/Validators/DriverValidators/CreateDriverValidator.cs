@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-using Rassef.Common.Interfaces;
-using Rassef.ViewModels.Driver;
+﻿using Rassef.ViewModels.Driver;
 
 namespace Rassef.Validators.Driver
 {

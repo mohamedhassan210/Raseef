@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace Rassef.Data
+﻿namespace Rassef.Data
 {
     public class ApplicationDbContext : DbContext
     {

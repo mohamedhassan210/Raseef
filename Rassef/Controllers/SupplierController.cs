@@ -37,10 +37,10 @@
 
             if (supplier == null)
             {
-                ModelState.AddModelError("","هذا المورد غير موجود");
+                ModelState.AddModelError("", "هذا المورد غير موجود");
                 return View(supplier);
             }
-                
+
 
             var detailsVM = new SupplierDetailsVM
             {
@@ -100,7 +100,7 @@
                 ModelState.AddModelError("", "هذا المورد غير موجود");
                 return View(supplier);
             }
-            
+
 
             var updateVM = new UpdateSupplierVM
             {

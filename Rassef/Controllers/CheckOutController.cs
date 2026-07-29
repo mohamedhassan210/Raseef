@@ -24,7 +24,7 @@
             var checkOutViewModels = checkOuts.Select(x => new CheckOutListVM
             {
                 Id = x.Id,
-                TicketId = x.QueueTicket.TicketNumber,
+               // TicketId = x.QueueTicket.TicketNumber,
                 ExitTypeName = x.ExitType?.Name ?? "غير محدد",
                 ExitTime = x.ExitTime
             });
@@ -46,7 +46,7 @@
             var model = new CheckOutDetailsVM
             {
                 Id = id,
-                TicketId = checkOut.QueueTicket.TicketNumber,
+              //  TicketId = checkOut.QueueTicket.TicketNumber,
                 ExitTypeName = checkOut.ExitType?.Name ?? "غير محدد",
                 ExitTime = checkOut.ExitTime,
                 CreatedBy = checkOut.CreatedBy?.Name ?? "النظام"
@@ -151,7 +151,7 @@
             var vm = new CheckOutDetailsVM
             {
                 Id = checkOut.Id,
-                TicketId = checkOut.QueueTicket.TicketNumber
+            //    TicketId = checkOut.QueueTicket.TicketNumber
             };
 
             return View(vm);

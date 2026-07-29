@@ -39,7 +39,7 @@
 
         // Get Dock By Id
         [HttpGet("{id :int}")]
-        public async Task<IActionResult> Details([FromRoute]int id)
+        public async Task<IActionResult> Details([FromRoute] int id)
         {
             var dock = await _repository.GetByIdAsync(id);
 
