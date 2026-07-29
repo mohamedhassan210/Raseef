@@ -3,7 +3,7 @@ namespace Rassef.Models.Entities
 {
     public class QueueTicket : BaseEntity
     {
-        public int TicketNumber { get; set; }
+        public string TicketNumber { get; set; } = string.Empty;
         public int? TransferRequestId { get; set; }
         public int? SupplierRequestId { get; set; }
         public int DepartmentId { get; set; }
