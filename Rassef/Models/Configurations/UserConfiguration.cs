@@ -32,7 +32,7 @@ namespace Rassef.Configurations
 
             builder.HasMany(u => u.Groups)
                    .WithMany(g => g.Users)
-                   .UsingEntity(j => j.ToTable("UserGroupMembers")); 
+                   .UsingEntity(j => j.ToTable("UserGroupMembers"));
         }
     }
 }

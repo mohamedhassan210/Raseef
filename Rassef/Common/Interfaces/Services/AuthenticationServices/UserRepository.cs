@@ -10,7 +10,7 @@
         public async Task<bool> AddUserToGroupAsync(User user, int groupId)
         {
             var userEntity = await _context.Users
-                .Include(u => u.Groups) 
+                .Include(u => u.Groups)
                 .FirstOrDefaultAsync(x => x.Id == user.Id);
 
             if (userEntity == null)

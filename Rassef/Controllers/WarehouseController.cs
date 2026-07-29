@@ -37,10 +37,19 @@
         [HttpGet]
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null) return NotFound();
+            if (id == null)
+            {
+                ModelState.AddModelError("المستودع", "رقم المستودع مفقود.");
+                return View(new WarehouseDetailsVM());
+            }
 
             var warehouse = await _warehouseRepository.GetByIdAsync(id.Value);
-            if (warehouse == null) return NotFound();
+
+            if (warehouse == null)
+            {
+                ModelState.AddModelError("المستودع", "هذا المستودع غير موجود.");
+                return View(new WarehouseDetailsVM());
+            }
 
             var viewModel = new WarehouseDetailsVM
             {
@@ -58,7 +67,6 @@
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            // Dropdown lists 
             var viewModel = new CreateWarehouseVM
             {
                 Departments = await GetDepartmentSelectListAsync(),
@@ -86,8 +94,6 @@
                 var allDocks = await _dockRepository.GetAllAsync();
                 var selectedDocks = allDocks.Where(d => model.SelectedDockIds.Contains(d.Id)).ToList();
 
-
-
                 var warehouse = new Warehouse
                 {
                     Name = model.Name,
@@ -109,10 +115,19 @@
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null) return NotFound();
+            if (id == null)
+            {
+                ModelState.AddModelError("المستودع", "رقم المستودع مفقود.");
+                return View(new UpdateWarehouseVM { Departments = await GetDepartmentSelectListAsync() });
+            }
 
             var warehouse = await _warehouseRepository.GetByIdAsync(id.Value);
-            if (warehouse == null) return NotFound();
+
+            if (warehouse == null)
+            {
+                ModelState.AddModelError("المستودع", "هذا المستودع غير موجود.");
+                return View(new UpdateWarehouseVM { Departments = await GetDepartmentSelectListAsync() });
+            }
 
             var viewModel = new UpdateWarehouseVM
             {
@@ -130,18 +145,29 @@
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, UpdateWarehouseVM model)
         {
-            if (id != model.Id) return NotFound();
+            if (id != model.Id)
+            {
+                ModelState.AddModelError("المستودع", "رقم المستودع غير متطابق.");
+                model.Departments = await GetDepartmentSelectListAsync();
+                return View(model);
+            }
 
             bool nameExists = await _warehouseRepository.ExistsAsync(w => w.Name == model.Name && w.Id != model.Id);
             if (nameExists)
             {
-                ModelState.AddModelError("اسم", "اسم المستودع مستخدم بالفعل لمستودع آخر.");
+                ModelState.AddModelError("Name", "اسم المستودع مستخدم بالفعل لمستودع آخر.");
             }
 
             if (ModelState.IsValid)
             {
                 var warehouse = await _warehouseRepository.GetByIdAsync(model.Id);
-                if (warehouse == null) return NotFound();
+
+                if (warehouse == null)
+                {
+                    ModelState.AddModelError("المستودع", "هذا المستودع غير موجود.");
+                    model.Departments = await GetDepartmentSelectListAsync();
+                    return View(model);
+                }
 
                 var allDepartments = await _departmentRepository.GetAllAsync();
                 var selectedDepartments = allDepartments.Where(d => model.SelectedDepartmentIds.Contains(d.Id)).ToList();
@@ -162,10 +188,19 @@
         [HttpGet]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null) return NotFound();
+            if (id == null)
+            {
+                ModelState.AddModelError("المستودع", "رقم المستودع مفقود.");
+                return View(new WarehouseListVM());
+            }
 
             var warehouse = await _warehouseRepository.GetByIdAsync(id.Value);
-            if (warehouse == null) return NotFound();
+
+            if (warehouse == null)
+            {
+                ModelState.AddModelError("المستودع", "هذا المستودع غير موجود.");
+                return View(new WarehouseListVM());
+            }
 
             var viewModel = new WarehouseListVM
             {
@@ -182,11 +217,15 @@
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var warehouse = await _warehouseRepository.GetByIdAsync(id);
-            if (warehouse != null)
+
+            if (warehouse == null)
             {
-                _warehouseRepository.Remove(warehouse);
-                await _warehouseRepository.SaveChangesAsync();
+                ModelState.AddModelError("المستودع", "هذا المستودع غير موجود.");
+                return View(new WarehouseListVM());
             }
+
+            _warehouseRepository.Remove(warehouse);
+            await _warehouseRepository.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
@@ -210,6 +249,5 @@
                 Text = d.DockName
             });
         }
-
     }
 }
