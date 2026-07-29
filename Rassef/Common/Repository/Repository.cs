@@ -29,5 +29,7 @@ namespace Rassef.Common.Repository
         public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate)
         => await _dbSet.FirstOrDefaultAsync(predicate);
 
+
+
     }
 }
