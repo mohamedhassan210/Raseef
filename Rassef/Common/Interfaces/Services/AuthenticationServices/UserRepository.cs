@@ -8,7 +8,7 @@
             _context = db;
         }
 
-        public async Task<bool> AddUserToGroupAsync(User user, Guid groupId)
+        public async Task<bool> AddUserToGroupAsync(User user, int groupId)
         {
             var userEntity = await _context.Users
                 .FirstOrDefaultAsync(x => x.Id == user.Id);
@@ -23,7 +23,7 @@
             return true;
         }
 
-        public async Task<bool> RemoveUserFromGroupAsync(User user, Guid groupId)
+        public async Task<bool> RemoveUserFromGroupAsync(User user, int groupId)
         {
             var userEntity = await _context.Users
                 .FirstOrDefaultAsync(x => x.Id == user.Id);
@@ -31,12 +31,12 @@
                 return false;
             if (userEntity.GroupId != groupId)
                 return false;
-            userEntity.GroupId = Guid.Empty;
+            userEntity.GroupId =default;
             await _context.SaveChangesAsync();
             return true;
         }
 
-        public async Task<bool> ChangeUserGroupAsync(Guid userId, Guid newGroupId)
+        public async Task<bool> ChangeUserGroupAsync(int userId, int newGroupId)
         {
             var user = await _context.Users
                 .FirstOrDefaultAsync(x => x.Id == userId);

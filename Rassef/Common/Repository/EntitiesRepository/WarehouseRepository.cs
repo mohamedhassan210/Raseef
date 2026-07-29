@@ -20,7 +20,7 @@
 
 
 
-        public async Task<Warehouse?> GetWithDetailsByIdAsync(Guid id)
+        public async Task<Warehouse?> GetWithDetailsByIdAsync(int id)
 
         {
 

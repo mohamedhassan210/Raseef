@@ -486,8 +486,8 @@ jQuery.extend( {
 		return flat( ret );
 	},
 
-	// A global GUID counter for objects
-	guid: 1,
+	// A global int counter for objects
+	int: 1,
 
 	// jQuery.support is not used in Core but other projects attach their
 	// properties to it so it needs to exist.
@@ -5175,8 +5175,8 @@ function on( elem, types, selector, data, fn, one ) {
 			return origFn.apply( this, arguments );
 		};
 
-		// Use same guid so caller can remove using origFn
-		fn.guid = origFn.guid || ( origFn.guid = jQuery.guid++ );
+		// Use same int so caller can remove using origFn
+		fn.int = origFn.int || ( origFn.int = jQuery.int++ );
 	}
 	return elem.each( function() {
 		jQuery.event.add( this, types, fn, data, selector );
@@ -5217,8 +5217,8 @@ jQuery.event = {
 		}
 
 		// Make sure that the handler has a unique ID, used to find/remove it later
-		if ( !handler.guid ) {
-			handler.guid = jQuery.guid++;
+		if ( !handler.int ) {
+			handler.int = jQuery.int++;
 		}
 
 		// Init the element's event structure and main handler, if this is the first
@@ -5263,7 +5263,7 @@ jQuery.event = {
 				origType: origType,
 				data: data,
 				handler: handler,
-				guid: handler.guid,
+				int: handler.int,
 				selector: selector,
 				needsContext: selector && jQuery.expr.match.needsContext.test( selector ),
 				namespace: namespaces.join( "." )
@@ -5287,8 +5287,8 @@ jQuery.event = {
 			if ( special.add ) {
 				special.add.call( elem, handleObj );
 
-				if ( !handleObj.handler.guid ) {
-					handleObj.handler.guid = handler.guid;
+				if ( !handleObj.handler.int ) {
+					handleObj.handler.int = handler.int;
 				}
 			}
 
@@ -5345,7 +5345,7 @@ jQuery.event = {
 				handleObj = handlers[ j ];
 
 				if ( ( mappedTypes || origType === handleObj.origType ) &&
-					( !handler || handler.guid === handleObj.guid ) &&
+					( !handler || handler.int === handleObj.int ) &&
 					( !tmp || tmp.test( handleObj.namespace ) ) &&
 					( !selector || selector === handleObj.selector ||
 						selector === "**" && handleObj.selector ) ) {
@@ -8852,7 +8852,7 @@ if ( !support.focusin ) {
 }
 var location = window.location;
 
-var nonce = { guid: Date.now() };
+var nonce = { int: Date.now() };
 
 var rquery = ( /\?/ );
 
@@ -9601,7 +9601,7 @@ jQuery.extend( {
 			// Add or update anti-cache param if needed
 			if ( s.cache === false ) {
 				cacheURL = cacheURL.replace( rantiCache, "$1" );
-				uncached = ( rquery.test( cacheURL ) ? "&" : "?" ) + "_=" + ( nonce.guid++ ) +
+				uncached = ( rquery.test( cacheURL ) ? "&" : "?" ) + "_=" + ( nonce.int++ ) +
 					uncached;
 			}
 
@@ -10203,7 +10203,7 @@ var oldCallbacks = [],
 jQuery.ajaxSetup( {
 	jsonp: "callback",
 	jsonpCallback: function() {
-		var callback = oldCallbacks.pop() || ( jQuery.expando + "_" + ( nonce.guid++ ) );
+		var callback = oldCallbacks.pop() || ( jQuery.expando + "_" + ( nonce.int++ ) );
 		this[ callback ] = true;
 		return callback;
 	}
@@ -10780,8 +10780,8 @@ jQuery.proxy = function( fn, context ) {
 		return fn.apply( context || this, args.concat( slice.call( arguments ) ) );
 	};
 
-	// Set the guid of unique handler to the same of original handler, so it can be removed
-	proxy.guid = fn.guid = fn.guid || jQuery.guid++;
+	// Set the int of unique handler to the same of original handler, so it can be removed
+	proxy.int = fn.int = fn.int || jQuery.int++;
 
 	return proxy;
 };

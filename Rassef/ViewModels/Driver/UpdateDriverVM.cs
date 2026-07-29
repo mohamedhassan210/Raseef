@@ -3,7 +3,7 @@
     public class UpdateDriverVM
     {
         [Required]
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
     
         [Display(Name = "اسم السائق")]

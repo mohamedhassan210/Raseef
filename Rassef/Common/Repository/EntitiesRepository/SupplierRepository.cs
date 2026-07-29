@@ -10,7 +10,7 @@ namespace Rassef.Common.Repository.EntitiesRepository
             _context = context;
         }
 
-        public async Task<Supplier?> GetSupplierWithDetailsAsync(Guid id)
+        public async Task<Supplier?> GetSupplierWithDetailsAsync(int id)
         {
             return await _context.Suppliers
                 .Include(s => s.CreatedBy)
@@ -18,7 +18,7 @@ namespace Rassef.Common.Repository.EntitiesRepository
                 .FirstOrDefaultAsync(s => s.Id == id);
         }
 
-        public async Task<bool> IsNameUniqueAsync(string name, Guid? excludedId = null)
+        public async Task<bool> IsNameUniqueAsync(string name, int? excludedId = null)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return true;
@@ -34,7 +34,7 @@ namespace Rassef.Common.Repository.EntitiesRepository
             return !exists;
         }
 
-        public async Task<bool> IsPhoneUniqueAsync(string phone, Guid? excludedId = null)
+        public async Task<bool> IsPhoneUniqueAsync(string phone, int? excludedId = null)
         {
             if (string.IsNullOrWhiteSpace(phone))
                 return true;

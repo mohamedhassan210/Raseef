@@ -38,8 +38,8 @@
         }
 
         // Get Dock By Id
-        [HttpGet("{id :Guid}")]
-        public async Task<IActionResult> Details([FromRoute]Guid id)
+        [HttpGet("{id :int}")]
+        public async Task<IActionResult> Details([FromRoute]int id)
         {
             var dock = await _repository.GetByIdAsync(id);
 
@@ -95,7 +95,7 @@
 
         // Update Get
         [HttpGet]
-        public async Task<IActionResult> Update(Guid id)
+        public async Task<IActionResult> Update(int id)
         {
             var dock = await _repository.GetByIdAsync(id);
 
@@ -150,7 +150,7 @@
 
         // Delete Get
         [HttpGet]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(int id)
         {
             var dock = await _repository.GetByIdAsync(id);
 
@@ -171,7 +171,7 @@
         // Delete Confirm 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var dock = await _repository.GetByIdAsync(id);
 

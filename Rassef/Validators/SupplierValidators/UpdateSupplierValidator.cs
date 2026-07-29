@@ -1,4 +1,6 @@
 ﻿
+using Rassef.ViewModels.Supplier;
+
 namespace Rassef.Validators.SupplierValidators
 {
     public class UpdateSupplierValidator : AbstractValidator<UpdateSupplierVM>

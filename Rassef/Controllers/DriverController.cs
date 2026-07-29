@@ -28,7 +28,7 @@ namespace Rassef.Controllers
         }
 
         // Get Driver By Id
-        public async Task<IActionResult> Details(Guid id)
+        public async Task<IActionResult> Details(int id)
         {
             var drv = await _repository.GetByIdAsync(id);
 
@@ -82,7 +82,7 @@ namespace Rassef.Controllers
                 FullName = create.FullName,
                 NationalId = create.NationalId,
                 Phone = create.Phone,
-                CreatedById = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
+                CreatedById = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
             };
 
             await _repository.AddAsync(driver);
@@ -93,7 +93,7 @@ namespace Rassef.Controllers
 
         // Update (GET)
         [HttpGet]
-        public async Task<IActionResult> Update(Guid id)
+        public async Task<IActionResult> Update(int id)
         {
             var drv = await _repository.GetByIdAsync(id);
 
@@ -154,7 +154,7 @@ namespace Rassef.Controllers
 
         // Delete (GET)
         [HttpGet]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(int id)
         {
             var drv = await _repository.GetByIdAsync(id);
 
@@ -178,7 +178,7 @@ namespace Rassef.Controllers
         // Delete (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteDriver(Guid id)
+        public async Task<IActionResult> DeleteDriver(int id)
         {
             var driver = await _repository.GetByIdAsync(id);
 

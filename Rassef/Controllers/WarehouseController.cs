@@ -35,7 +35,7 @@
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(Guid? id)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
 
@@ -107,7 +107,7 @@
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(Guid? id)
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
 
@@ -119,7 +119,7 @@
                 Id = warehouse.Id,
                 Name = warehouse.Name,
                 Location = warehouse.Location,
-                SelectedDepartmentIds = warehouse.Departments?.Select(d => d.Id).ToList() ?? new List<Guid>(),
+                SelectedDepartmentIds = warehouse.Departments?.Select(d => d.Id).ToList() ?? new List<int>(),
                 Departments = await GetDepartmentSelectListAsync()
             };
 
@@ -128,7 +128,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, UpdateWarehouseVM model)
+        public async Task<IActionResult> Edit(int id, UpdateWarehouseVM model)
         {
             if (id != model.Id) return NotFound();
 
@@ -160,7 +160,7 @@
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(Guid? id)
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
 
@@ -179,7 +179,7 @@
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var warehouse = await _warehouseRepository.GetByIdAsync(id);
             if (warehouse != null)

@@ -32,7 +32,7 @@
             return View(trucks);
         }
         [HttpGet]
-        public async Task<IActionResult> Details(Guid id)
+        public async Task<IActionResult> Details(int id)
         {
             var truck = await _truckRepository.GetByIdAsync(id);
             if (truck == null) return View(truck);
@@ -77,7 +77,7 @@
                 return View(create);
             }
 
-            var currentUser = await _userRepository.GetByIdAsync(Guid.Parse(userId));
+            var currentUser = await _userRepository.GetByIdAsync(int.Parse(userId));
 
             if (currentUser is null)
             {
@@ -105,7 +105,7 @@
             return RedirectToAction(nameof(Index));
         }
         [HttpGet]
-        public async Task<IActionResult> Update(Guid id)
+        public async Task<IActionResult> Update(int id)
         {
             var truck = await _truckRepository.GetByIdAsync(id);
 
@@ -157,7 +157,7 @@
             return RedirectToAction(nameof(Index));
         }
         [HttpGet]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(int id)
         {
             var truck = await _truckRepository.GetByIdAsync(id);
 
@@ -182,7 +182,7 @@
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var truck = await _truckRepository.GetByIdAsync(id);
 
@@ -201,7 +201,7 @@
         }
 
         #region Helpers
-        private async Task LoadTruckTypesAsync(Guid? selectedTruckTypeId = null)
+        private async Task LoadTruckTypesAsync(int? selectedTruckTypeId = null)
         {
             ViewBag.TruckTypes = new SelectList(
                 await _truckTypeRepository.GetAllAsync(),

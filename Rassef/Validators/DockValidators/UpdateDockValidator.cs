@@ -33,7 +33,7 @@ namespace Rassef.Validators.Dock
 
         private async Task<bool> BeUniqueDockNameExceptCurrent(UpdateDockVM model)
         {
-            if (string.IsNullOrWhiteSpace(model.DockName) || model.DepartmentId == Guid.Empty)
+            if (string.IsNullOrWhiteSpace(model.DockName) || model.DepartmentId == default)
                 return true;
 
             bool exists = await _dockRepository.ExistsAsync(

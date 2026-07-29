@@ -1,5 +1,7 @@
 ﻿
 
+using Rassef.ViewModels.Driver;
+
 namespace Rassef.Validators.Driver
 {
     public class UpdateDriverValidator : AbstractValidator<UpdateDriverVM>

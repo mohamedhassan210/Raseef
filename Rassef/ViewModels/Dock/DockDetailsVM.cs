@@ -4,7 +4,7 @@ namespace Rassef.ViewModels.Dock
     public class DockDetailsVM
     {
         [Display(Name = "المعرف (ID)")]
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Display(Name = "اسم الرصيف")]
         public string DockName { get; set; } = string.Empty;
@@ -17,6 +17,6 @@ namespace Rassef.ViewModels.Dock
         public string DepartmentName { get; set; } = string.Empty;
 
         [Display(Name = "تم الإنشاء بواسطة")]
-        public Guid CreatedBy { get; set; }
+        public int CreatedBy { get; set; }
     }
 }

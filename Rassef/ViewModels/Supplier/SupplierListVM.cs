@@ -3,7 +3,7 @@ namespace Rassef.ViewModels.Supplier
 {
     public class SupplierListVM
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Display(Name = "شعار المورد")]
         public string? LogoURL { get; set; }

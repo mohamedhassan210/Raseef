@@ -2,7 +2,7 @@
 {
     public class TruckListVM
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         public string PlateNumber { get; set; } = string.Empty;
 

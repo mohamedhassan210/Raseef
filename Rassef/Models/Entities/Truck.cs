@@ -2,7 +2,7 @@
 {
     public class Truck : BaseEntity
     {
-        public Guid TruckTypeId { get; set; }
+        public int TruckTypeId { get; set; }
         public string PlateNumber { get; set; } = string.Empty;
         public string PlateLetter { get; set; } = string.Empty;
         public double StorageCapacity { get; set; }

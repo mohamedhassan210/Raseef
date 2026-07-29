@@ -5,7 +5,7 @@ namespace Rassef.ViewModels.Warehouse
     public class UpdateWarehouseVM
     {
         [Required(ErrorMessage = "معرف المخزن مطلوب.")]
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Required(ErrorMessage = "اسم المخزن مطلوب.")]
         [StringLength(100, MinimumLength = 2, ErrorMessage = "يجب أن يكون اسم المخزن بين 2 و 100 حرف.")]
@@ -18,7 +18,7 @@ namespace Rassef.ViewModels.Warehouse
         public string Location { get; set; } = string.Empty;
 
         [Display(Name = "الأقسام المحددّة")]
-        public List<Guid> SelectedDepartmentIds { get; set; } = new List<Guid>();
+        public List<int> SelectedDepartmentIds { get; set; } = new List<int>();
 
         public IEnumerable<SelectListItem>? Departments { get; set; }
     }

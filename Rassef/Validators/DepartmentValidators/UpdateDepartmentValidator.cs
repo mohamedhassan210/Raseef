@@ -1,4 +1,6 @@
 ﻿
+using Rassef.ViewModels.Department;
+
 namespace Rassef.Validators.Department
 {
     public class UpdateDepartmentValidator : AbstractValidator<UpdateDepartmentVM>
@@ -27,7 +29,7 @@ namespace Rassef.Validators.Department
 
         private async Task<bool> BeUniqueNameInWarehouseExceptCurrent(UpdateDepartmentVM model)
         {
-            if (string.IsNullOrWhiteSpace(model.Name) || model.WarehouseId == Guid.Empty)
+            if (string.IsNullOrWhiteSpace(model.Name) || model.WarehouseId ==0)
                 return true;
 
             bool exists = await _departmentRepository.ExistsAsync(

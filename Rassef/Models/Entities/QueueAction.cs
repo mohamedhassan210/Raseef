@@ -2,8 +2,8 @@
 {
     public class QueueAction : BaseEntity
     {
-        public Guid TicketId { get; set; }
-        public Guid ActionTypeId { get; set; }
+        public int TicketId { get; set; }
+        public int ActionTypeId { get; set; }
         public DateTimeOffset ActionTime { get; set; }
         public QueueTicket QueueTicket { get; set; }
         public ActionTypes ActionType { get; set; }

@@ -3,10 +3,10 @@
     public class CheckOutListVM
     {
         [Display(Name = "المعرف")]
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Display(Name = "التذكرة")]
-        public Guid TicketId { get; set; }
+        public int TicketId { get; set; }
 
         [Display(Name = "نوع الخروج")]
         public string ExitTypeName { get; set; } = string.Empty;

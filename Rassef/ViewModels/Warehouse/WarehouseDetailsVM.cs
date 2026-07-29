@@ -3,7 +3,7 @@ namespace Rassef.ViewModels.Warehouse
 {
     public class WarehouseDetailsVM
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Display(Name = "اسم المخزن")]
         public string Name { get; set; } = string.Empty;

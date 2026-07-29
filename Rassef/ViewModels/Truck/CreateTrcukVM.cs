@@ -18,6 +18,6 @@
 
     
         [Display(Name = "نوع الشاحنة")]
-        public Guid TruckTypeId { get; set; }
+        public int TruckTypeId { get; set; }
     }
 }

@@ -2,8 +2,8 @@
 {
     public class CheckOut : BaseEntity
     {
-        public Guid TicketId { get; set; }
-        public Guid ExitTypeId { get; set; }
+        public int TicketId { get; set; }
+        public int ExitTypeId { get; set; }
         public DateTimeOffset ExitTime { get; set; }
         public User CreatedBy { get; set; } = null!;
         public QueueTicket QueueTicket { get; set; }

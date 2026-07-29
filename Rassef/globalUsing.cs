@@ -1,6 +1,4 @@
 ﻿global using FluentValidation;
-global using Microsoft.AspNetCore.Authentication;
-global using Microsoft.AspNetCore.Authentication.Cookies;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.Mvc.Rendering;
 global using Microsoft.EntityFrameworkCore;
@@ -23,19 +21,14 @@ global using Rassef.Models.ValueObjects;
 global using Rassef.Piplines;
 global using Rassef.ViewModels.Authentication;
 global using Rassef.ViewModels.Authentication.JWT;
+global using Rassef.ViewModels.CheckOut;
 global using Rassef.ViewModels.Dock;
 global using Rassef.ViewModels.Truck;
+global using Rassef.ViewModels.Warehouse;
 global using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 global using System.ComponentModel.DataAnnotations;
 global using System.IdentityModel.Tokens.Jwt;
 global using System.Security.Claims;
 global using System.Security.Cryptography;
 global using System.Text;
-global using Rassef.ViewModels.Warehouse;
-global using Rassef.ViewModels.Department;
-global using Rassef.ViewModels.Driver;
-global using Rassef.ViewModels.CheckOut;
 global using Rassef.ViewModels.Supplier;
-
-
-

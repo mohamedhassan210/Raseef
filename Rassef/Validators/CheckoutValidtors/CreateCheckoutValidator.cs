@@ -28,7 +28,7 @@ namespace Rassef.Validators.CheckOut
 
         private async Task<bool> BeUniqueCheckOutForTicket(CreateCheckOutVM model)
         {
-            if (model.TicketId == Guid.Empty)
+            if (model.TicketId == default)
                 return true;
 
             bool exists = await _checkOutRepository.ExistsAsync(

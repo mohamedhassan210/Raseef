@@ -15,10 +15,10 @@ namespace Rassef.ViewModels.Warehouse
         public string Location { get; set; } = string.Empty;
 
         [Display(Name = "الأقسام")]
-        public List<Guid> SelectedDepartmentIds { get; set; } = new List<Guid>();
+        public List<int> SelectedDepartmentIds { get; set; } = new List<int>();
 
         [Display(Name = "الأرصفة")]
-        public List<Guid> SelectedDockIds { get; set; } = new List<Guid>();
+        public List<int> SelectedDockIds { get; set; } = new List<int>();
 
         public IEnumerable<SelectListItem>? Departments { get; set; }
         public IEnumerable<SelectListItem>? Docks { get; set; }

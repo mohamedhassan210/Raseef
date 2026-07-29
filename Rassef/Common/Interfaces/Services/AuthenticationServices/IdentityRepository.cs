@@ -11,7 +11,7 @@ namespace Rassef.Common.Interfaces.Services.AuthenticationServices
             _context = db;
         }
 
-        public async Task<bool> AddPermissionToGroupAsync(Guid groupId, Guid permissionId)
+        public async Task<bool> AddPermissionToGroupAsync(int groupId, int permissionId)
         {
             var group = await _context.UserGroups.FirstOrDefaultAsync(x => x.Id == groupId);
             if (group == null)
@@ -43,7 +43,7 @@ namespace Rassef.Common.Interfaces.Services.AuthenticationServices
                       .ToListAsync();
         }
 
-        public async Task<bool> RemovePermissionFromGroupAsync(Guid groupId, Guid permissionId)
+        public async Task<bool> RemovePermissionFromGroupAsync(int groupId, int permissionId)
         {
             var groupPermission = await _context.GroupPermissions.FirstOrDefaultAsync(x => x.GroupId == groupId && x.PermissionId == permissionId);
 

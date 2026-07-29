@@ -12,7 +12,7 @@ namespace Rassef.Common.Repository
             _db = db;
             _dbSet = _db.Set<T>();
         }
-        public async Task<T?> GetByIdAsync(Guid id) => await _dbSet.FindAsync(id);
+        public async Task<T?> GetByIdAsync(int id) => await _dbSet.FindAsync(id);
         public async Task<IReadOnlyList<T>> GetAllAsync()
         => await _dbSet.AsNoTracking().ToListAsync();
         public async Task AddAsync(T entity)

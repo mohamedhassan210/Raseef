@@ -33,7 +33,7 @@
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(Guid id)
+        public async Task<IActionResult> Details(int id)
         {
             var checkOut = await _repository.GetByIdAsync(id);
 
@@ -86,7 +86,7 @@
         }
 
         [HttpGet]
-        public async Task<IActionResult> Update(Guid id)
+        public async Task<IActionResult> Update(int id)
         {
             var checkOut = await _repository.GetByIdAsync(id);
 
@@ -138,7 +138,7 @@
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(int id)
         {
             var checkOut = await _repository.GetByIdAsync(id);
 
@@ -159,7 +159,7 @@
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var checkOut = await _repository.GetByIdAsync(id);
 

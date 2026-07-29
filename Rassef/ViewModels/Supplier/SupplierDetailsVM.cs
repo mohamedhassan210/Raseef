@@ -3,7 +3,7 @@ namespace Rassef.ViewModels.Supplier
 {
     public class SupplierDetailsVM
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Display(Name = "اسم المورد")]
         public string Name { get; set; } = string.Empty;

@@ -4,7 +4,7 @@ namespace Rassef.ViewModels.Supplier
     public class UpdateSupplierVM
     {
         [Required(ErrorMessage = "معرف المورد مطلوب.")]
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Required(ErrorMessage = "اسم المورد مطلوب.")]
         [StringLength(100, MinimumLength = 2, ErrorMessage = "يجب أن يكون اسم المورد بين 2 و 100 حرف.")]

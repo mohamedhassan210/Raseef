@@ -4,18 +4,15 @@
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtService _jwtService;
-        private readonly ILogger<AuthenticationController> _logger;
         public AuthenticationController(IUserRepository userRepository, IJwtService jwtService, ILogger<AuthenticationController> logger  )
         {
             _userRepository = userRepository ?? throw new ArgumentNullException( nameof( userRepository ) );
             _jwtService = jwtService ?? throw new ArgumentNullException( nameof( jwtService ) ); 
-            _logger = logger ?? throw new ArgumentNullException( nameof( logger ) );
         }
 
         [HttpGet]
         public IActionResult Intro()
         {
-            _logger.LogInformation("Home Page Opened");
             return View();
         }
 
@@ -115,7 +112,7 @@
             return View();
         }
         [HttpGet]
-        public async Task<IActionResult> UserProfile(Guid id)
+        public async Task<IActionResult> UserProfile(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)

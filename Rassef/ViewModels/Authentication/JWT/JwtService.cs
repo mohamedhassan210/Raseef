@@ -7,7 +7,7 @@
         public JwtService(IOptions<JwtSettings> options)
         => _jwtSettings = options.Value;
 
-        public string GenerateToken(Guid UserId, Email Email)
+        public string GenerateToken(int UserId, Email Email)
         {
             var cliams = new List<Claim>
             {
