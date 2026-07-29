@@ -17,7 +17,7 @@ namespace Rassef.Dependencyinjection
             services.AddExceptionHandler<GlobalExceptionHandling>();
             services.AddProblemDetails();
             services.AddFluentValidationAutoValidation();
-            services.AddValidatorsFromAssemblyContaining<Program>();
+            services.AddValidatorsFromAssemblyContaining<Program>(); // add validators 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             //add services 
             services.AddScoped<IUserRepository, UserRepository>();

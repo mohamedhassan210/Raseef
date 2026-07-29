@@ -5,6 +5,7 @@ namespace Rassef.Common.Repository.EntitiesRepository
     {
         public QueueActionRepository(ApplicationDbContext db) : base(db)
         {
+
         }
     }
 }

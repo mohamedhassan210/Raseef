@@ -32,3 +32,5 @@ global using System.Security.Claims;
 global using System.Security.Cryptography;
 global using System.Text;
 global using Rassef.ViewModels.Supplier;
+global using Rassef.ViewModels.QueueAction;
+global using Rassef.ViewModels.QueueTicket;
