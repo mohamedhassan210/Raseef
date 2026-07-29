@@ -19,6 +19,7 @@
         public int RequestStatusId { get; set; }
         public RequestStatuses RequestStatus { get; set; }
 
+        public string CreatedById { get; set; } = string.Empty;
         public User CreatedBy { get; set; }
 
         public ICollection<QueueTicket> QueueTickets { get; set; } = new HashSet<QueueTicket>();
