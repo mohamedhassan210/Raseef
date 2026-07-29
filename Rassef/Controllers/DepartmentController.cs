@@ -11,7 +11,6 @@ namespace Rassef.Controllers
             _repository = department;
         }
 
-
         public async Task<IActionResult> Index()
         {
             var departrments = await _repository.GetAllAsync();
@@ -32,7 +31,10 @@ namespace Rassef.Controllers
             var department = await _repository.GetByIdAsync(id);
 
             if (department == null)
-                return NotFound();
+            {
+                ModelState.AddModelError("", "القسم المطلوب غير موجود.");
+                return View();
+            }
 
             var model = new DepartmentDetailsVM
             {
@@ -84,7 +86,10 @@ namespace Rassef.Controllers
             var department = await _repository.GetByIdAsync(id);
 
             if (department == null)
-                return NotFound();
+            {
+                ModelState.AddModelError("", "القسم المطلوب تعديله غير موجود.");
+                return View();
+            }
 
             var model = new UpdateDepartmentVM
             {
@@ -107,7 +112,10 @@ namespace Rassef.Controllers
             var department = await _repository.GetByIdAsync(model.Id);
 
             if (department == null)
-                return NotFound();
+            {
+                ModelState.AddModelError("", "القسم المطلوب تعديله غير موجود.");
+                return View(model);
+            }
 
             if (await _repository.ExistsAsync(x => x.Name == model.Name && x.Id != model.Id))
             {
@@ -131,7 +139,10 @@ namespace Rassef.Controllers
             var department = await _repository.GetByIdAsync(id);
 
             if (department == null)
-                return NotFound();
+            {
+                ModelState.AddModelError("", "القسم المطلوب حذفه غير موجود.");
+                return View();
+            }
 
             var model = new DepartmentDetailsVM
             {
@@ -151,7 +162,10 @@ namespace Rassef.Controllers
             var department = await _repository.GetByIdAsync(id);
 
             if (department == null)
-                return NotFound();
+            {
+                ModelState.AddModelError("", "القسم المطلوب حذفه غير موجود.");
+                return View();
+            }
 
             _repository.Remove(department);
             await _repository.SaveChangesAsync();

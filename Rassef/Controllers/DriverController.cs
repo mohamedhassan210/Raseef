@@ -21,7 +21,7 @@ namespace Rassef.Controllers
                 Id = d.Id,
                 FullName = d.FullName,
                 NationalId = d.NationalId,
-                Phone = d.Phone
+                Phone = d.Phone 
             }).ToList();
 
             return View(driverList);
