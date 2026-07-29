@@ -1,6 +1,6 @@
 ﻿namespace Rassef.Models.Identity
 {
-    public class GroupPermission
+    public class GroupPermission : BaseEntity
     {
         public int GroupId { get; set; }
         public UserGroup? Group { get; set; }
