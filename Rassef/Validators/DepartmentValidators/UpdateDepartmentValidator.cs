@@ -29,7 +29,7 @@ namespace Rassef.Validators.Department
 
         private async Task<bool> BeUniqueNameInWarehouseExceptCurrent(UpdateDepartmentVM model)
         {
-            if (string.IsNullOrWhiteSpace(model.Name) || model.WarehouseId ==0)
+            if (string.IsNullOrWhiteSpace(model.Name) || model.WarehouseId == 0)
                 return true;
 
             bool exists = await _departmentRepository.ExistsAsync(

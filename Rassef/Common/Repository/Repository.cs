@@ -6,7 +6,7 @@ namespace Rassef.Common.Repository
     {
         private readonly ApplicationDbContext _db;
         private readonly DbSet<T> _dbSet;
-        
+
         public Repository(ApplicationDbContext db)
         {
             _db = db;

@@ -6,7 +6,7 @@ namespace Rassef.ViewModels.Dock
     {
         public int Id { get; set; }
 
-    
+
         [Display(Name = "اسم الرصيف")]
         public string DockName { get; set; } = string.Empty;
 

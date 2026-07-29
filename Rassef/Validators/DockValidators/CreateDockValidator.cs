@@ -29,7 +29,7 @@
 
         private async Task<bool> BeUniqueDockName(CreateDockVM model)
         {
-            if (string.IsNullOrWhiteSpace(model.DockName) || model.DepartmentId ==default)
+            if (string.IsNullOrWhiteSpace(model.DockName) || model.DepartmentId == default)
                 return true;
 
             bool exists = await _dockRepository.ExistsAsync(

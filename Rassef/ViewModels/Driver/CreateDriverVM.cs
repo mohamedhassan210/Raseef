@@ -3,7 +3,7 @@
     public class CreateDriverVM
     {
         [Display(Name = "اسم السائق")]
-     
+
         public string FullName { get; set; } = string.Empty;
 
         [Display(Name = "الرقم القومي")]
