@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Rassef.Data;
-using Rassef.Models.Identity;
-
-namespace Rassef.Common.Helpers
+﻿namespace Rassef.Common.Helpers
 {
     public static class PermissionSeeder
     {

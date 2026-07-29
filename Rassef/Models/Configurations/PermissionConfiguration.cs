@@ -15,8 +15,8 @@
                    .HasMaxLength(100);
 
             builder.Property(p => p.Description)
-                   .HasMaxLength(250); 
-           
+                   .HasMaxLength(250);
+
             builder.HasIndex(p => new { p.ControllerName, p.ActionName })
                    .IsUnique();
 

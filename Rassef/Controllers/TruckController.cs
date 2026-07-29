@@ -1,24 +1,28 @@
-﻿namespace Rassef.Controllers
+﻿
+
+namespace Rassef.Controllers
 {
     public class TruckController : Controller
     {
         private readonly IRepository<Truck> _truckRepository;
         private readonly IRepository<TruckTypes> _truckTypeRepository;
         private readonly IRepository<User> _userRepository;
-        public TruckController(IRepository<Truck> truckRepository, IRepository<TruckTypes> truckTypeRepository, IRepository<User> userRepository)
+
+        public TruckController(
+            IRepository<Truck> truckRepository,
+            IRepository<TruckTypes> truckTypeRepository,
+            IRepository<User> userRepository)
         {
             _truckRepository = truckRepository;
             _truckTypeRepository = truckTypeRepository;
             _userRepository = userRepository;
         }
+
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> Index()
         {
             var trucksrepo = await _truckRepository.GetAllAsync();
-            if (!trucksrepo.Any())
-            {
-                return View(trucksrepo);
-            }
+
             var trucks = trucksrepo.Select(x => new TruckListVM
             {
                 Id = x.Id,
@@ -26,35 +30,50 @@
                 PlateLetter = x.PlateLetter,
                 PlateNumber = x.PlateNumber,
                 StorageCapacity = x.StorageCapacity,
-                TruckTypeName = x.TruckType.Name
+                TruckTypeName = x.TruckType?.Name ?? "غير محدد"
+            }).ToList();
 
-            });
             return View(trucks);
         }
+
         [HttpGet]
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(int? id)
         {
-            var truck = await _truckRepository.GetByIdAsync(id);
-            if (truck == null) return View(truck);
+            if (id == null)
+            {
+                ModelState.AddModelError("الشاحنة", "رقم الشاحنة مفقود.");
+                return View(new TruckDetailsVM());
+            }
+
+            var truck = await _truckRepository.GetByIdAsync(id.Value);
+
+            if (truck == null)
+            {
+                ModelState.AddModelError("الشاحنة", "هذه الشاحنة غير موجودة.");
+                return View(new TruckDetailsVM());
+            }
+
             var truckDetails = new TruckDetailsVM
             {
+                Id = truck.Id,
                 PlateNumber = truck.PlateNumber,
                 PlateLetter = truck.PlateLetter,
                 StorageCapacity = truck.StorageCapacity,
                 IsRefrigerated = truck.IsRefrigerated,
-                TruckTypeName = truck.TruckType.Name,
-                CreatedByName = truck.CreatedBy.Name,
-                CreatedAt = DateTime.UtcNow
+                TruckTypeName = truck.TruckType?.Name ?? "غير محدد",
+                CreatedByName = truck.CreatedBy?.Name ?? "النظام",
+                CreatedAt = truck.CreatedAT,
+                UpdatedAt = truck.UpdatedAT
             };
-            return View();
+
+            return View(truckDetails);
         }
+
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var truckTypes = await _truckTypeRepository.GetAllAsync();
-
-            ViewBag.TruckTypes = new SelectList(truckTypes, "Id", "Name");
-            return View();
+            await LoadTruckTypesAsync();
+            return View(new CreateTruckVM());
         }
 
         [HttpPost]
@@ -72,7 +91,6 @@
             if (string.IsNullOrWhiteSpace(userId))
             {
                 ModelState.AddModelError("", "يجب تسجيل الدخول أولاً.");
-
                 await LoadTruckTypesAsync(create.TruckTypeId);
                 return View(create);
             }
@@ -82,7 +100,6 @@
             if (currentUser is null)
             {
                 ModelState.AddModelError("", "لم يتم العثور على المستخدم.");
-
                 await LoadTruckTypesAsync(create.TruckTypeId);
                 return View(create);
             }
@@ -101,16 +118,27 @@
             await _truckRepository.SaveChangesAsync();
 
             TempData["Success"] = "تم إضافة الشاحنة بنجاح.";
-
             return RedirectToAction(nameof(Index));
         }
-        [HttpGet]
-        public async Task<IActionResult> Update(int id)
-        {
-            var truck = await _truckRepository.GetByIdAsync(id);
 
-            if (truck is null)
-                return NotFound();
+        [HttpGet]
+        public async Task<IActionResult> Update(int? id)
+        {
+            if (id == null)
+            {
+                ModelState.AddModelError("الشاحنة", "رقم الشاحنة مفقود.");
+                await LoadTruckTypesAsync();
+                return View(new UpdateTruckVM());
+            }
+
+            var truck = await _truckRepository.GetByIdAsync(id.Value);
+
+            if (truck == null)
+            {
+                ModelState.AddModelError("الشاحنة", "هذه الشاحنة غير موجودة.");
+                await LoadTruckTypesAsync();
+                return View(new UpdateTruckVM());
+            }
 
             await LoadTruckTypesAsync(truck.TruckTypeId);
 
@@ -126,7 +154,9 @@
 
             return View(vm);
         }
-        [HttpPut]
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Update(UpdateTruckVM update)
         {
             if (!ModelState.IsValid)
@@ -134,15 +164,16 @@
                 await LoadTruckTypesAsync(update.TruckTypeId);
                 return View(update);
             }
+
             var truck = await _truckRepository.GetByIdAsync(update.Id);
 
-            if (truck is null)
+            if (truck == null)
             {
-                ModelState.AddModelError("", "الشاحنة غير موجودة.");
-
+                ModelState.AddModelError("الشاحنة", "هذه الشاحنة غير موجودة.");
                 await LoadTruckTypesAsync(update.TruckTypeId);
                 return View(update);
             }
+
             truck.PlateNumber = update.PlateNumber;
             truck.PlateLetter = update.PlateLetter;
             truck.StorageCapacity = update.StorageCapacity;
@@ -153,16 +184,25 @@
             await _truckRepository.SaveChangesAsync();
 
             TempData["Success"] = "تم تحديث بيانات الشاحنة بنجاح.";
-
             return RedirectToAction(nameof(Index));
         }
-        [HttpGet]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var truck = await _truckRepository.GetByIdAsync(id);
 
-            if (truck is null)
-                return NotFound();
+        [HttpGet]
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                ModelState.AddModelError("الشاحنة", "رقم الشاحنة مفقود.");
+                return View(new TruckDetailsVM());
+            }
+
+            var truck = await _truckRepository.GetByIdAsync(id.Value);
+
+            if (truck == null)
+            {
+                ModelState.AddModelError("الشاحنة", "هذه الشاحنة غير موجودة.");
+                return View(new TruckDetailsVM());
+            }
 
             var vm = new TruckDetailsVM
             {
@@ -171,14 +211,15 @@
                 PlateLetter = truck.PlateLetter,
                 StorageCapacity = truck.StorageCapacity,
                 IsRefrigerated = truck.IsRefrigerated,
-                TruckTypeName = truck.TruckType.Name,
-                CreatedByName = truck.CreatedBy.Name,
+                TruckTypeName = truck.TruckType?.Name ?? "غير محدد",
+                CreatedByName = truck.CreatedBy?.Name ?? "غير محدد",
                 CreatedAt = truck.CreatedAT,
                 UpdatedAt = truck.UpdatedAT
             };
 
             return View(vm);
         }
+
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -186,17 +227,16 @@
         {
             var truck = await _truckRepository.GetByIdAsync(id);
 
-            if (truck is null)
+            if (truck == null)
             {
-                TempData["Error"] = "الشاحنة غير موجودة.";
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError("الشاحنة", "هذه الشاحنة غير موجودة.");
+                return View(new TruckDetailsVM());
             }
 
             _truckRepository.Remove(truck);
             await _truckRepository.SaveChangesAsync();
 
             TempData["Success"] = "تم حذف الشاحنة بنجاح.";
-
             return RedirectToAction(nameof(Index));
         }
 
@@ -209,7 +249,6 @@
                 "Name",
                 selectedTruckTypeId);
         }
-
         #endregion
     }
 }

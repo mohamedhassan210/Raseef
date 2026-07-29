@@ -33,7 +33,7 @@
             var currentGroupPermissions = allGroupPermissions
                 .Where(x => x.GroupId == groupId)
                 .Select(x => x.PermissionId)
-                .ToHashSet(); 
+                .ToHashSet();
 
             var model = new GroupPermissionsViewModel
             {
