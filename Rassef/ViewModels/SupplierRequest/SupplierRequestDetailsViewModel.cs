@@ -20,7 +20,7 @@
     [Display(Name = "القسم")]
     public string DepartmentName { get; set; } = string.Empty;
 
-        [Display(Name = "نوع التصريح")]
+    [Display(Name = "نوع التصريح")]
     public string PermitTypeName { get; set; } = string.Empty;
 
     [Display(Name = "رقم التصريح")]

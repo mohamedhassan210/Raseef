@@ -125,7 +125,8 @@ namespace Rassef.Controllers
         public async Task<IActionResult> Edit(UpdateQueueActionVM model)
         {
 
-            if (model is null) {
+            if (model is null)
+            {
                 ModelState.AddModelError(string.Empty, " لا يوجد بيانات .");
                 await PopulateDropdowns(model);
                 return View(model);

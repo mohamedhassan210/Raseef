@@ -1,6 +1,4 @@
-﻿using Rassef.ViewModels.TransferRequest;
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class TransferRequestController : Controller
     {

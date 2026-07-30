@@ -5,7 +5,7 @@
         private readonly ApplicationDbContext _context;
         public SupplierRequestRepository(ApplicationDbContext db) : base(db)
         {
-            _context = db; 
+            _context = db;
         }
 
         public async Task<IEnumerable<SupplierRequest>> GetAllWithDetailsAsync()

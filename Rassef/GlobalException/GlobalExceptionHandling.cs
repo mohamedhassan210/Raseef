@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
-
+﻿
 namespace Rassef.GlobalException
 {
     public class GlobalExceptionHandling : IExceptionHandler

@@ -29,7 +29,7 @@ namespace Rassef.Common.Repository.EntitiesRepository
                 .Include(x => x.Department)
                 .Include(x => x.PermitType)
                 .Include(x => x.RequestStatus)
-                .FirstOrDefaultAsync(x=>x.Id == id);
+                .FirstOrDefaultAsync(x => x.Id == id);
         }
     }
 }
