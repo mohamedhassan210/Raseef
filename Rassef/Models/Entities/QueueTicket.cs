@@ -3,11 +3,11 @@ namespace Rassef.Models.Entities
 {
     public class QueueTicket : BaseEntity
     {
-        public Guid TicketNumber { get; set; }
-        public Guid? TransferRequestId { get; set; }
-        public Guid? SupplierRequestId { get; set; }
-        public Guid DepartmentId { get; set; }
-        public Guid TicketStatusId { get; set; }
+        public string TicketNumber { get; set; } = string.Empty;
+        public int? TransferRequestId { get; set; }
+        public int? SupplierRequestId { get; set; }
+        public int DepartmentId { get; set; }
+        public int TicketStatusId { get; set; }
         public DateTimeOffset QueueTime { get; set; }
         public DateTimeOffset EntryTime { get; set; }
         public DateTimeOffset ExitTime { get; set; }

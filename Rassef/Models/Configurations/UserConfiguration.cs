@@ -1,10 +1,14 @@
-﻿namespace Rassef.Configurations
+﻿
+
+namespace Rassef.Configurations
 {
     public class UserConfiguration : IEntityTypeConfiguration<User>
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
             builder.ToTable("Users");
+
+            builder.HasKey(u => u.Id);
 
             builder.Property(u => u.Name)
                    .IsRequired()
@@ -14,20 +18,9 @@
                    .IsRequired()
                    .HasMaxLength(100);
 
-            builder.Property(u => u.Password)
+            builder.Property(u => u.HashPassword)
                    .IsRequired()
                    .HasMaxLength(255);
-
-            builder.HasOne(u => u.group)
-                   .WithMany()
-                   .HasForeignKey(u => u.GroupId)
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasKey(u => u.Id);
-
-            builder.Property(u => u.UserName)
-                 .HasMaxLength(100)
-                 .IsRequired();
 
             builder.OwnsOne(u => u.Email, email =>
             {
@@ -36,6 +29,10 @@
                      .HasMaxLength(256)
                      .IsRequired();
             });
+
+            builder.HasMany(u => u.Groups)
+                   .WithMany(g => g.Users)
+                   .UsingEntity(j => j.ToTable("UserGroupMembers"));
         }
     }
 }

@@ -4,7 +4,7 @@ namespace Rassef.Common.Interfaces.Services
 {
     public interface IRepository<T>
     {
-        Task<T?> GetByIdAsync(Guid id);
+        Task<T?> GetByIdAsync(int id);
         Task<IReadOnlyList<T>> GetAllAsync();
         Task AddAsync(T entity);
         Task<int> SaveChangesAsync();
@@ -12,5 +12,6 @@ namespace Rassef.Common.Interfaces.Services
         void Remove(T entity);
         Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
         Task<T?> FindAsync(Expression<Func<T, bool>> predicate);
+
     }
 }

@@ -1,6 +1,17 @@
 ﻿namespace Rassef.ViewModels.Truck
 {
-    public class TruckListVm
+    public class TruckListVM
     {
+        public int Id { get; set; }
+
+        public string PlateNumber { get; set; } = string.Empty;
+
+        public string PlateLetter { get; set; } = string.Empty;
+
+        public double StorageCapacity { get; set; }
+
+        public bool IsRefrigerated { get; set; }
+
+        public string TruckTypeName { get; set; } = string.Empty;
     }
 }

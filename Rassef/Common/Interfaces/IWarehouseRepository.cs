@@ -3,15 +3,9 @@
 {
 
     public interface IWarehouseRepository : IRepository<Warehouse>
-
     {
-
-        Task<Warehouse?> GetWithDetailsByIdAsync(Guid id );
-
-
-
+        Task<Warehouse?> GetWithDetailsByIdAsync(int id);
         Task<bool> IsNameUniqueAsync(string name);
-
     }
 
 }

@@ -2,7 +2,7 @@
 {
     public interface IJwtService
     {
-        string GenerateToken(Guid UserId, Email Email);
+        string GenerateToken(int UserId, Email Email);
         string RefreshToken();
     }
 }

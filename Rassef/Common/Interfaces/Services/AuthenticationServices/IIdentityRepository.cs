@@ -4,8 +4,8 @@
     {
         Task<IEnumerable<GroupPermission>> GetAllGroupPermissionsAsync();
 
-        Task<bool> AddPermissionToGroupAsync(Guid groupId, Guid permissionId);
+        Task<bool> AddPermissionToGroupAsync(int groupId, int permissionId);
 
-        Task<bool> RemovePermissionFromGroupAsync(Guid groupId, Guid permissionId);
+        Task<bool> RemovePermissionFromGroupAsync(int groupId, int permissionId);
     }
 }

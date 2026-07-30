@@ -2,7 +2,7 @@
 {
     public class BaseEntity
     {
-        public Guid Id { get; protected set; }
+        public int Id { get; protected set; }
         public DateTimeOffset CreatedAT { get; protected set; }
         public DateTimeOffset UpdatedAT { get; protected set; }
         public void MarkAsUpdated() => UpdatedAT = DateTimeOffset.Now;

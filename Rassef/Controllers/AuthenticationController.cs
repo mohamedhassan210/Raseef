@@ -4,10 +4,14 @@
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtService _jwtService;
-        public AuthenticationController(IUserRepository userRepository, IJwtService jwtService)
-        { _userRepository = userRepository; _jwtService = jwtService; }
+        public AuthenticationController(IUserRepository userRepository, IJwtService jwtService, ILogger<AuthenticationController> logger)
+        {
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
+        }
 
         [HttpGet]
+
         public IActionResult Intro()
         {
             return View();
@@ -41,7 +45,7 @@
                 return View(login);
             }
 
-            if (!BCrypt.Net.BCrypt.Verify(login.Password, user.Password))
+            if (!BCrypt.Net.BCrypt.Verify(login.Password, user.HashPassword))
             {
                 ModelState.AddModelError(nameof(login.Password),
                     "كلمة المرور غير صحيحة.");
@@ -89,7 +93,7 @@
                 Name = register.FullName,
                 UserName = register.UserName,
                 Email = Email.Create(register.Email),
-                Password = BCrypt.Net.BCrypt.HashPassword(register.Password)
+                HashPassword = BCrypt.Net.BCrypt.HashPassword(register.Password)
             };
 
             await _userRepository.AddAsync(user);
@@ -109,7 +113,7 @@
             return View();
         }
         [HttpGet]
-        public async Task<IActionResult> UserProfile(Guid id)
+        public async Task<IActionResult> UserProfile(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
@@ -147,13 +151,6 @@
         public async Task<IActionResult> AccessDenied()
         {
             return View();
-        }
-        [HttpGet]
-        private RedirectToActionResult ForceLogoutAndRedirect()
-        {
-            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            Response.Cookies.Delete("AccessToken");
-            return RedirectToAction("Login");
         }
     }
 }

@@ -15,7 +15,7 @@
             services.AddExceptionHandler<GlobalExceptionHandling>();
             services.AddProblemDetails();
             services.AddFluentValidationAutoValidation();
-            services.AddValidatorsFromAssemblyContaining<Program>();
+            services.AddValidatorsFromAssemblyContaining<Program>(); // add validators 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             //add services 
             services.AddScoped<IUserRepository, UserRepository>();
@@ -35,6 +35,15 @@
             services.Configure<JwtSettings>(
               configuration.GetSection("Jwt"));
 
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .MinimumLevel.Warning()
+                .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+                .WriteTo.File(
+                    "logs/log-.txt",
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 30)
+                .CreateLogger();
 
 
             return services;
@@ -52,12 +61,13 @@
 
             app.UseRouting();
 
+            app.UseMiddleware<LoggingBehavior>();
+
             app.UseAuthorization();
 
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Authentication}/{action=Intro}/{id?}");
-            app.UseMiddleware<LogginBehaviors>();
             return app;
         }
     }

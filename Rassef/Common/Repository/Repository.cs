@@ -6,12 +6,13 @@ namespace Rassef.Common.Repository
     {
         private readonly ApplicationDbContext _db;
         private readonly DbSet<T> _dbSet;
+
         public Repository(ApplicationDbContext db)
         {
             _db = db;
             _dbSet = _db.Set<T>();
         }
-        public async Task<T?> GetByIdAsync(Guid id) => await _dbSet.FindAsync(id);
+        public async Task<T?> GetByIdAsync(int id) => await _dbSet.FindAsync(id);
         public async Task<IReadOnlyList<T>> GetAllAsync()
         => await _dbSet.AsNoTracking().ToListAsync();
         public async Task AddAsync(T entity)
@@ -27,6 +28,8 @@ namespace Rassef.Common.Repository
 
         public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate)
         => await _dbSet.FirstOrDefaultAsync(predicate);
+
+
 
     }
 }

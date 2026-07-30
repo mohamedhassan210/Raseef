@@ -1,14 +1,13 @@
-
 namespace Rassef
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddDependcyInjection(builder.Configuration);
-
+            builder.Host.UseSerilog();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -20,6 +19,12 @@ namespace Rassef
             }
 
             app.AddMiddleWares();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                await PermissionSeeder.SyncPermissionsAsync(context);
+            }
 
             app.Run();
         }

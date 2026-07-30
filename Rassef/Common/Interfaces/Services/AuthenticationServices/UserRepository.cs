@@ -7,46 +7,63 @@
         {
             _context = db;
         }
-
-        public async Task<bool> AddUserToGroupAsync(User user, Guid groupId)
+        public async Task<bool> AddUserToGroupAsync(User user, int groupId)
         {
             var userEntity = await _context.Users
+                .Include(u => u.Groups)
                 .FirstOrDefaultAsync(x => x.Id == user.Id);
+
             if (userEntity == null)
                 return false;
-            var group = await _context.UserGroups
-                .FirstOrDefaultAsync(x => x.Id == groupId);
+
+            var group = await _context.UserGroups.FindAsync(groupId);
             if (group == null)
                 return false;
-            userEntity.GroupId = groupId;
-            await _context.SaveChangesAsync();
+
+            if (!userEntity.Groups.Any(g => g.Id == groupId))
+            {
+                userEntity.Groups.Add(group);
+                await _context.SaveChangesAsync();
+            }
+
             return true;
         }
-
-        public async Task<bool> RemoveUserFromGroupAsync(User user, Guid groupId)
+        public async Task<bool> RemoveUserFromGroupAsync(User user, int groupId)
         {
             var userEntity = await _context.Users
+                .Include(u => u.Groups)
                 .FirstOrDefaultAsync(x => x.Id == user.Id);
+
             if (userEntity == null)
                 return false;
-            if (userEntity.GroupId != groupId)
+
+            var groupToRemove = userEntity.Groups.FirstOrDefault(g => g.Id == groupId);
+
+            if (groupToRemove == null)
                 return false;
-            userEntity.GroupId = Guid.Empty;
+
+            userEntity.Groups.Remove(groupToRemove);
             await _context.SaveChangesAsync();
+
             return true;
         }
-
-        public async Task<bool> ChangeUserGroupAsync(Guid userId, Guid newGroupId)
+        public async Task<bool> ChangeUserGroupAsync(int userId, int newGroupId)
         {
-            var user = await _context.Users
+            var userEntity = await _context.Users
+                .Include(u => u.Groups)
                 .FirstOrDefaultAsync(x => x.Id == userId);
-            if (user == null)
+
+            if (userEntity == null)
                 return false;
-            var group = await _context.UserGroups
-                .FirstOrDefaultAsync(x => x.Id == newGroupId);
-            if (group == null)
+
+            var newGroup = await _context.UserGroups.FindAsync(newGroupId);
+            if (newGroup == null)
                 return false;
-            user.GroupId = newGroupId;
+
+            userEntity.Groups.Clear();
+
+            userEntity.Groups.Add(newGroup);
+
             await _context.SaveChangesAsync();
             return true;
         }

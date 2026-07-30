@@ -2,11 +2,12 @@
 {
     public class Truck : BaseEntity
     {
-        public Guid TruckTypeId { get; set; }
+        public int TruckTypeId { get; set; }
         public string PlateNumber { get; set; } = string.Empty;
         public string PlateLetter { get; set; } = string.Empty;
         public double StorageCapacity { get; set; }
         public bool IsRefrigerated { get; set; }
+        public int CreatedById { get; set; }
         public User CreatedBy { get; set; }
         public TruckTypes TruckType { get; set; }
         public ICollection<TransferRequest> TransferRequests { get; set; } = new HashSet<TransferRequest>();

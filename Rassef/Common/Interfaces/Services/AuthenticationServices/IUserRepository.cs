@@ -2,8 +2,8 @@
 {
     public interface IUserRepository : IRepository<User>
     {
-        Task<bool> AddUserToGroupAsync(User user, Guid groupId);
-        Task<bool> RemoveUserFromGroupAsync(User user, Guid groupId);
-        Task<bool> ChangeUserGroupAsync(Guid userId, Guid newGroupId);
+        Task<bool> AddUserToGroupAsync(User user, int groupId);
+        Task<bool> RemoveUserFromGroupAsync(User user, int groupId);
+        Task<bool> ChangeUserGroupAsync(int userId, int newGroupId);
     }
 }
