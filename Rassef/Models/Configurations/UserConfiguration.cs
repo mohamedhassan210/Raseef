@@ -1,6 +1,4 @@
-﻿
-
-namespace Rassef.Configurations
+﻿namespace Rassef.Configurations
 {
     public class UserConfiguration : IEntityTypeConfiguration<User>
     {
@@ -32,12 +30,13 @@ namespace Rassef.Configurations
 
             builder.HasOne(u => u.Group)
                    .WithMany(g => g.Users)
+                   .HasForeignKey(u => u.GroupId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            // Position Relation 
             builder.HasOne(u => u.Position)
-                .WithMany(p => p.Users)
-                .OnDelete(DeleteBehavior.Cascade);
+                   .WithMany(p => p.Users)
+                   .HasForeignKey(u => u.PositionId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
