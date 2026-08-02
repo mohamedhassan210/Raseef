@@ -77,7 +77,7 @@
                         </div>
                         <span class="c-error-message" id="passwordError" asp-validation-for="Password"></span>
 
-                        <a href="#" class="c-link">نسيت كلمة المرور ؟</a>
+                        <a asp-controller="Authentication" asp-action="ForgetPassword" class="c-link">نسيت كلمة المرور ؟</a>
                     </div>
 
                     <button type="submit" class="c-button">تسجيل الدخول</button>
