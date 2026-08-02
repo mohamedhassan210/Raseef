@@ -14,8 +14,5 @@
         public Position Position { get; set; }
         public int GroupId { get; set; }
         public UserGroup Group { get; set; }
-
-        // remove many relation 
-
     }
 }
