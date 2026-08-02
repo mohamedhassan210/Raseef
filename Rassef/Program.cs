@@ -20,7 +20,11 @@ namespace Rassef
 
             app.AddMiddleWares();
 
-            
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                await PermissionSeeder.SyncPermissionsAsync(context);
+            }
 
             app.Run();
         }
