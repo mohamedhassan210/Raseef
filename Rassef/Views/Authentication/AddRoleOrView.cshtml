@@ -10,7 +10,6 @@
     <title>رصيف | اختيار الخدمة</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <!-- استخدام ~ للوصول إلى wwwroot/css -->
     <link rel="stylesheet" href="~/css/addRoleOrviewRole.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +20,6 @@
 
     <header class="app-header position-fixed top-0 start-0 w-100 d-flex justify-content-between align-items-center px-5 py-3">
         <div class="logo-wrapper logo-left" id="logo-raseefi">
-            <!-- استخدام ~ للوصول إلى wwwroot/img -->
             <img src="~/img/fathallah logo.svg" style="width: 80px;" alt="">
         </div>
         <div class="logo-wrapper logo-right" id="logo-fathalla">
@@ -31,8 +29,8 @@
 
     <main class="viewport-canvas overflow-hidden">
 
-        <div id="zone-transfer" class="hover-zone" style="left: 0;"></div>
-        <div id="zone-supply" class="hover-zone" style="right: 0;"></div>
+        <div id="zone-transfer" class="hover-zone" style="left: 0;" data-url="@Url.Action("Register", "Authentication")"></div>
+        <div id="zone-supply" class="hover-zone" style="right: 0;" data-url="@Url.Action("SupOrTra", "Authentication")"></div>
 
         <section id="panel-supply" class="panel panel-supply">
             <div class="panel-content text-center">
@@ -62,16 +60,14 @@
         </svg>
     </button>
 
-    <!-- تمرير روابط MVC إلى JavaScript بشكل نظيف -->
     <script>
         window.appRoutes = {
-            supOrTra: '@Url.Action("SupOrTra")',
-            viewRole: '@Url.Action("viewRole")',
-            login: '@Url.Action("Login")'
+            supOrTra: '@Url.Action("SupOrTra", "Authentication")',
+            viewRole: '@Url.Action("Register", "Authentication")',
+            login: '@Url.Action("Login", "Authentication")'
         };
     </script>
 
-    <!-- استدعاء ملف الـ JS الخارجي من wwwroot -->
     <script src="~/js/addRoleOrviewRole.js"></script>
 </body>
 </html>
