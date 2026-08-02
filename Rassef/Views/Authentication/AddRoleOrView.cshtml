@@ -1,0 +1,77 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رصيف | اختيار الخدمة</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <!-- استخدام ~ للوصول إلى wwwroot/css -->
+    <link rel="stylesheet" href="~/css/addRoleOrviewRole.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="loading">
+
+    <header class="app-header position-fixed top-0 start-0 w-100 d-flex justify-content-between align-items-center px-5 py-3">
+        <div class="logo-wrapper logo-left" id="logo-raseefi">
+            <!-- استخدام ~ للوصول إلى wwwroot/img -->
+            <img src="~/img/fathallah logo.svg" style="width: 80px;" alt="">
+        </div>
+        <div class="logo-wrapper logo-right" id="logo-fathalla">
+            <img src="~/img/logo light.svg" style="width: 200px;" alt="">
+        </div>
+    </header>
+
+    <main class="viewport-canvas overflow-hidden">
+
+        <div id="zone-transfer" class="hover-zone" style="left: 0;"></div>
+        <div id="zone-supply" class="hover-zone" style="right: 0;"></div>
+
+        <section id="panel-supply" class="panel panel-supply">
+            <div class="panel-content text-center">
+                <h1 class="panel-title mb-0">إضافة دور</h1>
+            </div>
+        </section>
+
+        <section id="panel-transfer" class="panel panel-transfer">
+            <div class="panel-content text-center">
+                <h1 class="panel-title text-white mb-0">رؤية الأدوار</h1>
+            </div>
+        </section>
+
+        <svg class="svg-definitions">
+            <defs>
+                <clipPath id="wave-clip-desktop" clipPathUnits="objectBoundingBox">
+                    <path id="wave-path-desktop" d="M 0,0 L 0.50,0 C 0.62,0.28 0.38,0.72 0.50,1.0 L 0,1.0 Z" />
+                </clipPath>
+            </defs>
+        </svg>
+    </main>
+
+    <button id="logout-btn" class="logout-btn" aria-label="تسجيل خروج">
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="32" fill="currentColor" style="transform: rotate(180deg);" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
+            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
+        </svg>
+    </button>
+
+    <!-- تمرير روابط MVC إلى JavaScript بشكل نظيف -->
+    <script>
+        window.appRoutes = {
+            supOrTra: '@Url.Action("SupOrTra")',
+            viewRole: '@Url.Action("viewRole")',
+            login: '@Url.Action("Login")'
+        };
+    </script>
+
+    <!-- استدعاء ملف الـ JS الخارجي من wwwroot -->
+    <script src="~/js/addRoleOrviewRole.js"></script>
+</body>
+</html>

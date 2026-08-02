@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Data Structure (Mock Database) matching the design exactly
     const suppliersData = [
         { 
-            id: 1, 
+            id: 1,  
             name: 'شركة جهينة', 
             phone: '01005568324', 
             logo: 'assets/juhayna.png' // Replace with actual logo path
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
             phone: '01005568324', 
             logo: 'assets/halwani.png'
         },
-        { 
+        {  
             id: 3, 
             name: 'شركة اكوافينا', 
             phone: '01005568324', 
@@ -137,5 +137,5 @@ window.selectSupplier = (id, name) => {
         btn.style.color = '';
     }, 3000);
 
-    window.location.href = 'companyDrivers.html';
+    window.location.href = 'companyCars.html';
 };

@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (fathallaLogo) {
             fathallaLogo.classList.add('shift-right');
         }
-    }, 5600);
+    }, 5600); 
 
     // Phase 4 (6.3s): ظهور النص بجانب اللوجو بمحاذاة قريبة جداً
     setTimeout(() => {
@@ -30,4 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
             splashScreen.classList.add('fade-out');
         }
     }, 8400);
+
+    // (9.0s): التحويل لصفحة تسجيل الدخول
+    setTimeout(() => {
+        window.location.href = "index.html";
+    }, 9000);
 });

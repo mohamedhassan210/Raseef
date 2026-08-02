@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.classList.remove('state-hover-supply');
         // إخفاء اللوجوهين معاً
         logoFathallahState(true);
-        logoRaseefiState(false); 
+        logoRaseefiState(false);
     };
 
     const activateSupply = () => {
@@ -28,41 +28,41 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.classList.remove('state-hover-transfer');
         // إخفاء اللوجوهين معاً 
         logoRaseefiState(true);
-        logoFathallahState(false); 
+        logoFathallahState(false);
     };
 
-    const resetState = () => { 
+    const resetState = () => {
         canvas.classList.remove('state-hover-transfer', 'state-hover-supply');
         // إظهار اللوجوهين مرة تانية لما الماوس يخرج بره الـ canvas
         logoRaseefiState(true);
         logoFathallahState(true);
     };
 
-    // Events
+    // Events 
     zoneTransfer.addEventListener('mouseenter', activateTransfer);
     zoneSupply.addEventListener('mouseenter', activateSupply);
     canvas.addEventListener('mouseleave', resetState);
+
+    // استخدام مسارات MVC الممررة عبر window.appRoutes
     zoneTransfer.addEventListener('click', () => {
-        window.location.href = 'transfer.html';
+        if (window.appRoutes && window.appRoutes.viewRole) {
+            window.location.href = window.appRoutes.viewRole;
+        }
     });
-    
+
     zoneSupply.addEventListener('click', () => {
-        window.location.href = 'suppliers.html';
+        if (window.appRoutes && window.appRoutes.supOrTra) {
+            window.location.href = window.appRoutes.supOrTra;
+        }
     });
 });
 
-// تفعيل زر تسجيل الخروج للانتقال لصفحة index.html
+// تفعيل زر تسجيل الخروج للانتقال لصفحة Login بناءً على MVC Routing
 const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-        window.location.href = "index.html";
-    });
-}
-
-// تفعيل زر خطوة للخلف للانتقال لصفحة index.html
-const stepbackBtn = document.getElementById('stepback-btn');
-if (stepbackBtn) {
-    stepbackBtn.addEventListener('click', () => {
-        window.location.href = "addRoleOrviewRole.html";
+        if (window.appRoutes && window.appRoutes.login) {
+            window.location.href = window.appRoutes.login;
+        }
     });
 }

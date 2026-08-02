@@ -1,4 +1,7 @@
-﻿using Rassef.ViewModels.TransferRequest;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
+using Rassef.Models.StatusesAndActions;
+using Rassef.ViewModels.TransferRequest;
 
 namespace Rassef.Controllers
 {
@@ -44,15 +47,72 @@ namespace Rassef.Controllers
             var model = requests.Select(x => new TransferRequestListVM
             {
                 Id = x.Id,
-                AvizNumber = x.AvizNumber,
                 Truck = $"{x.Truck.PlateNumber} {x.Truck.PlateLetter}",
-                Driver = x.Driver.FullName,
-                Department = x.Department.Name,
-                RequestStatus = x.RequestStatus.Name
+                IsFood = x.Truck.IsFood,
             }).ToList();
 
             return View(model);
         }
+        // Finish request 
+        [HttpGet]
+        public async Task<IActionResult> FinishRequest()
+        {
+
+            var permitTypes = await _permitTypeRepository.GetAllAsync();
+
+            var model = new FinishRequestViewModel
+            {
+                PermitTypes = permitTypes.Select(x => new SelectListItem
+                {
+                    Text = x.Name,
+                    Value = x.Id.ToString()
+                }).ToList()
+            };
+
+            return View(model);
+        }
+        //finish request post 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FinishRequest(FinishRequestViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var permitTypes = await _permitTypeRepository.GetAllAsync();
+
+                model.PermitTypes = permitTypes.Select(x => new SelectListItem
+                {
+                    Text = x.Name,
+                    Value = x.Id.ToString()
+                }).ToList();
+
+                return View(model);
+            }
+            var request = await _repository.GetByIdAsync(model.requestId);
+
+            if (request is null)
+            {
+                ModelState.AddModelError(string.Empty, "هذا الطلب غير موجود .");
+                return View(model);
+            }
+
+            request.AvizNumber = model.AvizNumber;
+            request.PermitNumber = model.PermitNumber;
+            request.DepartmentId = model.DepartmentId;
+            request.PermitTypeId = model.PermitTypeId;
+
+            _repository.Update(request);
+            await _repository.SaveChangesAsync();
+
+            RedirectToAction(nameof(EnsureTransfer));
+
+        }
+        [HttpGet]
+        public Task<IActionResult> EnsureTransfer()
+        {
+            return View();
+        }
+
 
         // Details
         [HttpGet]

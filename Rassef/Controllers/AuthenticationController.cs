@@ -138,6 +138,12 @@
             return View(profile);
 
         }
+        // add role action 
+        [HttpGet]
+        public async Task<IActionResult> AddRoleOrView()
+        {
+            return View();
+        }
 
         // Supplier of Transfer 
         [HttpGet]

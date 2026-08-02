@@ -2,5 +2,8 @@
 {
     public interface ITruckRepository : IRepository<Truck>
     {
+        Task GetTruckStatus();
+
+
     }
 }

@@ -15,9 +15,7 @@ namespace Rassef.Common.Repository.EntitiesRepository
             return await _context.TransferRequests
                 .Include(x => x.Truck)
                 .Include(x => x.Driver)
-                .Include(x => x.Department)
                 .Include(x => x.PermitType)
-                .Include(x => x.RequestStatus)
                 .ToListAsync();
         }
 

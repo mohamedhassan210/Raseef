@@ -50,7 +50,6 @@ namespace Rassef.Controllers
                 DepartmentName = x.Department?.Name ?? "غير محدد",
                 RequestStatusName = x.RequestStatus?.Name ?? "غير محدد",
                 PermitNumber = x.PermitNumber,
-                IsFood = x.IsFood
             }).ToList();
 
             return View(requests);

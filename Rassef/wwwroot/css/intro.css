@@ -10,7 +10,7 @@
 html, body {
     font-family: 'IBM Plex Sans Arabic', "Segoe UI", Roboto, sans-serif;
 }
-
+ 
 body.is-loading {
     overflow: hidden !important;
     margin: 0;

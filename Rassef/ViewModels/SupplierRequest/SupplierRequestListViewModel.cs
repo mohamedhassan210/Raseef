@@ -23,6 +23,4 @@
     [Display(Name = "رقم التصريح")]
     public string PermitNumber { get; set; } = string.Empty;
 
-    [Display(Name = "مواد غذائية؟")]
-    public bool IsFood { get; set; }
 }
