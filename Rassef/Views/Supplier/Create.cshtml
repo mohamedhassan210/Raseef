@@ -1,5 +1,105 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewData["Title"] = "إضافة مورد";
+    Layout = "_SupOrTra";
+}
+@model CreateSupplierVM
+
+<!-- استدعاء الخطوط ومكتبات التصميم (Bootstrap & Icons) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<!-- استدعاء ملف الـ CSS الخاص بالصفحة -->
+<link rel="stylesheet" href="~/css/addSupplier.css" asp-append-version="true">
+
+<div class="bg"></div>
+
+<div class="container main-container">
+
+    <header class="page-header d-flex justify-content-between align-items-center">
+        <div class="logo-wrapper header-right">
+            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-logo" onerror="this.src='https://via.placeholder.com/100x60?text=Fathalla'">
+        </div>
+
+        <div class="title-wrapper text-center">
+            <h1 class="main-title">إضافة مورد</h1>
+        </div>
+
+        <div class="logo-wrapper header-left">
+            <img src="~/img/logo.svg" alt="رصيفي" class="brand-logo logo-raseefy" onerror="this.src='https://via.placeholder.com/120x50?text=Raseefy'">
+        </div>
+    </header>
+
+    <div class="nav-actions">
+        <!-- استخدام MVC Routing للرجوع للصفحة السابقة -->
+        <a asp-controller="Supplier" asp-action="Index" class="go-suppliers-btn" aria-label="الذهاب خطوة إلى الخلف">
+            الذهاب خطوة إلى الخلف
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+        </a>
+    </div>
+
+    <main class="content-wrapper">
+        <!-- استخدام Tag Helpers وإنشاء نموذج متوافق مع MVC ورفع الملفات -->
+        <form asp-action="Create" asp-controller="Supplier" method="post" enctype="multipart/form-data" id="addSupplierForm" class="supplier-form-container" novalidate>
+
+            <div class="supplier-card-main">
+                <div class="row align-items-center g-4 py-4">
+                    <div class="col-lg-8">
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label-custom">اسم المورد</label>
+                            <input asp-for="Name" class="form-control form-control-custom" id="supplierName" placeholder="ادخل اسم المورد" autocomplete="off">
+                            <div class="invalid-feedback-custom" id="nameError">
+                                <!-- دمج رسائل خطأ السيرفر (Server-side validation) -->
+                                <span asp-validation-for="Name"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label asp-for="Phone" class="form-label-custom">رقم المورد</label>
+                            <input asp-for="Phone" class="form-control form-control-custom" id="supplierPhone" placeholder="ادخل رقم المورد" maxlength="11" autocomplete="off">
+                            <div class="invalid-feedback-custom" id="phoneError">
+                                <span asp-validation-for="Phone"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 text-center">
+                        <div class="logo-upload-wrapper">
+                            <!-- ربط حقل الصورة مع الموديل -->
+                            <input type="file" asp-for="LogoFile" id="supplierLogoInput" accept="image/png, image/jpeg, image/jpg, image/svg+xml" class="d-none">
+                            <div id="logoUploadTrigger" class="upload-circle-btn" role="button" aria-label="اختر شعار المورد">
+                                <i class="bi bi-camera-fill"></i>
+                            </div>
+                            <span class="upload-label-text">شعار المورد</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" id="submitBtn" class="btn-submit-full">
+                    <span class="btn-text">إضافة مورد جديد</span>
+                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                </button>
+            </div>
+
+        </form>
+    </main>
+</div>
+
+@section Scripts {
+    <!-- تمرير مسارات MVC إلى الجافاسكريبت -->
+    <script>
+        window.routes = {
+            create: '@Url.Action("Create", "Supplier")',
+            index: '@Url.Action("Index", "Supplier")'
+        };
+    </script>
+    <!-- استدعاء ملف سكريبت الصفحة -->
+    <script src="~/js/addSupplier.js" asp-append-version="true"></script>
 }

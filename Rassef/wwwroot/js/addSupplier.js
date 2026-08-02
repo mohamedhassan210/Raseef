@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameError = document.getElementById('nameError');
     const phoneError = document.getElementById('phoneError');
     const submitBtn = document.getElementById('submitBtn');
-    
-    // Logo Upload Logic
+
+    // Logo Upload Logic (Exact exact behavior preserved)
     const logoTrigger = document.getElementById('logoUploadTrigger');
     const logoInput = document.getElementById('supplierLogoInput');
 
@@ -67,37 +67,68 @@ document.addEventListener('DOMContentLoaded', () => {
     const showError = (input, errorElement, message) => {
         input.classList.remove('is-valid');
         input.classList.add('is-invalid');
-        errorElement.textContent = message;
+
+        // Handling ASP.NET Core MVC Span integration seamlessly
+        const mvcSpan = errorElement.querySelector('span');
+        if (mvcSpan) {
+            mvcSpan.textContent = message;
+        } else {
+            errorElement.textContent = message;
+        }
         errorElement.style.display = 'block';
     };
 
     const showSuccess = (input, errorElement) => {
         input.classList.remove('is-invalid');
         input.classList.add('is-valid');
-        errorElement.textContent = '';
+
+        const mvcSpan = errorElement.querySelector('span');
+        if (mvcSpan) {
+            mvcSpan.textContent = '';
+        } else {
+            errorElement.textContent = '';
+        }
         errorElement.style.display = 'none';
     };
 
+    // Check Server-Side Validation Errors on page load
+    const checkServerErrors = () => {
+        const nameMvcSpan = nameError.querySelector('span');
+        if (nameMvcSpan && nameMvcSpan.textContent.trim() !== '') {
+            nameInput.classList.add('is-invalid');
+            nameError.style.display = 'block';
+        }
+
+        const phoneMvcSpan = phoneError.querySelector('span');
+        if (phoneMvcSpan && phoneMvcSpan.textContent.trim() !== '') {
+            phoneInput.classList.add('is-invalid');
+            phoneError.style.display = 'block';
+        }
+    };
+
+    checkServerErrors();
+
     // Form Submission Handling
     form.addEventListener('submit', (e) => {
-        e.preventDefault();
-
         const isNameValid = validateName();
         const isPhoneValid = validatePhone();
 
-        if (isNameValid && isPhoneValid) {
-            // Show Loading State Inside Button
-            const btnText = submitBtn.querySelector('.btn-text');
-            const spinner = submitBtn.querySelector('.spinner-border');
-
-            btnText.textContent = 'جاري الحفظ...';
-            spinner.classList.remove('d-none');
-            submitBtn.disabled = true;
-
-            // Simulate Network Request Delay
-            setTimeout(() => {
-                window.location.href = 'suppliers.html';
-            }, 1000);
+        // Prevent submission ONLY if invalid
+        if (!isNameValid || !isPhoneValid) {
+            e.preventDefault();
+            return;
         }
+
+        // Form is Valid -> Show Loading State & Submit to MVC Controller
+        const btnText = submitBtn.querySelector('.btn-text');
+        const spinner = submitBtn.querySelector('.spinner-border');
+
+        btnText.textContent = 'جاري الحفظ...';
+        spinner.classList.remove('d-none');
+
+        // Prevent double clicking while form is natively submitted to the backend
+        submitBtn.style.pointerEvents = 'none';
+
+        // MVC Controller will automatically process and return RedirectToAction(nameof(Create))
     });
 });

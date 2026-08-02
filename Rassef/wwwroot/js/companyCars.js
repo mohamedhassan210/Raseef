@@ -109,3 +109,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    // تم تحويل إدارة الداتا (LocalStorage) والقوائم الديناميكية لمعمارية ASP.NET Core MVC بالكامل.
+
+    const searchInput = document.getElementById('search-input');
+    const searchForm = searchInput?.closest('form');
+
+    // تحسين تجربة المستخدم: إرسال الـ Form تلقائياً عند قيام المستخدم بتفريغ حقل البحث 
+    if (searchInput && searchForm) {
+        searchInput.addEventListener('search', () => {
+            if (searchInput.value.trim() === '') {
+                searchForm.submit();
+            }
+        });
+    }
+});
