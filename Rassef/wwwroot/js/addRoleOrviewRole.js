@@ -17,13 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getAnimationDuration = () => {
         const durationStr = getComputedStyle(document.documentElement).getPropertyValue('--duration-standard').trim();
-        return durationStr.endsWith('ms') ? parseInt(durationStr, 18) : parseFloat(durationStr) * 1000 || 800;
+        // Êã ÊÕÍíÍ ÇáÜ radix áÜ 10 ÚÔÇä íÍÓÈ ÇáæÞÊ ÕÍ
+        return durationStr.endsWith('ms') ? parseInt(durationStr, 10) : parseFloat(durationStr) * 1000 || 800;
     };
 
     const handleZoneClick = (stateClass, showRaseefi, showFathalla, targetUrl) => {
         if (isAnimating) return;
         isAnimating = true;
 
+        // ÞÝá ÇáßáíßÇÊ Ýí ÇáÕÝÍÉ ßáåÇ ÚÔÇä äãäÚ Ãí ÊÝÇÚá ÊÇäí æÞÊ ÇáÃäíãíÔä
         document.body.style.pointerEvents = 'none';
 
         canvas.classList.add(stateClass);
@@ -35,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, getAnimationDuration());
     };
 
+    // Events ÈÇÓÊÎÏÇã window.appRoutes
     zoneTransfer.addEventListener('click', () => {
         handleZoneClick('state-hover-transfer', false, true, window.appRoutes.viewRole);
     });

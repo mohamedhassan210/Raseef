@@ -5,64 +5,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoRaseefi = document.getElementById('logo-raseefi');
     const logoFathalla = document.getElementById('logo-fathalla');
 
-    const logoRaseefiState = (show) => {
-        if (show) logoRaseefi.classList.remove('logo-hidden');
-        else logoRaseefi.classList.add('logo-hidden');
+    let isAnimating = false;
+
+    const toggleLogo = (logo, show) => {
+        if (show) {
+            logo.classList.remove('logo-hidden');
+        } else {
+            logo.classList.add('logo-hidden');
+        }
     };
 
-    const logoFathallahState = (show) => {
-        if (show) logoFathalla.classList.remove('logo-hidden');
-        else logoFathalla.classList.add('logo-hidden');
+    const getAnimationDuration = () => {
+        const durationStr = getComputedStyle(document.documentElement).getPropertyValue('--duration-standard').trim();
+        return durationStr.endsWith('ms') ? parseInt(durationStr, 10) : parseFloat(durationStr) * 1000 || 800;
     };
 
-    const activateTransfer = () => {
-        canvas.classList.add('state-hover-transfer');
-        canvas.classList.remove('state-hover-supply');
-        // إخفاء اللوجوهين معاً
-        logoFathallahState(true);
-        logoRaseefiState(false); 
+    const handleZoneClick = (stateClass, showRaseefi, showFathalla, targetUrl) => {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        document.body.style.pointerEvents = 'none';
+
+        canvas.classList.add(stateClass);
+        toggleLogo(logoRaseefi, showRaseefi);
+        toggleLogo(logoFathalla, showFathalla);
+
+        setTimeout(() => {
+            window.location.href = targetUrl;
+        }, getAnimationDuration());
     };
 
-    const activateSupply = () => {
-        canvas.classList.add('state-hover-supply');
-        canvas.classList.remove('state-hover-transfer');
-        // إخفاء اللوجوهين معاً 
-        logoRaseefiState(true);
-        logoFathallahState(false); 
-    };
+    if (zoneTransfer) {
+        zoneTransfer.addEventListener('click', () => {
+            const targetUrl = zoneTransfer.getAttribute('data-url') || 'transfer.html';
+            handleZoneClick('state-hover-transfer', false, true, targetUrl);
+        });
+    }
 
-    const resetState = () => { 
-        canvas.classList.remove('state-hover-transfer', 'state-hover-supply');
-        // إظهار اللوجوهين مرة تانية لما الماوس يخرج بره الـ canvas
-        logoRaseefiState(true);
-        logoFathallahState(true);
-    };
-
-    // Events
-    zoneTransfer.addEventListener('mouseenter', activateTransfer);
-    zoneSupply.addEventListener('mouseenter', activateSupply);
-    canvas.addEventListener('mouseleave', resetState);
-    zoneTransfer.addEventListener('click', () => {
-        window.location.href = 'transfer.html';
-    });
-    
-    zoneSupply.addEventListener('click', () => {
-        window.location.href = 'suppliers.html';
-    });
+    if (zoneSupply) {
+        zoneSupply.addEventListener('click', () => {
+            const targetUrl = zoneSupply.getAttribute('data-url') || 'suppliers.html';
+            handleZoneClick('state-hover-supply', true, false, targetUrl);
+        });
+    }
 });
 
-// تفعيل زر تسجيل الخروج للانتقال لصفحة index.html
+// تفعيل زر تسجيل الخروج مع قراءة الرابط من الـ HTML
 const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-        window.location.href = "index.html";
+        const targetUrl = logoutBtn.getAttribute('data-url') || 'index.html';
+        window.location.href = targetUrl;
     });
 }
 
-// تفعيل زر خطوة للخلف للانتقال لصفحة index.html
+// تفعيل زر خطوة للخلف مع قراءة الرابط من الـ HTML
 const stepbackBtn = document.getElementById('stepback-btn');
 if (stepbackBtn) {
     stepbackBtn.addEventListener('click', () => {
-        window.location.href = "addRoleOrviewRole.html";
+        const targetUrl = stepbackBtn.getAttribute('data-url') || 'addRoleOrviewRole.cshtml';
+        window.location.href = targetUrl;
     });
 }

@@ -30,6 +30,7 @@
             services.AddScoped<ISupplierRequestRepository, SupplierRequestRepository>();
             services.AddScoped<ITransferRequestRepository, TransferRequestRepository>();
             services.AddScoped<ITruckRepository, TruckRepository>();
+            services.AddScoped<IFileService, FileService>();
             services.AddScoped<IWarehouseRepository, WarehouseRepository>();
             services.AddScoped<IJwtService, JwtService>();
             services.Configure<JwtSettings>(
