@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-
+﻿
 namespace Rassef.Common.Interfaces.Services
 {
     public interface IRepository<T>
