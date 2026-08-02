@@ -1,6 +1,4 @@
-﻿using System.Linq.Expressions;
-
-namespace Rassef.Common.Repository
+﻿namespace Rassef.Common.Repository
 {
     public class Repository<T> : IRepository<T> where T : BaseEntity
     {

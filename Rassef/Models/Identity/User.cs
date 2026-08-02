@@ -10,7 +10,7 @@
         public string NationalId { get; set; }
         public string? EmpCode { get; set; }
         public string BranchCode { get; set; }
-        public int PositionId { get; set; } 
+        public int PositionId { get; set; }
         public Position Position { get; set; }
         public int GroupId { get; set; }
         public UserGroup Group { get; set; }
