@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Rassef.ViewModels.QueueAction
+﻿namespace Rassef.ViewModels.QueueAction
 {
     public class QueueActionListVM
     {

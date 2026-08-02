@@ -4,7 +4,7 @@
     {
         [Display(Name = "اسم المورد")]
         public string Name { get; set; } = string.Empty;
-         [Display(Name = "رقم الهاتف")]
+        [Display(Name = "رقم الهاتف")]
         public string Phone { get; set; } = string.Empty;
 
         [Display(Name = "شعار المورد (Logo)")]

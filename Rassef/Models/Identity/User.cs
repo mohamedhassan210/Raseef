@@ -8,8 +8,14 @@
         public string HashPassword { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public string NationalId { get; set; }
-        public string? Code { get; set; }
+        public string? EmpCode { get; set; }
+        public string BranchCode { get; set; }
+        public int PositionId { get; set; } 
+        public Position Position { get; set; }
+        public int GroupId { get; set; }
+        public UserGroup Group { get; set; }
 
-        public ICollection<UserGroup> Groups { get; set; }
+        // remove many relation 
+
     }
 }

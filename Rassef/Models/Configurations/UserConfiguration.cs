@@ -30,9 +30,14 @@ namespace Rassef.Configurations
                      .IsRequired();
             });
 
-            builder.HasMany(u => u.Groups)
+            builder.HasOne(u => u.Group)
                    .WithMany(g => g.Users)
-                   .UsingEntity(j => j.ToTable("UserGroupMembers"));
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            // Position Relation 
+            builder.HasOne(u => u.Position)
+                .WithMany(p => p.Users)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
