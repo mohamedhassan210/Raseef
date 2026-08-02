@@ -4,12 +4,12 @@ namespace Rassef.Controllers
 {
     public class TruckController : Controller
     {
-        private readonly IRepository<Truck> _truckRepository;
+        private readonly ITruckRepository _truckRepository;
         private readonly IRepository<TruckTypes> _truckTypeRepository;
         private readonly IRepository<User> _userRepository;
 
         public TruckController(
-            IRepository<Truck> truckRepository,
+            ITruckRepository truckRepository,
             IRepository<TruckTypes> truckTypeRepository,
             IRepository<User> userRepository)
         {
@@ -21,7 +21,7 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var trucksrepo = await _truckRepository.GetAllAsync();
+            var trucksrepo = await _truckRepository.GetTruckWithTypeName();
 
             var trucks = trucksrepo.Select(x => new TruckListVM
             {

@@ -1,20 +1,20 @@
-﻿using Rassef.ViewModels.Driver;
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class DriverController : Controller
     {
-        private readonly DriverRepository _repository;
+        private readonly IDriverRepository _driverRepository;
+        private readonly ISupplierRepository _supplierRepository;
 
-        public DriverController(DriverRepository driverRepository)
+        public DriverController(IDriverRepository repository, ISupplierRepository supplierRepository)
         {
-            _repository = driverRepository;
+            _driverRepository = repository;
+            _supplierRepository = supplierRepository;
         }
 
         // Get All Drivers
         public async Task<IActionResult> Index()
         {
-            var drivers = await _repository.GetAllAsync();
+            var drivers = await _driverRepository.GetAllAsync();
 
             var driverList = drivers.Select(d => new DriverListVM
             {
@@ -30,7 +30,7 @@ namespace Rassef.Controllers
         // Get Driver By Id
         public async Task<IActionResult> Details(int id)
         {
-            var drv = await _repository.GetByIdAsync(id);
+            var drv = await _driverRepository.GetByIdAsync(id);
 
             if (drv is null)
             {
@@ -52,9 +52,14 @@ namespace Rassef.Controllers
 
         // Create (GET)
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View();
+            var model = new CreateDriverVM
+            {
+                Suppliers = await GetSuppliersAsync()
+            };
+
+            return View(model);
         }
 
         // Create (POST)
@@ -63,15 +68,18 @@ namespace Rassef.Controllers
         public async Task<IActionResult> Create(CreateDriverVM create)
         {
             if (!ModelState.IsValid)
+            {
+                create.Suppliers = await GetSuppliersAsync();
                 return View(create);
+            }
 
-            if (await _repository.ExistsAsync(x => x.NationalId == create.NationalId))
+            if (await _driverRepository.ExistsAsync(x => x.NationalId == create.NationalId))
             {
                 ModelState.AddModelError(nameof(create.NationalId), "الرقم القومي مسجل بالفعل.");
                 return View(create);
             }
 
-            if (await _repository.ExistsAsync(x => x.Phone == create.Phone))
+            if (await _driverRepository.ExistsAsync(x => x.Phone == create.Phone))
             {
                 ModelState.AddModelError(nameof(create.Phone), "رقم الهاتف مسجل بالفعل.");
                 return View(create);
@@ -84,9 +92,8 @@ namespace Rassef.Controllers
                 Phone = create.Phone,
                 CreatedById = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
             };
-
-            await _repository.AddAsync(driver);
-            await _repository.SaveChangesAsync();
+            await _driverRepository.AddAsync(driver);
+            await _driverRepository.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
@@ -95,7 +102,7 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Update(int id)
         {
-            var drv = await _repository.GetByIdAsync(id);
+            var drv = await _driverRepository.GetByIdAsync(id);
 
             if (drv is null)
             {
@@ -120,9 +127,11 @@ namespace Rassef.Controllers
         public async Task<IActionResult> Update(UpdateDriverVM updateDriverVM)
         {
             if (!ModelState.IsValid)
+            {
                 return View(updateDriverVM);
+            }
 
-            var driver = await _repository.GetByIdAsync(updateDriverVM.Id);
+            var driver = await _driverRepository.GetByIdAsync(updateDriverVM.Id);
 
             if (driver is null)
             {
@@ -130,13 +139,13 @@ namespace Rassef.Controllers
                 return View(updateDriverVM);
             }
 
-            if (await _repository.ExistsAsync(x => x.NationalId == updateDriverVM.NationalId && x.Id != updateDriverVM.Id))
+            if (await _driverRepository.ExistsAsync(x => x.NationalId == updateDriverVM.NationalId && x.Id != updateDriverVM.Id))
             {
                 ModelState.AddModelError(nameof(updateDriverVM.NationalId), "الرقم القومي مسجل بالفعل.");
                 return View(updateDriverVM);
             }
 
-            if (await _repository.ExistsAsync(x => x.Phone == updateDriverVM.Phone && x.Id != updateDriverVM.Id))
+            if (await _driverRepository.ExistsAsync(x => x.Phone == updateDriverVM.Phone && x.Id != updateDriverVM.Id))
             {
                 ModelState.AddModelError(nameof(updateDriverVM.Phone), "رقم الهاتف مسجل بالفعل.");
                 return View(updateDriverVM);
@@ -146,8 +155,8 @@ namespace Rassef.Controllers
             driver.NationalId = updateDriverVM.NationalId;
             driver.Phone = updateDriverVM.Phone;
 
-            _repository.Update(driver);
-            await _repository.SaveChangesAsync();
+            _driverRepository.Update(driver);
+            await _driverRepository.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
@@ -156,7 +165,7 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            var drv = await _repository.GetByIdAsync(id);
+            var drv = await _driverRepository.GetByIdAsync(id);
 
             if (drv is null)
             {
@@ -177,10 +186,11 @@ namespace Rassef.Controllers
 
         // Delete (POST)
         [HttpPost]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteDriver(int id)
         {
-            var driver = await _repository.GetByIdAsync(id);
+            var driver = await _driverRepository.GetByIdAsync(id);
 
             if (driver is null)
             {
@@ -188,7 +198,7 @@ namespace Rassef.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (await _repository.HasRequestsAsync(driver.Id))
+            if (await _driverRepository.HasRequestsAsync(driver.Id))
             {
                 ModelState.AddModelError("", "لا يمكن حذف السائق لأنه مرتبط بطلبات.");
 
@@ -203,10 +213,20 @@ namespace Rassef.Controllers
                 return View("Delete", driverVM);
             }
 
-            _repository.Remove(driver);
-            await _repository.SaveChangesAsync();
+            _driverRepository.Remove(driver);
+            await _driverRepository.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
+        }
+        private async Task<IEnumerable<SelectListItem>> GetSuppliersAsync()
+        {
+            var suppliers = await _supplierRepository.GetAllAsync();
+
+            return suppliers.Select(x => new SelectListItem
+            {
+                Value = x.Id.ToString(),
+                Text = x.Name
+            });
         }
     }
 }

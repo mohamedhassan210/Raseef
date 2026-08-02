@@ -9,6 +9,6 @@
         public User CreatedBy { get; set; }
         public ICollection<TransferRequest> TransferRequests { get; set; } = new HashSet<TransferRequest>();
         public ICollection<SupplierRequest> SupplierRequests { get; set; } = new HashSet<SupplierRequest>();
-
+        
     }
 }
