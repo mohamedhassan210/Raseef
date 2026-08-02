@@ -14,5 +14,7 @@
         public Position Position { get; set; }
         public int GroupId { get; set; }
         public UserGroup Group { get; set; }
+        // for password
+        public bool IsChanged { get; set; } = false;
     }
 }
