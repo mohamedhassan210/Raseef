@@ -68,12 +68,28 @@
     </main>
 </div>
 
-@section Scripts {
+@* @section Scripts {
     <!-- تمرير روابط الـ MVC بشكل نظيف لاستخدامها في JavaScript -->
     <script>
         window.appRoutes = {
             truckIndex: '@Url.Action("Index", "Truck")'
         };
+    </script>
+    <script src="~/js/suppliers.js" asp-append-version="true"></script>
+} *@
+@section Scripts {
+    <script>
+        window.appRoutes = {
+            truckIndex: '@Url.Action("Index", "Truck")'
+        };
+
+        window.dbSuppliers = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(s => new {
+            id = s.Id,
+            name = s.Name,
+            phone = s.Phone,
+            logo = s.LogoURL
+        }))
+    );
     </script>
     <script src="~/js/suppliers.js" asp-append-version="true"></script>
 }

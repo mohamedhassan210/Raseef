@@ -1,41 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Placeholder Base64 image function to ensure the UI doesn't break if images are missing
+    // Placeholder function for fallback images
     const getPlaceholder = (text) => `data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23F9F2F2' width='100' height='100' rx='15'/%3E%3Ctext fill='%23EB842D' font-family='sans-serif' font-size='20' font-weight='bold' x='50' y='55' text-anchor='middle' dominant-baseline='middle'%3E${encodeURIComponent(text)}%3C/text%3E%3C/svg%3E`;
 
-    // 1. Data Structure (Mock Database) matching the design exactly
-    const suppliersData = [
-        {
-            id: 1,
-            name: 'شركة جهينة',
-            phone: '01005568324',
-            logo: '/img/juhayna.png' // تم التعديل لتتناسب مع مجلد wwwroot
-        },
-        {
-            id: 2,
-            name: 'شركة حلواني اخوان',
-            phone: '01005568324',
-            logo: '/img/halwani.png'
-        },
-        {
-            id: 3,
-            name: 'شركة اكوافينا',
-            phone: '01005568324',
-            logo: '/img/aquafina.png'
-        },
-        {
-            id: 4,
-            name: 'شركة المكتبة الرقمية',
-            phone: '01005568324',
-            logo: '/img/digital-library.png'
-        },
-        {
-            id: 5,
-            name: 'شركة جهينة',
-            phone: '01005568324',
-            logo: '/img/juhayna.png'
-        }
-    ];
+    // 1. Fetch real Database Data passed from Razor View (Fallback to empty array if null)
+    const suppliersData = window.dbSuppliers || [];
 
     // 2. DOM Elements
     const supplierListContainer = document.getElementById('supplierList');
@@ -47,11 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
         supplierListContainer.innerHTML = '';
 
         // Handle empty state
-        if (data.length === 0) {
+        if (!data || data.length === 0) {
             supplierListContainer.innerHTML = `
                 <div class="no-results fade-in">
                     <i class="bi bi-search" style="font-size: 2rem; color: var(--primary-color); display: block; margin-bottom: 10px;"></i>
-                    عفواً، لا يوجد موردين بهذا الاسم.
+                    عفواً، لا يوجد موردين.
                 </div>
             `;
             return;
@@ -62,26 +31,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'supplier-card';
 
-            // Add a slight animation delay for list loading effect
             card.style.animation = `fadeInUp 0.4s ease forwards ${index * 0.05}s`;
             card.style.opacity = '0';
+
+            const name = supplier.name || 'مورد';
+            const phone = supplier.phone || '';
+            const logo = supplier.logo || '';
 
             card.innerHTML = `
                 <div class="card-right">
                     <div class="logo-box">
-                        <img src="${supplier.logo}" alt="${supplier.name}" 
-                             onerror="this.onerror=null; this.src='${getPlaceholder(supplier.name.split(' ')[1] || supplier.name)}'">
+                        <img src="${logo}" alt="${name}" 
+                             onerror="this.onerror=null; this.src='${getPlaceholder(name.split(' ')[1] || name)}'">
                     </div>
                     <div class="supplier-info">
-                        <h3 class="supplier-name">${supplier.name}</h3>
+                        <h3 class="supplier-name">${name}</h3>
                         <p class="supplier-phone">
                             <i class="bi bi-telephone-fill"></i>
-                            <span dir="ltr">${supplier.phone}</span>
+                            <span dir="ltr">${phone}</span>
                         </p>
                     </div>
                 </div>
                 <div class="card-left">
-                    <button class="btn-select" onclick="selectSupplier(${supplier.id}, '${supplier.name}', event)">
+                    <button class="btn-select" onclick="selectSupplier(${supplier.id}, '${name}', event)">
                         اختيار الشركة
                     </button>
                 </div>
@@ -95,20 +67,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const searchTerm = e.target.value.trim().toLowerCase();
 
         const filteredSuppliers = suppliersData.filter(supplier => {
-            return supplier.name.toLowerCase().includes(searchTerm) ||
-                supplier.phone.includes(searchTerm);
+            const supplierName = (supplier.name || '').toLowerCase();
+            const supplierPhone = supplier.phone || '';
+            return supplierName.includes(searchTerm) || supplierPhone.includes(searchTerm);
         });
 
         renderSuppliers(filteredSuppliers);
     };
 
     // 5. Event Listeners
-    searchInput.addEventListener('input', handleSearch);
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+    }
 
-    // Initial Render
+    // Initial Render using database suppliers
     renderSuppliers(suppliersData);
 
-    // Add Keyframes for JS animations dynamically
+    // Animations
     const styleSheet = document.createElement("style");
     styleSheet.innerText = `
         @keyframes fadeInUp {
@@ -119,16 +94,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.head.appendChild(styleSheet);
 });
 
-// Global Function for button click simulation
+// Global Function for selection button
 window.selectSupplier = (id, name, event) => {
-    // You can replace this with your actual business logic
-    console.log(`تم اختيار: ${name} (ID: ${id})`);
+    console.log(`Selected: ${name} (ID: ${id})`);
 
-    // Optional: Visual feedback for clicking
     const btn = event.currentTarget;
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> تم الاختيار';
-    btn.style.backgroundColor = '#332D24'; // Dark text color from palette
+    btn.style.backgroundColor = '#332D24';
     btn.style.color = '#fff';
 
     setTimeout(() => {
@@ -137,7 +110,8 @@ window.selectSupplier = (id, name, event) => {
         btn.style.color = '';
     }, 3000);
 
-    // توجيه باستخدام مسار MVC الذي تم حقنه عبر الـ Razor View 
-    // ملاحظة: التصرف هنا يعكس الكود الأصلي في سرعة التوجيه المباشر
-    window.location.href = window.appRoutes.truckIndex;
+    // Navigate to Truck Controller with supplier ID parameter
+    if (window.appRoutes && window.appRoutes.truckIndex) {
+        window.location.href = `${window.appRoutes.truckIndex}?supplierId=${id}`;
+    }
 };
