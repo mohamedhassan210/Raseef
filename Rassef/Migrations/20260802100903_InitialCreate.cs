@@ -228,6 +228,7 @@ namespace Rassef.Migrations
                     BranchCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PositionId = table.Column<int>(type: "int", nullable: false),
                     GroupId = table.Column<int>(type: "int", nullable: false),
+                    IsChanged = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },

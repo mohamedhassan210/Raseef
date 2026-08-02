@@ -12,7 +12,7 @@ using Rassef.Data;
 namespace Rassef.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260802091532_InitialCreate")]
+    [Migration("20260802100903_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -695,6 +695,9 @@ namespace Rassef.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsChanged")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
