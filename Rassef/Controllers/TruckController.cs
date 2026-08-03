@@ -30,7 +30,7 @@ namespace Rassef.Controllers
                 PlateLetter = x.PlateLetter,
                 PlateNumber = x.PlateNumber,
                 StorageCapacity = x.StorageCapacity,
-                TruckTypeName = x.TruckType?.Name ?? "غير محدد"
+                TruckTypeName = x.TruckType?.Name ?? "غير محدد",
             }).ToList();
 
             return View(trucks);

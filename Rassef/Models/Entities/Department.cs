@@ -7,6 +7,8 @@
         public int CreatedById { get; set; }
         public User CreatedBy { get; set; }
         public Warehouse Warehouse { get; set; }
+        public int DepartmentTypeId { get; set;  }
+        public DepartmentType DepartmentType { get; set;  }
         public ICollection<Dock> Docks { get; set; } = new HashSet<Dock>();
         public ICollection<QueueTicket> QueueTickets { get; set; } = new HashSet<QueueTicket>();
         public ICollection<TransferRequest> TransferRequests { get; set; } = new HashSet<TransferRequest>();
