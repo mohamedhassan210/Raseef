@@ -4,6 +4,6 @@
     {
         public int? Code { get; set; }
         public string Name { get; set; } = string.Empty;
-        public ICollection<Driver> Drivers = new HashSet<Driver>();
+        public ICollection<Driver> Drivers { get; set; } = new HashSet<Driver>();
     }
 }
