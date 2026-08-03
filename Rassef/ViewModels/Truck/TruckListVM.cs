@@ -11,7 +11,6 @@
         public double StorageCapacity { get; set; }
 
         public bool IsRefrigerated { get; set; }
-        public bool IsFood { get; set; }
 
         public string TruckTypeName { get; set; } = string.Empty;
     }
