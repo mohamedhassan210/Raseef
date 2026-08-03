@@ -1,4 +1,5 @@
-﻿@model IEnumerable<TruckListVM>
+﻿@* @model IEnumerable<TruckListVM> *@
+@model IEnumerable<Rassef.ViewModels.Truck.TruckListVM>
 @{
     ViewData["Title"] = "شاحنات جهينة";
     Layout = "_SupOrTra"; // تأكد من استخدام اسم الـ Layout الصحيح لمشروعك
@@ -15,16 +16,16 @@
 <main class="page-container">
     <header class="page-header">
         <div class="logo-wrapper header-right">
-            <img src="~/Assets/img/fathallah logo.svg" alt="فتح الله" class="brand-Fathalla" onerror="this.src='https://via.placeholder.com/120x60?text=Fathalla'">
+            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-Fathalla" onerror="this.src='https://via.placeholder.com/120x60?text=Fathalla'">
         </div>
 
         <div class="title-wrapper">
             <!-- إذا كان اسم المورد ديناميكي يمكن استبداله بـ @ViewBag.SupplierName -->
-            <h1 class="main-title">شاحنات جهينة</h1>
+            <h1 class="main-title">شاحنات @ViewBag.SupplierName</h1>
         </div>
 
         <div class="logo-wrapper header-left">
-            <img src="~/Assets/img/logo.svg" alt="رصيفي" class="brand-logo logo-raseefy" style="height: 80px;" onerror="this.src='https://via.placeholder.com/120x60?text=Raseefy'">
+            <img src="~/img/logo.svg" alt="رصيفي" class="brand-logo logo-raseefy" style="height: 80px;" onerror="this.src='https://via.placeholder.com/120x60?text=Raseefy'">
         </div>
     </header>
 
@@ -51,6 +52,10 @@
     <section class="search-section" aria-label="البحث عن سيارة">
         <!-- تحويل الـ Search إلى Form يعمل بطلب GET للسيرفر -->
         <form method="get" asp-controller="Truck" asp-action="Index" class="search-wrapper">
+
+            <!-- السطر ده اللي هيحفظ الـ ID بتاع المورد وميخليهوش يضيع وقت البحث -->
+            <input type="hidden" name="supplierid" value="@Context.Request.Query["supplierid"]" />
+
             <button type="submit" class="search-btn" id="search-btn" aria-label="بحث">
                 <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
@@ -73,13 +78,25 @@
         {
             foreach (var truck in Model)
             {
-                // تحديد نوع الأيقونة والوصف بناءً على نوع السيارة القادم من الـ Model
-                bool isCooling = truck.IsRefrigerated == true;
-                string iconPath = isCooling
-                ? "M11 9H9V2H7v7H5V2H3v7c0 2.12 1.46 3.91 3.45 4.38L6 22h2l.55-8.62C10.54 12.91 12 11.12 12 9V2h-1v7zm7-7s-3 0-3 5v6h2v9h2V2z"
-                : "M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-1.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM17 12V9.5h2.47l1.88 2.5H17z";
+                // تحديد نوع الشاحنة
+                bool isCooling = truck.IsRefrigerated;
 
-                string typeLabel = isCooling ? "غذائي" : "غير غذائي";
+                // SVG Path
+                string iconPath;
+                string typeLabel;
+
+                if (isCooling)
+                {
+                    // Snowflake (تبريد)
+                    iconPath = "M11 2h2v4.27l2.36-2.36 1.41 1.41L13.41 8.68 17 10.73V7h2v3.73l3.36-1.94 1 1.73L20 12l3.36 1.94-1 1.73L19 13.73V17h-2v-3.73l-3.59 2.05 3.36 3.36-1.41 1.41L13 17.73V22h-2v-4.27l-2.36 2.36-1.41-1.41L10.59 15.32 7 13.27V17H5v-3.73l-3.36 1.94-1-1.73L4 12 .64 10.06l1-1.73L5 10.27V7h2v3.73l3.59-2.05-3.36-3.36 1.41-1.41L11 6.27V2z";
+                    typeLabel = "تبريد";
+                }
+                else
+                {
+                    // Truck (غير تبريد)
+                    iconPath = "M20 8h-3V4H3c-1.1 0-2 .9-2 2v10c0 .55.45 1 1 1h1a3 3 0 0 0 6 0h6a3 3 0 0 0 6 0h1c.55 0 1-.45 1-1v-4l-3-4zM6 18.5A1.5 1.5 0 1 1 6 15a1.5 1.5 0 0 1 0 3.5zm13 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm-2-7V10h2.5l1.5 2H17z";
+                    typeLabel = "غير تبريد";
+                }
 
                 <article class="truck-card">
                     <div class="btnAndArticle">
@@ -99,7 +116,7 @@
                             <div class="d-flex gap-2 details">
                                 <div class="vehicle-type">
                                     <svg class="type-icon" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="@iconPath" />
+                                        <path d="@iconPath" fill-rule="evenodd" clip-rule="evenodd" />
                                     </svg>
                                     <span>@typeLabel</span>
                                 </div>
@@ -109,7 +126,7 @@
 
                     <div class="card-action">
                         <!-- تمرير الـ ID لصفحة السائقين عن طريق MVC Routing -->
-                        <a asp-controller="Driver" asp-action="Index" asp-route-id="@truck.Id" class="select-btn">اختيار السيارة</a>
+                        <a asp-controller="Driver" asp-action="Index" asp-route-id="@truck.Id" asp-route-supplierId="@truck.supplierId" class="select-btn">اختيار السيارة</a>
                     </div>
                 </article>
             }

@@ -22,7 +22,12 @@
                 .Include(d => d.SupplierRequests)
                 .FirstOrDefaultAsync(d => d.Id == id);
         }
-
+        public async Task<IEnumerable<Driver>> GetDriversBySupplierIdAsync(int supplierId)
+        {
+            return await _context.Drivers
+                .Where(d => d.SupplierRequests.Any(sr => sr.SupplierId == supplierId))
+                .ToListAsync();
+        }
         public async Task<bool> HasRequestsAsync(int driverId)
         {
             return await _context.SupplierRequests.AnyAsync(s => s.DriverId == driverId) ||

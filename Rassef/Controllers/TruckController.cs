@@ -1,5 +1,4 @@
 ﻿
-
 namespace Rassef.Controllers
 {
     public class TruckController : Controller
@@ -7,35 +6,50 @@ namespace Rassef.Controllers
         private readonly ITruckRepository _truckRepository;
         private readonly IRepository<TruckTypes> _truckTypeRepository;
         private readonly IRepository<User> _userRepository;
+        private readonly ISupplierRepository _supplierRepository;
+
 
         public TruckController(
             ITruckRepository truckRepository,
             IRepository<TruckTypes> truckTypeRepository,
-            IRepository<User> userRepository)
+            IRepository<User> userRepository,
+             ISupplierRepository supplierRepository)
         {
             _truckRepository = truckRepository;
             _truckTypeRepository = truckTypeRepository;
             _userRepository = userRepository;
+            _supplierRepository = supplierRepository;   
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int supplierid)
         {
+            var supplier = await _supplierRepository.GetByIdAsync(supplierid);
+            if (supplier is null)
+            {
+                return RedirectToAction("Index", "Supplier");
+            }
+
+
             var trucksrepo = await _truckRepository.GetTruckWithTypeName();
 
-            var trucks = trucksrepo.Select(x => new TruckListVM
-            {
-                Id = x.Id,
-                IsRefrigerated = x.IsRefrigerated,
-                PlateLetter = x.PlateLetter,
-                PlateNumber = x.PlateNumber,
-                StorageCapacity = x.StorageCapacity,
-                TruckTypeName = x.TruckType?.Name ?? "غير محدد"
-            }).ToList();
+            var supplierTrucks = trucksrepo
+                .Where(x => x.SupplierRequests.Any(sr => sr.SupplierId == supplierid)) 
+                .Select(x => new TruckListVM
+                {
+                    Id = x.Id,
+                    IsRefrigerated = x.IsRefrigerated,
+                    PlateLetter = x.PlateLetter,
+                    PlateNumber = x.PlateNumber,
+                    StorageCapacity = x.StorageCapacity,
+                    TruckTypeName = x.TruckType?.Name ?? "غير محدد",
+                    supplierId = supplierid 
+                }).ToList();
 
-            return View(trucks);
+            ViewBag.SupplierName = supplier.Name;
+
+            return View(supplierTrucks);
         }
-
         [HttpGet]
         public async Task<IActionResult> Details(int? id)
         {
@@ -54,7 +68,7 @@ namespace Rassef.Controllers
             }
 
             var truckDetails = new TruckDetailsVM
-            {
+            {   
                 Id = truck.Id,
                 PlateNumber = truck.PlateNumber,
                 PlateLetter = truck.PlateLetter,

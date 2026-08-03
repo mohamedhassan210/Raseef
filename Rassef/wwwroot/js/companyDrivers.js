@@ -1,11 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
+
     // ==========================================
     // 1. DOM Elements
     // ==========================================
-    
-    // Page Elements
-    const pageTitle = document.getElementById('page-title');
     const searchInput = document.getElementById('search-input');
     const cardsContainer = document.getElementById('cards-container');
 
@@ -13,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalOverlay = document.getElementById('custom-modal-overlay');
     const confirmModal = document.getElementById('confirmation-modal');
     const successModal = document.getElementById('success-modal');
-    
+
     const btnEdit = document.getElementById('btn-edit');
     const btnConfirm = document.getElementById('btn-confirm');
     const btnBack = document.getElementById('btn-back');
@@ -25,115 +22,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const ticketNumberDisplay = document.getElementById('ticket-number');
 
     // ==========================================
-    // 2. SVGs for UI mapping
+    // 2. Search & Filter Logic 
     // ==========================================
-    const ICONS = {
-        avatar: '<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>',
-        phone: '<path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>',
-        idCard: '<path d="M21 3H3c-1.11 0-2 .89-2 2v14c0 1.11.89 2 2 2h18c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm-9 15H4v-2h8v2zm0-4H4v-2h8v2zm0-4H4V8h8v2zm7 8h-4v-6h4v6zm0-8h-4V8h4v2z"/>'
-    };
-
-    // ==========================================
-    // 3. Page Initialization & Rendering Data
-    // ==========================================
-    
-    const initializePage = () => {
-        const storedTruckData = JSON.parse(localStorage.getItem('selectedTruck'));
-        
-        // تغيير العنوان بناءً على الشاحنة المختارة، أو افتراضي "جهينة"
-        if (storedTruckData && storedTruckData.company) {
-            pageTitle.textContent = `سائقين ${storedTruckData.company}`;
-        } else {
-            pageTitle.textContent = 'سائقين جهينة';
-        }
-
-        loadSavedDrivers();
-    };
-
-    const saveDummyDrivers = () => {
-        const dummyDrivers = [
-            { id: 1, name: "محمد محمد ابوتريكة", phone: "01003526597", nationalId: "032023569810012" },
-            { id: 2, name: "محمد محمود سعد غلاب", phone: "01003526597", nationalId: "032023569810012" },
-            { id: 3, name: "محمد السيد بدير الشناوي", phone: "01003526597", nationalId: "032023569810012" },
-            { id: 4, name: "فارس محمد عشري آمان", phone: "01003526597", nationalId: "032023569810012" },
-            { id: 5, name: "احمد علاء احمد علي", phone: "01003526597", nationalId: "032023569810012" }
-        ];
-        localStorage.setItem('drivers', JSON.stringify(dummyDrivers));
-        return dummyDrivers;
-    };
-
-    const loadSavedDrivers = () => {
-        let savedDrivers = JSON.parse(localStorage.getItem('drivers'));
-        
-        if (!savedDrivers || savedDrivers.length === 0) {
-            savedDrivers = saveDummyDrivers();
-        }
-        
-        renderDrivers(savedDrivers);
-    };
-
-    const renderDrivers = (drivers) => {
-        cardsContainer.innerHTML = '';
-        const fragment = document.createDocumentFragment();
-
-        drivers.forEach(driver => {
-            const article = document.createElement('article');
-            article.className = 'driver-card';
-            article.setAttribute('data-name', driver.name);
-            article.setAttribute('data-id', driver.nationalId);
-
-            article.innerHTML = `
-                <div class="btnAndArticle">  
-                    <div class="driver-avatar" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            ${ICONS.avatar}
-                        </svg>
-                    </div>
-                
-                    <div class="card-details">
-                        <h2 class="driver-name">${driver.name}</h2>
-                        <div class="driver-meta">
-                            <div class="meta-item">
-                                <svg class="type-icon" viewBox="0 0 24 24" fill="currentColor">${ICONS.phone}</svg>
-                                <span>${driver.phone}</span>
-                            </div>
-                            <div class="meta-item">
-                                <svg class="type-icon" viewBox="0 0 24 24" fill="currentColor">${ICONS.idCard}</svg>
-                                <span>${driver.nationalId}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card-action">
-                    <button class="select-btn" type="button" aria-label="اختيار السائق ${driver.name}">اختيار السائق</button>
-                </div>
-            `;
-            
-            fragment.appendChild(article);
-        });
-
-        cardsContainer.appendChild(fragment);
-        attachSelectionEvents();
-    };
-
-    const attachSelectionEvents = () => {
-        const selectButtons = document.querySelectorAll('.select-btn');
-        selectButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                selectDriver(e.target.closest('.driver-card'));
-            });
-        });
-    };
-
     const filterDrivers = () => {
         const query = searchInput.value.trim().toLowerCase();
-        const cards = cardsContainer.querySelectorAll('.driver-card'); 
+        const cards = cardsContainer.querySelectorAll('.driver-card');
 
         cards.forEach(card => {
-            const name = card.getAttribute('data-name').toLowerCase();
-            const nationalId = card.getAttribute('data-id').toLowerCase();
-            
+            const name = (card.getAttribute('data-name') || "").toLowerCase();
+            const nationalId = (card.getAttribute('data-id') || "").toLowerCase();
+
             if (name.includes(query) || nationalId.includes(query)) {
                 card.style.display = 'flex';
                 card.style.animation = 'fadeIn 0.3s ease-in-out';
@@ -143,19 +41,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    if (searchInput) {
+        searchInput.addEventListener('input', filterDrivers);
+    }
+
     // ==========================================
-    // 4. Modal System & Two-Step Workflow
+    // 3. Modal System & Selection Workflow
     // ==========================================
-    
     const showConfirmationModal = (modalElement) => {
         confirmModal.classList.remove('active-modal');
         confirmModal.classList.add('d-none');
         successModal.classList.remove('active-modal');
         successModal.classList.add('d-none');
-        
+
         modalOverlay.classList.add('active');
         modalElement.classList.remove('d-none');
-        
+
         setTimeout(() => {
             modalElement.classList.add('active-modal');
         }, 10);
@@ -171,43 +72,43 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const populateConfirmationData = (driverName) => {
-        const fallbackValue = "غير متوفر";
-        
-        const savedTruck = JSON.parse(localStorage.getItem('selectedTruck')) || {
-            company: fallbackValue,
-            plate: fallbackValue,
-            type: "سيارة" 
-        };
+        // البيانات الوهمية الثابتة من الصفحة
+        const company = window.pageData.companyName || "جهينة";
+        const truck = window.pageData.truckName || "سيارة تبريد";
 
-        const safeType = savedTruck.type || "سيارة";
-
-        const truckDisplay = savedTruck.plate !== fallbackValue 
-            ? `${safeType} (${savedTruck.plate})` 
-            : fallbackValue;
-
-        confirmCompany.textContent = savedTruck.company || fallbackValue;
-        confirmTruck.textContent = truckDisplay;
-        confirmDriverName.textContent = driverName || fallbackValue;
+        confirmCompany.textContent = company;
+        confirmTruck.textContent = truck;
+        confirmDriverName.textContent = driverName;
     };
 
-    const selectDriver = (cardElement) => {
-        const driverName = cardElement.getAttribute('data-name');
-        
-        populateConfirmationData(driverName);
-        
-        localStorage.setItem('pendingDriver', JSON.stringify({
-            name: driverName,
-            nationalId: cardElement.getAttribute('data-id')
-        }));
+    // تفعيل زر "اختيار السائق" لكل كارت
+    const attachSelectionEvents = () => {
+        const selectButtons = document.querySelectorAll('.select-btn');
+        selectButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const card = e.target.closest('.driver-card');
+                const driverName = card.getAttribute('data-name');
 
-        showConfirmationModal(confirmModal);
+                populateConfirmationData(driverName);
+                showConfirmationModal(confirmModal);
+            });
+        });
     };
+    attachSelectionEvents();
+
+    // ==========================================
+    // 4. Ticket Badge Visual Counter Logic (Shift Reset)
+    // ==========================================
+    let shiftTicketCounter = 0;
 
     const generateTicketNumber = () => {
-        let lastTicket = parseInt(localStorage.getItem('lastTicketNumber')) || 99;
-        const newTicket = lastTicket + 1;
-        localStorage.setItem('lastTicketNumber', newTicket.toString());
-        return newTicket;
+        shiftTicketCounter++;
+        let rawDockName = window.pageData.dockName;
+        let dockInitial = rawDockName && rawDockName.length > 0
+            ? rawDockName.charAt(0).toUpperCase()
+            : 'A';
+
+        return `${dockInitial}${shiftTicketCounter}`;
     };
 
     const printTicket = () => {
@@ -215,36 +116,33 @@ document.addEventListener('DOMContentLoaded', () => {
         btnPrint.disabled = true;
 
         setTimeout(() => {
-            window.location.href = "beforhome.html";
+            window.location.href = window.routes.authSupOrTra;
         }, 1500);
     };
 
+    // ==========================================
+    // 5. Modal Button Events & Routing
+    // ==========================================
     const initializeModals = () => {
-        // Step 1: Edit Button -> Redirect
+        // Step 1: Edit Button 
         btnEdit.addEventListener('click', () => {
-            window.location.href = "suppliers.html";
+            window.location.href = window.routes.supplierIndex;
         });
 
-        // Step 1: Confirm Button -> Progress to Step 2
+        // Step 1: Confirm Button -> Progress to Step 2 (Ticket)
         btnConfirm.addEventListener('click', () => {
-            const pending = localStorage.getItem('pendingDriver');
-            if (pending) {
-                localStorage.setItem('selectedDriver', pending);
-                localStorage.removeItem('pendingDriver');
-            }
-
             const ticketNum = generateTicketNumber();
             ticketNumberDisplay.textContent = ticketNum;
-            
+
             showConfirmationModal(successModal);
         });
 
-        // Step 2: Back Button -> Redirect
+        // Step 2: Back Button 
         btnBack.addEventListener('click', () => {
-            window.location.href = "suppliers.html";
+            window.location.href = window.routes.supplierIndex;
         });
 
-        // Step 2: Print Button -> Disable -> Redirect
+        // Step 2: Print Button 
         btnPrint.addEventListener('click', () => {
             printTicket();
         });
@@ -266,15 +164,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // ==========================================
-    // 5. Execution
-    // ==========================================
-    
-    if (searchInput) {
-        searchInput.addEventListener('input', filterDrivers);
-    }
-
-    initializePage();
     initializeModals();
-
 });

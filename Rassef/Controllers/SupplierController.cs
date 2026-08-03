@@ -24,9 +24,8 @@
                 Name = s.Name,
                 Phone = s.Phone,
                 LogoURL = s.LogoURL,
-                RequestsCount = s.SupplierRequests.Count
-            });
-
+                RequestsCount = s.SupplierRequests.Count,
+            }); 
             return View(listVM);
         }
 

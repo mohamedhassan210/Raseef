@@ -4,6 +4,7 @@
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
+
         }
         public virtual DbSet<User> Users => Set<User>();
         public virtual DbSet<GroupPermission> GroupPermissions => Set<GroupPermission>();

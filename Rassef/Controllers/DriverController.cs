@@ -1,20 +1,30 @@
-﻿namespace Rassef.Controllers
+﻿using Rassef.Models.Entities;
+
+namespace Rassef.Controllers
 {
     public class DriverController : Controller
     {
         private readonly IDriverRepository _driverRepository;
         private readonly ISupplierRepository _supplierRepository;
+        private readonly ITruckRepository _truckRepository;
 
-        public DriverController(IDriverRepository repository, ISupplierRepository supplierRepository)
+        public DriverController(IDriverRepository repository, ISupplierRepository supplierRepository, ITruckRepository truckRepository)
         {
             _driverRepository = repository;
             _supplierRepository = supplierRepository;
+            _truckRepository = truckRepository;
         }
 
         // Get All Drivers
-        public async Task<IActionResult> Index()
+        [HttpGet]
+        public async Task<IActionResult> Index(int id, int supplierId)
         {
-            var drivers = await _driverRepository.GetAllAsync();
+            var supplier = await _supplierRepository.GetByIdAsync(supplierId);
+            if (supplier is null) return RedirectToAction("Index", "Supplier");
+
+            var truck = await _truckRepository.GetByIdAsync(id);
+
+            var drivers = await _driverRepository.GetDriversBySupplierIdAsync(supplierId);
 
             var driverList = drivers.Select(d => new DriverListVM
             {
@@ -23,6 +33,9 @@
                 NationalId = d.NationalId,
                 Phone = d.Phone
             }).ToList();
+
+            ViewBag.SupplierName = supplier.Name;
+            ViewBag.TruckName = truck != null ? $"{truck.PlateLetter} {truck.PlateNumber}" : "سيارة غير محددة";
 
             return View(driverList);
         }

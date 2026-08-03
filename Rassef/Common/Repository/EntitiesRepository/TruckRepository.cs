@@ -11,7 +11,9 @@
 
         public async Task<IEnumerable<Truck>> GetTruckWithTypeName()
         {
-            return await _context.Trucks.Include(x => x.TruckType).ToListAsync();
+            return await _context.Trucks
+                .Include(x=>x.SupplierRequests)
+                .Include(x => x.TruckType).ToListAsync();
             
         }
     }
