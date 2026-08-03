@@ -68,6 +68,7 @@
         {
             if (!ModelState.IsValid)
                 return View(model);
+
             try
             {
                 string logoPath = string.Empty;
@@ -77,11 +78,17 @@
                     logoPath = await _fileService.UploadImageAsync(model.LogoFile);
                 }
 
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                int createdById = string.IsNullOrEmpty(userIdClaim) ? 1 : int.Parse(userIdClaim);
+
                 var supplier = new Supplier
                 {
                     Name = model.Name,
                     Phone = model.Phone,
                     LogoURL = logoPath,
+                    CreatedById = createdById,
+                    SupCode = model.SupCode,
                 };
 
                 await _supplierRepository.AddAsync(supplier);
@@ -92,7 +99,6 @@
             }
             catch (Exception ex)
             {
-                // هيطلعلك السبب الحقيقي المتخبي جوه InnerException
                 var realMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
                 return Content($"السبب الحقيقي للخطأ: {realMessage}");
             }

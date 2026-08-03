@@ -49,20 +49,40 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         }
     };
+    // منع كتابة أية أرقام غير صحيحة أثناء الكتابة فوراً
 
     const validatePhone = () => {
         const val = phoneInput.value.trim();
+
+        // الـ Regex اللي بيفحص بداية الرقم (010, 011, 012, 015) والطول 11 رقم
+        const phoneRegex = /^01[0125][0-9]{8}$/;
+
         if (val === '') {
             showError(phoneInput, phoneError, 'يرجى إدخال رقم الهاتف');
             return false;
-        } else if (val.length !== 11) {
-            showError(phoneInput, phoneError, 'رقم الهاتف غير صحيح (يجب أن يكون 11 رقماً)');
+        }
+        else if (!phoneRegex.test(val)) {
+            showError(phoneInput, phoneError, 'رقم الهاتف يجب أن يبدأ بـ (010 أو 011 أو 012 أو 015) ومكون من 11 رقماً');
             return false;
-        } else {
+        }
+        else {
             showSuccess(phoneInput, phoneError);
             return true;
         }
     };
+    //const validatePhone = () => {
+    //    const val = phoneInput.value.trim();
+    //    if (val === '') {
+    //        showError(phoneInput, phoneError, 'يرجى إدخال رقم الهاتف');
+    //        return false;
+    //    } else if (val.length !== 11) {
+    //        showError(phoneInput, phoneError, 'رقم الهاتف غير صحيح (يجب أن يكون 11 رقماً)');
+    //        return false;
+    //    } else {
+    //        showSuccess(phoneInput, phoneError);
+    //        return true;
+    //    }
+    //};
 
     const showError = (input, errorElement, message) => {
         input.classList.remove('is-valid');
