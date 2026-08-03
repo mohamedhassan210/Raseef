@@ -15,10 +15,10 @@
                 .WithMessage("اسم المورد مسجل بالفعل.");
 
             RuleFor(x => x.Phone)
-                .NotEmpty().WithMessage("رقم الهاتف مطلوب.")
-                .Matches(@"^01[0125][0-9]{8}$").WithMessage("رقم الهاتف غير صحيح.")
-                .MustAsync((phone, _) => _supplierRepository.IsPhoneUniqueAsync(phone))
-                .WithMessage("رقم الهاتف مسجل بالفعل لمورد آخر.");
+       .NotEmpty().WithMessage("رقم الهاتف مطلوب.")
+       .Matches(@"^01[0125][0-9]{8}$").WithMessage("رقم الهاتف غير صحيح (يجب أن يبدأ بـ 010 أو 011 أو 012 أو 015 ومكون من 11 رقماً).")
+       .MustAsync((phone, _) => _supplierRepository.IsPhoneUniqueAsync(phone))
+       .WithMessage("رقم الهاتف مسجل بالفعل لمورد آخر.");
 
             When(x => x.LogoFile != null, () =>
             {

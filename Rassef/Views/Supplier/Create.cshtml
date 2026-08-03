@@ -66,6 +66,17 @@
                                 <span asp-validation-for="Phone"></span>
                             </div>
                         </div>
+
+                           <div class="mb-2">
+                            <label asp-for="SupCode" class="form-label-custom">كود المورد</label>
+                            <input asp-for="SupCode" class="form-control form-control-custom" id="supplierPhone" placeholder="ادخل كود المورد" maxlength="11" autocomplete="off">
+                            <div class="invalid-feedback-custom" id="phoneError">
+                                <span asp-validation-for="SupCode"></span>
+                            </div>
+
+
+                        </div>
+
                     </div>
 
                     <div class="col-lg-3 text-center">

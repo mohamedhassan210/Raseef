@@ -21,6 +21,11 @@
             builder.HasOne(s => s.CreatedBy)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(x => x.CreatedBy)
+                .WithMany(x => x.Suppliers)
+                .HasForeignKey(x => x.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Rassef.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitlaCreateDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,7 +17,7 @@ namespace Rassef.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
@@ -32,7 +32,7 @@ namespace Rassef.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
@@ -42,12 +42,27 @@ namespace Rassef.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DepartmentTypes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DepartmentTypes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DockStatuses",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
@@ -57,12 +72,28 @@ namespace Rassef.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DriverTypes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Code = table.Column<int>(type: "int", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DriverTypes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ExitTypes",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
@@ -94,7 +125,7 @@ namespace Rassef.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
@@ -125,7 +156,7 @@ namespace Rassef.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
@@ -140,7 +171,7 @@ namespace Rassef.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
@@ -155,7 +186,7 @@ namespace Rassef.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
@@ -259,12 +290,19 @@ namespace Rassef.Migrations
                     NationalId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: false),
+                    DeiverTypeId = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Drivers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Drivers_DriverTypes_DeiverTypeId",
+                        column: x => x.DeiverTypeId,
+                        principalTable: "DriverTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Drivers_Users_CreatedById",
                         column: x => x.CreatedById,
@@ -363,12 +401,19 @@ namespace Rassef.Migrations
                     Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     WarehouseId = table.Column<int>(type: "int", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: false),
+                    DepartmentTypeId = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Departments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Departments_DepartmentTypes_DepartmentTypeId",
+                        column: x => x.DepartmentTypeId,
+                        principalTable: "DepartmentTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Departments_Users_CreatedById",
                         column: x => x.CreatedById,
@@ -619,9 +664,9 @@ namespace Rassef.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TicketId = table.Column<int>(type: "int", nullable: false),
-                    ExitTypeId = table.Column<int>(type: "int", nullable: false),
                     ExitTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: false),
+                    ExitTypeId = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
@@ -645,7 +690,7 @@ namespace Rassef.Migrations
                         column: x => x.CreatedById,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -736,6 +781,11 @@ namespace Rassef.Migrations
                 column: "CreatedById");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Departments_DepartmentTypeId",
+                table: "Departments",
+                column: "DepartmentTypeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Departments_WarehouseId",
                 table: "Departments",
                 column: "WarehouseId");
@@ -779,6 +829,11 @@ namespace Rassef.Migrations
                 name: "IX_Drivers_CreatedById",
                 table: "Drivers",
                 column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Drivers_DeiverTypeId",
+                table: "Drivers",
+                column: "DeiverTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GroupPermissions_PermissionId",
@@ -1008,7 +1063,13 @@ namespace Rassef.Migrations
                 name: "Trucks");
 
             migrationBuilder.DropTable(
+                name: "DepartmentTypes");
+
+            migrationBuilder.DropTable(
                 name: "Warehouses");
+
+            migrationBuilder.DropTable(
+                name: "DriverTypes");
 
             migrationBuilder.DropTable(
                 name: "TruckTypes");

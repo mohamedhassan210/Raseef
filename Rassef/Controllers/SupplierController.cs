@@ -68,25 +68,39 @@
             if (!ModelState.IsValid)
                 return View(model);
 
-            string logoPath = string.Empty;
-
-            if (model.LogoFile != null)
+            try
             {
-                logoPath = await _fileService.UploadImageAsync(model.LogoFile);
+                string logoPath = string.Empty;
+
+                if (model.LogoFile != null)
+                {
+                    logoPath = await _fileService.UploadImageAsync(model.LogoFile);
+                }
+
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                int createdById = string.IsNullOrEmpty(userIdClaim) ? 1 : int.Parse(userIdClaim);
+
+                var supplier = new Supplier
+                {
+                    Name = model.Name,
+                    Phone = model.Phone,
+                    LogoURL = logoPath,
+                    CreatedById = createdById,
+                    SupCode = model.SupCode,
+                };
+
+                await _supplierRepository.AddAsync(supplier);
+                await _supplierRepository.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "تم إضافة المورد بنجاح!";
+                return RedirectToAction(nameof(Index));
             }
-
-            var supplier = new Supplier
+            catch (Exception ex)
             {
-                Name = model.Name,
-                Phone = model.Phone,
-                LogoURL = logoPath
-            };
-
-            await _supplierRepository.AddAsync(supplier);
-            await _supplierRepository.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "تم إضافة المورد بنجاح!";
-            return RedirectToAction(nameof(Index));
+                var realMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return Content($"السبب الحقيقي للخطأ: {realMessage}");
+            }
         }
 
         [HttpGet]

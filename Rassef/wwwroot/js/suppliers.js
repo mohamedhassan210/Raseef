@@ -1,3 +1,5 @@
+
+//Images 
 document.addEventListener('DOMContentLoaded', () => {
 
     // Placeholder function for fallback images

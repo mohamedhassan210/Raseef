@@ -37,6 +37,11 @@
                    .WithMany(p => p.Users)
                    .HasForeignKey(u => u.PositionId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.Suppliers)
+                .WithOne(x => x.CreatedBy)
+                .HasForeignKey(x => x.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

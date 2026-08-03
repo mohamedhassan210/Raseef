@@ -74,6 +74,9 @@ namespace Rassef.Migrations
                     b.Property<int>("CreatedById")
                         .HasColumnType("int");
 
+                    b.Property<int>("DepartmentTypeId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -88,6 +91,8 @@ namespace Rassef.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
+
+                    b.HasIndex("DepartmentTypeId");
 
                     b.HasIndex("WarehouseId");
 
@@ -192,6 +197,9 @@ namespace Rassef.Migrations
                     b.Property<int>("CreatedById")
                         .HasColumnType("int");
 
+                    b.Property<int>("DeiverTypeId")
+                        .HasColumnType("int");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -213,6 +221,8 @@ namespace Rassef.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
+
+                    b.HasIndex("DeiverTypeId");
 
                     b.ToTable("Drivers", (string)null);
                 });
@@ -765,14 +775,15 @@ namespace Rassef.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
-                    b.ToTable("ActionTypes");
+                    b.ToTable("ActionTypes", (string)null);
                 });
 
             modelBuilder.Entity("Rassef.Models.StatusesAndActions.CommodityTypes", b =>
@@ -788,14 +799,39 @@ namespace Rassef.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
-                    b.ToTable("CommodityTypes");
+                    b.ToTable("CommodityTypes", (string)null);
+                });
+
+            modelBuilder.Entity("Rassef.Models.StatusesAndActions.DepartmentType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAT")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAT")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DepartmentTypes", (string)null);
                 });
 
             modelBuilder.Entity("Rassef.Models.StatusesAndActions.DockStatuses", b =>
@@ -811,14 +847,42 @@ namespace Rassef.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
-                    b.ToTable("DockStatuses");
+                    b.ToTable("DockStatuses", (string)null);
+                });
+
+            modelBuilder.Entity("Rassef.Models.StatusesAndActions.DriverType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("Code")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAT")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAT")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DriverTypes", (string)null);
                 });
 
             modelBuilder.Entity("Rassef.Models.StatusesAndActions.ExitTypes", b =>
@@ -834,14 +898,15 @@ namespace Rassef.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
-                    b.ToTable("ExitTypes");
+                    b.ToTable("ExitTypes", (string)null);
                 });
 
             modelBuilder.Entity("Rassef.Models.StatusesAndActions.PermitTypes", b =>
@@ -857,14 +922,15 @@ namespace Rassef.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
-                    b.ToTable("PermitTypes");
+                    b.ToTable("PermitTypes", (string)null);
                 });
 
             modelBuilder.Entity("Rassef.Models.StatusesAndActions.RequestStatuses", b =>
@@ -880,14 +946,15 @@ namespace Rassef.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
-                    b.ToTable("RequestStatuses");
+                    b.ToTable("RequestStatuses", (string)null);
                 });
 
             modelBuilder.Entity("Rassef.Models.StatusesAndActions.TicketStatuses", b =>
@@ -903,14 +970,15 @@ namespace Rassef.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
-                    b.ToTable("TicketStatuses");
+                    b.ToTable("TicketStatuses", (string)null);
                 });
 
             modelBuilder.Entity("Rassef.Models.StatusesAndActions.TruckTypes", b =>
@@ -926,14 +994,15 @@ namespace Rassef.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
-                    b.ToTable("TruckTypes");
+                    b.ToTable("TruckTypes", (string)null);
                 });
 
             modelBuilder.Entity("Rassef.Models.Entities.CheckOut", b =>
@@ -941,11 +1010,11 @@ namespace Rassef.Migrations
                     b.HasOne("Rassef.Models.Identity.User", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Rassef.Models.StatusesAndActions.ExitTypes", "ExitType")
-                        .WithMany()
+                        .WithMany("CheckOuts")
                         .HasForeignKey("ExitTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -971,6 +1040,12 @@ namespace Rassef.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Rassef.Models.StatusesAndActions.DepartmentType", "DepartmentType")
+                        .WithMany("Departments")
+                        .HasForeignKey("DepartmentTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Rassef.Models.Entities.Warehouse", "Warehouse")
                         .WithMany("Departments")
                         .HasForeignKey("WarehouseId")
@@ -978,6 +1053,8 @@ namespace Rassef.Migrations
                         .IsRequired();
 
                     b.Navigation("CreatedBy");
+
+                    b.Navigation("DepartmentType");
 
                     b.Navigation("Warehouse");
                 });
@@ -997,7 +1074,7 @@ namespace Rassef.Migrations
                         .IsRequired();
 
                     b.HasOne("Rassef.Models.StatusesAndActions.DockStatuses", "DockStatus")
-                        .WithMany()
+                        .WithMany("Docks")
                         .HasForeignKey("DockStatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1052,13 +1129,21 @@ namespace Rassef.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Rassef.Models.StatusesAndActions.DriverType", "DeiverType")
+                        .WithMany("Drivers")
+                        .HasForeignKey("DeiverTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("CreatedBy");
+
+                    b.Navigation("DeiverType");
                 });
 
             modelBuilder.Entity("Rassef.Models.Entities.QueueAction", b =>
                 {
                     b.HasOne("Rassef.Models.StatusesAndActions.ActionTypes", "ActionType")
-                        .WithMany()
+                        .WithMany("QueueActions")
                         .HasForeignKey("ActionTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1094,7 +1179,7 @@ namespace Rassef.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Rassef.Models.StatusesAndActions.TicketStatuses", "TicketStatus")
-                        .WithMany()
+                        .WithMany("QueueTickets")
                         .HasForeignKey("TicketStatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1118,7 +1203,7 @@ namespace Rassef.Migrations
             modelBuilder.Entity("Rassef.Models.Entities.Supplier", b =>
                 {
                     b.HasOne("Rassef.Models.Identity.User", "CreatedBy")
-                        .WithMany()
+                        .WithMany("Suppliers")
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1129,7 +1214,7 @@ namespace Rassef.Migrations
             modelBuilder.Entity("Rassef.Models.Entities.SupplierRequest", b =>
                 {
                     b.HasOne("Rassef.Models.StatusesAndActions.CommodityTypes", "CommodityType")
-                        .WithMany()
+                        .WithMany("SupplierRequests")
                         .HasForeignKey("CommodityTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1153,13 +1238,13 @@ namespace Rassef.Migrations
                         .IsRequired();
 
                     b.HasOne("Rassef.Models.StatusesAndActions.PermitTypes", "PermitType")
-                        .WithMany()
+                        .WithMany("SupplierRequests")
                         .HasForeignKey("PermitTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Rassef.Models.StatusesAndActions.RequestStatuses", "RequestStatus")
-                        .WithMany()
+                        .WithMany("SupplierRequests")
                         .HasForeignKey("RequestStatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1214,13 +1299,13 @@ namespace Rassef.Migrations
                         .IsRequired();
 
                     b.HasOne("Rassef.Models.StatusesAndActions.PermitTypes", "PermitType")
-                        .WithMany()
+                        .WithMany("TransferRequests")
                         .HasForeignKey("PermitTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Rassef.Models.StatusesAndActions.RequestStatuses", "RequestStatus")
-                        .WithMany()
+                        .WithMany("TransferRequests")
                         .HasForeignKey("RequestStatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1253,7 +1338,7 @@ namespace Rassef.Migrations
                         .IsRequired();
 
                     b.HasOne("Rassef.Models.StatusesAndActions.TruckTypes", "TruckType")
-                        .WithMany()
+                        .WithMany("Trucks")
                         .HasForeignKey("TruckTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1409,11 +1494,70 @@ namespace Rassef.Migrations
                     b.Navigation("GroupPermissions");
                 });
 
+            modelBuilder.Entity("Rassef.Models.Identity.User", b =>
+                {
+                    b.Navigation("Suppliers");
+                });
+
             modelBuilder.Entity("Rassef.Models.Identity.UserGroup", b =>
                 {
                     b.Navigation("GroupPermissions");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("Rassef.Models.StatusesAndActions.ActionTypes", b =>
+                {
+                    b.Navigation("QueueActions");
+                });
+
+            modelBuilder.Entity("Rassef.Models.StatusesAndActions.CommodityTypes", b =>
+                {
+                    b.Navigation("SupplierRequests");
+                });
+
+            modelBuilder.Entity("Rassef.Models.StatusesAndActions.DepartmentType", b =>
+                {
+                    b.Navigation("Departments");
+                });
+
+            modelBuilder.Entity("Rassef.Models.StatusesAndActions.DockStatuses", b =>
+                {
+                    b.Navigation("Docks");
+                });
+
+            modelBuilder.Entity("Rassef.Models.StatusesAndActions.DriverType", b =>
+                {
+                    b.Navigation("Drivers");
+                });
+
+            modelBuilder.Entity("Rassef.Models.StatusesAndActions.ExitTypes", b =>
+                {
+                    b.Navigation("CheckOuts");
+                });
+
+            modelBuilder.Entity("Rassef.Models.StatusesAndActions.PermitTypes", b =>
+                {
+                    b.Navigation("SupplierRequests");
+
+                    b.Navigation("TransferRequests");
+                });
+
+            modelBuilder.Entity("Rassef.Models.StatusesAndActions.RequestStatuses", b =>
+                {
+                    b.Navigation("SupplierRequests");
+
+                    b.Navigation("TransferRequests");
+                });
+
+            modelBuilder.Entity("Rassef.Models.StatusesAndActions.TicketStatuses", b =>
+                {
+                    b.Navigation("QueueTickets");
+                });
+
+            modelBuilder.Entity("Rassef.Models.StatusesAndActions.TruckTypes", b =>
+                {
+                    b.Navigation("Trucks");
                 });
 #pragma warning restore 612, 618
         }
