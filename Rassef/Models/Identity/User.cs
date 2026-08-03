@@ -15,6 +15,8 @@
         public int GroupId { get; set; }
         public UserGroup Group { get; set; }
         // for password
+            
         public bool IsChanged { get; set; } = false;
+        public ICollection<Supplier> Suppliers { get; set; } = new HashSet<Supplier>();
     }
 }
