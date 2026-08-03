@@ -29,6 +29,7 @@
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel login)
         {
+
             if (!ModelState.IsValid)
             {
                 return View(login);
@@ -45,11 +46,18 @@
                 return View(login);
             }
 
-            if (!BCrypt.Net.BCrypt.Verify(login.Password, user.HashPassword))
+            try
             {
-                ModelState.AddModelError(nameof(login.Password),
-                    "كلمة المرور غير صحيحة.");
-
+                if (!BCrypt.Net.BCrypt.Verify(login.Password, user.HashPassword))
+                {
+                    ModelState.AddModelError(nameof(login.Password), "كلمة المرور غير صحيحة.");
+                    return View(login);
+                }
+            }
+            catch (BCrypt.Net.SaltParseException)
+            {
+                // في حال كانت كلمة المرور في قاعدة البيانات غير مشفرة بشكل صحيح
+                ModelState.AddModelError(nameof(login.Password), "يوجد مشكلة في حسابك، يرجى التواصل مع الإدارة.");
                 return View(login);
             }
 
@@ -63,7 +71,7 @@
                 Expires = DateTimeOffset.UtcNow.AddDays(7),
                 IsEssential = true
             });
-            return RedirectToAction("SupOrTra", "Authentication");
+            return RedirectToAction("AddRoleOrView", "Authentication");
         }
         [HttpGet]
         public async Task<IActionResult> Register()
