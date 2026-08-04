@@ -89,20 +89,11 @@
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateQueueTicketVM model)
         {
-            if (string.IsNullOrWhiteSpace(model.TicketNumber))
-            {
-                ModelState.AddModelError(nameof(model.TicketNumber), "رقم التذكرة مطلوب.");
-            }
-
             if (model.DepartmentId <= 0)
-            {
                 ModelState.AddModelError(nameof(model.DepartmentId), "يرجى اختيار القسم.");
-            }
 
             if (model.TicketStatusId <= 0)
-            {
                 ModelState.AddModelError(nameof(model.TicketStatusId), "يرجى اختيار حالة التذكرة.");
-            }
 
             if (!ModelState.IsValid)
             {
@@ -110,22 +101,51 @@
                 return View(model);
             }
 
+            var department = await _departmentRepository.GetByIdAsync(model.DepartmentId);
+
+            if (department == null)
+            {
+                ModelState.AddModelError(string.Empty, "القسم غير موجود.");
+                await PopulateDropdowns(model);
+                return View(model);
+            }
+
+            var today = DateTime.Today;
+
+            var tickets = await _ticketRepository.GetAllAsync();
+
+            var lastTicket = tickets
+                .Where(x => x.DepartmentId == model.DepartmentId &&
+                            x.CreatedAT.Date == today)
+                .OrderByDescending(x => x.CreatedAT)
+                .FirstOrDefault();
+
+            int counter = 1;
+
+            if (lastTicket != null)
+            {
+                counter = int.Parse(lastTicket.TicketNumber.Substring(1)) + 1;
+            }
+
+            var ticketNumber = $"{department.Name}{counter}";
+
             var ticket = new QueueTicket
             {
-                TicketNumber = model.TicketNumber,
+                TicketNumber = ticketNumber,
                 DepartmentId = model.DepartmentId,
                 TicketStatusId = model.TicketStatusId,
                 TransferRequestId = model.TransferRequestId,
                 SupplierRequestId = model.SupplierRequestId,
-                QueueTime = model.QueueTime,
-                EntryTime = model.EntryTime,
-                ExitTime = model.ExitTime
+                QueueTime = DateTimeOffset.Now,
+                EntryTime = DateTimeOffset.MinValue,
+                ExitTime = DateTimeOffset.MinValue
             };
 
             await _ticketRepository.AddAsync(ticket);
             await _ticketRepository.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "تم إنشاء التذكرة بنجاح!";
+            TempData["SuccessMessage"] = $"تم إنشاء التذكرة رقم {ticketNumber}";
+
             return RedirectToAction(nameof(Index));
         }
 

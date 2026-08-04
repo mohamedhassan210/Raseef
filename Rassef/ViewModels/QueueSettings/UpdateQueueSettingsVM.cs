@@ -1,0 +1,17 @@
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Rassef.Models.Enums;
+
+namespace Rassef.ViewModels.QueueSettings
+{
+    public class UpdateQueueSettingsVM
+    {
+        public int Id { get; set; }
+
+        public ResetType ResetType { get; set; }
+
+        public int? ShiftId { get; set; }
+
+        public IEnumerable<SelectListItem> Shifts { get; set; }
+            = Enumerable.Empty<SelectListItem>();
+    }
+}

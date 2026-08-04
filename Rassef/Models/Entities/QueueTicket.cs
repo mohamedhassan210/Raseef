@@ -19,6 +19,8 @@ namespace Rassef.Models.Entities
         public CheckOut CheckOut { get; set; }
         public ICollection<DockAssignment> DockAssignments { get; set; } = new HashSet<DockAssignment>();
         public ICollection<QueueAction> QueueActions { get; set; } = new HashSet<QueueAction>();
-
+        // relation with shift
+        public int? ShiftId { get; set; }
+        public Shift? Shift { get; set; }
     }
 }
