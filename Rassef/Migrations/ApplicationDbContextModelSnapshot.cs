@@ -759,7 +759,7 @@ namespace Rassef.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserGroups");
+                    b.ToTable("UserGroups", (string)null);
                 });
 
             modelBuilder.Entity("Rassef.Models.StatusesAndActions.ActionTypes", b =>
@@ -1396,7 +1396,7 @@ namespace Rassef.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.OwnsOne("Rassef.Models.ValueObjects.Email", "Email", b1 =>
+                    b.OwnsOne("Rassef.Models.Identity.User.Email#Rassef.Models.ValueObjects.Email", "Email", b1 =>
                         {
                             b1.Property<int>("Id")
                                 .HasColumnType("int");
@@ -1409,7 +1409,7 @@ namespace Rassef.Migrations
 
                             b1.HasKey("Id");
 
-                            b1.ToTable("Users");
+                            b1.ToTable("Users", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("Id");
