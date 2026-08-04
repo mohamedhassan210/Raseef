@@ -12,8 +12,8 @@ using Rassef.Data;
 namespace Rassef.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260803105504_InitlaCreateDB")]
-    partial class InitlaCreateDB
+    [Migration("20260804103711_intialdatabase")]
+    partial class intialdatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -546,9 +546,6 @@ namespace Rassef.Migrations
 
                     b.Property<int>("CreatedById")
                         .HasColumnType("int");
-
-                    b.Property<bool>("IsFood")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("IsRefrigerated")
                         .HasColumnType("bit");

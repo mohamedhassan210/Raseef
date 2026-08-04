@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Rassef.Migrations
 {
     /// <inheritdoc />
-    public partial class InitlaCreateDB : Migration
+    public partial class intialdatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -346,7 +346,6 @@ namespace Rassef.Migrations
                     PlateNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     PlateLetter = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StorageCapacity = table.Column<double>(type: "float", nullable: false),
-                    IsFood = table.Column<bool>(type: "bit", nullable: false),
                     IsRefrigerated = table.Column<bool>(type: "bit", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
