@@ -1,67 +1,120 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. تحديد العناصر الأساسية من الـ DOM
-    const searchInput = document.getElementById('search-input');
-    const cardsContainer = document.getElementById('cards-container');
 
-    // التأكد من وجود الحاوية لتجنب الأخطاء في الصفحات الأخرى
-    if (!cardsContainer) return;
+    // 1. Toggle Company Input to Select Dropdown
+    const editCompanyBtn = document.getElementById('editCompanyBtn');
+    const companyStaticView = document.getElementById('companyStaticView');
+    const companySelectView = document.getElementById('companySelectView');
+    const companySelect = document.getElementById('companySelect');
+    const form = document.getElementById('addCarForm');
 
-    const cards = cardsContainer.querySelectorAll('.truck-card');
-    const selectButtons = document.querySelectorAll('.select-btn');
 
-    // 2. نظام البحث (Filter) للعمل على الكروت المطبوعة من الـ Server
-    const handleSearch = () => {
-        const query = searchInput.value.trim().toLowerCase();
+    if (
+        !editCompanyBtn ||
+        !companyStaticView ||
+        !companySelectView ||
+        !companySelect ||
+        !form
+    ) {
+        return;
+    }
 
-        cards.forEach(card => {
-            const plateText = card.getAttribute('data-plate').toLowerCase();
-            const vehicleTitle = card.getAttribute('data-type').toLowerCase();
+    console.log(editCompanyBtn);
+    console.log(companyStaticView);
+    console.log(companySelectView);
+    console.log(companySelect);
+    editCompanyBtn.addEventListener('click', () => {
+        companyStaticView.classList.add('d-none');
+        companySelectView.classList.remove('d-none');
+        companySelect.disabled = false;
+    });
 
-            // يبحث برقم اللوحة أو نوع الشاحنة
-            if (plateText.includes(query) || vehicleTitle.includes(query)) {
-                card.style.display = 'flex';
-                card.style.animation = 'fadeIn 0.3s ease-in-out';
-            } else {
-                card.style.display = 'none';
+    // 2. Reusable Custom Dropdown Logic
+    const setupCustomDropdown = (dropdownId, selectId) => {
+        const customDropdown = document.getElementById(dropdownId);
+        if (!customDropdown) return;
+
+        const dropdownHeader = customDropdown.querySelector('.dropdown-header');
+        const selectedValue = customDropdown.querySelector('.selected-value');
+        const dropdownItems = customDropdown.querySelectorAll('.dropdown-item');
+        const nativeSelect = document.getElementById(selectId);
+
+        // Toggle Dropdown Menu
+        dropdownHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+
+            // إغلاق أي Dropdown أخرى مفتوحة قبل فتح هذه
+            document.querySelectorAll('.custom-dropdown').forEach(d => {
+                if (d !== customDropdown) d.classList.remove('open');
+            });
+
+            customDropdown.classList.toggle('open');
+        });
+
+        // Select Item Logic
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+
+                const value = item.getAttribute('data-value');
+
+                // Update UI Text
+                selectedValue.textContent = value;
+                selectedValue.classList.remove('placeholder-color');
+
+                // Update Native Hidden Select Value
+                nativeSelect.value = value;
+
+                // Handle active/selected classes visually
+                dropdownItems.forEach(el => el.classList.remove('selected'));
+                item.classList.add('selected');
+
+                // Close Dropdown
+                customDropdown.classList.remove('open');
+            });
+        });
+
+        // Close Dropdown on outside click
+        document.addEventListener('click', (e) => {
+            if (!customDropdown.contains(e.target)) {
+                customDropdown.classList.remove('open');
             }
         });
     };
 
-    // تفعيل البحث عند الكتابة
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
+    // تهيئة الـ Dropdowns الحالية
+    setupCustomDropdown('customDropdown', 'companySelect');
+    setupCustomDropdown('customDriverDropdown', 'driverSelect');
 
-        // تحسين تجربة المستخدم عند تفريغ حقل البحث (كما طلبت في كودك)
-        searchInput.addEventListener('search', () => {
-            if (searchInput.value.trim() === '') {
-                handleSearch(); // نعيد عرض كل الكروت
-            }
-        });
-    }
+    // 3. Form Validation & Submission
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
 
-    // 3. تفعيل حدث الضغط على زر "اختيار السيارة"
-    selectButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            const card = e.target.closest('.truck-card');
+        if (!form.checkValidity()) {
+            event.stopPropagation();
+            form.classList.add('was-validated');
+            return;
+        }
 
-            // سحب البيانات من الـ data-attributes التي أضفناها في Razor
-            const plate = card.getAttribute('data-plate');
-            const truckType = card.getAttribute('data-type');
-            const companyName = card.getAttribute('data-company');
-            const truckId = card.getAttribute('data-id'); // مهم جداً للربط مع قاعدة البيانات لاحقاً
+        const selectedCompany = companyStaticView.classList.contains('d-none')
+            ? companySelect.value
+            : document.getElementById('companyDisplay').value;
 
-            // حفظ البيانات في الـ LocalStorage كما طلبت
-            const selectedTruck = {
-                id: truckId,
-                plate: plate,
-                company: companyName,
-                type: truckType
-            };
+        // دمج السائق المختار داخل الأوبجيكت الجديد
+        const newTruck = {
+            id: Date.now(),
+            company: selectedCompany,
+            plateLetters: document.getElementById('plateLetters').value.trim(),
+            plateNumbers: document.getElementById('plateNumbers').value.trim(),
+            storage: document.getElementById('storageCapacity').value,
+            type: document.querySelector('input[name="truckType"]:checked').value,
+            driver: document.getElementById('driverSelect').value
+        };
 
-            localStorage.setItem('selectedTruck', JSON.stringify(selectedTruck));
-            console.log(`Car selected: ID: ${truckId}, Plate: ${plate}, Company: ${companyName}, Type: ${truckType}`);
+        const existingTrucks = JSON.parse(localStorage.getItem('trucks')) || [];
+        existingTrucks.push(newTruck);
+        localStorage.setItem('trucks', JSON.stringify(existingTrucks));
 
-            window.location.href = "/Driver/Index"; // عدل هذا المسار حسب الـ Controller الخاص بالسائقين
-        });
+        // تغيير التوجيه ليتوافق مع MVC
+        window.location.href = window.routes.truckIndex;
     });
 });

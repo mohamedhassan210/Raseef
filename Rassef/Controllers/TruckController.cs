@@ -1,4 +1,6 @@
 ﻿
+using Rassef.Models.Entities;
+
 namespace Rassef.Controllers
 {
     public class TruckController : Controller
@@ -47,7 +49,7 @@ namespace Rassef.Controllers
                 }).ToList();
 
             ViewBag.SupplierName = supplier.Name;
-
+            ViewBag.SupplierId = supplier.Id;
             return View(supplierTrucks);
         }
         [HttpGet]
@@ -84,8 +86,10 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(int supplierId)
         {
+            ViewBag.SupplierId = supplierId;
+
             await LoadTruckTypesAsync();
             return View(new CreateTruckVM());
         }
