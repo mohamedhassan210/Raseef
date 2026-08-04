@@ -235,7 +235,30 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 15px rgba(228, 121, 37, 0.3);
   }
-  
+
+/* ==========================================================================
+   Add Driver Square Button (New Feature)
+   ========================================================================== */
+.add-driver-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 48px; /* عرض متناسق يطابق الارتفاع التلقائي للـ dropdown */
+    background-color: transparent;
+    border: 1.5px solid var(--border-subtle);
+    border-radius: 8px;
+    color: var(--primary-color);
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+    .add-driver-btn:hover {
+        background-color: rgba(228, 121, 37, 0.1);
+        box-shadow: 0 0 0 3px rgba(228, 121, 37, 0.15);
+        color: var(--primary-color);
+    }
+
   /* Responsive */
   @media (max-width: 768px) {
     .form-card {
