@@ -1,12 +1,7 @@
 {
   "ExpandedNodes": [
     "",
-    "\\Rassef",
-    "\\Rassef\\Controllers",
-    "\\Rassef\\Data",
-    "\\Rassef\\Models",
-    "\\Rassef\\Models\\Entities"
+    "\\Rassef"
   ],
-  "SelectedNode": "\\Rassef\\Controllers\\WarehouseController.cs",
   "PreviewInSolutionExplorer": false
 }

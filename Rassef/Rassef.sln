@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36408.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rassef", "Rassef.csproj", "{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rassef.Test", "..\Rassef.Test\Rassef.Test.csproj", "{464E87D1-0313-47B6-8758-F932CC62BC0C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{464E87D1-0313-47B6-8758-F932CC62BC0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{464E87D1-0313-47B6-8758-F932CC62BC0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{464E87D1-0313-47B6-8758-F932CC62BC0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{464E87D1-0313-47B6-8758-F932CC62BC0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
