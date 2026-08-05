@@ -15,6 +15,7 @@ namespace Rassef.Controllers
 
         // Get All Drivers
         [HttpGet]
+        // this action navigate to the supplier index by defualt 
         public async Task<IActionResult> Index(int id, int supplierId)
         {
             var supplier = await _supplierRepository.GetByIdAsync(supplierId);

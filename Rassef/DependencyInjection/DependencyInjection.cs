@@ -1,3 +1,5 @@
+using Rassef.Common.Interfaces.Services.FileServices;
+
 namespace Rassef.Dependencyinjection
 {
     // Eexstension Method
@@ -33,6 +35,7 @@ namespace Rassef.Dependencyinjection
             services.AddScoped<ITransferRequestRepository, TransferRequestRepository>();
             services.AddScoped<ITruckRepository, TruckRepository>();
             services.AddScoped<IFileService, FileService>();
+            services.AddScoped<ExcelExportService>();
             services.AddScoped<IWarehouseRepository, WarehouseRepository>();
             services.AddScoped<IJwtService, JwtService>();
             services.Configure<JwtSettings>(

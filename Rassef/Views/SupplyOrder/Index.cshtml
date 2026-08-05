@@ -1,0 +1,158 @@
+﻿@model IEnumerable<Rassef.ViewModels.SupplyOrderReport.SupplyOrderReportViewModel>
+
+@{
+    ViewData["Title"] = "طلبات التوريد";
+    Layout = "_SupOrTra";
+}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link rel="stylesheet" href="~/css/supplyOrder.css" asp-append-version="true" />
+
+<div class="container-fluid dashboard-container">
+
+    <!-- الهيدر العلوي: اللوجوهات على الشمال والعنوان على اليمين -->
+    <header class="page-header">
+
+        <!-- اللوجوهات في أقصى الشمال -->
+        <div class="logos-group">
+            <img src="~/img/fathallah logo.svg" class="brand-logo-fathalla" alt="فتح الله" />
+            <img src="~/img/logo.svg" class="brand-logo-raseefy" alt="رصيفي" />
+        </div>
+
+        <!-- العنوان في أقصى اليمين -->
+        <div class="header-title-box">
+            <h2 class="page-title">طلبات التوريد</h2>
+            <span class="update-text"><span class="dot"></span> آخر تحديث منذ 10 ثواني</span>
+        </div>
+
+    </header>
+
+    <!-- شريط التحكم والتصفيات -->
+    <form asp-controller="SupplyOrder" asp-action="Index" method="get" class="top-actions-row">
+
+        <!-- الجهة اليسرى: مربع البحث في أقصى اليسار بجانبه زر التصدير -->
+        <div class="left-controls">
+            <a asp-controller="SupplyOrder"
+               asp-action="ExportToExcel"
+               asp-route-fromTime="@ViewBag.FromTime"
+               asp-route-toTime="@ViewBag.ToTime"
+               class="export-btn">
+                <span>تصدير</span>
+                <i class="bi bi-box-arrow-up-right"></i>
+            </a>
+
+            <!-- مربع البحث (أقصى اليسار) -->
+            <div class="search-wrapper">
+                <input type="text"
+                       name="search"
+                       value="@ViewBag.Search"
+                       placeholder="ادخل رقم الدور او العربية او اسم الموظف" />
+                <button type="submit" class="search-btn">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+
+            <!-- زر التصدير -->
+        
+        </div>
+
+        <!-- الجهة اليمنى: أزرار الحالة (تم -> جاري -> انتظار -> الكل) -->
+        <div class="status-buttons">
+            <button type="submit" name="statusFilter" value="الكل" class="status-btn @(string.IsNullOrEmpty(ViewBag.CurrentStatus) || ViewBag.CurrentStatus == "الكل" ? "active" : "")">الكل</button>
+            <button type="submit" name="statusFilter" value="انتظار" class="status-btn @(ViewBag.CurrentStatus == "انتظار" ? "active" : "")">انتظار</button>
+            <button type="submit" name="statusFilter" value="جاري" class="status-btn @(ViewBag.CurrentStatus == "جاري" ? "active" : "")">جاري</button>
+            <button type="submit" name="statusFilter" value="تم" class="status-btn @(ViewBag.CurrentStatus == "تم" ? "active" : "")">تم</button>
+
+        </div>
+
+    </form>
+
+    <div class="section-subtitle">قائمة الأدوار</div>
+
+    <!-- قائمة الكروت -->
+    <div class="orders-list">
+        @foreach (var item in Model)
+        {
+            <div class="order-card">
+
+                <div class="order-card-right">
+                    <div class="order-number">
+                        <h1>@item.QueueNumber</h1>
+                        <span class="queue-title">رقم الدور</span>
+                    </div>
+
+                    <div>
+                        @if (item.StatusName == "تم")
+                        {
+                            <span class="status-badge done">
+                                <span class="radio-dot"></span> تم
+                            </span>
+                        }
+                        else if (item.StatusName == "جاري")
+                        {
+                            <span class="status-badge progress">
+                                <span class="radio-dot"></span> جاري
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="status-badge wait">
+                                <span class="radio-dot"></span> إنتظار
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <div class="order-info-flex">
+
+                    <div class="info-item">
+                        <i class="bi bi-person"></i>
+                        <div class="info-content">
+                            <h6>@item.DriverName</h6>
+                            <span class="info-label">اسم السائق</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <i class="bi bi-truck"></i>
+                        <div class="info-content">
+                            <h6>@item.TruckPlate</h6>
+                            <span class="info-label">رقم السيارة</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <i class="bi bi-distribute-vertical"></i>
+                        <div class="info-content">
+                            <h6>@item.DockName</h6>
+                            <span class="info-label">رقم الرصيف</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <i class="bi bi-diagram-3"></i>
+                        <div class="info-content">
+                            <h6>@item.DepartmentName</h6>
+                            <span class="info-label">القسم</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <i class="bi bi-clock"></i>
+                        <div class="info-content">
+                            <h6>@item.EntryTime.ToString("hh:mm tt")</h6>
+                            <span class="info-label">وقت الدخول</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        }
+    </div>
+
+</div>
