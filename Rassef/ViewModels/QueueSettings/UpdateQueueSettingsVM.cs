@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using Rassef.Models.Enums;
-
-namespace Rassef.ViewModels.QueueSettings
+﻿namespace Rassef.ViewModels.QueueSettings
 {
     public class UpdateQueueSettingsVM
     {

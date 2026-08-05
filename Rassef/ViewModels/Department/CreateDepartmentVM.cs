@@ -5,6 +5,9 @@
         [Display(Name = "اسم القسم")]
         public string Name { get; set; } = string.Empty;
 
+        [Display(Name = "الاختصار")]
+        public string Prefix { get; set; } = string.Empty;
+
         [Display(Name = "المخزن")]
         public int WarehouseId { get; set; }
 

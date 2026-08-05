@@ -1,5 +1,3 @@
-﻿using Rassef.Models.Entities;
-
 namespace Rassef.Controllers
 {
     public class DriverController : Controller
@@ -89,12 +87,14 @@ namespace Rassef.Controllers
             if (await _driverRepository.ExistsAsync(x => x.NationalId == create.NationalId))
             {
                 ModelState.AddModelError(nameof(create.NationalId), "الرقم القومي مسجل بالفعل.");
+                create.Suppliers = await GetSuppliersAsync();
                 return View(create);
             }
 
             if (await _driverRepository.ExistsAsync(x => x.Phone == create.Phone))
             {
                 ModelState.AddModelError(nameof(create.Phone), "رقم الهاتف مسجل بالفعل.");
+                create.Suppliers = await GetSuppliersAsync();
                 return View(create);
             }
 
@@ -201,6 +201,7 @@ namespace Rassef.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        // Action DeleteDriver
         public async Task<IActionResult> DeleteDriver(int id)
         {
             var driver = await _driverRepository.GetByIdAsync(id);

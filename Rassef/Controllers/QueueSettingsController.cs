@@ -1,10 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Rassef.Common.Repository;
-using Rassef.Models.Entities;
-using Rassef.ViewModels.QueueSettings;
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class QueueSettingsController : Controller
     {
@@ -19,6 +13,7 @@ namespace Rassef.Controllers
             _shiftRepository = shiftRepository;
         }
 
+        // Display all items
         public async Task<IActionResult> Index()
         {
             var settings = await _repository.GetAllAsync();
@@ -34,6 +29,7 @@ namespace Rassef.Controllers
             return View(model);
         }
 
+        // Display details
         public async Task<IActionResult> Details(int id)
         {
             var settings = await _repository.GetByIdAsync(id);
@@ -60,6 +56,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display create page
         public async Task<IActionResult> Create()
         {
             var model = new CreateQueueSettingsVM();
@@ -70,6 +67,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Create new item
         public async Task<IActionResult> Create(CreateQueueSettingsVM model)
         {
             if (!ModelState.IsValid)
@@ -91,6 +89,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display update page
         public async Task<IActionResult> Update(int id)
         {
             var settings = await _repository.GetByIdAsync(id);
@@ -115,6 +114,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Update item
         public async Task<IActionResult> Update(UpdateQueueSettingsVM model)
         {
             if (!ModelState.IsValid)
@@ -140,7 +140,30 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        // Action ResetAll
+        public async Task<IActionResult> ResetAll()
+        {
+            var settings = await _repository.FindAsync(x => true);
+
+            if (settings == null)
+            {
+                ModelState.AddModelError("", "الإعدادات غير موجودة.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            settings.LastGlobalResetAt = DateTimeOffset.Now;
+
+            _repository.Update(settings);
+            await _repository.SaveChangesAsync();
+
+            TempData["Success"] = "تم تصفير جميع العدادات.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
         [HttpGet]
+        // Display delete confirmation
         public async Task<IActionResult> Delete(int id)
         {
             var settings = await _repository.GetByIdAsync(id);
@@ -168,6 +191,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Delete item
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var settings = await _repository.GetByIdAsync(id);

@@ -2,7 +2,7 @@
 {
     public interface ITruckRepository : IRepository<Truck>
     {
-        Task<IEnumerable<Truck>>GetTruckWithTypeName();
+        Task<IEnumerable<Truck>> GetTruckWithTypeName();
 
 
     }

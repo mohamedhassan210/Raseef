@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using System.ComponentModel;
-
-namespace Rassef.ViewModels.Department
+﻿namespace Rassef.ViewModels.Department
 {
     public class UpdateDepartmentVM
     {
@@ -13,6 +10,8 @@ namespace Rassef.ViewModels.Department
 
         [Display(Name = "المخزن")]
         public int WarehouseId { get; set; }
+        [Display(Name = "الاختصار")]
+        public string Prefix { get; set; } = string.Empty;
 
         // DropDown
         public IEnumerable<SelectListItem>? Warehouses { get; set; }

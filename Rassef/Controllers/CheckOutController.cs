@@ -17,6 +17,7 @@
         }
 
         [HttpGet]
+        // Display all items
         public async Task<IActionResult> Index()
         {
             var checkOuts = await _repository.GetAllAsync();
@@ -33,6 +34,7 @@
         }
 
         [HttpGet]
+        // Display details
         public async Task<IActionResult> Details(int id)
         {
             var checkOut = await _repository.GetByIdAsync(id);
@@ -56,6 +58,7 @@
         }
 
         [HttpGet]
+        // Display create page
         public async Task<IActionResult> Create()
         {
             var vm = await PopulateCreateDropdownsAsync(new CreateCheckOutVM());
@@ -64,6 +67,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Create new item
         public async Task<IActionResult> Create(CreateCheckOutVM create)
         {
             if (!ModelState.IsValid)
@@ -86,6 +90,7 @@
         }
 
         [HttpGet]
+        // Display update page
         public async Task<IActionResult> Update(int id)
         {
             var checkOut = await _repository.GetByIdAsync(id);
@@ -111,6 +116,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Update item
         public async Task<IActionResult> Update(UpdateCheckOutVM updateVm)
         {
             if (!ModelState.IsValid)
@@ -138,6 +144,7 @@
         }
 
         [HttpGet]
+        // Display delete confirmation
         public async Task<IActionResult> Delete(int id)
         {
             var checkOut = await _repository.GetByIdAsync(id);
@@ -159,6 +166,7 @@
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        // Delete item
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var checkOut = await _repository.GetByIdAsync(id);

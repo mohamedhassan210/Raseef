@@ -12,8 +12,8 @@ namespace Rassef.Models.Configurations
                    .IsRequired()
                    .HasMaxLength(100);
 
-            builder.Property(x => x.StartDate)
-                   .IsRequired();
+            builder.Property(x => x.StartTime)
+          .IsRequired();
 
             builder.Property(x => x.Duration)
                    .IsRequired();

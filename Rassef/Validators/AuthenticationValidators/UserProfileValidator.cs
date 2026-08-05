@@ -22,8 +22,9 @@
                 });
 
             RuleFor(x => x.Phone)
-                .MaximumLength(20).WithMessage("يجب ألا يتجاوز رقم الهاتف 20 حرفاً.")
-                .When(x => !string.IsNullOrEmpty(x.Phone));
+                  .NotEmpty().WithMessage("برجاء إدخال رقم هاتف السائق.")
+                  .Matches(@"^(010|011|012|015)\d{8}$")
+                  .WithMessage("رقم هاتف السائق غير صالحة (يجب أن يكون رقم مصري مكون من 11 رقم).");
 
             RuleFor(x => x.NationalId)
                 .NotEmpty().WithMessage("الرقم القومي مطلوب.")

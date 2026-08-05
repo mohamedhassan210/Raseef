@@ -1,12 +1,15 @@
-﻿public class ShiftDetailsVM
+﻿namespace Rassef.ViewModels.Shift
 {
-    public int Id { get; set; }
+    public class ShiftDetailsVM
+    {
+        public int Id { get; set; }
 
-    public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
-    public DateTime StartDate { get; set; }
+        public TimeSpan StartTime { get; set; }
 
-    public TimeSpan Duration { get; set; }
+        public TimeSpan Duration { get; set; }
 
-    public DateTimeOffset CreatedAT { get; set; }
+        public DateTimeOffset CreatedAT { get; set; }
+    }
 }

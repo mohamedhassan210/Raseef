@@ -1,5 +1,4 @@
-﻿
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class SupplierRequestController : Controller
     {
@@ -36,6 +35,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display all items
         public async Task<IActionResult> Index()
         {
             var requestsRepo = await _supplierRequestRepository.GetAllWithDetailsAsync();
@@ -56,6 +56,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display details
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -93,6 +94,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display create page
         public async Task<IActionResult> Create()
         {
             var vm = await PopulateDropdownsAsync(new CreateSupplierRequestVM());
@@ -101,6 +103,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Create new item
         public async Task<IActionResult> Create(CreateSupplierRequestVM create)
         {
             if (!ModelState.IsValid)
@@ -148,6 +151,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display update page
         public async Task<IActionResult> Update(int? id)
         {
             if (id == null)
@@ -185,6 +189,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Update item
         public async Task<IActionResult> Update(UpdateSupplierRequestVM update)
         {
             if (!ModelState.IsValid)
@@ -220,6 +225,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display delete confirmation
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -259,6 +265,7 @@ namespace Rassef.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        // Delete item
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var request = await _supplierRequestRepository.GetByIdAsync(id);

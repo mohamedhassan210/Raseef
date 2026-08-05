@@ -1,5 +1,4 @@
-﻿
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class QueueActionController : Controller
     {
@@ -21,6 +20,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display all items
         public async Task<IActionResult> Index()
         {
             var actions = await _queueActionRepository.GetAllAsync();
@@ -38,6 +38,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display details
         public async Task<IActionResult> Details(int id)
         {
             var action = await _queueActionRepository.GetByIdAsync(id);
@@ -63,6 +64,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display create page
         public async Task<IActionResult> Create()
         {
             var model = new CreateQueueActionVM();
@@ -72,6 +74,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Create new item
         public async Task<IActionResult> Create(CreateQueueActionVM model)
         {
             if (model is null)
@@ -96,6 +99,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Action Edit
         public async Task<IActionResult> Edit(int id)
         {
             var action = await _queueActionRepository.GetByIdAsync(id);
@@ -122,6 +126,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Action Edit
         public async Task<IActionResult> Edit(UpdateQueueActionVM model)
         {
 
@@ -154,6 +159,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Delete item
         public async Task<IActionResult> Delete(int id)
         {
             var action = await _queueActionRepository.GetByIdAsync(id);

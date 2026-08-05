@@ -16,7 +16,7 @@
             builder.Property(t => t.IsRefrigerated)
                    .IsRequired();
 
-           
+
             builder.HasOne(t => t.TruckType)
                    .WithMany()
                    .HasForeignKey(t => t.TruckTypeId)

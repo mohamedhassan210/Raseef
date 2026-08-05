@@ -1,9 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Rassef.Common.Repository;
-using Rassef.Models.Entities;
-using Rassef.ViewModels.Shift;
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class ShiftController : Controller
     {
@@ -14,6 +9,7 @@ namespace Rassef.Controllers
             _repository = repository;
         }
 
+        // Display all items
         public async Task<IActionResult> Index()
         {
             var shifts = await _repository.GetAllAsync();
@@ -22,13 +18,14 @@ namespace Rassef.Controllers
             {
                 Id = x.Id,
                 Name = x.Name,
-                StartDate = x.StartDate,
+                StartTime = x.StartTime,
                 Duration = x.Duration
             }).ToList();
 
             return View(model);
         }
 
+        // Display details
         public async Task<IActionResult> Details(int id)
         {
             var shift = await _repository.GetByIdAsync(id);
@@ -43,7 +40,7 @@ namespace Rassef.Controllers
             {
                 Id = shift.Id,
                 Name = shift.Name,
-                StartDate = shift.StartDate,
+                StartTime = shift.StartTime,
                 Duration = shift.Duration,
                 CreatedAT = shift.CreatedAT
             };
@@ -52,6 +49,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display create page
         public IActionResult Create()
         {
             return View();
@@ -59,6 +57,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Create new item
         public async Task<IActionResult> Create(CreateShiftVM model)
         {
             if (!ModelState.IsValid)
@@ -73,7 +72,7 @@ namespace Rassef.Controllers
             var shift = new Shift
             {
                 Name = model.Name,
-                StartDate = model.StartDate,
+                StartTime = model.StartTime,
                 Duration = model.Duration
             };
 
@@ -84,6 +83,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display update page
         public async Task<IActionResult> Update(int id)
         {
             var shift = await _repository.GetByIdAsync(id);
@@ -98,7 +98,7 @@ namespace Rassef.Controllers
             {
                 Id = shift.Id,
                 Name = shift.Name,
-                StartDate = shift.StartDate,
+                StartTime = shift.StartTime,
                 Duration = shift.Duration
             };
 
@@ -107,6 +107,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Update item
         public async Task<IActionResult> Update(UpdateShiftVM model)
         {
             if (!ModelState.IsValid)
@@ -127,7 +128,7 @@ namespace Rassef.Controllers
             }
 
             shift.Name = model.Name;
-            shift.StartDate = model.StartDate;
+            shift.StartTime = model.StartTime;
             shift.Duration = model.Duration;
 
             _repository.Update(shift);
@@ -137,6 +138,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display delete confirmation
         public async Task<IActionResult> Delete(int id)
         {
             var shift = await _repository.GetByIdAsync(id);
@@ -151,7 +153,7 @@ namespace Rassef.Controllers
             {
                 Id = shift.Id,
                 Name = shift.Name,
-                StartDate = shift.StartDate,
+                StartTime = shift.StartTime,
                 Duration = shift.Duration,
                 CreatedAT = shift.CreatedAT
             };
@@ -161,6 +163,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Delete item
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var shift = await _repository.GetByIdAsync(id);
@@ -173,6 +176,27 @@ namespace Rassef.Controllers
 
             _repository.Remove(shift);
             await _repository.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+        //Reset
+        [HttpPost]
+        public async Task<IActionResult> Reset(int id)
+        {
+            var shift = await _repository.GetByIdAsync(id);
+
+            if (shift == null)
+            {
+                ModelState.AddModelError("", "الشيفت غير موجود.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            shift.LastResetAt = DateTimeOffset.Now;
+
+            _repository.Update(shift);
+            await _repository.SaveChangesAsync();
+
+            TempData["Success"] = "تم تصفير الشيفت.";
 
             return RedirectToAction(nameof(Index));
         }

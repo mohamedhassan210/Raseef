@@ -2,7 +2,7 @@
 {
     public class Dock : BaseEntity
     {
-        public string DockName { get; set; } = string.Empty;  
+        public string DockName { get; set; } = string.Empty;
 
         public int DepartmentId { get; set; }
         public Department Department { get; set; }

@@ -6,7 +6,7 @@
 
         public string Name { get; set; } = string.Empty;
 
-        public DateTime StartDate { get; set; }
+        public TimeSpan StartTime { get; set; }
 
         public TimeSpan Duration { get; set; }
     }

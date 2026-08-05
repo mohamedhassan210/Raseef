@@ -1,4 +1,4 @@
-﻿namespace Rassef.Dependencyinjection
+namespace Rassef.Dependencyinjection
 {
     // Eexstension Method
     public static class DependencyInjection
@@ -11,10 +11,12 @@
 
             services.AddLogging();
             // add services 
-            services.AddControllersWithViews();
+            services.AddControllersWithViews(options =>
+            {
+                options.Filters.Add<Rassef.Filters.FluentValidationActionFilter>();
+            });
             services.AddExceptionHandler<GlobalExceptionHandling>();
             services.AddProblemDetails();
-            services.AddFluentValidationAutoValidation();
             services.AddValidatorsFromAssemblyContaining<Program>(); // add validators 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             //add services 

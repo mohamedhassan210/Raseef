@@ -12,12 +12,14 @@
 
         [HttpGet]
 
+        // Action Intro
         public IActionResult Intro()
         {
             return View();
         }
 
         [HttpGet]
+        // Action Login
         public async Task<IActionResult> Login()
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
@@ -27,6 +29,7 @@
             return View();
         }
         [HttpPost]
+        // Action Login
         public async Task<IActionResult> Login(LoginViewModel login)
         {
 
@@ -74,6 +77,7 @@
             return RedirectToAction("AddRoleOrView", "Authentication");
         }
         [HttpGet]
+        // Action Register
         public async Task<IActionResult> Register()
         => View();
 
@@ -112,15 +116,18 @@
             return RedirectToAction(nameof(Login));
         }
         [HttpGet]
+        // Action ForgetPassword
         public async Task<IActionResult> ForgetPassword()
         => View();
 
         [HttpPost]
+        // Action ForgetPassword
         public async Task<IActionResult> ForgetPassword(ForgetPasswordViewModel register)
         {
             return View();
         }
         [HttpGet]
+        // Action UserProfile
         public async Task<IActionResult> UserProfile(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);

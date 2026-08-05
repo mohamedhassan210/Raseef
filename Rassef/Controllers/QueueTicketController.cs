@@ -7,8 +7,12 @@
         private readonly IRepository<TicketStatuses> _ticketStatusRepository;
         private readonly IRepository<TransferRequest> _transferRequestRepository;
         private readonly IRepository<SupplierRequest> _supplierRequestRepository;
+        private readonly IRepository<QueueSettings> _queueSettingsRepository;
+        private readonly IRepository<Shift> _shiftRepository;
 
         public QueueTicketController(
+            IRepository<QueueSettings> queueSettingsRepository,
+            IRepository<Shift> shiftRepository,
             IRepository<QueueTicket> ticketRepository,
             IRepository<Department> departmentRepository,
             IRepository<TicketStatuses> ticketStatusRepository,
@@ -20,9 +24,12 @@
             _ticketStatusRepository = ticketStatusRepository;
             _transferRequestRepository = transferRequestRepository;
             _supplierRequestRepository = supplierRequestRepository;
+            _queueSettingsRepository = queueSettingsRepository;
+            _shiftRepository = shiftRepository;
         }
 
         [HttpGet]
+        // Display all items
         public async Task<IActionResult> Index()
         {
             var tickets = await _ticketRepository.GetAllAsync();
@@ -44,6 +51,7 @@
         }
 
         [HttpGet]
+        // Display details
         public async Task<IActionResult> Details(int id)
         {
             var ticket = await _ticketRepository.GetByIdAsync(id);
@@ -78,6 +86,7 @@
         }
 
         [HttpGet]
+        // Display create page
         public async Task<IActionResult> Create()
         {
             var model = new CreateQueueTicketVM();
@@ -87,6 +96,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Create new item
         public async Task<IActionResult> Create(CreateQueueTicketVM model)
         {
             if (model.DepartmentId <= 0)
@@ -105,18 +115,81 @@
 
             if (department == null)
             {
-                ModelState.AddModelError(string.Empty, "القسم غير موجود.");
+                ModelState.AddModelError("", "القسم غير موجود.");
                 await PopulateDropdowns(model);
                 return View(model);
             }
 
-            var today = DateTime.Today;
+            var settings = await _queueSettingsRepository.FindAsync(x => true);
+
+            if (settings == null)
+            {
+                ModelState.AddModelError("", "لم يتم إعداد نظام العد.");
+                await PopulateDropdowns(model);
+                return View(model);
+            }
+
+            Shift? shift = null;
+
+            if (settings.ResetType == ResetType.ByShift)
+            {
+                if (settings.ShiftId == null)
+                {
+                    ModelState.AddModelError("", "لم يتم اختيار الشيفت.");
+                    await PopulateDropdowns(model);
+                    return View(model);
+                }
+
+                shift = await _shiftRepository.GetByIdAsync(settings.ShiftId.Value);
+
+                if (shift == null)
+                {
+                    ModelState.AddModelError("", "الشيفت غير موجود.");
+                    await PopulateDropdowns(model);
+                    return View(model);
+                }
+            }
 
             var tickets = await _ticketRepository.GetAllAsync();
 
+            DateTimeOffset resetDate = DateTimeOffset.MinValue;
+
+            switch (settings.ResetType)
+            {
+                case ResetType.Daily:
+
+                    resetDate = DateTimeOffset.Now.Date;
+
+                    break;
+
+                case ResetType.ByShift:
+
+                    var shiftStart = DateTime.Today.Add(shift!.StartTime);
+                    var shiftEnd = shiftStart.Add(shift.Duration);
+
+                    resetDate = shiftStart;
+
+                    if (shift.LastResetAt.HasValue && shift.LastResetAt > resetDate)
+                        resetDate = shift.LastResetAt.Value;
+
+                    break;
+
+                case ResetType.Manual:
+
+                    resetDate = settings.LastGlobalResetAt ?? DateTimeOffset.MinValue;
+
+                    break;
+            }
+
+            if (department.LastResetAt.HasValue && department.LastResetAt > resetDate)
+                resetDate = department.LastResetAt.Value;
+
+            if (settings.LastGlobalResetAt.HasValue && settings.LastGlobalResetAt > resetDate)
+                resetDate = settings.LastGlobalResetAt.Value;
+
             var lastTicket = tickets
                 .Where(x => x.DepartmentId == model.DepartmentId &&
-                            x.CreatedAT.Date == today)
+                            x.CreatedAT >= resetDate)
                 .OrderByDescending(x => x.CreatedAT)
                 .FirstOrDefault();
 
@@ -124,10 +197,15 @@
 
             if (lastTicket != null)
             {
-                counter = int.Parse(lastTicket.TicketNumber.Substring(1)) + 1;
+                var digits = new string(lastTicket.TicketNumber
+                    .Where(char.IsDigit)
+                    .ToArray());
+
+                if (!string.IsNullOrWhiteSpace(digits))
+                    counter = int.Parse(digits) + 1;
             }
 
-            var ticketNumber = $"{department.Name}{counter}";
+            var ticketNumber = $"{department.Prefix}{counter}";
 
             var ticket = new QueueTicket
             {
@@ -138,7 +216,8 @@
                 SupplierRequestId = model.SupplierRequestId,
                 QueueTime = DateTimeOffset.Now,
                 EntryTime = DateTimeOffset.MinValue,
-                ExitTime = DateTimeOffset.MinValue
+                ExitTime = DateTimeOffset.MinValue,
+                ShiftId = settings.ResetType == ResetType.ByShift ? settings.ShiftId : null
             };
 
             await _ticketRepository.AddAsync(ticket);
@@ -150,6 +229,7 @@
         }
 
         [HttpGet]
+        // Action Edit
         public async Task<IActionResult> Edit(int id)
         {
             var ticket = await _ticketRepository.GetByIdAsync(id);
@@ -181,6 +261,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Action Edit
         public async Task<IActionResult> Edit(UpdateQueueTicketVM model)
         {
             if (model.Id <= 0)
@@ -236,6 +317,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Delete item
         public async Task<IActionResult> Delete(int id)
         {
             var ticket = await _ticketRepository.GetByIdAsync(id);
