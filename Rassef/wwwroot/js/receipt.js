@@ -79,4 +79,25 @@ document.addEventListener('DOMContentLoaded', () => {
         window.print();
     });
 
+
+    // تطبيق الوقت
+    if (receiptData.createdAt) {
+        const { dateFormatted, timeFormatted } = formatDateTime(receiptData.createdAt);
+        elDate.textContent = dateFormatted;
+        elTime.textContent = timeFormatted;
+    }
+
+    // إعداد أزرار الأكشن
+    btnBack.addEventListener('click', () => {
+        window.location.href = window.routes?.driversPage || '/Driver/Index';
+    });
+
+    btnPrint.addEventListener('click', () => {
+        window.print();
+    });
+
+    // 👇 الإضافة الجديدة: أول ما صفحة الريسيبت تفتح وتظهر، تطبع نفسها تلقائياً
+    setTimeout(() => {
+        window.print();
+    }, 500); // تأخير نص ثانية عشان نضمن إن الصفحة رسمت نفسها والبيانات ظهرت قبل ما نافذة الطباعة تفتح
 });

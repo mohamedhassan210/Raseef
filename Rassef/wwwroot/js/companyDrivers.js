@@ -212,15 +212,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const printTicket = () => {
-        btnPrint.innerHTML = 'جاري تجهيز الإيصال... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 8px;"></span>';
+        btnPrint.innerHTML = 'جاري الانتقال للإيصال... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 8px;"></span>';
         btnPrint.disabled = true;
 
-        // 1. تجميع البيانات عشان نبعتها لصفحة الريسيبت
+        // 1. تجميع البيانات وحفظها في الـ LocalStorage
         const ticketNum = ticketNumberDisplay.textContent;
         const deptName = selectedDepartmentValue ? selectedDepartmentValue.name : 'غير محدد';
-        const empName = window.pageData?.employeeName || 'اسم الموظف';
+        const empName = window.pageData?.employeeName || 'محمد حسين';
         const dock = window.pageData?.dockName || 'A';
-        const waitCount = '0'; // لو عندك حسبة لعدد المنتظرين ضيفها هنا
+        const waitCount = '0';
 
         const receiptData = {
             ticketNumber: ticketNum,
@@ -228,22 +228,19 @@ document.addEventListener('DOMContentLoaded', () => {
             department: deptName,
             dockNumber: dock,
             employeeName: empName,
-            createdAt: new Date().toISOString() // إنشاء وقت وتاريخ حقيقي لحظة الضغط
+            createdAt: new Date().toISOString()
         };
 
-        // 2. حفظ البيانات في الـ LocalStorage
         localStorage.setItem('receiptData', JSON.stringify(receiptData));
 
-        // 3. التوجيه لصفحة الريسيبت بعد ثانية ونص
+        // 2. الانتقال لصفحة الريسيبت فوراً (بدون طباعة هنا)
         setTimeout(() => {
-            // هنتأكد إن مسار صفحة الطباعة موجود في الـ routes
             if (window.routes && window.routes.receiptPage) {
                 window.location.href = window.routes.receiptPage;
             } else {
-                // مسار احتياطي لو شغال HTML عادي
                 window.location.href = "receipt.html";
             }
-        }, 1500);
+        }, 800);
     };
 
     // ==========================================

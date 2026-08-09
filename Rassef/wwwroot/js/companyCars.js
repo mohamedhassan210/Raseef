@@ -118,3 +118,32 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = window.routes.truckIndex;
     });
 });
+
+// ==========================================
+// Live Search Filter Logic (نفس فكرة صفحة السائقين)
+// ==========================================
+const searchInput = document.getElementById('search-input');
+const cardsContainer = document.getElementById('cards-container');
+
+if (searchInput && cardsContainer) {
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLowerCase();
+        const cards = cardsContainer.querySelectorAll('.truck-card');
+
+        cards.forEach(card => {
+            // بنجيب رقم اللوحة والحروف من الـ HTML مباشرة عشان نقارن بينهم
+            const plateNumbers = card.querySelector('.plate-numbers')?.textContent.trim().toLowerCase() || "";
+            const plateLetters = card.querySelector('.plate-letters')?.textContent.trim().toLowerCase() || "";
+
+            // دمج الرقم والحروف للبحث الشامل (مثل: "123 أ ب ج")
+            const fullPlate = `${plateNumbers} ${plateLetters}`;
+
+            if (fullPlate.includes(query) || plateNumbers.includes(query) || plateLetters.includes(query)) {
+                card.style.display = 'flex';
+                card.style.animation = 'fadeIn 0.3s ease-in-out';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+}
