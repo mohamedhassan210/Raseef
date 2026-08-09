@@ -47,3 +47,4 @@ global using System.Security.Cryptography;
 global using System.Text;
 global using Rassef.ViewModels.SupplyOrderReport;
 global using ClosedXML.Excel;
+global using Rassef.Common.Interfaces.Services.FileServices;

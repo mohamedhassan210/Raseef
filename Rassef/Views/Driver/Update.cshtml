@@ -1,0 +1,58 @@
+﻿@model Rassef.ViewModels.Driver.UpdateDriverVM
+
+@{
+    ViewData["Title"] = "تعديل سائق";
+}
+
+<div class="container my-4" dir="rtl">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>تعديل سائق</h2>
+        <a asp-controller="Driver" asp-action="Index" asp-route-supplierId="@Model.SupplierId" class="btn btn-outline-secondary">خطوة للخلف &rarr;</a>
+    </div>
+
+    <form asp-controller="Driver" asp-action="Update" method="post">
+        @Html.AntiForgeryToken()
+
+        <!-- حقل معرف السائق المخفي -->
+        <input type="hidden" asp-for="Id" />
+
+        <div class="card p-4 shadow-sm rounded-4 mb-4" style="background-color: #FFF6EE;">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="FullName" class="form-label font-weight-bold">اسم السائق</label>
+                    <input asp-for="FullName" class="form-control text-center" placeholder="اسم السائق" />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Phone" class="form-label font-weight-bold">رقم الهاتف</label>
+                    <input asp-for="Phone" class="form-control text-center" placeholder="01002677884" />
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="NationalId" class="form-label font-weight-bold">الرقم القومي</label>
+                    <input asp-for="NationalId" class="form-control text-center" placeholder="الرقم القومي" />
+                    <span asp-validation-for="NationalId" class="text-danger"></span>
+                </div>
+
+                <!-- قائمة الموردين/الشركات -->
+                <div class="col-md-6">
+                    <label asp-for="SupplierId" class="form-label font-weight-bold">شركة السائق</label>
+                    <select asp-for="SupplierId" asp-items="Model.Suppliers" class="form-select text-center">
+                        <option value="">-- اختر الشركة --</option>
+                    </select>
+                    <span asp-validation-for="SupplierId" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-warning w-100 py-2 text-white font-weight-bold" style="background-color: #E07A28; border: none;">
+            تعديل السائق
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

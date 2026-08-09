@@ -1,3 +1,4 @@
+
 namespace Rassef.Controllers
 {
     public class DriverController : Controller
@@ -15,7 +16,6 @@ namespace Rassef.Controllers
 
         // Get All Drivers
         [HttpGet]
-        // this action navigate to the supplier index by defualt 
         public async Task<IActionResult> Index(int id, int supplierId)
         {
             var supplier = await _supplierRepository.GetByIdAsync(supplierId);
@@ -35,6 +35,7 @@ namespace Rassef.Controllers
 
             ViewBag.SupplierName = supplier.Name;
             ViewBag.TruckName = truck != null ? $"{truck.PlateLetter} {truck.PlateNumber}" : "سيارة غير محددة";
+            ViewBag.SupplierId = supplierId;
 
             return View(driverList);
         }
@@ -106,62 +107,62 @@ namespace Rassef.Controllers
                 Phone = create.Phone,
                 CreatedById = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
             };
+
             await _driverRepository.AddAsync(driver);
             await _driverRepository.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId });
         }
 
-        // Update (GET)
+        // GET: Driver/Update/5
         [HttpGet]
-        public async Task<IActionResult> Update(int id)
+        public async Task<IActionResult> Update(int? id, int? supplierId)
         {
-            var drv = await _driverRepository.GetByIdAsync(id);
+            if (id is null || id == 0) return RedirectToAction("Index", "Supplier");
 
-            if (drv is null)
-            {
-                ModelState.AddModelError("", "السائق غير موجود.");
-                return View();
-            }
+            var drv = await _driverRepository.GetDriverWithRequestsAsync(id.Value);
+            if (drv is null) return RedirectToAction("Index", "Supplier");
 
-            var driver = new UpdateDriverVM
+            int? targetSupplierId = supplierId ?? drv.SupplierRequests?.Select(sr => sr.SupplierId).FirstOrDefault();
+
+            var driverVM = new UpdateDriverVM
             {
                 Id = drv.Id,
                 FullName = drv.FullName,
                 NationalId = drv.NationalId,
-                Phone = drv.Phone
+                Phone = drv.Phone,
+                SupplierId = targetSupplierId,
+                Suppliers = await GetSuppliersAsync() // جلب قائمة الشركات
             };
 
-            return View(driver);
+            return View(driverVM);
         }
-
-        // Update (POST)
+        // POST: Driver/Update
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Update(UpdateDriverVM updateDriverVM)
         {
+            var driver = await _driverRepository.GetDriverWithRequestsAsync(updateDriverVM.Id);
+
+            if (driver is null) return RedirectToAction("Index", "Supplier");
+
             if (!ModelState.IsValid)
             {
-                return View(updateDriverVM);
-            }
-
-            var driver = await _driverRepository.GetByIdAsync(updateDriverVM.Id);
-
-            if (driver is null)
-            {
-                ModelState.AddModelError("", "السائق غير موجود.");
+                updateDriverVM.Suppliers = await GetSuppliersAsync();
                 return View(updateDriverVM);
             }
 
             if (await _driverRepository.ExistsAsync(x => x.NationalId == updateDriverVM.NationalId && x.Id != updateDriverVM.Id))
             {
                 ModelState.AddModelError(nameof(updateDriverVM.NationalId), "الرقم القومي مسجل بالفعل.");
+                updateDriverVM.Suppliers = await GetSuppliersAsync();
                 return View(updateDriverVM);
             }
 
             if (await _driverRepository.ExistsAsync(x => x.Phone == updateDriverVM.Phone && x.Id != updateDriverVM.Id))
             {
                 ModelState.AddModelError(nameof(updateDriverVM.Phone), "رقم الهاتف مسجل بالفعل.");
+                updateDriverVM.Suppliers = await GetSuppliersAsync();
                 return View(updateDriverVM);
             }
 
@@ -172,9 +173,8 @@ namespace Rassef.Controllers
             _driverRepository.Update(driver);
             await _driverRepository.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { supplierId = updateDriverVM.SupplierId });
         }
-
         // Delete (GET)
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
@@ -202,15 +202,14 @@ namespace Rassef.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        // Action DeleteDriver
-        public async Task<IActionResult> DeleteDriver(int id)
+        public async Task<IActionResult> DeleteDriver(int id, int? supplierId)
         {
             var driver = await _driverRepository.GetByIdAsync(id);
 
             if (driver is null)
             {
                 ModelState.AddModelError("", "السائق غير موجود.");
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Supplier");
             }
 
             if (await _driverRepository.HasRequestsAsync(driver.Id))
@@ -231,8 +230,9 @@ namespace Rassef.Controllers
             _driverRepository.Remove(driver);
             await _driverRepository.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { supplierId = supplierId });
         }
+
         private async Task<IEnumerable<SelectListItem>> GetSuppliersAsync()
         {
             var suppliers = await _supplierRepository.GetAllAsync();
