@@ -1,6 +1,4 @@
-﻿using Rassef.ViewModels.Department;
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class DepartmentController : Controller
     {
@@ -11,6 +9,7 @@ namespace Rassef.Controllers
             _repository = department;
         }
 
+        // Display all items
         public async Task<IActionResult> Index()
         {
             var departrments = await _repository.GetAllAsync();
@@ -66,7 +65,11 @@ namespace Rassef.Controllers
                 ModelState.AddModelError(nameof(create.Name), "اسم القسم مسجل بالفعل.");
                 return View(create);
             }
-
+            if (await _repository.ExistsAsync(x => x.Prefix == create.Prefix))
+            {
+                ModelState.AddModelError(nameof(create.Prefix), "هذا الـ Prefix مستخدم بالفعل.");
+                return View(create);
+            }
             var department = new Department
             {
                 Name = create.Name,
@@ -122,12 +125,38 @@ namespace Rassef.Controllers
                 ModelState.AddModelError(nameof(model.Name), "اسم القسم مسجل بالفعل.");
                 return View(model);
             }
-
+            if (await _repository.ExistsAsync(x => x.Prefix == model.Prefix && x.Id != model.Id))
+            {
+                ModelState.AddModelError(nameof(model.Prefix), "هذا الـ Prefix مستخدم بالفعل.");
+                return View(model);
+            }
             department.Name = model.Name;
             department.WarehouseId = model.WarehouseId;
 
             _repository.Update(department);
             await _repository.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        // Action Reset
+        public async Task<IActionResult> Reset(int id)
+        {
+            var department = await _repository.GetByIdAsync(id);
+
+            if (department == null)
+            {
+                ModelState.AddModelError("", "القسم غير موجود.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            department.LastResetAt = DateTimeOffset.Now;
+
+            _repository.Update(department);
+            await _repository.SaveChangesAsync();
+
+            TempData["Success"] = "تم تصفير القسم.";
 
             return RedirectToAction(nameof(Index));
         }

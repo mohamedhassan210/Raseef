@@ -1,7 +1,4 @@
-﻿
-using Rassef.Models.Entities;
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class TruckController : Controller
     {
@@ -20,10 +17,11 @@ namespace Rassef.Controllers
             _truckRepository = truckRepository;
             _truckTypeRepository = truckTypeRepository;
             _userRepository = userRepository;
-            _supplierRepository = supplierRepository;   
+            _supplierRepository = supplierRepository;
         }
 
         [HttpGet]
+        // Display all items
         public async Task<IActionResult> Index(int supplierid)
         {
             var supplier = await _supplierRepository.GetByIdAsync(supplierid);
@@ -36,7 +34,7 @@ namespace Rassef.Controllers
             var trucksrepo = await _truckRepository.GetTruckWithTypeName();
 
             var supplierTrucks = trucksrepo
-                .Where(x => x.SupplierRequests.Any(sr => sr.SupplierId == supplierid)) 
+                .Where(x => x.SupplierRequests.Any(sr => sr.SupplierId == supplierid))
                 .Select(x => new TruckListVM
                 {
                     Id = x.Id,
@@ -45,7 +43,7 @@ namespace Rassef.Controllers
                     PlateNumber = x.PlateNumber,
                     StorageCapacity = x.StorageCapacity,
                     TruckTypeName = x.TruckType?.Name ?? "غير محدد",
-                    supplierId = supplierid 
+                    supplierId = supplierid
                 }).ToList();
 
             ViewBag.SupplierName = supplier.Name;
@@ -53,6 +51,7 @@ namespace Rassef.Controllers
             return View(supplierTrucks);
         }
         [HttpGet]
+        // Display details
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -70,7 +69,7 @@ namespace Rassef.Controllers
             }
 
             var truckDetails = new TruckDetailsVM
-            {   
+            {
                 Id = truck.Id,
                 PlateNumber = truck.PlateNumber,
                 PlateLetter = truck.PlateLetter,
@@ -86,6 +85,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display create page
         public async Task<IActionResult> Create(int supplierId)
         {
             ViewBag.SupplierId = supplierId;
@@ -96,6 +96,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Create new item
         public async Task<IActionResult> Create(CreateTruckVM create)
         {
             if (!ModelState.IsValid)
@@ -140,6 +141,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display update page
         public async Task<IActionResult> Update(int? id)
         {
             if (id == null)
@@ -175,6 +177,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Update item
         public async Task<IActionResult> Update(UpdateTruckVM update)
         {
             if (!ModelState.IsValid)
@@ -206,6 +209,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display delete confirmation
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -241,6 +245,7 @@ namespace Rassef.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        // Delete item
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var truck = await _truckRepository.GetByIdAsync(id);

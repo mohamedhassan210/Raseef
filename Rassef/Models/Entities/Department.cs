@@ -2,13 +2,16 @@
 {
     public class Department : BaseEntity
     {
+        //Prefix
         public string Name { get; set; } = string.Empty;
         public int WarehouseId { get; set; }
         public int CreatedById { get; set; }
         public User CreatedBy { get; set; }
         public Warehouse Warehouse { get; set; }
-        public int DepartmentTypeId { get; set;  }
-        public DepartmentType DepartmentType { get; set;  }
+        public int DepartmentTypeId { get; set; }
+        public DateTimeOffset? LastResetAt { get; set; }
+        public DepartmentType DepartmentType { get; set; }
+        public string Prefix { get; set; } = string.Empty;
         public ICollection<Dock> Docks { get; set; } = new HashSet<Dock>();
         public ICollection<QueueTicket> QueueTickets { get; set; } = new HashSet<QueueTicket>();
         public ICollection<TransferRequest> TransferRequests { get; set; } = new HashSet<TransferRequest>();

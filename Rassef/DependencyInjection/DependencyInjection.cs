@@ -1,4 +1,6 @@
-﻿namespace Rassef.Dependencyinjection
+using Rassef.Common.Interfaces.Services.FileServices;
+
+namespace Rassef.Dependencyinjection
 {
     // Eexstension Method
     public static class DependencyInjection
@@ -11,10 +13,12 @@
 
             services.AddLogging();
             // add services 
-            services.AddControllersWithViews();
+            services.AddControllersWithViews(options =>
+            {
+                options.Filters.Add<Rassef.Filters.FluentValidationActionFilter>();
+            });
             services.AddExceptionHandler<GlobalExceptionHandling>();
             services.AddProblemDetails();
-            services.AddFluentValidationAutoValidation();
             services.AddValidatorsFromAssemblyContaining<Program>(); // add validators 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             //add services 
@@ -31,6 +35,7 @@
             services.AddScoped<ITransferRequestRepository, TransferRequestRepository>();
             services.AddScoped<ITruckRepository, TruckRepository>();
             services.AddScoped<IFileService, FileService>();
+            services.AddScoped<ExcelExportService>();
             services.AddScoped<IWarehouseRepository, WarehouseRepository>();
             services.AddScoped<IJwtService, JwtService>();
             services.Configure<JwtSettings>(

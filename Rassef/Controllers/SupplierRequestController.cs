@@ -1,5 +1,4 @@
-﻿
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class SupplierRequestController : Controller
     {
@@ -12,6 +11,7 @@ namespace Rassef.Controllers
         private readonly IRepository<CommodityTypes> _commodityTypeRepository;
         private readonly IRepository<RequestStatuses> _requestStatusRepository;
         private readonly IRepository<User> _userRepository;
+        private readonly IRepository<Truck> _truckTypeRepository;
 
         public SupplierRequestController(
             ISupplierRequestRepository supplierRequestRepository, // التعديل هنا
@@ -22,7 +22,8 @@ namespace Rassef.Controllers
             IRepository<PermitTypes> permitTypeRepository,
             IRepository<CommodityTypes> commodityTypeRepository,
             IRepository<RequestStatuses> requestStatusRepository,
-            IRepository<User> userRepository)
+            IRepository<User> userRepository,
+            IRepository<Truck> truckTypeRepository)
         {
             _supplierRequestRepository = supplierRequestRepository;
             _supplierRepository = supplierRepository;
@@ -33,9 +34,11 @@ namespace Rassef.Controllers
             _commodityTypeRepository = commodityTypeRepository;
             _requestStatusRepository = requestStatusRepository;
             _userRepository = userRepository;
+            _truckTypeRepository = truckTypeRepository;
         }
 
         [HttpGet]
+        // Display all items
         public async Task<IActionResult> Index()
         {
             var requestsRepo = await _supplierRequestRepository.GetAllWithDetailsAsync();
@@ -56,6 +59,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display details
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -93,15 +97,20 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create()
+        // Display create page
+        public async Task<IActionResult> Create(CreateSupplierRequestVM create)
         {
-            var vm = await PopulateDropdownsAsync(new CreateSupplierRequestVM());
-            return View(vm);
+
+            var departments = _departmentRepository.GetAllAsync();
+            ViewBag.dpartment = departments;
+            return View(create);
         }
 
         [HttpPost]
+        [ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateSupplierRequestVM create)
+        // Create new item
+        public async Task<IActionResult> CreateConfirmed(CreateSupplierRequestVM create)
         {
             if (!ModelState.IsValid)
             {
@@ -148,6 +157,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display update page
         public async Task<IActionResult> Update(int? id)
         {
             if (id == null)
@@ -185,6 +195,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Update item
         public async Task<IActionResult> Update(UpdateSupplierRequestVM update)
         {
             if (!ModelState.IsValid)
@@ -220,6 +231,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        // Display delete confirmation
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -259,6 +271,7 @@ namespace Rassef.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        // Delete item
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var request = await _supplierRequestRepository.GetByIdAsync(id);
@@ -274,6 +287,76 @@ namespace Rassef.Controllers
 
             TempData["Success"] = "تم حذف طلب المورد بنجاح.";
             return RedirectToAction(nameof(Index));
+        }
+        // special acitons 
+        [HttpGet]
+        public async Task<IActionResult> CreateTruckWithDriver(int supId)
+        {
+            await LoadTruckTypesAsync();
+            await LoadDriversAsync();
+            var VM = new TruckWithDriverVM();
+            VM.SupId = supId;
+            return View(VM);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateTruckWithDriver(TruckWithDriverVM create)
+        {
+            if (!ModelState.IsValid)
+            {
+                await LoadTruckTypesAsync(create.TruckTypeId);
+                await LoadDriversAsync(create.DriverId);
+
+                return View(create);
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                ModelState.AddModelError("", "يجب تسجيل الدخول أولاً.");
+
+                await LoadTruckTypesAsync(create.TruckTypeId);
+                await LoadDriversAsync(create.DriverId);
+
+                return View(create);
+            }
+
+            var currentUser = await _userRepository.GetByIdAsync(int.Parse(userId));
+
+            if (currentUser is null)
+            {
+                ModelState.AddModelError("", "لم يتم العثور على المستخدم.");
+
+                await LoadTruckTypesAsync(create.TruckTypeId);
+                await LoadDriversAsync(create.DriverId);
+
+                return View(create);
+            }
+
+            var truck = new Truck
+            {
+                PlateNumber = create.PlateNumber,
+                PlateLetter = create.PlateLetter,
+                StorageCapacity = create.StorageCapacity,
+                IsRefrigerated = create.IsRefrigerated,
+                TruckTypeId = create.TruckTypeId,
+                CreatedBy = currentUser
+                
+            };
+
+            await _truckRepository.AddAsync(truck);
+            await _truckRepository.SaveChangesAsync();
+
+            return RedirectToAction(
+                nameof(Create),
+                new CreateSupplierRequestVM
+                {
+                    TruckId = truck.Id,
+                    DriverId = create.DriverId,
+                    SupplierId = create.SupId,
+                });
         }
 
         #region Helpers
@@ -310,6 +393,28 @@ namespace Rassef.Controllers
             }
 
             return vm;
+        }
+        private async Task LoadDriversAsync(int? selectedDriverId = null)
+        {
+            var drivers = await _driverRepository.GetAllAsync();
+
+            ViewBag.Drivers = new SelectList(
+                drivers,
+                "Id",
+                "FullName",
+                selectedDriverId
+            );
+        }
+        private async Task LoadTruckTypesAsync(int? selectedTruckTypeId = null)
+        {
+            var truckTypes = await _truckTypeRepository.GetAllAsync();
+
+            ViewBag.TruckTypes = new SelectList(
+                truckTypes,
+                "Id",
+                "Name",
+                selectedTruckTypeId
+            );
         }
 
         #endregion

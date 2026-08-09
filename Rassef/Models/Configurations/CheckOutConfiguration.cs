@@ -19,8 +19,8 @@
                    .HasForeignKey(c => c.ExitTypeId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(x=>x.ExitType)
-                .WithMany(x=>x.CheckOuts)
+            builder.HasOne(x => x.ExitType)
+                .WithMany(x => x.CheckOuts)
                 .HasForeignKey(x => x.ExitTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
         }

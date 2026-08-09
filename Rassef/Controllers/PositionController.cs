@@ -1,6 +1,4 @@
-﻿
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class PositionController : Controller
     {
@@ -11,6 +9,7 @@ namespace Rassef.Controllers
             _positionRepository = positionRepository;
         }
         [HttpGet]
+        // Display all items
         public async Task<IActionResult> Index()
         {
             var positions = await _positionRepository.GetAllAsync();
@@ -26,6 +25,7 @@ namespace Rassef.Controllers
             return View(model);
         }
         [HttpGet]
+        // Display details
         public async Task<IActionResult> Details(int id)
         {
             var position = await _positionRepository.GetByIdAsync(id);
@@ -47,6 +47,7 @@ namespace Rassef.Controllers
             return View(model);
         }
         [HttpGet]
+        // Display create page
         public IActionResult Create()
         {
             return View();
@@ -54,6 +55,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Create new item
         public async Task<IActionResult> Create(CreatePositionViewModel model)
         {
             if (!ModelState.IsValid)
@@ -81,6 +83,7 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(Index));
         }
         [HttpGet]
+        // Action Edit
         public async Task<IActionResult> Edit(int id)
         {
             var position = await _positionRepository.GetByIdAsync(id);
@@ -103,6 +106,7 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Action Edit
         public async Task<IActionResult> Edit(UpdatePositionViewModel model)
         {
             if (!ModelState.IsValid)
@@ -136,6 +140,7 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(Index));
         }
         [HttpGet]
+        // Display delete confirmation
         public async Task<IActionResult> Delete(int id)
         {
             var position = await _positionRepository.GetByIdAsync(id);
@@ -159,6 +164,7 @@ namespace Rassef.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        // Delete item
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var position = await _positionRepository.GetByIdAsync(id);

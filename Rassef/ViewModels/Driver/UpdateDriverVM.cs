@@ -2,19 +2,12 @@
 {
     public class UpdateDriverVM
     {
-        [Required]
         public int Id { get; set; }
+        public string FullName { get; set; } = null!;
+        public string NationalId { get; set; } = null!;
+        public string Phone { get; set; } = null!;
 
-
-        [Display(Name = "اسم السائق")]
-
-        public string FullName { get; set; } = string.Empty;
-
-
-        [Display(Name = "الرقم القومي")]
-        public string NationalId { get; set; } = string.Empty;
-
-        [Display(Name = "رقم الهاتف")]
-        public string Phone { get; set; } = string.Empty;
+        public int? SupplierId { get; set; }
+        public IEnumerable<SelectListItem>? Suppliers { get; set; }
     }
 }

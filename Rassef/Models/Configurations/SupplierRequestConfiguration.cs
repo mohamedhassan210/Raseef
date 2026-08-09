@@ -6,7 +6,7 @@
         {
             builder.ToTable("SupplierRequests");
 
-        
+
             builder.Property(sr => sr.DriverNationalCardPhoto)
                    .IsRequired(false)
                    .HasMaxLength(500);

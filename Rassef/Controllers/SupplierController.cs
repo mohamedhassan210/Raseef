@@ -14,6 +14,7 @@
         }
 
         [HttpGet]
+        // Display all items
         public async Task<IActionResult> Index()
         {
             var suppliers = await _supplierRepository.GetAllSuppliersWithRequestCountAsync();
@@ -25,11 +26,12 @@
                 Phone = s.Phone,
                 LogoURL = s.LogoURL,
                 RequestsCount = s.SupplierRequests.Count,
-            }); 
+            });
             return View(listVM);
         }
 
         [HttpGet]
+        // Display details
         public async Task<IActionResult> Details(int id)
         {
             var supplier = await _supplierRepository.GetSupplierWithDetailsAsync(id);
@@ -56,6 +58,7 @@
         }
 
         [HttpGet]
+        // Display create page
         public IActionResult Create()
         {
             return View(new CreateSupplierVM());
@@ -63,6 +66,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Create new item
         public async Task<IActionResult> Create(CreateSupplierVM model)
         {
             if (!ModelState.IsValid)
@@ -104,6 +108,7 @@
         }
 
         [HttpGet]
+        // Action Edit
         public async Task<IActionResult> Edit(int id)
         {
             var supplier = await _supplierRepository.GetByIdAsync(id);
@@ -128,6 +133,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Action Edit
         public async Task<IActionResult> Edit(UpdateSupplierVM model)
         {
             if (!ModelState.IsValid)
@@ -160,6 +166,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Delete item
         public async Task<IActionResult> Delete(int id)
         {
             var supplier = await _supplierRepository.GetByIdAsync(id);

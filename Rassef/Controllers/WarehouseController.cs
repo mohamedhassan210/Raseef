@@ -17,6 +17,7 @@
         }
 
         [HttpGet]
+        // Display all items
         public async Task<IActionResult> Index()
         {
             var warehouses = await _warehouseRepository.GetAllAsync();
@@ -35,6 +36,7 @@
         }
 
         [HttpGet]
+        // Display details
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -65,6 +67,7 @@
         }
 
         [HttpGet]
+        // Display create page
         public async Task<IActionResult> Create()
         {
             var viewModel = new CreateWarehouseVM
@@ -78,6 +81,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Create new item
         public async Task<IActionResult> Create(CreateWarehouseVM model)
         {
             bool nameExists = await _warehouseRepository.ExistsAsync(w => w.Name == model.Name);
@@ -113,6 +117,7 @@
         }
 
         [HttpGet]
+        // Action Edit
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -143,6 +148,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Action Edit
         public async Task<IActionResult> Edit(int id, UpdateWarehouseVM model)
         {
             if (id != model.Id)
@@ -186,6 +192,7 @@
         }
 
         [HttpGet]
+        // Display delete confirmation
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -214,6 +221,7 @@
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        // Delete item
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var warehouse = await _warehouseRepository.GetByIdAsync(id);

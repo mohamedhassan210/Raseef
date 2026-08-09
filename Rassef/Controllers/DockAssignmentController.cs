@@ -225,6 +225,7 @@
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        // Delete item
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var assignment = await _assignmentRepository.GetByIdAsync(id);

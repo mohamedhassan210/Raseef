@@ -7,8 +7,12 @@
         private readonly IRepository<TicketStatuses> _ticketStatusRepository;
         private readonly IRepository<TransferRequest> _transferRequestRepository;
         private readonly IRepository<SupplierRequest> _supplierRequestRepository;
+        private readonly IRepository<QueueSettings> _queueSettingsRepository;
+        private readonly IRepository<Shift> _shiftRepository;
 
         public QueueTicketController(
+            IRepository<QueueSettings> queueSettingsRepository,
+            IRepository<Shift> shiftRepository,
             IRepository<QueueTicket> ticketRepository,
             IRepository<Department> departmentRepository,
             IRepository<TicketStatuses> ticketStatusRepository,
@@ -20,9 +24,12 @@
             _ticketStatusRepository = ticketStatusRepository;
             _transferRequestRepository = transferRequestRepository;
             _supplierRequestRepository = supplierRequestRepository;
+            _queueSettingsRepository = queueSettingsRepository;
+            _shiftRepository = shiftRepository;
         }
 
         [HttpGet]
+        // Display all items
         public async Task<IActionResult> Index()
         {
             var tickets = await _ticketRepository.GetAllAsync();
@@ -44,6 +51,7 @@
         }
 
         [HttpGet]
+        // Display details
         public async Task<IActionResult> Details(int id)
         {
             var ticket = await _ticketRepository.GetByIdAsync(id);
@@ -78,6 +86,7 @@
         }
 
         [HttpGet]
+        // Display create page
         public async Task<IActionResult> Create()
         {
             var model = new CreateQueueTicketVM();
@@ -87,22 +96,14 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Create new item
         public async Task<IActionResult> Create(CreateQueueTicketVM model)
         {
-            if (string.IsNullOrWhiteSpace(model.TicketNumber))
-            {
-                ModelState.AddModelError(nameof(model.TicketNumber), "رقم التذكرة مطلوب.");
-            }
-
             if (model.DepartmentId <= 0)
-            {
                 ModelState.AddModelError(nameof(model.DepartmentId), "يرجى اختيار القسم.");
-            }
 
             if (model.TicketStatusId <= 0)
-            {
                 ModelState.AddModelError(nameof(model.TicketStatusId), "يرجى اختيار حالة التذكرة.");
-            }
 
             if (!ModelState.IsValid)
             {
@@ -110,26 +111,125 @@
                 return View(model);
             }
 
+            var department = await _departmentRepository.GetByIdAsync(model.DepartmentId);
+
+            if (department == null)
+            {
+                ModelState.AddModelError("", "القسم غير موجود.");
+                await PopulateDropdowns(model);
+                return View(model);
+            }
+
+            var settings = await _queueSettingsRepository.FindAsync(x => true);
+
+            if (settings == null)
+            {
+                ModelState.AddModelError("", "لم يتم إعداد نظام العد.");
+                await PopulateDropdowns(model);
+                return View(model);
+            }
+
+            Shift? shift = null;
+
+            if (settings.ResetType == ResetType.ByShift)
+            {
+                if (settings.ShiftId == null)
+                {
+                    ModelState.AddModelError("", "لم يتم اختيار الشيفت.");
+                    await PopulateDropdowns(model);
+                    return View(model);
+                }
+
+                shift = await _shiftRepository.GetByIdAsync(settings.ShiftId.Value);
+
+                if (shift == null)
+                {
+                    ModelState.AddModelError("", "الشيفت غير موجود.");
+                    await PopulateDropdowns(model);
+                    return View(model);
+                }
+            }
+
+            var tickets = await _ticketRepository.GetAllAsync();
+
+            DateTimeOffset resetDate = DateTimeOffset.MinValue;
+
+            switch (settings.ResetType)
+            {
+                case ResetType.Daily:
+
+                    resetDate = DateTimeOffset.Now.Date;
+
+                    break;
+
+                case ResetType.ByShift:
+
+                    var shiftStart = DateTime.Today.Add(shift!.StartTime);
+                    var shiftEnd = shiftStart.Add(shift.Duration);
+
+                    resetDate = shiftStart;
+
+                    if (shift.LastResetAt.HasValue && shift.LastResetAt > resetDate)
+                        resetDate = shift.LastResetAt.Value;
+
+                    break;
+
+                case ResetType.Manual:
+
+                    resetDate = settings.LastGlobalResetAt ?? DateTimeOffset.MinValue;
+
+                    break;
+            }
+
+            if (department.LastResetAt.HasValue && department.LastResetAt > resetDate)
+                resetDate = department.LastResetAt.Value;
+
+            if (settings.LastGlobalResetAt.HasValue && settings.LastGlobalResetAt > resetDate)
+                resetDate = settings.LastGlobalResetAt.Value;
+
+            var lastTicket = tickets
+                .Where(x => x.DepartmentId == model.DepartmentId &&
+                            x.CreatedAT >= resetDate)
+                .OrderByDescending(x => x.CreatedAT)
+                .FirstOrDefault();
+
+            int counter = 1;
+
+            if (lastTicket != null)
+            {
+                var digits = new string(lastTicket.TicketNumber
+                    .Where(char.IsDigit)
+                    .ToArray());
+
+                if (!string.IsNullOrWhiteSpace(digits))
+                    counter = int.Parse(digits) + 1;
+            }
+
+            var ticketNumber = $"{department.Prefix}{counter}";
+
             var ticket = new QueueTicket
             {
-                TicketNumber = model.TicketNumber,
+                TicketNumber = ticketNumber,
                 DepartmentId = model.DepartmentId,
                 TicketStatusId = model.TicketStatusId,
                 TransferRequestId = model.TransferRequestId,
                 SupplierRequestId = model.SupplierRequestId,
-                QueueTime = model.QueueTime,
-                EntryTime = model.EntryTime,
-                ExitTime = model.ExitTime
+                QueueTime = DateTimeOffset.Now,
+                EntryTime = DateTimeOffset.MinValue,
+                ExitTime = DateTimeOffset.MinValue,
+                ShiftId = settings.ResetType == ResetType.ByShift ? settings.ShiftId : null
             };
 
             await _ticketRepository.AddAsync(ticket);
             await _ticketRepository.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "تم إنشاء التذكرة بنجاح!";
+            TempData["SuccessMessage"] = $"تم إنشاء التذكرة رقم {ticketNumber}";
+
             return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
+        // Action Edit
         public async Task<IActionResult> Edit(int id)
         {
             var ticket = await _ticketRepository.GetByIdAsync(id);
@@ -161,6 +261,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Action Edit
         public async Task<IActionResult> Edit(UpdateQueueTicketVM model)
         {
             if (model.Id <= 0)
@@ -216,6 +317,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Delete item
         public async Task<IActionResult> Delete(int id)
         {
             var ticket = await _ticketRepository.GetByIdAsync(id);

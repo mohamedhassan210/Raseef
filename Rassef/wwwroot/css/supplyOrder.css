@@ -1,0 +1,310 @@
+﻿:root {
+    --primary-color: #EB842D;
+    --primary-hover: #D17020;
+    --bg-main: #FBF3EE;
+    --card-bg: #FCF3EE;
+    --card-border: #EB842D;
+    --text-dark: #332D24;
+    --text-muted: #A09D99;
+    --font-family: 'IBM Plex Sans Arabic', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    min-height: 100vh;
+    background: var(--bg-main);
+    font-family: var(--font-family);
+    direction: rtl;
+    overflow-y: auto !important;
+}
+
+.dashboard-container {
+    padding: 25px 40px;
+}
+
+/* الهيدر العلوي */
+.page-header {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.logos-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-logo-raseefy {
+    max-height: 55px;
+    width: auto;
+}
+
+.brand-logo-fathalla {
+    max-height: 65px;
+    width: auto;
+}
+
+.header-title-box {
+    text-align: right;
+}
+
+.page-title {
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+.update-text {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 2px;
+}
+
+    .update-text .dot {
+        width: 7px;
+        height: 7px;
+        background-color: var(--primary-color);
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+/* شريط التحكم والتصفيات معدل لتقليل المسافة */
+.top-actions-row {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: flex-end; /* تقريب عناصر السيرش والتصدير من أزرار الفلترة */
+    gap: 25px; /* المسافة بين مجموعة البحث وأزرار الفلترة */
+    margin-bottom: 25px;
+}
+
+.left-controls {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 12px; /* المسافة بين زر التصدير ومربع البحث */
+}
+
+.export-btn {
+    background: var(--primary-color);
+    color: white !important;
+    padding: 7px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    transition: 0.2s;
+    white-space: nowrap;
+}
+
+    .export-btn:hover {
+        background: var(--primary-hover);
+    }
+
+/* مربع البحث */
+.search-wrapper {
+    display: flex;
+    align-items: center;
+    border-radius: 50px;
+    border: 2px solid var(--primary-color);
+    background: white;
+    padding: 2px;
+    width: 380px;
+}
+
+    .search-wrapper input {
+        border: none;
+        outline: none;
+        width: 100%;
+        padding: 6px 12px;
+        font-size: 13px;
+        font-family: var(--font-family);
+        background: transparent;
+        text-align: right;
+    }
+
+.search-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* أزرار الحالة */
+.status-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.status-btn {
+    border: 1.5px solid var(--primary-color);
+    background: white;
+    color: var(--primary-color);
+    border-radius: 12px;
+    padding: 6px 24px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+    text-decoration: none;
+}
+
+    .status-btn.active, .status-btn:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+.section-subtitle {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 15px;
+    text-align: right;
+}
+
+/* قائمة الأدوار */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 40px;
+}
+
+.order-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 16px;
+    padding: 12px 25px;
+}
+
+.order-card-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.order-number {
+    text-align: center;
+    min-width: 60px;
+}
+
+    .order-number h1 {
+        font-size: 46px;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin: 0;
+        line-height: 1;
+    }
+
+.queue-title {
+    color: var(--text-muted);
+    font-size: 11px;
+    display: block;
+    margin-top: 2px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1.5px solid currentColor;
+}
+
+    .status-badge.wait {
+        background-color: #FCE8DB;
+        color: #E87A24;
+    }
+
+    .status-badge.progress {
+        background-color: #EBF3FC;
+        color: #3B82F6;
+    }
+
+    .status-badge.done {
+        background-color: #E6F4EA;
+        color: #27AE60;
+    }
+
+.radio-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .radio-dot::after {
+        content: '';
+        width: 4px;
+        height: 4px;
+        background-color: currentColor;
+        border-radius: 50%;
+    }
+
+.order-info-flex {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .info-item i {
+        font-size: 22px;
+        color: #332D24;
+    }
+
+.info-content {
+    display: flex;
+    flex-direction: column;
+}
+
+    .info-content h6 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+.info-label {
+    color: var(--text-muted);
+    font-size: 11px;
+}

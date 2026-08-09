@@ -544,9 +544,6 @@ namespace Rassef.Migrations
                     b.Property<int>("CreatedById")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsFood")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsRefrigerated")
                         .HasColumnType("bit");
 

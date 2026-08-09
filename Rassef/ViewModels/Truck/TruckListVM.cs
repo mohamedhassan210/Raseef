@@ -12,7 +12,7 @@
 
         public bool IsRefrigerated { get; set; }
 
-        public int supplierId { get; set;  }
+        public int supplierId { get; set; }
 
         public string TruckTypeName { get; set; } = string.Empty;
     }

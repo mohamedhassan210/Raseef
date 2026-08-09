@@ -2,7 +2,7 @@
 {
     public class CreatePositionViewModel
     {
-     
+
         [Display(Name = "كود المنصب")]
         public int PositionCode { get; set; }
 

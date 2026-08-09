@@ -9,7 +9,8 @@
             builder.Property(d => d.Name)
                    .IsRequired()
                    .HasMaxLength(150);
-
+            builder.HasIndex(x => x.Prefix)
+                 .IsUnique();
             builder.HasOne(d => d.Warehouse)
                    .WithMany(w => w.Departments)
                    .HasForeignKey(d => d.WarehouseId)
