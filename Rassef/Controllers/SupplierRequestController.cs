@@ -11,6 +11,7 @@
         private readonly IRepository<CommodityTypes> _commodityTypeRepository;
         private readonly IRepository<RequestStatuses> _requestStatusRepository;
         private readonly IRepository<User> _userRepository;
+        private readonly IRepository<Truck> _truckTypeRepository;
 
         public SupplierRequestController(
             ISupplierRequestRepository supplierRequestRepository, // التعديل هنا
@@ -21,7 +22,8 @@
             IRepository<PermitTypes> permitTypeRepository,
             IRepository<CommodityTypes> commodityTypeRepository,
             IRepository<RequestStatuses> requestStatusRepository,
-            IRepository<User> userRepository)
+            IRepository<User> userRepository,
+            IRepository<Truck> truckTypeRepository)
         {
             _supplierRequestRepository = supplierRequestRepository;
             _supplierRepository = supplierRepository;
@@ -32,6 +34,7 @@
             _commodityTypeRepository = commodityTypeRepository;
             _requestStatusRepository = requestStatusRepository;
             _userRepository = userRepository;
+            _truckTypeRepository = truckTypeRepository;
         }
 
         [HttpGet]
@@ -95,16 +98,19 @@
 
         [HttpGet]
         // Display create page
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(CreateSupplierRequestVM create)
         {
-            var vm = await PopulateDropdownsAsync(new CreateSupplierRequestVM());
-            return View(vm);
+
+            var departments = _departmentRepository.GetAllAsync();
+            ViewBag.dpartment = departments;
+            return View(create);
         }
 
         [HttpPost]
+        [ActionName("Create")]
         [ValidateAntiForgeryToken]
         // Create new item
-        public async Task<IActionResult> Create(CreateSupplierRequestVM create)
+        public async Task<IActionResult> CreateConfirmed(CreateSupplierRequestVM create)
         {
             if (!ModelState.IsValid)
             {
@@ -282,6 +288,76 @@
             TempData["Success"] = "تم حذف طلب المورد بنجاح.";
             return RedirectToAction(nameof(Index));
         }
+        // special acitons 
+        [HttpGet]
+        public async Task<IActionResult> CreateTruckWithDriver(int supId)
+        {
+            await LoadTruckTypesAsync();
+            await LoadDriversAsync();
+            var VM = new TruckWithDriverVM();
+            VM.SupId = supId;
+            return View(VM);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateTruckWithDriver(TruckWithDriverVM create)
+        {
+            if (!ModelState.IsValid)
+            {
+                await LoadTruckTypesAsync(create.TruckTypeId);
+                await LoadDriversAsync(create.DriverId);
+
+                return View(create);
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                ModelState.AddModelError("", "يجب تسجيل الدخول أولاً.");
+
+                await LoadTruckTypesAsync(create.TruckTypeId);
+                await LoadDriversAsync(create.DriverId);
+
+                return View(create);
+            }
+
+            var currentUser = await _userRepository.GetByIdAsync(int.Parse(userId));
+
+            if (currentUser is null)
+            {
+                ModelState.AddModelError("", "لم يتم العثور على المستخدم.");
+
+                await LoadTruckTypesAsync(create.TruckTypeId);
+                await LoadDriversAsync(create.DriverId);
+
+                return View(create);
+            }
+
+            var truck = new Truck
+            {
+                PlateNumber = create.PlateNumber,
+                PlateLetter = create.PlateLetter,
+                StorageCapacity = create.StorageCapacity,
+                IsRefrigerated = create.IsRefrigerated,
+                TruckTypeId = create.TruckTypeId,
+                CreatedBy = currentUser
+                
+            };
+
+            await _truckRepository.AddAsync(truck);
+            await _truckRepository.SaveChangesAsync();
+
+            return RedirectToAction(
+                nameof(Create),
+                new CreateSupplierRequestVM
+                {
+                    TruckId = truck.Id,
+                    DriverId = create.DriverId,
+                    SupplierId = create.SupId,
+                });
+        }
 
         #region Helpers
 
@@ -317,6 +393,28 @@
             }
 
             return vm;
+        }
+        private async Task LoadDriversAsync(int? selectedDriverId = null)
+        {
+            var drivers = await _driverRepository.GetAllAsync();
+
+            ViewBag.Drivers = new SelectList(
+                drivers,
+                "Id",
+                "FullName",
+                selectedDriverId
+            );
+        }
+        private async Task LoadTruckTypesAsync(int? selectedTruckTypeId = null)
+        {
+            var truckTypes = await _truckTypeRepository.GetAllAsync();
+
+            ViewBag.TruckTypes = new SelectList(
+                truckTypes,
+                "Id",
+                "Name",
+                selectedTruckTypeId
+            );
         }
 
         #endregion
