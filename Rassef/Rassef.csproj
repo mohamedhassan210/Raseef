@@ -35,6 +35,16 @@
   <ItemGroup>
     <Folder Include="logs\" />
     <Folder Include="Migrations\" />
+    <Folder Include="ViewModels\ActionTypes\" />
+    <Folder Include="ViewModels\CommodityTypes\" />
+    <Folder Include="ViewModels\DepartmentType\" />
+    <Folder Include="ViewModels\DockStatuses\" />
+    <Folder Include="ViewModels\DriverType\" />
+    <Folder Include="ViewModels\ExitTypes\" />
+    <Folder Include="ViewModels\TruckTypes\" />
+    <Folder Include="ViewModels\TicketStatuses\" />
+    <Folder Include="ViewModels\RequestStatuses\" />
+    <Folder Include="ViewModels\PermitTypes\" />
     <Folder Include="wwwroot\Images\" />
   </ItemGroup>
 
