@@ -12,8 +12,8 @@ using Rassef.Data;
 namespace Rassef.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260804122323_FinalInShaaAllah2")]
-    partial class FinalInShaaAllah2
+    [Migration("20260810100917_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,36 @@ namespace Rassef.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("QueueSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAT")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("LastGlobalResetAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("ResetType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ShiftId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAT")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShiftId");
+
+                    b.ToTable("QueueSettings", (string)null);
+                });
 
             modelBuilder.Entity("Rassef.Models.Entities.CheckOut", b =>
                 {
@@ -80,10 +110,17 @@ namespace Rassef.Migrations
                     b.Property<int>("DepartmentTypeId")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset?>("LastResetAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Prefix")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
@@ -96,6 +133,9 @@ namespace Rassef.Migrations
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("DepartmentTypeId");
+
+                    b.HasIndex("Prefix")
+                        .IsUnique();
 
                     b.HasIndex("WarehouseId");
 
@@ -295,33 +335,6 @@ namespace Rassef.Migrations
                     b.ToTable("QueueActions", (string)null);
                 });
 
-            modelBuilder.Entity("Rassef.Models.Entities.QueueSettings", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAT")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("ResetType")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ShiftId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset>("UpdatedAT")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ShiftId");
-
-                    b.ToTable("QueueSettings", (string)null);
-                });
-
             modelBuilder.Entity("Rassef.Models.Entities.QueueTicket", b =>
                 {
                     b.Property<int>("Id")
@@ -382,36 +395,6 @@ namespace Rassef.Migrations
                     b.HasIndex("TransferRequestId");
 
                     b.ToTable("QueueTickets", (string)null);
-                });
-
-            modelBuilder.Entity("Rassef.Models.Entities.Shift", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAT")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTimeOffset>("UpdatedAT")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Shifts", (string)null);
                 });
 
             modelBuilder.Entity("Rassef.Models.Entities.Supplier", b =>
@@ -690,14 +673,9 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int?>("UserGroupId")
-                        .HasColumnType("int");
-
                     b.HasKey("GroupId", "PermissionId");
 
                     b.HasIndex("PermissionId");
-
-                    b.HasIndex("UserGroupId");
 
                     b.ToTable("GroupPermissions", (string)null);
                 });
@@ -754,9 +732,6 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("EmpCode")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("GroupId")
                         .HasColumnType("int");
 
@@ -787,6 +762,9 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("UserCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -814,14 +792,15 @@ namespace Rassef.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserGroups");
+                    b.ToTable("UserGroups", (string)null);
                 });
 
             modelBuilder.Entity("Rassef.Models.StatusesAndActions.ActionTypes", b =>
@@ -1067,6 +1046,49 @@ namespace Rassef.Migrations
                     b.ToTable("TruckTypes", (string)null);
                 });
 
+            modelBuilder.Entity("Shift", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAT")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<TimeSpan>("Duration")
+                        .HasColumnType("time");
+
+                    b.Property<DateTimeOffset?>("LastResetAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<DateTimeOffset>("UpdatedAT")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Shifts", (string)null);
+                });
+
+            modelBuilder.Entity("QueueSettings", b =>
+                {
+                    b.HasOne("Shift", "Shift")
+                        .WithMany("QueueSettings")
+                        .HasForeignKey("ShiftId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Shift");
+                });
+
             modelBuilder.Entity("Rassef.Models.Entities.CheckOut", b =>
                 {
                     b.HasOne("Rassef.Models.Identity.User", "CreatedBy")
@@ -1221,16 +1243,6 @@ namespace Rassef.Migrations
                     b.Navigation("QueueTicket");
                 });
 
-            modelBuilder.Entity("Rassef.Models.Entities.QueueSettings", b =>
-                {
-                    b.HasOne("Rassef.Models.Entities.Shift", "Shift")
-                        .WithMany("QueueSettings")
-                        .HasForeignKey("ShiftId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Shift");
-                });
-
             modelBuilder.Entity("Rassef.Models.Entities.QueueTicket", b =>
                 {
                     b.HasOne("Rassef.Models.Identity.User", "CreatedBy")
@@ -1245,7 +1257,7 @@ namespace Rassef.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Rassef.Models.Entities.Shift", "Shift")
+                    b.HasOne("Shift", "Shift")
                         .WithMany("QueueTickets")
                         .HasForeignKey("ShiftId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1441,7 +1453,7 @@ namespace Rassef.Migrations
             modelBuilder.Entity("Rassef.Models.Identity.GroupPermission", b =>
                 {
                     b.HasOne("Rassef.Models.Identity.UserGroup", "Group")
-                        .WithMany()
+                        .WithMany("GroupPermissions")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1451,10 +1463,6 @@ namespace Rassef.Migrations
                         .HasForeignKey("PermissionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("Rassef.Models.Identity.UserGroup", null)
-                        .WithMany("GroupPermissions")
-                        .HasForeignKey("UserGroupId");
 
                     b.Navigation("Group");
 
@@ -1537,13 +1545,6 @@ namespace Rassef.Migrations
                     b.Navigation("DockAssignments");
 
                     b.Navigation("QueueActions");
-                });
-
-            modelBuilder.Entity("Rassef.Models.Entities.Shift", b =>
-                {
-                    b.Navigation("QueueSettings");
-
-                    b.Navigation("QueueTickets");
                 });
 
             modelBuilder.Entity("Rassef.Models.Entities.Supplier", b =>
@@ -1644,6 +1645,13 @@ namespace Rassef.Migrations
             modelBuilder.Entity("Rassef.Models.StatusesAndActions.TruckTypes", b =>
                 {
                     b.Navigation("Trucks");
+                });
+
+            modelBuilder.Entity("Shift", b =>
+                {
+                    b.Navigation("QueueSettings");
+
+                    b.Navigation("QueueTickets");
                 });
 #pragma warning restore 612, 618
         }
