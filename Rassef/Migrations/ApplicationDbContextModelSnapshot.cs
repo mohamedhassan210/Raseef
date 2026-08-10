@@ -670,14 +670,9 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int?>("UserGroupId")
-                        .HasColumnType("int");
-
                     b.HasKey("GroupId", "PermissionId");
 
                     b.HasIndex("PermissionId");
-
-                    b.HasIndex("UserGroupId");
 
                     b.ToTable("GroupPermissions", (string)null);
                 });
@@ -734,9 +729,6 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("EmpCode")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("GroupId")
                         .HasColumnType("int");
 
@@ -767,6 +759,9 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("UserCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -794,14 +789,15 @@ namespace Rassef.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserGroups");
+                    b.ToTable("UserGroups", (string)null);
                 });
 
             modelBuilder.Entity("Rassef.Models.StatusesAndActions.ActionTypes", b =>
@@ -1454,7 +1450,7 @@ namespace Rassef.Migrations
             modelBuilder.Entity("Rassef.Models.Identity.GroupPermission", b =>
                 {
                     b.HasOne("Rassef.Models.Identity.UserGroup", "Group")
-                        .WithMany()
+                        .WithMany("GroupPermissions")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1464,10 +1460,6 @@ namespace Rassef.Migrations
                         .HasForeignKey("PermissionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("Rassef.Models.Identity.UserGroup", null)
-                        .WithMany("GroupPermissions")
-                        .HasForeignKey("UserGroupId");
 
                     b.Navigation("Group");
 

@@ -259,7 +259,7 @@
                 DepartmentName = request.Department?.Name ?? "غير محدد",
                 PermitTypeName = request.PermitType?.Name ?? "غير محدد",
                 PermitNumber = request.PermitNumber,
-                CommodityTypeName = request.CommodityType?.Name ?? "غير محدد",
+                CommodityTypeName = request.CommodityType?.Name ?? "غير محدد",  
                 RequestStatusName = request.RequestStatus?.Name ?? "غير محدد",
                 IsFood = request.IsFood,
                 CreatedByName = request.CreatedBy?.Name ?? "غير محدد"

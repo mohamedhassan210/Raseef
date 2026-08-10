@@ -6,5 +6,6 @@
         Task<Driver?> GetDriverWithCreatedByAsync(int id);
         Task<bool> HasRequestsAsync(int driverId);
         Task<IEnumerable<Driver>> GetDriversBySupplierIdAsync(int supplierId);
+        Task<Driver?> GetByIdWithDetailsAsync(int id);
     }
 }

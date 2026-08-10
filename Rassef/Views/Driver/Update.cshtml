@@ -1,4 +1,4 @@
-﻿@model Rassef.ViewModels.Driver.UpdateDriverVM
+﻿@* @model Rassef.ViewModels.Driver.UpdateDriverVM
 
 @{
     ViewData["Title"] = "تعديل سائق";
@@ -36,7 +36,7 @@
                     <span asp-validation-for="NationalId" class="text-danger"></span>
                 </div>
 
-                <!-- قائمة الموردين/الشركات -->
+                <!-- قائمة الموردين/الشركات Dynamic Select List -->
                 <div class="col-md-6">
                     <label asp-for="SupplierId" class="form-label font-weight-bold">شركة السائق</label>
                     <select asp-for="SupplierId" asp-items="Model.Suppliers" class="form-select text-center">
@@ -55,4 +55,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-}
+} *@

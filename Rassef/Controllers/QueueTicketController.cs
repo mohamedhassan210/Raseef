@@ -27,27 +27,146 @@
             _queueSettingsRepository = queueSettingsRepository;
             _shiftRepository = shiftRepository;
         }
-
+        //  الادوار الحالية 
         [HttpGet]
-        // Display all items
         public async Task<IActionResult> Index()
         {
-            var tickets = await _ticketRepository.GetAllAsync();
+            var tickets = await _ticketRepository.GetAllAsync(query =>
+                query
+                    .Include(t => t.TransferRequest)
+                        .ThenInclude(r => r.Driver)
+
+                    .Include(t => t.TransferRequest)
+                        .ThenInclude(r => r.Truck)
+
+                    .Include(t => t.SupplierRequest)
+                        .ThenInclude(r => r.Driver)
+
+                    .Include(t => t.SupplierRequest)
+                        .ThenInclude(r => r.Truck)
+
+                    .Include(t => t.DockAssignments)
+                        .ThenInclude(a => a.Dock)
+            );
+
             var departments = await _departmentRepository.GetAllAsync();
             var statuses = await _ticketStatusRepository.GetAllAsync();
 
-            var listVM = tickets.Select(t => new QueueTicketListVM
+            var ticketsList = tickets.Select(t =>
+            {
+                string driverName = "غير محدد";
+                string truckNumber = "غير محدد";
+
+                if (t.TransferRequest != null)
+                {
+                    driverName = t.TransferRequest.Driver?.FullName ?? "غير محدد";
+                    truckNumber = t.TransferRequest.Truck?.PlateNumber ?? "غير محدد";
+                }
+                else if (t.SupplierRequest != null)
+                {
+                    driverName = t.SupplierRequest.Driver?.FullName ?? "غير محدد";
+                    truckNumber = t.SupplierRequest.Truck?.PlateNumber ?? "غير محدد";
+                }
+
+                var dockAssignment = t.DockAssignments?
+                    .OrderByDescending(x => x.AssignedAt)
+                    .FirstOrDefault();
+
+                return new QueueTicketListVM
+                {
+                    Id = t.Id,
+
+                    TicketNumber = t.TicketNumber,
+
+                    DriverName = driverName,
+
+                    TruckNumber = truckNumber,
+
+                    DepartmentName = departments
+                        .FirstOrDefault(d => d.Id == t.DepartmentId)?.Name
+                        ?? "غير محدد",
+
+                    DockName = dockAssignment?.Dock?.DockName
+                        ?? "غير محدد",
+
+                    TicketStatusName = statuses
+                        .FirstOrDefault(s => s.Id == t.TicketStatusId)?.Name
+                        ?? "غير محدد",
+
+                    QueueTime = t.QueueTime,
+
+                    EntryTime = t.EntryTime,
+
+                    ExitTime = t.ExitTime
+                };
+            }).ToList();
+
+            var viewModel = new QueueTicketIndexVM
+            {
+                Tickets = ticketsList,
+
+                CompletedCount = ticketsList.Count(x =>
+                    x.TicketStatusName == "تم"),
+
+                InProgressCount = ticketsList.Count(x =>
+                    x.TicketStatusName == "جاري"),
+
+                WaitingCount = ticketsList.Count(x =>
+                    x.TicketStatusName == "انتظار")
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> viewRole()
+        {
+            // 1. جلب كل التذاكر مع الـ Includes المطلوبة عشان السائق والشاحنة والقسم والرصيف يظهروا
+            var ticketsList = await _ticketRepository.GetAllAsync(query => query
+                .Include(t => t.Department)
+                .Include(t => t.TicketStatus)
+                .Include(t => t.Shift)
+                .Include(t => t.SupplierRequest)
+                    .ThenInclude(sr => sr.Driver)
+                .Include(t => t.SupplierRequest)
+                    .ThenInclude(sr => sr.Truck)
+                .Include(t => t.TransferRequest)
+                    .ThenInclude(tr => tr.Driver)
+                .Include(t => t.TransferRequest)
+                    .ThenInclude(tr => tr.Truck)
+            // لو عندك علاقة للأرصفة (DockAssignments) تقدر تضيفها هنا
+            );
+
+            // 2. تحويل الـ Data لـ ViewModel (لو عندك Mapper أو هتعملها يدوي)
+            var ticketViewModels = ticketsList.Select(t => new QueueTicketListVM
             {
                 Id = t.Id,
                 TicketNumber = t.TicketNumber,
-                DepartmentName = departments.FirstOrDefault(d => d.Id == t.DepartmentId)?.Name ?? "غير محدد",
-                TicketStatusName = statuses.FirstOrDefault(s => s.Id == t.TicketStatusId)?.Name ?? "غير محدد",
-                QueueTime = t.QueueTime,
-                EntryTime = t.EntryTime,
-                ExitTime = t.ExitTime
+                TicketStatusName = t.TicketStatus != null ? t.TicketStatus.Name : "انتظار",
+                DriverName = t.SupplierRequest != null ? t.SupplierRequest.Driver.FullName :
+                             (t.TransferRequest != null ? t.TransferRequest.Driver.FullName : "غير متوفر"),
+                TruckNumber = t.SupplierRequest != null ? t.SupplierRequest.Truck.PlateNumber :
+                              (t.TransferRequest != null ? t.TransferRequest.Truck.PlateNumber : "غير متوفر"),
+                DepartmentName = t.Department != null ? t.Department.Name : "غير متوفر",
+                DockName = "رصيف 5", // تقدر تربطها بجدول DockAssignments لو مربوطة فعلياً
+                EntryTime = t.EntryTime
             }).ToList();
 
-            return View(listVM);
+            // 3. حساب الإحصائيات (الانتظار، الجاري، تم)
+            int waitingCount = ticketViewModels.Count(x => x.TicketStatusName == "انتظار" || x.TicketStatusName == "في الطابور");
+            int inProgressCount = ticketViewModels.Count(x => x.TicketStatusName == "جاري" || x.TicketStatusName == "قيد التنفيذ");
+            int completedCount = ticketViewModels.Count(x => x.TicketStatusName == "تم" || x.TicketStatusName == "مكتملة");
+
+            // 4. تجميع الموديل النهائي للـ View
+            var viewModel = new QueueTicketIndexVM
+            {
+                Tickets = ticketViewModels,
+                WaitingCount = waitingCount,
+                InProgressCount = inProgressCount,
+                CompletedCount = completedCount
+            };
+
+            return View(viewModel);
         }
 
         [HttpGet]
