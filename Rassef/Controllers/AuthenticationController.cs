@@ -1,4 +1,5 @@
-﻿using Rassef.ViewModels.Drivers;
+﻿using Rassef.ViewModels.Authentication.UserViewModels;
+using Rassef.ViewModels.Drivers;
 
 namespace Rassef.Controllers
 {
@@ -22,6 +23,30 @@ namespace Rassef.Controllers
         public IActionResult Intro()
         {
             return View();
+        }
+        // every employee 
+        public async Task<IActionResult> Index()
+        {
+            var users = await _userRepository.GetAllAsync();
+
+            var allUsers = users.Select(u => new UserList
+            {
+                Name = u.Name,
+                Phone = u.Phone,
+                Email = u.Email.ToString(),
+                NationalId = u.NationalId,
+                UserCode = u.UserCode
+            }).ToList();
+
+            if (!allUsers.Any())
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "لا يوجد أي مستخدمين حتى الآن"
+                );
+            }
+
+            return View(allUsers);
         }
         [HttpGet]
         public async Task<IActionResult> Details(int? id)
