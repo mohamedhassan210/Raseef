@@ -31,8 +31,9 @@
 
     <div class="nav-actions-container">
         <!-- استخدام MVC Routing لزر الإضافة -->
-        <a asp-controller="Truck"
-           asp-action="Create"
+        <a
+           asp-controller="SupplierRequest"
+           asp-action="CreateTruckWithDriver"
            asp-route-supplierId="@ViewBag.SupplierId"
            class="action-btn"
            aria-label="إضافة جديد">
@@ -56,27 +57,21 @@
     </div>
 
     <section class="search-section" aria-label="البحث عن سيارة">
-        <!-- تحويل الـ Search إلى Form يعمل بطلب GET للسيرفر -->
-        <form method="get" asp-controller="Truck" asp-action="Index" class="search-wrapper">
-
-            <!-- السطر ده اللي هيحفظ الـ ID بتاع المورد وميخليهوش يضيع وقت البحث -->
-            <input type="hidden" name="supplierid" value="@Context.Request.Query["supplierid"]" />
-
-            <button type="submit" class="search-btn" id="search-btn" aria-label="بحث">
+        <div class="search-wrapper">
+            <button type="button" class="search-btn" id="search-btn" aria-label="بحث">
                 <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </button>
+            <!-- شريط البحث (يتم تصفيته بواسطة الجافاسكريبت لحظياً) -->
             <input type="text"
-                   name="search"
                    id="search-input"
                    class="search-input"
-                   placeholder="ادخل رقم السيارة"
-                   aria-label="ادخل رقم السيارة للبحث"
-                   autocomplete="off"
-                   value="@ViewBag.Search">
-        </form>
+                   placeholder="ادخل رقم أو حروف السيارة"
+                   aria-label="ادخل رقم أو حروف السيارة للبحث"
+                   autocomplete="off">
+        </div>
     </section>
 
     <section class="cards-section" id="cards-container" aria-label="قائمة السيارات">
