@@ -27,27 +27,95 @@
             _queueSettingsRepository = queueSettingsRepository;
             _shiftRepository = shiftRepository;
         }
-
+        //  الادوار الحالية 
         [HttpGet]
-        // Display all items
         public async Task<IActionResult> Index()
         {
-            var tickets = await _ticketRepository.GetAllAsync();
+            var tickets = await _ticketRepository.GetAllAsync(query =>
+                query
+                    .Include(t => t.TransferRequest)
+                        .ThenInclude(r => r.Driver)
+
+                    .Include(t => t.TransferRequest)
+                        .ThenInclude(r => r.Truck)
+
+                    .Include(t => t.SupplierRequest)
+                        .ThenInclude(r => r.Driver)
+
+                    .Include(t => t.SupplierRequest)
+                        .ThenInclude(r => r.Truck)
+
+                    .Include(t => t.DockAssignments)
+                        .ThenInclude(a => a.Dock)
+            );
+
             var departments = await _departmentRepository.GetAllAsync();
             var statuses = await _ticketStatusRepository.GetAllAsync();
 
-            var listVM = tickets.Select(t => new QueueTicketListVM
+            var ticketsList = tickets.Select(t =>
             {
-                Id = t.Id,
-                TicketNumber = t.TicketNumber,
-                DepartmentName = departments.FirstOrDefault(d => d.Id == t.DepartmentId)?.Name ?? "غير محدد",
-                TicketStatusName = statuses.FirstOrDefault(s => s.Id == t.TicketStatusId)?.Name ?? "غير محدد",
-                QueueTime = t.QueueTime,
-                EntryTime = t.EntryTime,
-                ExitTime = t.ExitTime
+                string driverName = "غير محدد";
+                string truckNumber = "غير محدد";
+
+                if (t.TransferRequest != null)
+                {
+                    driverName = t.TransferRequest.Driver?.FullName ?? "غير محدد";
+                    truckNumber = t.TransferRequest.Truck?.PlateNumber ?? "غير محدد";
+                }
+                else if (t.SupplierRequest != null)
+                {
+                    driverName = t.SupplierRequest.Driver?.FullName ?? "غير محدد";
+                    truckNumber = t.SupplierRequest.Truck?.PlateNumber ?? "غير محدد";
+                }
+
+                var dockAssignment = t.DockAssignments?
+                    .OrderByDescending(x => x.AssignedAt)
+                    .FirstOrDefault();
+
+                return new QueueTicketListVM
+                {
+                    Id = t.Id,
+
+                    TicketNumber = t.TicketNumber,
+
+                    DriverName = driverName,
+
+                    TruckNumber = truckNumber,
+
+                    DepartmentName = departments
+                        .FirstOrDefault(d => d.Id == t.DepartmentId)?.Name
+                        ?? "غير محدد",
+
+                    DockName = dockAssignment?.Dock?.DockName
+                        ?? "غير محدد",
+
+                    TicketStatusName = statuses
+                        .FirstOrDefault(s => s.Id == t.TicketStatusId)?.Name
+                        ?? "غير محدد",
+
+                    QueueTime = t.QueueTime,
+
+                    EntryTime = t.EntryTime,
+
+                    ExitTime = t.ExitTime
+                };
             }).ToList();
 
-            return View(listVM);
+            var viewModel = new QueueTicketIndexVM
+            {
+                Tickets = ticketsList,
+
+                CompletedCount = ticketsList.Count(x =>
+                    x.TicketStatusName == "تم"),
+
+                InProgressCount = ticketsList.Count(x =>
+                    x.TicketStatusName == "جاري"),
+
+                WaitingCount = ticketsList.Count(x =>
+                    x.TicketStatusName == "انتظار")
+            };
+
+            return View(viewModel);
         }
 
         [HttpGet]

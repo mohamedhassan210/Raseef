@@ -1,0 +1,17 @@
+﻿namespace Rassef.ViewModels.Authentication.UserViewModels
+{
+    public class UserList
+    {
+        public string Name { get; set; } = string.Empty;
+
+        public string Phone { get; set; } = string.Empty;
+
+        public string Email { get; set; } = string.Empty;
+
+        public string Role { get; set; } = string.Empty;
+
+        public string NationalId { get; set; } = string.Empty;
+
+        public string UserCode { get; set; } = string.Empty;
+    }
+}

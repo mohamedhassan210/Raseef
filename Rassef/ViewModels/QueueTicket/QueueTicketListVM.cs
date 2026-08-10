@@ -1,6 +1,4 @@
-﻿
-
-namespace Rassef.ViewModels.QueueTicket
+﻿namespace Rassef.ViewModels.QueueTicket
 {
     public class QueueTicketListVM
     {
@@ -9,8 +7,17 @@ namespace Rassef.ViewModels.QueueTicket
         [Display(Name = "رقم التذكرة")]
         public string TicketNumber { get; set; } = string.Empty;
 
+        [Display(Name = "اسم السائق")]
+        public string DriverName { get; set; } = string.Empty;
+
+        [Display(Name = "رقم السيارة")]
+        public string TruckNumber { get; set; } = string.Empty;
+
         [Display(Name = "القسم")]
         public string DepartmentName { get; set; } = string.Empty;
+
+        [Display(Name = "الرصيف")]
+        public string DockName { get; set; } = string.Empty;
 
         [Display(Name = "حالة التذكرة")]
         public string TicketStatusName { get; set; } = string.Empty;

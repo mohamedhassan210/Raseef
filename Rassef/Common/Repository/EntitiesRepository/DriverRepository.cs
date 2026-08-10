@@ -33,5 +33,12 @@
             return await _context.SupplierRequests.AnyAsync(s => s.DriverId == driverId) ||
                 await _context.TransferRequests.AnyAsync(t => t.DriverId == driverId);
         }
+        public async Task<Driver?> GetByIdWithDetailsAsync(int id)
+        {
+            return await _context.Drivers
+                .Include(d => d.SupplierRequests)
+                    .ThenInclude(sr => sr.Supplier)
+                .FirstOrDefaultAsync(d => d.Id == id);
+        }
     }
 }

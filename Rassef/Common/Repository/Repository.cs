@@ -10,24 +10,46 @@
             _db = db;
             _dbSet = _db.Set<T>();
         }
-        public async Task<T?> GetByIdAsync(int id) => await _dbSet.FindAsync(id);
+
+        public async Task<T?> GetByIdAsync(int id)
+            => await _dbSet.FindAsync(id);
+
         public async Task<IReadOnlyList<T>> GetAllAsync()
-        => await _dbSet.AsNoTracking().ToListAsync();
+            => await _dbSet
+                .AsNoTracking()
+                .ToListAsync();
+
+        public async Task<IReadOnlyList<T>> GetAllAsync(
+            Func<IQueryable<T>, IQueryable<T>>? include = null)
+        {
+            IQueryable<T> query = _dbSet.AsNoTracking();
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return await query.ToListAsync();
+        }
+
         public async Task AddAsync(T entity)
-        => await _dbSet.AddAsync(entity);
+            => await _dbSet.AddAsync(entity);
+
         public void Remove(T entity)
-        => _dbSet.Remove(entity);
+            => _dbSet.Remove(entity);
+
         public void Update(T entity)
-        => _dbSet.Update(entity);
+            => _dbSet.Update(entity);
+
         public async Task<int> SaveChangesAsync()
-        => await _db.SaveChangesAsync();
-        public async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
-        => await _dbSet.AnyAsync(predicate);
+            => await _db.SaveChangesAsync();
 
-        public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate)
-        => await _dbSet.FirstOrDefaultAsync(predicate);
+        public async Task<bool> ExistsAsync(
+            Expression<Func<T, bool>> predicate)
+            => await _dbSet.AnyAsync(predicate);
 
-
-
+        public async Task<T?> FindAsync(
+            Expression<Func<T, bool>> predicate)
+            => await _dbSet.FirstOrDefaultAsync(predicate);
     }
 }
