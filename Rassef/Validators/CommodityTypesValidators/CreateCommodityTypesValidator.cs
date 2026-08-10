@@ -8,3 +8,5 @@
                 .NotEmpty().WithMessage("يرجى إدخال اسم نوع السلعة.")
                 .MaximumLength(100).WithMessage("اسم نوع السلعة يجب ألا يتجاوز 100 حرف.");
         }
+    }
+}
