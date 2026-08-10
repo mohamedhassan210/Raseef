@@ -1,9 +1,11 @@
-﻿@{
-    ViewData["Title"] = "سائقين جهينة";
-    Layout = "_SupOrTra"; // تأكد من اسم الـ Layout الخاص بك
+﻿@model IEnumerable<Rassef.ViewModels.Driver.DriverListVM>
+
+@{
+    ViewData["Title"] = $"سائقين {ViewBag.SupplierName}";
+    Layout = "_SupOrTra";
 }
-@model IEnumerable<Rassef.ViewModels.Driver.DriverListVM>
-<!-- استدعاء الخطوط ومكتبات التصميم (Bootstrap & Icons) -->
+
+<!-- استدعاء الخطوط ومكتبات التصميم -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -20,7 +22,7 @@
         </div>
 
         <div class="title-wrapper">
-            <!-- عنوان ثابت -->
+            <!-- استخدام ViewBag ديناميكياً -->
             <h1 class="main-title" id="page-title">سائقين @ViewBag.SupplierName</h1>
         </div>
 
@@ -30,8 +32,8 @@
     </header>
 
     <div class="nav-actions-container">
-        <!-- التوجيه لصفحة إضافة سائق -->
-        <a asp-controller="Driver" asp-action="Create" class="action-btn" aria-label="إضافة جديد">
+        <!-- التوجيه لصفحة إضافة سائق مع تمرير SupplierId -->
+        <a asp-controller="Driver" asp-action="Create" asp-route-supplierId="@ViewBag.SupplierId" class="action-btn" aria-label="إضافة جديد">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -57,7 +59,6 @@
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </button>
-            <!-- شريط البحث (يتم تصفيته بواسطة الجافاسكريبت) -->
             <input type="text" id="search-input" class="search-input" placeholder="ادخل رقم البطاقة أو اسم السائق" aria-label="ادخل رقم البطاقة أو اسم السائق للبحث" autocomplete="off">
         </div>
     </section>
@@ -79,20 +80,21 @@
                             <h2 class="driver-name">@driver.FullName</h2>
                             <div class="driver-meta">
                                 <div class="meta-item">
-                                    <!-- أيقونة الموبايل -->
                                     <svg class="type-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg>
                                     <span>@driver.Phone</span>
                                 </div>
                                 <div class="meta-item">
-                                    <!-- أيقونة البطاقة -->
                                     <svg class="type-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 3H3c-1.11 0-2 .89-2 2v14c0 1.11.89 2 2 2h18c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm-9 15H4v-2h8v2zm0-4H4v-2h8v2zm0-4H4V8h8v2zm7 8h-4v-6h4v6zm0-8h-4V8h4v2z" /></svg>
                                     <span>@driver.NationalId</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="card-action">
+                    <div class="card-action d-flex gap-2">
                         <button class="select-btn" type="button" aria-label="اختيار السائق">اختيار السائق</button>
+                        <a asp-controller="Driver" asp-action="Update" asp-route-id="@driver.Id" class="btn btn-sm btn-outline-warning d-flex align-items-center justify-content-center px-3" title="تعديل">
+                            تعديل
+                        </a>
                     </div>
                 </article>
             }
@@ -109,11 +111,10 @@
 <!-- Multi-Step Modal System -->
 <div id="custom-modal-overlay" class="custom-modal-overlay" aria-hidden="true">
 
-    <!-- Modal 0: Department Selection (الخطوة الجديدة) -->
+    <!-- Modal 0: Department Selection -->
     <div id="department-modal" class="custom-modal-container d-none" role="dialog" aria-modal="true" aria-labelledby="department-modal-title">
         <div class="modal-header-icon">
             <div class="icon-circle">
-                <!-- أيقونة الأقسام / الهيكل التنظيمي -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                     <rect x="9" y="3" width="6" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="2" />
                     <rect x="3" y="17" width="6" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="2" />
@@ -126,7 +127,6 @@
         <div class="modal-body text-center w-100 mt-4">
             <h2 id="department-modal-title" class="modal-title" style="margin-bottom: 24px;">اختار القسم</h2>
 
-            <!-- Custom Dropdown Component -->
             <div class="custom-dropdown" id="dept-dropdown-container">
                 <div class="dropdown-header" id="dept-dropdown-header">
                     <span class="selected-value text-muted" id="dept-selected-value">اختار القسم</span>
@@ -135,9 +135,7 @@
                     </svg>
                 </div>
 
-                <div class="dropdown-list" id="dept-dropdown-list">
-                    <!-- هيتم إضافة الأقسام هنا ديناميكياً عن طريق الجافاسكريبت -->
-                </div>
+                <div class="dropdown-list" id="dept-dropdown-list"></div>
 
                 <div class="invalid-feedback text-right mt-2" id="dept-error-msg" style="display: none; color: #dc3545; font-size: 0.95rem; font-weight: 500;">
                     يرجى اختيار القسم للمتابعة.
@@ -160,11 +158,6 @@
             </div>
         </div>
 
-        <div class="modal-header-icon01">
-            <div class="icon-circle01"></div>
-        </div>
-
-        <!-- Content Grid -->
         <div class="modal-body data-grid mt-4 firstModelcontent">
             <div class="data-row">
                 <span class="data-label">الشركة :</span>
@@ -215,20 +208,16 @@
 </div>
 
 @section Scripts {
-    <!-- إعداد البيانات العامة للمشروع -->
     <script>
         window.pageData = {
             companyName: '@Html.Raw(ViewBag.SupplierName)',
             truckName: '@Html.Raw(ViewBag.TruckName)',
             dockName: 'A',
-            // يفضل تجيب اسم الموظف من الباك اند (مثلاً User.Identity.Name)
-            employeeName: 'محمد حسين'
+            employeeName: '@(User.Identity?.Name ?? "موظف")'
         };
 
         window.routes = {
             supplierIndex: '@Url.Action("Index", "Supplier")',
-
-            // 👇 السطر الجديد: حط هنا اسم الـ Action والـ Controller بتاع صفحة الطباعة بتاعتك
             receiptPage: '@Url.Action("Recript", "Driver")'
         };
     </script>
