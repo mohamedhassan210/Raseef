@@ -32,6 +32,11 @@
         // Action Login
         public async Task<IActionResult> Login(LoginViewModel login)
         {
+            var h1 = BCrypt.Net.BCrypt.HashPassword("123456");
+            // "$2a$11$3kET7XVlcnG0U4OXPKdIMOUTZIFkPTmbMbDX0igacQADKFLCD808O"
+
+            var ff = BCrypt.Net.BCrypt.HashPassword("Fares0606");
+            // "$2a$11$OJy53DWPgjZqx40yaSTgduDXorTU3/p3QtQ5fZHU1IvrgjMAoaQHq"
 
             if (!ModelState.IsValid)
             {
