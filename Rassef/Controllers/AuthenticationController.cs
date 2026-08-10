@@ -48,6 +48,8 @@ namespace Rassef.Controllers
 
             return View(allUsers);
         }
+
+
         [HttpGet]
         public async Task<IActionResult> Details(int? id)
         {
