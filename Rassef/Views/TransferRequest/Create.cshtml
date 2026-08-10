@@ -1,0 +1,256 @@
+﻿@model Rassef.ViewModels.TransferRequest.CreateTransferRequestVM
+
+@{
+    ViewData["Title"] = "إنهاء الإعداد";
+
+}
+
+<style>
+    /* الحاوية الرئيسية للشاشة */
+    .setup-wrapper {
+        direction: rtl;
+        max-width: 850px;
+        margin: 20px auto;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* الهيدر العلوي */
+    .setup-header {
+        position: relative;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .setup-title {
+        font-size: 32px;
+        font-weight: 800;
+        color: #222;
+        margin: 0;
+    }
+
+    .back-link {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        border: 1.5px solid #e87a38;
+        color: #e87a38;
+        background: transparent;
+        padding: 6px 18px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+
+        .back-link:hover {
+            background-color: #e87a38;
+            color: #fff;
+        }
+
+    /* الكارت الأبيض الداخلي */
+    .setup-card {
+        background-color: #fffaf7;
+        border: 1.5px solid #f2cfb9;
+        border-radius: 20px;
+        padding: 35px 40px;
+        box-shadow: 0 4px 15px rgba(232, 122, 56, 0.05);
+    }
+
+    .form-label-custom {
+        font-weight: 700;
+        color: #333;
+        font-size: 16px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    /* حقول المدخلات والـ Select */
+    .input-custom, .select-custom {
+        width: 100%;
+        padding: 10px 16px;
+        border: 1.5px solid #e87a38;
+        border-radius: 10px;
+        background-color: #fffdfb;
+        font-size: 14px;
+        color: #333;
+        outline: none;
+        height: 46px;
+    }
+
+        .input-custom::placeholder {
+            color: #b8b8b8;
+        }
+
+    .select-wrapper {
+        position: relative;
+    }
+
+    .select-custom {
+        padding-left: 36px;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        cursor: pointer;
+        color: #b8b8b8; /* القيمة الافتراضية */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23e87a38' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='18 15 12 9 6 15'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: left 14px center;
+    }
+
+        .select-custom:valid {
+            color: #333;
+        }
+
+    /* تنسيق أزرار Radio (نوع الإذن) */
+    .radio-group {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        height: 46px;
+    }
+
+    .radio-option {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        color: #333;
+    }
+
+        .radio-option input[type="radio"] {
+            accent-color: #e87a38;
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            cursor: pointer;
+        }
+
+    /* زر العرض الرئيسي (إنهاء الإعداد) */
+    .submit-btn-custom {
+        width: 100%;
+        background-color: #e87a38;
+        color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        font-size: 20px;
+        font-weight: 800;
+        cursor: pointer;
+        margin-top: 25px;
+        transition: background-color 0.2s ease;
+    }
+
+        .submit-btn-custom:hover {
+            background-color: #d16423;
+        }
+    /* منع طفوح العناصر خارج الكارت */
+    .setup-card {
+        overflow: hidden; /* يضمن عدم خروج أي عنصر خارج الحدود */
+        position: relative;
+    }
+
+    /* ضبط مجموعة الـ Radio لتعمل Flex مع إمكانية التجميع في أكثر من سطر */
+    .radio-group {
+        display: flex;
+        flex-wrap: wrap; /* يسمح بنزول الخيارات للسطر التالي عند ازدحام الشاشة */
+        gap: 15px 20px; /* مسافة بين العناصر أفقيًا ورأسيًا */
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    .radio-option {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap; /* يمنع انكسار النص داخل الخيار الواحد */
+        cursor: pointer;
+        font-size: 14px;
+        color: #333;
+    }
+
+    /* التأكد من إعطاء مسافة راسية كافية بين الحقول حتى لا تتداخل */
+    .form-group-container {
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="setup-wrapper">
+    <!-- الهيدر -->
+    <div class="setup-header">
+        <a href="javascript:history.back()" class="back-link">
+            <span>&rarr;</span> خطوة للخلف
+        </a>
+        <h2 class="setup-title">إنهاء الإعداد</h2>
+    </div>
+
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <!-- الحقول الخفية للبيانات الممررة -->
+       
+        <div class="setup-card">
+            <!-- الصف الأول: تحديد القسم ورقم الإذن -->
+            <div class="row g-4 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="DepartmentId" class="form-label-custom">تحديد القسم</label>
+                    <div class="select-wrapper">
+                        <select asp-for="DepartmentId" asp-items="Model.Departments" class="select-custom" required>
+                            <option value="" disabled selected hidden>ادخل القسم</option>
+                        </select>
+                    </div>
+                    <span asp-validation-for="DepartmentId" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="PermitNumber" class="form-label-custom">رقم الإذن</label>
+                    <input asp-for="PermitNumber" class="input-custom" placeholder="ادخل رقم الإذن" />
+                    <span asp-validation-for="PermitNumber" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <!-- الصف الثاني: نوع الإذن ورقم الأفيز -->
+            <!-- قسم نوع الإذن في سطر منفصل لحماية التصميم من التداخل -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <label class="form-label-custom">نوع الإذن</label>
+                    <div class="radio-group">
+                        @if (Model.PermitTypes != null && Model.PermitTypes.Any())
+                        {
+                            @foreach (var type in Model.PermitTypes)
+                            {
+                                <label class="radio-option">
+                                    <input type="radio" asp-for="PermitTypeId" value="@type.Value" />
+                                    <span>@type.Text</span>
+                                </label>
+                            }
+                        }
+                    </div>
+                    <span asp-validation-for="PermitTypeId" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <!-- سطر رقم الأفيز منفصل تماماً أسفله -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label asp-for="AvizNumber" class="form-label-custom">رقم الأفيز</label>
+                    <input asp-for="AvizNumber" class="input-custom" placeholder="ادخل رقم الأفيز" />
+                    <span asp-validation-for="AvizNumber" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- زر إنهاء الإعداد -->
+        <button type="submit" class="submit-btn-custom">إنهاء الإعداد</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

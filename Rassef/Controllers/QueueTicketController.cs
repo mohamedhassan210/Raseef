@@ -27,7 +27,7 @@
             _queueSettingsRepository = queueSettingsRepository;
             _shiftRepository = shiftRepository;
         }
-
+        //  الادوار الحالية 
         [HttpGet]
         public async Task<IActionResult> Index()
         {

@@ -16,14 +16,36 @@ namespace Rassef.Controllers
 
         // Get All Drivers
         [HttpGet]
-        public async Task<IActionResult> Index(int id, int supplierId)
+        public async Task<IActionResult> Index(int? id, int? supplierId)
         {
-            var supplier = await _supplierRepository.GetByIdAsync(supplierId);
-            if (supplier is null) return RedirectToAction("Index", "Supplier");
+            IEnumerable<Driver> drivers;
 
-            var truck = await _truckRepository.GetByIdAsync(id);
+            if (supplierId.HasValue && supplierId.Value > 0)
+            {
+                var supplier = await _supplierRepository.GetByIdAsync(supplierId.Value);
+                if (supplier is null) return RedirectToAction("Index", "Supplier");
 
-            var drivers = await _driverRepository.GetDriversBySupplierIdAsync(supplierId);
+                ViewBag.SupplierName = supplier.Name;
+                ViewBag.SupplierId = supplier.Id;
+                drivers = await _driverRepository.GetDriversBySupplierIdAsync(supplierId.Value);
+            }
+            else
+            {
+                // في حال عدم تمرير supplierId يتم عرض كافة السائقين
+                ViewBag.SupplierName = "جميع الشركات";
+                ViewBag.SupplierId = null;
+                drivers = await _driverRepository.GetAllAsync();
+            }
+
+            if (id.HasValue && id.Value > 0)
+            {
+                var truck = await _truckRepository.GetByIdAsync(id.Value);
+                ViewBag.TruckName = truck != null ? $"{truck.PlateLetter} {truck.PlateNumber}" : "سيارة غير محددة";
+            }
+            else
+            {
+                ViewBag.TruckName = "سيارة غير محددة";
+            }
 
             var driverList = drivers.Select(d => new DriverListVM
             {
@@ -33,13 +55,8 @@ namespace Rassef.Controllers
                 Phone = d.Phone
             }).ToList();
 
-            ViewBag.SupplierName = supplier.Name;
-            ViewBag.TruckName = truck != null ? $"{truck.PlateLetter} {truck.PlateNumber}" : "سيارة غير محددة";
-            ViewBag.SupplierId = supplierId;
-
             return View(driverList);
         }
-
         [HttpGet]
         public async Task<IActionResult> Recript()
         {

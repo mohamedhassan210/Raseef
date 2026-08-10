@@ -1,16 +1,31 @@
-﻿namespace Rassef.Validators.TransferRequestValidators
+﻿
+
+namespace Rassef.Validators.TransferRequest
 {
-    public class CreateTransferRequestVMValidator : AbstractValidator<CreateTransferRequestVM>
+    public class CreateTransferRequestValidator : AbstractValidator<CreateTransferRequestVM>
     {
-        public CreateTransferRequestVMValidator()
+        public CreateTransferRequestValidator()
         {
-            RuleFor(x => x.AvizNumber).NotEmpty().WithMessage("الحقل مطلوب");
-            RuleFor(x => x.TruckId).GreaterThan(0).WithMessage("يرجى الاختيار من القائمة");
-            RuleFor(x => x.DriverId).GreaterThan(0).WithMessage("يرجى الاختيار من القائمة");
-            RuleFor(x => x.PermitTypeId).GreaterThan(0).WithMessage("يرجى الاختيار من القائمة");
-            RuleFor(x => x.PermitNumber).NotEmpty().WithMessage("الحقل مطلوب");
-            RuleFor(x => x.DepartmentId).GreaterThan(0).WithMessage("يرجى الاختيار من القائمة");
-            RuleFor(x => x.RequestStatusId).GreaterThan(0).WithMessage("يرجى الاختيار من القائمة");
+            // 1. التحقق من اختيار القسم
+            RuleFor(x => x.DepartmentId)
+                .NotEmpty().WithMessage("يرجى اختيار القسم.")
+                .GreaterThan(0).WithMessage("يرجى اختيار قسم صحيح.");
+
+            // 2. التحقق من اختيار نوع الإذن
+            RuleFor(x => x.PermitTypeId)
+                .NotEmpty().WithMessage("يرجى تحديد نوع الإذن.")
+                .GreaterThan(0).WithMessage("يرجى تحديد نوع إذن صحيح.");
+
+            // 3. التحقق من رقم الإذن
+            RuleFor(x => x.PermitNumber)
+                .NotEmpty().WithMessage("يرجى إدخال رقم الإذن.")
+                .MaximumLength(50).WithMessage("رقم الإذن يجب ألا يتجاوز 50 حرفاً/رقماً.");
+
+            // 4. التحقق من رقم الأفيز
+            RuleFor(x => x.AvizNumber)
+                .NotEmpty().WithMessage("يرجى إدخال رقم الأفيز.")
+                .MaximumLength(50).WithMessage("رقم الأفيز يجب ألا يتجاوز 50 حرفاً/رقماً.");
+
         }
     }
 }
