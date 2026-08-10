@@ -20,11 +20,15 @@ namespace Rassef.Controllers
         public AdministrationController(
             IUserRepository userRepository,
             IRepository<Position> positionRepository,
-            IRepository<Truck> truckRepository)
+            IRepository<Truck> truckRepository,
+                        IRepository<TruckTypes> truckTypeRepository)
         {
             _userRepository = userRepository;
             _positionRepository = positionRepository;
             _truckRepository = truckRepository;
+            _truckTypesRepository = truckTypeRepository;
+
+            
         }
         //Employee Administration
         [HttpGet]
