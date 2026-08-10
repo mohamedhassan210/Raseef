@@ -1,26 +1,32 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Rassef.Common.Interfaces.Services.AuthenticationServices;
 using Rassef.Models.Entities;
 using Rassef.Models.Identity;
 using Rassef.Models.ValueObjects;
 using Rassef.ViewModels.Administration;
-
+using Rassef.ViewModels.Administration.Employee;
+using Rassef.ViewModels.Administration.Truck;
 namespace Rassef.Controllers
 {
     public class AdministrationController : Controller
     {
         private readonly IUserRepository _userRepository;
         private readonly IRepository<Position> _positionRepository;
+        private readonly IRepository<Truck> _truckRepository;
+        private readonly IRepository<TruckTypes> _truckTypesRepository;
 
         public AdministrationController(
             IUserRepository userRepository,
-            IRepository<Position> positionRepository)
+            IRepository<Position> positionRepository,
+            IRepository<Truck> truckRepository)
         {
             _userRepository = userRepository;
             _positionRepository = positionRepository;
+            _truckRepository = truckRepository;
         }
-
+        //Employee Administration
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -258,6 +264,220 @@ namespace Rassef.Controllers
             TempData["Success"] = "تم حذف الموظف بنجاح.";
 
             return RedirectToAction(nameof(Index));
+        }
+
+        ////////////////////
+        ////////////////////
+
+        //Truck Administration
+
+        [HttpGet]
+        public async Task<IActionResult> TrucksIndex()
+        {
+            var trucks = await _truckRepository.GetAllAsync(query =>
+                query.Where(t => !t.IsDeleted)
+                     .Include(t => t.CreatedBy)
+                     .Include(t => t.TruckType)
+            );
+
+            var truckList = trucks.Select(t => new ViewModels.Administration.TruckListVM
+            {
+                Id = t.Id,
+                PlateNumber = $"{t.PlateLetter} {t.PlateNumber}",
+                IsRefrigerated = t.IsRefrigerated ? "تبريد" : "لا تبريد",
+                Company = t.TruckType?.Name ?? "غير محدد",
+                StorageCapacity = t.StorageCapacity,
+                HostEmployeeName = t.CreatedBy?.Name ?? "غير محدد"
+            }).ToList();
+
+            if (!truckList.Any())
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "لا يوجد أي شاحنات مسجلة حتى الآن."
+                );
+            }
+
+            return View(truckList);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TruckDetails(int id)
+        {
+            var trucks = await _truckRepository.GetAllAsync(query =>
+                query.Where(t => !t.IsDeleted)
+                     .Include(t => t.CreatedBy)
+                     .Include(t => t.TruckType)
+                     .Include(t => t.SupplierRequests)
+                     .Include(t => t.TransferRequests)
+            );
+
+            var truck = trucks.FirstOrDefault(t => t.Id == id);
+
+            if (truck == null)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "هذه الشاحنة غير موجودة."
+                );
+
+                return RedirectToAction(nameof(TrucksIndex));
+            }
+
+            int visitsCount = (truck.SupplierRequests?.Count ?? 0) + (truck.TransferRequests?.Count ?? 0);
+
+            var truckDetails = new ViewModels.Administration.Truck.TruckDetailsVM
+            {
+                Id = truck.Id,
+                VisitsCount = visitsCount,
+                PlateNumber = $"{truck.PlateLetter} {truck.PlateNumber}",
+                IsRefrigerated = truck.IsRefrigerated ? "تبريد" : "لا تبريد",
+                Company = truck.TruckType?.Name ?? "غير محدد",
+                StorageCapacity = truck.StorageCapacity,
+                HostEmployeeName = truck.CreatedBy?.Name ?? "غير محدد"
+            };
+
+            return View(truckDetails);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TruckCreate()
+        {
+            var truckTypes = await _truckTypesRepository.GetAllAsync();
+            ViewBag.TruckTypes = truckTypes;
+
+            return View(new TruckCreateVM());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TruckCreate(TruckCreateVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var truckTypes = await _truckTypesRepository.GetAllAsync();
+                ViewBag.TruckTypes = truckTypes;
+
+                return View(model);
+            }
+
+            // جلب معرف الموظف الحالي من الـ Claims
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var truck = new Truck
+            {
+                PlateLetter = model.PlateLetter,
+                PlateNumber = model.PlateNumber,
+                StorageCapacity = model.StorageCapacity,
+                IsRefrigerated = model.IsRefrigerated,
+                TruckTypeId = model.TruckTypeId,
+                CreatedById = currentUserId
+            };
+
+            await _truckRepository.AddAsync(truck);
+            await _truckRepository.SaveChangesAsync();
+
+            TempData["Success"] = "تم إضافة الشاحنة بنجاح.";
+
+            return RedirectToAction(nameof(TrucksIndex));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TruckEdit(int id)
+        {
+            var truck = await _truckRepository.GetByIdAsync(id);
+
+            if (truck == null || truck.IsDeleted)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "هذه الشاحنة غير موجودة."
+                );
+
+                return RedirectToAction(nameof(TrucksIndex));
+            }
+
+            var truckTypes = await _truckTypesRepository.GetAllAsync();
+            ViewBag.TruckTypes = truckTypes;
+
+            var model = new TruckEditVM
+            {
+                Id = truck.Id,
+                PlateLetter = truck.PlateLetter,
+                PlateNumber = truck.PlateNumber,
+                StorageCapacity = truck.StorageCapacity,
+                IsRefrigerated = truck.IsRefrigerated,
+                TruckTypeId = truck.TruckTypeId
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TruckEdit(TruckEditVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var truckTypes = await _truckTypesRepository.GetAllAsync();
+                ViewBag.TruckTypes = truckTypes;
+
+                return View(model);
+            }
+
+            var truck = await _truckRepository.GetByIdAsync(model.Id);
+
+            if (truck == null || truck.IsDeleted)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "هذه الشاحنة غير موجودة."
+                );
+
+                return RedirectToAction(nameof(TrucksIndex));
+            }
+
+            truck.PlateLetter = model.PlateLetter;
+            truck.PlateNumber = model.PlateNumber;
+            truck.StorageCapacity = model.StorageCapacity;
+            truck.IsRefrigerated = model.IsRefrigerated;
+            truck.TruckTypeId = model.TruckTypeId;
+            truck.MarkAsUpdated();
+
+            _truckRepository.Update(truck);
+            await _truckRepository.SaveChangesAsync();
+
+            TempData["Success"] = "تم تعديل بيانات الشاحنة بنجاح.";
+
+            return RedirectToAction(nameof(TrucksIndex));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TruckDeleteConfirmed(int id)
+        {
+            var truck = await _truckRepository.GetByIdAsync(id);
+
+            if (truck == null || truck.IsDeleted)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "هذه الشاحنة غير موجودة."
+                );
+
+                return RedirectToAction(nameof(TrucksIndex));
+            }
+
+            // Soft Delete
+            truck.IsDeleted = true;
+            truck.MarkAsUpdated();
+
+            _truckRepository.Update(truck);
+            await _truckRepository.SaveChangesAsync();
+
+            TempData["Success"] = "تم حذف الشاحنة بنجاح.";
+
+            return RedirectToAction(nameof(TrucksIndex));
         }
     }
 }

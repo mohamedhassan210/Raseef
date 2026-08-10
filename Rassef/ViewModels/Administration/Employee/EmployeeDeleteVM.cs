@@ -1,6 +1,6 @@
-﻿namespace Rassef.ViewModels.Administration
+﻿namespace Rassef.ViewModels.Administration.Employee
 {
-    public class EmployeeDetailsVM
+    public class EmployeeDeleteVM
     {
         public int Id { get; set; }
 

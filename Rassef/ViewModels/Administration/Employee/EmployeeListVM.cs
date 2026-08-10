@@ -1,6 +1,6 @@
-﻿namespace Rassef.ViewModels.Administration
+﻿namespace Rassef.ViewModels.Administration.Employee
 {
-    public class EmployeeEditVM
+    public class EmployeeListVM
     {
         public int Id { get; set; }
 
@@ -10,7 +10,7 @@
 
         public string Email { get; set; } = string.Empty;
 
-        public int PositionId { get; set; }
+        public string Role { get; set; } = string.Empty;
 
         public string NationalId { get; set; } = string.Empty;
 
