@@ -5,6 +5,8 @@ namespace Rassef.Common.Interfaces.Services
     {
         Task<T?> GetByIdAsync(int id);
         Task<IReadOnlyList<T>> GetAllAsync();
+        Task<IReadOnlyList<T>> GetAllAsync(
+    Func<IQueryable<T>, IQueryable<T>> include);
         Task AddAsync(T entity);
         Task<int> SaveChangesAsync();
         void Update(T entity);
