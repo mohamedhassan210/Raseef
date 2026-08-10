@@ -10,9 +10,12 @@
 
     [Display(Name = "اسم السائق")]
     public string DriverName { get; set; } = string.Empty;
-
+    [Display(Name = "الموظف")]
+    public string EmployeeName { get; set; } = string.Empty;
     [Display(Name = "رقم هاتف السائق")]
     public string DriverPhone { get; set; } = string.Empty;
+    [Display(Name = "رقم التذكرة")]
+    public string TicketNumber { get; set; } = string.Empty;
 
     [Display(Name = "القسم")]
     public string DepartmentName { get; set; } = string.Empty;
@@ -22,5 +25,10 @@
 
     [Display(Name = "رقم التصريح")]
     public string PermitNumber { get; set; } = string.Empty;
+    public string TicketStatusName { get; set; } = string.Empty;
+    public int DockNumber { get; set; }
+    [Display(Name = "الرصيف")]
+    public string DockName { get; set; } = string.Empty;
+    public DateTimeOffset QueueTime { get; set; }
 
 }
