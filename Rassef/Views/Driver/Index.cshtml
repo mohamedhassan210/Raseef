@@ -62,7 +62,7 @@
         </div>
     </section>
 
-    <!-- قائمة السائقين (بيانات وهمية ثابتة) -->
+    <!-- قائمة السائقين -->
     <section class="cards-section" id="cards-container" aria-label="قائمة السائقين">
         @if (Model != null && Model.Any())
         {
@@ -106,8 +106,49 @@
     </section>
 </main>
 
-<!-- Two-Step Modal System -->
+<!-- Multi-Step Modal System -->
 <div id="custom-modal-overlay" class="custom-modal-overlay" aria-hidden="true">
+
+    <!-- Modal 0: Department Selection (الخطوة الجديدة) -->
+    <div id="department-modal" class="custom-modal-container d-none" role="dialog" aria-modal="true" aria-labelledby="department-modal-title">
+        <div class="modal-header-icon">
+            <div class="icon-circle">
+                <!-- أيقونة الأقسام / الهيكل التنظيمي -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <rect x="9" y="3" width="6" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="2" />
+                    <rect x="3" y="17" width="6" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="2" />
+                    <rect x="15" y="17" width="6" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="2" />
+                    <path d="M12 7v5M6 17v-3h12v3M18 14v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="modal-body text-center w-100 mt-4">
+            <h2 id="department-modal-title" class="modal-title" style="margin-bottom: 24px;">اختار القسم</h2>
+
+            <!-- Custom Dropdown Component -->
+            <div class="custom-dropdown" id="dept-dropdown-container">
+                <div class="dropdown-header" id="dept-dropdown-header">
+                    <span class="selected-value text-muted" id="dept-selected-value">اختار القسم</span>
+                    <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#EB842D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+
+                <div class="dropdown-list" id="dept-dropdown-list">
+                    <!-- هيتم إضافة الأقسام هنا ديناميكياً عن طريق الجافاسكريبت -->
+                </div>
+
+                <div class="invalid-feedback text-right mt-2" id="dept-error-msg" style="display: none; color: #dc3545; font-size: 0.95rem; font-weight: 500;">
+                    يرجى اختيار القسم للمتابعة.
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions mt-4" style="margin-top: 32px !important;">
+            <button id="btn-confirm-dept" class="btn-primary-custom w-100" aria-label="تأكيد القسم">تأكيد</button>
+        </div>
+    </div>
 
     <!-- Modal 1: Data Confirmation -->
     <div id="confirmation-modal" class="custom-modal-container d-none" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
@@ -136,6 +177,10 @@
             <div class="data-row">
                 <span class="data-label">السائق :</span>
                 <span class="data-value" id="confirm-driver-name"></span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">القسم :</span>
+                <span class="data-value" id="confirm-driver-dep"></span>
             </div>
         </div>
 
@@ -170,24 +215,24 @@
 </div>
 
 @section Scripts {
-    <!-- بيانات وهمية ثابتة لتغذية المودال (بديل للـ Model) -->
+    <!-- إعداد البيانات العامة للمشروع -->
     <script>
         window.pageData = {
-            companyName: '@ViewBag.SupplierName',
-            truckName: '@ViewBag.TruckName',
-            dockName: 'A'
+            companyName: '@Html.Raw(ViewBag.SupplierName)',
+            truckName: '@Html.Raw(ViewBag.TruckName)',
+            dockName: 'A',
+            // يفضل تجيب اسم الموظف من الباك اند (مثلاً User.Identity.Name)
+            employeeName: 'محمد حسين'
         };
 
         window.routes = {
             supplierIndex: '@Url.Action("Index", "Supplier")',
-            authSupOrTra: '@Url.Action("SupOrTra", "Authentication")'
+
+            // 👇 السطر الجديد: حط هنا اسم الـ Action والـ Controller بتاع صفحة الطباعة بتاعتك
+            receiptPage: '@Url.Action("Recript", "Driver")'
         };
-
-        <script src="~/js/companyDrivers.js" asp-append-version="true"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-
     </script>
 
     <script src="~/js/companyDrivers.js" asp-append-version="true"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-} 
+}

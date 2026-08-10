@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Rassef.ViewModels.Authentication.UserViewModels;
+﻿using Rassef.ViewModels.Drivers;
 
 namespace Rassef.Controllers
 {
@@ -7,35 +6,14 @@ namespace Rassef.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtService _jwtService;
-        public AuthenticationController(IUserRepository userRepository, IJwtService jwtService, ILogger<AuthenticationController> logger)
+        private readonly IDriverRepository _driverRepository;
+        private readonly IRepository<SupplierRequest> _transferRequestRepository;
+        public AuthenticationController(IUserRepository userRepository, IJwtService jwtService, ILogger<AuthenticationController> logger, IDriverRepository driverRepository, IRepository<SupplierRequest> transferRequestRepository)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
-        }
-        // every employees
-        [HttpGet]
-        public async Task<IActionResult> Index()
-        {
-            var users = await _userRepository.GetAllAsync();
-
-            var allUsers = users.Select(u => new UserList
-            {
-                Name = u.Name,
-                Phone = u.Phone,
-                Email = u.Email.ToString(),
-                NationalId = u.NationalId,
-                UserCode = u.UserCode
-            }).ToList();
-
-            if (!allUsers.Any())
-            {
-                ModelState.AddModelError(
-                    string.Empty,
-                    "لا يوجد أي مستخدمين حتى الآن"
-                );
-            }
-
-            return View(allUsers);
+            _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
+            _transferRequestRepository = transferRequestRepository ?? throw new ArgumentNullException(nameof(transferRequestRepository));
         }
 
         [HttpGet]
@@ -44,6 +22,52 @@ namespace Rassef.Controllers
         public IActionResult Intro()
         {
             return View();
+        }
+        [HttpGet]
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                ModelState.AddModelError("السائق", "رقم السائق مفقود.");
+                return View(new DriverProfileVM());
+            }
+
+            // هنا هننادي الدالة اللي بتجيب السائق بالطلبات والموردين اللي جواه
+            var driver = await _driverRepository.GetByIdWithDetailsAsync(id.Value);
+
+            if (driver == null)
+            {
+                ModelState.AddModelError("السائق", "هذا السائق غير موجود.");
+                return View(new DriverProfileVM());
+            }
+
+            // 1. حساب عدد الزيارات من الـ ICollection مباشرة
+            int visitsCount = driver.SupplierRequests?.Count ?? 0;
+
+            // 2. استنتاج اسم الشركة من "أحدث طلب" في الـ ICollection
+            string companyName = "غير محدد";
+
+            if (visitsCount > 0)
+            {
+                // رتبناهم تنازلي وجبنا أول واحد (أحدث طلب)، وبعدين دخلنا على المورد جبنا اسمه
+                companyName = driver.SupplierRequests
+                    .OrderByDescending(r => r.Id)
+                    .First()
+                    .Supplier?.Name ?? "غير محدد";
+            }
+
+            // 3. بناء الـ ViewModel
+            var driverProfile = new DriverProfileVM
+            {
+                Id = driver.Id,
+                Name = driver.FullName,
+                NationalId = driver.NationalId, // تأكد من اسم الخاصية عندك في الموديل
+                Phone = driver.Phone, // تأكد من اسم الخاصية
+                CompanyName = companyName,
+                VisitsCount = visitsCount
+            };
+
+            return View(driverProfile);
         }
 
         [HttpGet]
@@ -60,6 +84,11 @@ namespace Rassef.Controllers
         // Action Login
         public async Task<IActionResult> Login(LoginViewModel login)
         {
+            var h1 = BCrypt.Net.BCrypt.HashPassword("123456");
+            // "$2a$11$3kET7XVlcnG0U4OXPKdIMOUTZIFkPTmbMbDX0igacQADKFLCD808O"
+
+            var ff = BCrypt.Net.BCrypt.HashPassword("Fares0606");
+            // "$2a$11$OJy53DWPgjZqx40yaSTgduDXorTU3/p3QtQ5fZHU1IvrgjMAoaQHq"
 
             if (!ModelState.IsValid)
             {
@@ -191,6 +220,13 @@ namespace Rassef.Controllers
         // Supplier of Transfer 
         [HttpGet]
         public async Task<IActionResult> SupOrTra()
+        {
+            return View();
+        }
+
+        // View Role
+        [HttpGet]
+        public async Task<IActionResult> viewRole()
         {
             return View();
         }

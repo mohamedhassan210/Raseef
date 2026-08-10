@@ -8,9 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Modal Elements
     const modalOverlay = document.getElementById('custom-modal-overlay');
+    const deptModal = document.getElementById('department-modal'); // الخطوة الجديدة
     const confirmModal = document.getElementById('confirmation-modal');
     const successModal = document.getElementById('success-modal');
 
+    const btnConfirmDept = document.getElementById('btn-confirm-dept');
     const btnEdit = document.getElementById('btn-edit');
     const btnConfirm = document.getElementById('btn-confirm');
     const btnBack = document.getElementById('btn-back');
@@ -19,7 +21,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmCompany = document.getElementById('confirm-company');
     const confirmTruck = document.getElementById('confirm-truck');
     const confirmDriverName = document.getElementById('confirm-driver-name');
+    const confirmDriverdep = document.getElementById('confirm-driver-dep');
     const ticketNumberDisplay = document.getElementById('ticket-number');
+
+    // Custom Dropdown Elements (Department)
+    const deptDropdownContainer = document.getElementById('dept-dropdown-container');
+    const deptDropdownHeader = document.getElementById('dept-dropdown-header');
+    const deptSelectedValue = document.getElementById('dept-selected-value');
+    const deptDropdownList = document.getElementById('dept-dropdown-list');
+    const deptErrorMsg = document.getElementById('dept-error-msg');
+    let selectedDepartmentValue = null;
 
     // ==========================================
     // 2. Search & Filter Logic 
@@ -46,9 +57,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 3. Modal System & Selection Workflow
+    // 3. Modal System & Workflow
     // ==========================================
     const showConfirmationModal = (modalElement) => {
+        // Hide all modals
+        deptModal.classList.remove('active-modal');
+        deptModal.classList.add('d-none');
         confirmModal.classList.remove('active-modal');
         confirmModal.classList.add('d-none');
         successModal.classList.remove('active-modal');
@@ -66,44 +80,130 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const closeModal = () => {
         modalOverlay.classList.remove('active');
+        deptModal.classList.remove('active-modal');
         confirmModal.classList.remove('active-modal');
         successModal.classList.remove('active-modal');
+        deptDropdownContainer.classList.remove('open');
         document.body.style.overflow = '';
     };
 
-    const populateConfirmationData = (driverName) => {
-        // البيانات الوهمية الثابتة من الصفحة
-        const company = window.pageData.companyName || "جهينة";
-        const truck = window.pageData.truckName || "سيارة تبريد";
+    // تعبئة البيانات في مودال التأكيد
+    const populateConfirmationData = (driverName, departmentName = "غير متوفر") => {
+        const company = window.pageData?.companyName || "غير متوفر";
+        const truck = window.pageData?.truckName || "سيارة تبريد";
 
         confirmCompany.textContent = company;
         confirmTruck.textContent = truck;
         confirmDriverName.textContent = driverName;
+        confirmDriverdep.textContent = departmentName;
     };
 
-    // تفعيل زر "اختيار السائق" لكل كارت
+    // الخطوة الأولى: اختيار السائق وفتح مودال الأقسام
     const attachSelectionEvents = () => {
         const selectButtons = document.querySelectorAll('.select-btn');
         selectButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 const card = e.target.closest('.driver-card');
                 const driverName = card.getAttribute('data-name');
+                const driverId = card.getAttribute('data-id');
 
-                populateConfirmationData(driverName);
-                showConfirmationModal(confirmModal);
+                // Reset Department Modal state
+                selectedDepartmentValue = null;
+                deptSelectedValue.textContent = 'اختار القسم';
+                deptSelectedValue.classList.add('text-muted');
+                deptDropdownHeader.classList.remove('error');
+                deptErrorMsg.style.display = 'none';
+                const deptItems = document.querySelectorAll('#dept-dropdown-list .dropdown-item');
+                deptItems.forEach(i => i.classList.remove('selected'));
+                deptDropdownContainer.classList.remove('open');
+
+                // حفظ بيانات السائق مؤقتاً
+                localStorage.setItem('pendingDriver', JSON.stringify({
+                    name: driverName,
+                    nationalId: driverId
+                }));
+
+                // إظهار مودال الأقسام
+                showConfirmationModal(deptModal);
             });
         });
     };
     attachSelectionEvents();
 
     // ==========================================
-    // 4. Ticket Badge Visual Counter Logic (Shift Reset)
+    // 4. Department Custom Dropdown Logic
+    // ==========================================
+    const initDepartmentDropdown = () => {
+        // بيانات الأقسام الوهمية 
+        const departmentsData = [
+            { id: 101, name: "قسم الاستلام" },
+            { id: 102, name: "قسم المخازن" },
+            { id: 103, name: "قسم التوزيع" },
+            { id: 104, name: "قسم المبيعات" }
+        ];
+
+        // بناء عناصر القائمة ديناميكياً
+        deptDropdownList.innerHTML = departmentsData.map(dept =>
+            `<div class="dropdown-item" data-id="${dept.id}" data-value="${dept.name}">${dept.name}</div>`
+        ).join('');
+
+        const deptItems = deptDropdownList.querySelectorAll('.dropdown-item');
+
+        deptDropdownHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deptDropdownContainer.classList.toggle('open');
+            deptDropdownHeader.classList.remove('error');
+            deptErrorMsg.style.display = 'none';
+        });
+
+        deptItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+
+                selectedDepartmentValue = {
+                    id: parseInt(item.getAttribute('data-id')),
+                    name: item.getAttribute('data-value')
+                };
+
+                deptSelectedValue.textContent = selectedDepartmentValue.name;
+                deptSelectedValue.classList.remove('text-muted');
+
+                deptItems.forEach(el => el.classList.remove('selected'));
+                item.classList.add('selected');
+
+                deptDropdownContainer.classList.remove('open');
+                deptDropdownHeader.classList.remove('error');
+                deptErrorMsg.style.display = 'none';
+            });
+        });
+
+        // زر تأكيد القسم في المودال
+        btnConfirmDept.addEventListener('click', () => {
+            if (!selectedDepartmentValue) {
+                deptDropdownHeader.classList.add('error');
+                deptErrorMsg.style.display = 'block';
+                deptDropdownHeader.style.animation = 'shake 0.4s';
+                setTimeout(() => deptDropdownHeader.style.animation = '', 400);
+                return;
+            }
+
+            const pendingData = JSON.parse(localStorage.getItem('pendingDriver')) || {};
+            pendingData.department = selectedDepartmentValue;
+            localStorage.setItem('pendingDriver', JSON.stringify(pendingData));
+
+            populateConfirmationData(pendingData.name, pendingData.department.name);
+            showConfirmationModal(confirmModal);
+        });
+    };
+
+    // ==========================================
+    // 5. Ticket Badge Visual Counter Logic
     // ==========================================
     let shiftTicketCounter = 0;
 
     const generateTicketNumber = () => {
         shiftTicketCounter++;
-        let rawDockName = window.pageData.dockName;
+        let rawDockName = window.pageData?.dockName;
         let dockInitial = rawDockName && rawDockName.length > 0
             ? rawDockName.charAt(0).toUpperCase()
             : 'A';
@@ -112,53 +212,87 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const printTicket = () => {
-        btnPrint.textContent = "جاري الطباعة...";
+        btnPrint.innerHTML = 'جاري الانتقال للإيصال... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 8px;"></span>';
         btnPrint.disabled = true;
 
+        // 1. تجميع البيانات وحفظها في الـ LocalStorage
+        const ticketNum = ticketNumberDisplay.textContent;
+        const deptName = selectedDepartmentValue ? selectedDepartmentValue.name : 'غير محدد';
+        const empName = window.pageData?.employeeName || 'محمد حسين';
+        const dock = window.pageData?.dockName || 'A';
+        const waitCount = '0';
+
+        const receiptData = {
+            ticketNumber: ticketNum,
+            waitingCount: waitCount,
+            department: deptName,
+            dockNumber: dock,
+            employeeName: empName,
+            createdAt: new Date().toISOString()
+        };
+
+        localStorage.setItem('receiptData', JSON.stringify(receiptData));
+
+        // 2. الانتقال لصفحة الريسيبت فوراً (بدون طباعة هنا)
         setTimeout(() => {
-            window.location.href = window.routes.authSupOrTra;
-        }, 1500);
+            if (window.routes && window.routes.receiptPage) {
+                window.location.href = window.routes.receiptPage;
+            } else {
+                window.location.href = "receipt.html";
+            }
+        }, 800);
     };
 
     // ==========================================
-    // 5. Modal Button Events & Routing
+    // 6. Initialize App
     // ==========================================
     const initializeModals = () => {
-        // Step 1: Edit Button 
+        initDepartmentDropdown();
+
+        // زر التعديل
         btnEdit.addEventListener('click', () => {
-            window.location.href = window.routes.supplierIndex;
+            if (window.routes && window.routes.supplierIndex) {
+                window.location.href = window.routes.supplierIndex;
+            }
         });
 
-        // Step 1: Confirm Button -> Progress to Step 2 (Ticket)
+        // تأكيد البيانات وفتح مودال النجاح
         btnConfirm.addEventListener('click', () => {
             const ticketNum = generateTicketNumber();
             ticketNumberDisplay.textContent = ticketNum;
-
             showConfirmationModal(successModal);
         });
 
-        // Step 2: Back Button 
+        // زر الرجوع في مودال النجاح
         btnBack.addEventListener('click', () => {
-            window.location.href = window.routes.supplierIndex;
+            if (window.routes && window.routes.supplierIndex) {
+                window.location.href = window.routes.supplierIndex;
+            }
         });
 
-        // Step 2: Print Button 
+        // زر الطباعة
         btnPrint.addEventListener('click', () => {
             printTicket();
         });
 
-        // Overlay Click -> Close (Only if in Step 1)
+        // إغلاق المودال عند النقر في الخارج أو الضغط على Escape
         modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay && !confirmModal.classList.contains('d-none')) {
-                closeModal();
+            if (e.target === modalOverlay) {
+                if (!deptModal.classList.contains('d-none') || !confirmModal.classList.contains('d-none')) {
+                    closeModal();
+                }
+                deptDropdownContainer.classList.remove('open');
             }
         });
 
-        // Keyboard ESC -> Close (Only if in Step 1)
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
-                if (!confirmModal.classList.contains('d-none')) {
-                    closeModal();
+            if (e.key === 'Escape') {
+                if (deptDropdownContainer.classList.contains('open')) {
+                    deptDropdownContainer.classList.remove('open');
+                } else if (modalOverlay.classList.contains('active')) {
+                    if (!deptModal.classList.contains('d-none') || !confirmModal.classList.contains('d-none')) {
+                        closeModal();
+                    }
                 }
             }
         });

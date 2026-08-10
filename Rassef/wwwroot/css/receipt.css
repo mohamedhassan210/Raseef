@@ -1,0 +1,291 @@
+:root {
+    --primary-color: #EB842D;
+    --bg-color: #F9F2F2;
+    --dark-text: #332D24;
+    --border-subtle: rgba(235, 132, 45, 0.25);
+    --font-family: 'IBM Plex Sans Arabic', sans-serif;
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    background-color: var(--bg-color);
+    font-family: var(--font-family);
+    color: var(--dark-text);
+    direction: rtl;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .d-none {
+    display: none !important;
+  }
+  
+  /* حالات التنبيه والأزرار العلوية */
+  .empty-state {
+    text-align: center;
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  }
+  
+  .receipt-container {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  
+  .receipt-actions {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  
+  .btn-action {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    border-radius: 10px;
+    font-family: var(--font-family);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid var(--primary-color);
+  }
+  
+  .btn-print {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .btn-print:hover {
+    background-color: #d6711c;
+    transform: translateY(-2px);
+  }
+  
+  .btn-back {
+    background-color: transparent;
+    color: var(--primary-color);
+  }
+  
+  .btn-back:hover {
+    background-color: rgba(235, 132, 45, 0.05);
+  }
+  
+  /* Badge Design (The Receipt) */
+  .receipt-badge {
+    background-color: #FFFDFB;
+    width: 100%;
+    border-radius: 24px;
+    border: 4px solid var(--primary-color);
+    box-shadow: 0 15px 40px rgba(235, 132, 45, 0.15);
+    position: relative;
+    overflow: hidden;
+    padding-top: 40px;
+    padding-bottom: 90px; /* Space for wave */
+  }
+  
+  .badge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    margin-bottom: 24px;
+  }
+  
+  .logo-fathalla { max-height: 80px; object-fit: contain; }
+  .logo-raseefy { max-height: 50px; object-fit: contain; }
+  
+  /* Dividers */
+  .badge-divider-solid {
+    border-top: 1.5px solid var(--border-subtle);
+    margin: 0 40px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .clock-icon-wrapper {
+    background-color: #FFFDFB;
+    padding: 0 12px;
+    margin-top: -12px; /* Center perfectly on line */
+  }
+  
+  .clock-icon-wrapper svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .badge-divider-dashed {
+    border-top: 2px dashed var(--border-subtle);
+    margin: 30px 40px;
+  }
+  
+  /* Text Sections */
+  .badge-section {
+    margin-top: 24px;
+  }
+  
+  .text-center { text-align: center; }
+  
+  .section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin-bottom: 8px;
+  }
+  
+  .ticket-number {
+    font-size: 6.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    line-height: 1;
+  }
+  
+  .waiting-number {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+  
+  .badge-grid {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 30px;
+    padding: 0 20px;
+  }
+  
+  .grid-item { text-align: center; }
+  
+  .grid-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    max-width: 150px;
+    word-wrap: break-word;
+  }
+  
+  /* Footer Info Area */
+  .badge-footer-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 40px;
+    position: relative;
+    z-index: 10; /* Above wave */
+  }
+  
+  .employee-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .emp-icon {
+    width: 44px;
+    height: 44px;
+    border: 2px solid var(--dark-text);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .emp-icon svg { width: 24px; height: 24px; }
+  
+  .emp-text {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .info-label {
+    font-size: 0.8rem;
+    color: var(--dark-text);
+    font-weight: 600;
+  }
+  
+  .info-value {
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    font-weight: 700;
+  }
+  
+  .datetime-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  
+  .dt-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .dt-row svg { width: 16px; height: 16px; }
+  .dt-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+  .mt-1 { margin-top: 6px; }
+  
+  /* The Bottom Wave */
+  .badge-wave {
+    position: absolute;
+    bottom: -5px; /* Pull down slightly to cover border rounding */
+    left: 0;
+    width: 100%;
+    height: 120px;
+    line-height: 0;
+    z-index: 1;
+  } 
+  
+  /* Print Settings */
+  @media print {
+    body {
+      background: white;
+      padding: 0;
+    }
+    .no-print {
+      display: none !important;
+    }
+    .receipt-container {
+      max-width: 100%;
+      margin: 0;
+    }
+    .receipt-badge {
+      border: 4px solid var(--primary-color) !important;
+      box-shadow: none !important;
+      break-inside: avoid;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .badge-header { padding: 0 20px; }
+    .badge-divider-solid { margin: 0 20px; }
+    .badge-divider-dashed { margin: 30px 20px; }
+    .badge-footer-info { padding: 0 20px; }
+    .badge-grid { gap: 20px; }
+    .ticket-number { font-size: 5.5rem; }
+    .grid-value { font-size: 1.6rem; }
+  }

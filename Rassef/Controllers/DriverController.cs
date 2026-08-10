@@ -40,6 +40,12 @@ namespace Rassef.Controllers
             return View(driverList);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Recript()
+        {
+            return View();
+        }
+
         // Get Driver By Id
         public async Task<IActionResult> Details(int id)
         {
