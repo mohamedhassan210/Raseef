@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using Rassef.ViewModels.TransferRequest;
+﻿
 
 namespace Rassef.Validators.TransferRequest
 {
@@ -27,15 +26,6 @@ namespace Rassef.Validators.TransferRequest
                 .NotEmpty().WithMessage("يرجى إدخال رقم الأفيز.")
                 .MaximumLength(50).WithMessage("رقم الأفيز يجب ألا يتجاوز 50 حرفاً/رقماً.");
 
-            // 5. التحقق من معرف الشاحنة (ممرر من الخطوات السابقة)
-            RuleFor(x => x.TruckId)
-                .NotEmpty().WithMessage("معرف السيارة مطلوب.")
-                .GreaterThan(0).WithMessage("بيانات السيارة غير صحيحة.");
-
-            // 6. التحقق من معرف السائق (ممرر من الخطوات السابقة)
-            RuleFor(x => x.DriverId)
-                .NotEmpty().WithMessage("معرف السائق مطلوب.")
-                .GreaterThan(0).WithMessage("بيانات السائق غير صحيحة.");
         }
     }
 }
