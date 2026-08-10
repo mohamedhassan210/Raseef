@@ -1,11 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // ============================================
-    // 1. DOM Elements
+    // 1. DOM Elements (Form & Inputs)
     // ============================================
-
     const form = document.getElementById('addDriverForm');
-
     const editCompanyBtn = document.getElementById('editCompanyBtn');
     const companyStaticView = document.getElementById('companyStaticView');
     const companySelectView = document.getElementById('companySelectView');
@@ -16,284 +14,307 @@ document.addEventListener('DOMContentLoaded', () => {
     const driverPhone = document.getElementById('driverPhone');
     const nationalId = document.getElementById('nationalId');
 
+    // ============================================
+    // 2. DOM Elements (Modals)
+    // ============================================
+    const modalOverlay = document.getElementById('custom-modal-overlay');
+    const deptModal = document.getElementById('department-modal');
+    const confirmModal = document.getElementById('confirmation-modal');
+    const successModal = document.getElementById('success-modal');
+
+    const btnConfirmDept = document.getElementById('btn-confirm-dept');
+    const btnEdit = document.getElementById('btn-edit');
+    const btnConfirm = document.getElementById('btn-confirm');
+    const btnBack = document.getElementById('btn-back');
+    const btnPrint = document.getElementById('btn-print');
+
+    const confirmCompany = document.getElementById('confirm-company');
+    const confirmDriverName = document.getElementById('confirm-driver-name');
+    const confirmDriverId = document.getElementById('confirm-driver-id');
+    const confirmDriverdep = document.getElementById('confirm-driver-dep');
+    const ticketNumberDisplay = document.getElementById('ticket-number');
+
+    const deptDropdownContainer = document.getElementById('dept-dropdown-container');
+    const deptDropdownHeader = document.getElementById('dept-dropdown-header');
+    const deptSelectedValue = document.getElementById('dept-selected-value');
+    const deptDropdownList = document.getElementById('dept-dropdown-list');
+    const deptErrorMsg = document.getElementById('dept-error-msg');
+
+    let selectedDepartmentValue = null;
+    let pendingDriverInfo = {};
 
     // ============================================
-    // 2. Custom Dropdown - شركة السائق
+    // 3. Custom Dropdown - شركة السائق (الأساسية)
     // ============================================
-
     const customDropdown = document.getElementById('customDropdown');
-
     const dropdownHeader = customDropdown.querySelector('.dropdown-header');
-
     const selectedValue = customDropdown.querySelector('.selected-value');
-
     const dropdownItems = customDropdown.querySelectorAll('.dropdown-item');
 
-
-    // ============================================
-    // 3. Custom Dropdown - الشركة الجديدة
-    // ============================================
-
-    const newCompanyTypeDropdown =
-        document.getElementById('newCompanyTypeDropdown');
-
-    const newCompanyTypeHeader =
-        document.getElementById('newCompanyTypeHeader');
-
-    const newCompanySelectedValue =
-        document.getElementById('newCompanySelectedValue');
-
-    const newCompanyItems =
-        newCompanyTypeDropdown.querySelectorAll('.dropdown-item');
-
-    const newCompanyTypeSelect =
-        document.getElementById('newCompanyTypeSelect');
-
-
-    // ============================================
-    // 4. Toggle First Dropdown
-    // شركة السائق
-    // ============================================
-
     dropdownHeader.addEventListener('click', (e) => {
-
         e.stopPropagation();
-
-        // إغلاق Dropdown الشركة الجديدة
-        newCompanyTypeDropdown.classList.remove('open');
-
-        // فتح / إغلاق Dropdown شركة السائق
         customDropdown.classList.toggle('open');
     });
 
-
-    // ============================================
-    // 5. Select Item - First Dropdown
-    // شركة السائق
-    // ============================================
-
     dropdownItems.forEach(item => {
-
         item.addEventListener('click', (e) => {
-
             e.stopPropagation();
-
             const value = item.getAttribute('data-value');
-
-            // تحديث القيمة الظاهرة
             selectedValue.textContent = value;
-
-            // تحديث الـ Native Select
             companySelect.value = value;
-
-            // إزالة selected من كل العناصر
-            dropdownItems.forEach(el => {
-                el.classList.remove('selected');
-            });
-
-            // تحديد العنصر الحالي
+            dropdownItems.forEach(el => el.classList.remove('selected'));
             item.classList.add('selected');
-
-            // إغلاق Dropdown
             customDropdown.classList.remove('open');
         });
     });
 
-
-    // ============================================
-    // 6. Toggle Second Dropdown
-    // الشركة الجديدة
-    // ============================================
-
-    newCompanyTypeHeader.addEventListener('click', (e) => {
-
-        e.stopPropagation();
-
-        // إغلاق Dropdown شركة السائق
-        customDropdown.classList.remove('open');
-
-        // فتح / إغلاق Dropdown الشركة الجديدة
-        newCompanyTypeDropdown.classList.toggle('open');
-    });
-
-
-    // ============================================
-    // 7. Select Item - Second Dropdown
-    // الشركة الجديدة
-    // ============================================
-
-    newCompanyItems.forEach(item => {
-
-        item.addEventListener('click', (e) => {
-
-            e.stopPropagation();
-
-            const value = item.getAttribute('data-value');
-
-            // تحديث القيمة الظاهرة
-            newCompanySelectedValue.textContent = value;
-
-            // إزالة text-muted بعد الاختيار
-            newCompanySelectedValue.classList.remove('text-muted');
-
-            // تحديث الـ Native Select
-            newCompanyTypeSelect.value = value;
-
-            // إزالة selected من كل العناصر
-            newCompanyItems.forEach(el => {
-                el.classList.remove('selected');
-            });
-
-            // تحديد العنصر الحالي
-            item.classList.add('selected');
-
-            // إغلاق Dropdown
-            newCompanyTypeDropdown.classList.remove('open');
-        });
-    });
-
-
-    // ============================================
-    // 8. Close Dropdowns on Outside Click
-    // ============================================
-
     document.addEventListener('click', (e) => {
-
-        // إغلاق Dropdown شركة السائق
         if (!customDropdown.contains(e.target)) {
             customDropdown.classList.remove('open');
         }
-
-        // إغلاق Dropdown الشركة الجديدة
-        if (!newCompanyTypeDropdown.contains(e.target)) {
-            newCompanyTypeDropdown.classList.remove('open');
-        }
     });
 
-
-    // ============================================
-    // 9. Logic to Toggle Company Selection
-    // ============================================
-
     const toggleCompanySelection = () => {
-
-        // إخفاء العرض الثابت
         companyStaticView.classList.add('d-none');
-
-        // إظهار Dropdown شركة السائق
         companySelectView.classList.remove('d-none');
-
-        // تفعيل الـ Select للـ Validation
         companySelect.disabled = false;
     };
 
+    if (editCompanyBtn) {
+        editCompanyBtn.addEventListener('click', toggleCompanySelection);
+    }
 
     // ============================================
-    // 10. Create Driver Object
+    // 4. Modal System Functions
     // ============================================
+    const showConfirmationModal = (modalElement) => {
+        deptModal.classList.remove('active-modal');
+        deptModal.classList.add('d-none');
+        confirmModal.classList.remove('active-modal');
+        confirmModal.classList.add('d-none');
+        successModal.classList.remove('active-modal');
+        successModal.classList.add('d-none');
 
-    const createDriverObject = () => {
+        modalOverlay.classList.add('active');
+        modalElement.classList.remove('d-none');
 
-        const selectedCompany =
-            companyStaticView.classList.contains('d-none')
-                ? companySelect.value
-                : companyDisplay.value;
+        setTimeout(() => {
+            modalElement.classList.add('active-modal');
+        }, 10);
+        document.body.style.overflow = 'hidden';
+    };
 
-        return {
-            id: Date.now(),
+    const closeModal = () => {
+        modalOverlay.classList.remove('active');
+        deptModal.classList.remove('active-modal');
+        confirmModal.classList.remove('active-modal');
+        successModal.classList.remove('active-modal');
+        if (deptDropdownContainer) deptDropdownContainer.classList.remove('open');
+        document.body.style.overflow = '';
+    };
 
-            name: driverName.value.trim(),
+    const populateConfirmationData = (departmentName = "غير متوفر") => {
+        confirmCompany.textContent = pendingDriverInfo.company || "جهينة";
+        confirmDriverName.textContent = pendingDriverInfo.name || "غير متوفر";
+        confirmDriverId.textContent = pendingDriverInfo.nationalId || "غير متوفر";
+        confirmDriverdep.textContent = departmentName;
+    };
 
-            phone: driverPhone.value.trim(),
+    // ============================================
+    // 5. Department Custom Dropdown (للمودال)
+    // ============================================
+    const initDepartmentDropdown = () => {
+        const departmentsData = [
+            { id: 101, name: "قسم الاستلام" },
+            { id: 102, name: "قسم المخازن" },
+            { id: 103, name: "قسم التوزيع" },
+            { id: 104, name: "قسم المبيعات" }
+        ];
 
-            nationalId: nationalId.value.trim(),
+        if (deptDropdownList) {
+            deptDropdownList.innerHTML = departmentsData.map(dept =>
+                `<div class="dropdown-item" data-id="${dept.id}" data-value="${dept.name}">${dept.name}</div>`
+            ).join('');
+        }
 
-            company: selectedCompany
+        const deptItems = deptDropdownList ? deptDropdownList.querySelectorAll('.dropdown-item') : [];
+
+        if (deptDropdownHeader) {
+            deptDropdownHeader.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deptDropdownContainer.classList.toggle('open');
+                deptDropdownHeader.classList.remove('error');
+                deptErrorMsg.style.display = 'none';
+            });
+        }
+
+        deptItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectedDepartmentValue = {
+                    id: parseInt(item.getAttribute('data-id')),
+                    name: item.getAttribute('data-value')
+                };
+                deptSelectedValue.textContent = selectedDepartmentValue.name;
+                deptSelectedValue.classList.remove('text-muted');
+
+                deptItems.forEach(el => el.classList.remove('selected'));
+                item.classList.add('selected');
+
+                deptDropdownContainer.classList.remove('open');
+                deptDropdownHeader.classList.remove('error');
+                deptErrorMsg.style.display = 'none';
+            });
+        });
+
+        if (btnConfirmDept) {
+            btnConfirmDept.addEventListener('click', () => {
+                if (!selectedDepartmentValue) {
+                    deptDropdownHeader.classList.add('error');
+                    deptErrorMsg.style.display = 'block';
+                    deptDropdownHeader.style.animation = 'shake 0.4s';
+                    setTimeout(() => deptDropdownHeader.style.animation = '', 400);
+                    return;
+                }
+                populateConfirmationData(selectedDepartmentValue.name);
+                showConfirmationModal(confirmModal);
+            });
+        }
+    };
+
+    // ============================================
+    // 6. Ticket & Print Logic
+    // ============================================
+    let shiftTicketCounter = 0;
+    const generateTicketNumber = () => {
+        shiftTicketCounter++;
+        let rawDockName = window.pageData?.dockName || 'A';
+        let dockInitial = rawDockName.length > 0 ? rawDockName.charAt(0).toUpperCase() : 'A';
+        return `${dockInitial}${shiftTicketCounter}`;
+    };
+
+    const printTicket = () => {
+        if (btnPrint) {
+            btnPrint.innerHTML = 'جاري التجهيز... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 8px;"></span>';
+            btnPrint.disabled = true;
+        }
+
+        const ticketNum = ticketNumberDisplay ? ticketNumberDisplay.textContent : '0';
+        const deptName = selectedDepartmentValue ? selectedDepartmentValue.name : 'غير محدد';
+        const empName = window.pageData?.employeeName || 'محمد حسين';
+        const dock = window.pageData?.dockName || 'A';
+
+        const receiptData = {
+            ticketNumber: ticketNum,
+            waitingCount: '0',
+            department: deptName,
+            dockNumber: dock,
+            employeeName: empName,
+            createdAt: new Date().toISOString()
         };
+
+        localStorage.setItem('receiptData', JSON.stringify(receiptData));
+
+        setTimeout(() => {
+            if (window.appRoutes && window.appRoutes.receiptPage) {
+                window.location.href = window.appRoutes.receiptPage;
+            } else {
+                window.location.href = window.appRoutes.companyDrivers;
+            }
+        }, 1500);
     };
 
-
     // ============================================
-    // 11. Save Driver to LocalStorage
+    // 7. Form Validation & Submit (Trigger Modals)
     // ============================================
-
-    const saveDriver = (driver) => {
-
-        const existingDrivers =
-            JSON.parse(localStorage.getItem('drivers')) || [];
-
-        existingDrivers.push(driver);
-
-        localStorage.setItem(
-            'drivers',
-            JSON.stringify(existingDrivers)
-        );
-    };
-
-
-    // ============================================
-    // 12. Redirect on Success
-    // ============================================
-
-    const redirectToDrivers = () => {
-
-        window.location.href = window.appRoutes.companyDrivers;
-    };
-
-
-    // ============================================
-    // 13. Form Validation & Submit
-    // ============================================
-
     const validateForm = (event) => {
-
         event.preventDefault();
 
-        // التحقق من صحة البيانات
         if (!form.checkValidity()) {
-
             event.stopPropagation();
-
             form.classList.add('was-validated');
-
             return;
         }
 
-        // إنشاء بيانات السائق
-        const newDriver = createDriverObject();
+        const selectedCompany = companyStaticView.classList.contains('d-none')
+            ? companySelect.value
+            : companyDisplay.value;
 
-        // حفظ البيانات
-        saveDriver(newDriver);
+        // حفظ البيانات مؤقتاً لعرضها في المودال
+        pendingDriverInfo = {
+            id: Date.now(),
+            name: driverName.value.trim(),
+            phone: driverPhone.value.trim(),
+            nationalId: nationalId.value.trim(),
+            company: selectedCompany
+        };
 
-        // الانتقال للصفحة التالية
-        redirectToDrivers();
+        // حفظه في LocalStorage مباشرة
+        const existingDrivers = JSON.parse(localStorage.getItem('drivers')) || [];
+        existingDrivers.push(pendingDriverInfo);
+        localStorage.setItem('drivers', JSON.stringify(existingDrivers));
+
+        // تصفير وفتح مودال الأقسام
+        selectedDepartmentValue = null;
+        if (deptSelectedValue) {
+            deptSelectedValue.textContent = 'اختار القسم';
+            deptSelectedValue.classList.add('text-muted');
+        }
+        if (deptDropdownHeader) deptDropdownHeader.classList.remove('error');
+        if (deptErrorMsg) deptErrorMsg.style.display = 'none';
+        document.querySelectorAll('#dept-dropdown-list .dropdown-item').forEach(i => i.classList.remove('selected'));
+
+        showConfirmationModal(deptModal);
     };
 
-
     // ============================================
-    // 14. Initialization
+    // 8. Initialize Modals Events
     // ============================================
+    const initializeModals = () => {
+        initDepartmentDropdown();
 
-    const initializePage = () => {
+        if (btnEdit) {
+            btnEdit.addEventListener('click', () => {
+                closeModal();
+            });
+        }
 
-        // زر تعديل شركة السائق
-        editCompanyBtn.addEventListener(
-            'click',
-            toggleCompanySelection
-        );
+        if (btnConfirm) {
+            btnConfirm.addEventListener('click', () => {
+                const ticketNum = generateTicketNumber();
+                if (ticketNumberDisplay) ticketNumberDisplay.textContent = ticketNum;
+                showConfirmationModal(successModal);
+            });
+        }
 
-        // Submit Form
-        form.addEventListener(
-            'submit',
-            validateForm
-        );
+        if (btnBack) {
+            btnBack.addEventListener('click', () => {
+                window.location.href = window.appRoutes.companyDrivers;
+            });
+        }
+
+        if (btnPrint) {
+            btnPrint.addEventListener('click', () => {
+                printTicket();
+            });
+        }
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                if (!deptModal.classList.contains('d-none') || !confirmModal.classList.contains('d-none')) {
+                    closeModal();
+                }
+                if (deptDropdownContainer) deptDropdownContainer.classList.remove('open');
+            }
+        });
     };
 
-
     // ============================================
-    // 15. Start
+    // 9. Start
     // ============================================
-
-    initializePage();
+    if (form) {
+        form.addEventListener('submit', validateForm);
+    }
+    initializeModals();
 
 });

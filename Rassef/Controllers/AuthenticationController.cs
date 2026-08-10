@@ -167,6 +167,13 @@
             return View();
         }
 
+        // View Role
+        [HttpGet]
+        public async Task<IActionResult> viewRole()
+        {
+            return View();
+        }
+
         //Helpers
         [HttpGet]
         public async Task<IActionResult> AccessDenied()

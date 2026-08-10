@@ -21,15 +21,13 @@
         }
 
         [HttpGet]
-        // Display all items
-        public async Task<IActionResult> Index(int supplierid)
+        public async Task<IActionResult> Index(int supplierid, string searchString)
         {
             var supplier = await _supplierRepository.GetByIdAsync(supplierid);
             if (supplier is null)
             {
                 return RedirectToAction("Index", "Supplier");
             }
-
 
             var trucksrepo = await _truckRepository.GetTruckWithTypeName();
 
@@ -44,11 +42,23 @@
                     StorageCapacity = x.StorageCapacity,
                     TruckTypeName = x.TruckType?.Name ?? "غير محدد",
                     supplierId = supplierid
-                }).ToList();
+                });
+
+            // 👇 فلترة البيانات لو المستخدم كتاب حاجة في خانة البحث
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                searchString = searchString.Trim().ToLower();
+                supplierTrucks = supplierTrucks.Where(x =>
+                    (!string.IsNullOrEmpty(x.PlateNumber) && x.PlateNumber.ToLower().Contains(searchString)) ||
+                    (!string.IsNullOrEmpty(x.PlateLetter) && x.PlateLetter.ToLower().Contains(searchString))
+                );
+            }
 
             ViewBag.SupplierName = supplier.Name;
             ViewBag.SupplierId = supplier.Id;
-            return View(supplierTrucks);
+            ViewBag.Search = searchString; // لحفظ الكلمة المكتوبة في خانة البحث متبوعة على الشاشة
+
+            return View(supplierTrucks.ToList());
         }
         [HttpGet]
         // Display details
