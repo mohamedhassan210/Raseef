@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Modal Elements
     const modalOverlay = document.getElementById('custom-modal-overlay');
-    const deptModal = document.getElementById('department-modal'); // الخطوة الجديدة
+    const deptModal = document.getElementById('department-modal');
     const confirmModal = document.getElementById('confirmation-modal');
     const successModal = document.getElementById('success-modal');
 
@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Modal System & Workflow
     // ==========================================
     const showConfirmationModal = (modalElement) => {
-        // Hide all modals
         deptModal.classList.remove('active-modal');
         deptModal.classList.add('d-none');
         confirmModal.classList.remove('active-modal');
@@ -87,10 +86,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     };
 
-    // تعبئة البيانات في مودال التأكيد
+    // تعبئة البيانات في مودال التأكيد مع تثبيت الشركة لـ "غير محدد" في النقل الداخلي
     const populateConfirmationData = (driverName, departmentName = "غير متوفر") => {
-        const company = window.pageData?.companyName || "غير متوفر";
-        const truck = window.pageData?.truckName || "سيارة تبريد";
+        const company = "غير محدد"; // No supplier in Transfer context
+        const truck = window.pageData?.truckName || "غير محدد";
 
         confirmCompany.textContent = company;
         confirmTruck.textContent = truck;
@@ -98,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmDriverdep.textContent = departmentName;
     };
 
-    // الخطوة الأولى: اختيار السائق وفتح مودال الأقسام
     const attachSelectionEvents = () => {
         const selectButtons = document.querySelectorAll('.select-btn');
         selectButtons.forEach(button => {
@@ -107,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const driverName = card.getAttribute('data-name');
                 const driverId = card.getAttribute('data-id');
 
-                // Reset Department Modal state
                 selectedDepartmentValue = null;
                 deptSelectedValue.textContent = 'اختار القسم';
                 deptSelectedValue.classList.add('text-muted');
@@ -117,13 +114,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 deptItems.forEach(i => i.classList.remove('selected'));
                 deptDropdownContainer.classList.remove('open');
 
-                // حفظ بيانات السائق مؤقتاً
                 localStorage.setItem('pendingDriver', JSON.stringify({
                     name: driverName,
                     nationalId: driverId
                 }));
 
-                // إظهار مودال الأقسام
                 showConfirmationModal(deptModal);
             });
         });
@@ -134,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. Department Custom Dropdown Logic
     // ==========================================
     const initDepartmentDropdown = () => {
-        // بيانات الأقسام الوهمية 
         const departmentsData = [
             { id: 101, name: "قسم الاستلام" },
             { id: 102, name: "قسم المخازن" },
@@ -142,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 104, name: "قسم المبيعات" }
         ];
 
-        // بناء عناصر القائمة ديناميكياً
         deptDropdownList.innerHTML = departmentsData.map(dept =>
             `<div class="dropdown-item" data-id="${dept.id}" data-value="${dept.name}">${dept.name}</div>`
         ).join('');
@@ -177,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // زر تأكيد القسم في المودال
         btnConfirmDept.addEventListener('click', () => {
             if (!selectedDepartmentValue) {
                 deptDropdownHeader.classList.add('error');
@@ -215,7 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btnPrint.innerHTML = 'جاري الانتقال للإيصال... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 8px;"></span>';
         btnPrint.disabled = true;
 
-        // 1. تجميع البيانات وحفظها في الـ LocalStorage
         const ticketNum = ticketNumberDisplay.textContent;
         const deptName = selectedDepartmentValue ? selectedDepartmentValue.name : 'غير محدد';
         const empName = window.pageData?.employeeName || 'محمد حسين';
@@ -233,12 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         localStorage.setItem('receiptData', JSON.stringify(receiptData));
 
-        // 2. الانتقال لصفحة الريسيبت فوراً (بدون طباعة هنا)
         setTimeout(() => {
             if (window.routes && window.routes.receiptPage) {
                 window.location.href = window.routes.receiptPage;
             } else {
-                window.location.href = "receipt.html";
+                window.location.href = "/Driver/Recript";
             }
         }, 800);
     };
@@ -249,33 +239,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeModals = () => {
         initDepartmentDropdown();
 
-        // زر التعديل
+        // زر التعديل (يرجع للمسار الجديد SupOrTra)
         btnEdit.addEventListener('click', () => {
-            if (window.routes && window.routes.supplierIndex) {
-                window.location.href = window.routes.supplierIndex;
+            if (window.routes && window.routes.backRoute) {
+                window.location.href = window.routes.backRoute;
             }
         });
 
-        // تأكيد البيانات وفتح مودال النجاح
         btnConfirm.addEventListener('click', () => {
             const ticketNum = generateTicketNumber();
             ticketNumberDisplay.textContent = ticketNum;
             showConfirmationModal(successModal);
         });
 
-        // زر الرجوع في مودال النجاح
+        // زر الرجوع في مودال النجاح (يرجع للمسار الجديد SupOrTra)
         btnBack.addEventListener('click', () => {
-            if (window.routes && window.routes.supplierIndex) {
-                window.location.href = window.routes.supplierIndex;
+            if (window.routes && window.routes.backRoute) {
+                window.location.href = window.routes.backRoute;
             }
         });
 
-        // زر الطباعة
         btnPrint.addEventListener('click', () => {
             printTicket();
         });
 
-        // إغلاق المودال عند النقر في الخارج أو الضغط على Escape
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) {
                 if (!deptModal.classList.contains('d-none') || !confirmModal.classList.contains('d-none')) {

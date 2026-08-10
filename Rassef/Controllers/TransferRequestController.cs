@@ -100,7 +100,11 @@
 
             if (await _repository.ExistsAsync(x => x.AvizNumber == model.AvizNumber))
             {
-                ModelState.AddModelError(nameof(model.AvizNumber), "رقم الأفيز مسجل بالفعل.");
+                ModelState.AddModelError(
+                    nameof(model.AvizNumber),
+                    "رقم الأفيز مسجل بالفعل."
+                );
+
                 await LoadDataAsync();
                 return View(model);
             }
@@ -119,7 +123,8 @@
             await _repository.AddAsync(request);
             await _repository.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index));
+            // بعد نجاح الإضافة ينتقل إلى صفحة إنهاء الإعداد
+            return RedirectToAction("TransferDrivers", "Driver");
         }
 
         // Update (GET)

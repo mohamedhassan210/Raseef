@@ -1,0 +1,162 @@
+﻿@{
+    ViewData["Title"] = "إنهاء الإعداد";
+    Layout = "_SupOrTra";
+}
+
+@model Rassef.ViewModels.TransferRequest.CreateTransferRequestVM
+@section Styles {
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+
+    <!-- استدعاء ملفات الـ CSS -->
+    <link rel="stylesheet" href="~/css/companyDrivers.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/finishSetup.css" asp-append-version="true">
+}
+
+<main class="page-container">
+    <header class="page-header">
+        <div class="logo-wrapper header-right">
+            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-Fathalla" onerror="this.src='https://via.placeholder.com/120x60?text=Fathalla'">
+        </div>
+        <div class="title-wrapper">
+            <h1 class="main-title">إنهاء الإعداد</h1>
+        </div>
+        <div class="logo-wrapper header-left">
+            <img src="~/img/logo.svg" alt="رصيفي" class="logo-raseefy" onerror="this.src='https://via.placeholder.com/120x60?text=Raseefy'">
+        </div>
+    </header>
+
+    <div class="nav-actions-container" style="justify-content: flex-end;">
+        <a href="@Url.Action("TransferDrivers", "Driver")" class="action-btn" aria-label="خطوة للخلف">
+            خطوة للخلف
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </a>
+    </div>
+
+    <section class="form-card-wide mt-3">
+        @if (ViewBag.SuccessMessage != null)
+        {
+            <div class="alert alert-success text-center fw-bold mb-4">
+                @ViewBag.SuccessMessage
+            </div>
+        }
+
+        <form id="finishSetupForm" asp-action="FinishSetup" method="post" class="needs-validation" novalidate>
+            <div class="row mb-5 gy-4 form-inner-row">
+
+                <!-- العمود الأيمن (Right Column) -->
+                <div class="col-md-6 order-md-1 d-flex flex-column gap-4 px-4">
+
+                    <!-- تحديد القسم -->
+                    <div>
+                        <label class="form-label fw-bold form-label-custom">تحديد القسم</label>
+                        <div class="position-relative">
+                            <input type="hidden" id="departmentInput" required>
+                            <div class="custom-dropdown w-100" id="deptDropdownContainer">
+                                <div class="dropdown-header input-style" id="deptDropdownHeader">
+                                    <span class="selected-value text-muted" id="deptSelectedValue">ادخل القسم</span>
+                                    <svg class="dropdown-arrow-custom" viewBox="0 0 24 24" fill="none" stroke="#EB842D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="18 15 12 9 6 15"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="dropdown-list" id="deptDropdownList">
+                                    <div class="dropdown-item" data-value="قسم الاستلام">قسم الاستلام</div>
+                                    <div class="dropdown-item" data-value="قسم المخازن">قسم المخازن</div>
+                                    <div class="dropdown-item" data-value="قسم التوزيع">قسم التوزيع</div>
+                                    <div class="dropdown-item" data-value="قسم المبيعات">قسم المبيعات</div>
+                                </div>
+                            </div>
+                            <div class="invalid-feedback text-center mt-2" id="deptErrorMsg">يرجى اختيار القسم.</div>
+                        </div>
+                    </div>
+
+                    <!-- نوع الإذن -->
+                    <!-- نوع الإذن -->
+                    <div>
+                        <label class="form-label fw-bold form-label-custom">نوع الإذن</label>
+
+                        <div class="d-flex align-items-center justify-content-center gap-5 mt-2 radio-group-custom">
+
+                            <!-- خروج -->
+                            <label class="custom-radio-container">
+                                خروج
+                                <input type="radio"
+                                       name="PermissionType"
+                                       value="خروج"
+                                       id="typeOut"
+                                       checked
+                                       required>
+                                <span class="radio-checkmark"></span>
+                            </label>
+
+                            <!-- دخول -->
+                            <label class="custom-radio-container">
+                                دخول
+                                <input type="radio"
+                                       name="PermissionType"
+                                       value="دخول"
+                                       id="typeIn"
+                                       required>
+                                <span class="radio-checkmark"></span>
+                            </label>
+
+                        </div>
+
+                        <div class="invalid-feedback text-center mt-2" id="typeErrorMsg">
+                            يرجى اختيار نوع الإذن.
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- العمود الأيسر (Left Column) -->
+                <div class="col-md-6 order-md-2 d-flex flex-column gap-4 px-4 border-start-custom">
+
+                    <!-- رقم الإذن -->
+                    <div>
+                        <label  class="form-label fw-bold form-label-custom">رقم الإذن</label>
+                        <div class="position-relative">
+                            <input type="text"
+                                   class="form-control custom-input input-style text-center"
+                                   id="permissionNumber"
+                                   placeholder="ادخل رقم الإذن"
+                                   required>
+                            <div class="invalid-feedback text-center mt-2">يرجى إدخال رقم الإذن.</div>
+                        </div>
+                    </div>
+
+                    <!-- رقم الأفيز -->
+                    <div>
+                        <label  class="form-label fw-bold form-label-custom">رقم الأفِيز</label>
+                        <div class="position-relative">
+                            <input type="text"
+                                   class="form-control custom-input input-style text-center"
+                                   id="licenseNumber"
+                                   placeholder="ادخل رقم الأفيز"
+                                   required>
+                            <div class="invalid-feedback text-center mt-2">يرجى إدخال رقم الأفيز.</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <button type="submit" class="w-100 submit-btn-large mt-2" id="submitBtn">إنهاء الإعداد</button>
+        </form>
+    </section>
+</main>
+
+@section Scripts {
+    <script>
+        window.appRoutes = {
+            transferDrivers: '@Url.Action("TransferDrivers", "Driver")'
+        };
+    </script>
+
+    <script src="~/js/finishSetup.js" asp-append-version="true"></script>
+}

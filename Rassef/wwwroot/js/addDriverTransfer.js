@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
 
     // ============================================
     // 1. DOM Elements (Form & Inputs)
@@ -230,41 +230,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const validateForm = (event) => {
         event.preventDefault();
 
+        // التحقق من صحة البيانات
         if (!form.checkValidity()) {
             event.stopPropagation();
             form.classList.add('was-validated');
             return;
         }
 
-        const selectedCompany = companyStaticView.classList.contains('d-none')
-            ? companySelect.value
-            : companyDisplay.value;
-
-        // حفظ البيانات مؤقتاً لعرضها في المودال
-        pendingDriverInfo = {
-            id: Date.now(),
-            name: driverName.value.trim(),
-            phone: driverPhone.value.trim(),
-            nationalId: nationalId.value.trim(),
-            company: selectedCompany
-        };
-
-        // حفظه في LocalStorage مباشرة
-        const existingDrivers = JSON.parse(localStorage.getItem('drivers')) || [];
-        existingDrivers.push(pendingDriverInfo);
-        localStorage.setItem('drivers', JSON.stringify(existingDrivers));
-
-        // تصفير وفتح مودال الأقسام
-        selectedDepartmentValue = null;
-        if (deptSelectedValue) {
-            deptSelectedValue.textContent = 'اختار القسم';
-            deptSelectedValue.classList.add('text-muted');
-        }
-        if (deptDropdownHeader) deptDropdownHeader.classList.remove('error');
-        if (deptErrorMsg) deptErrorMsg.style.display = 'none';
-        document.querySelectorAll('#dept-dropdown-list .dropdown-item').forEach(i => i.classList.remove('selected'));
-
-        showConfirmationModal(deptModal);
+        // Validation ناجحة
+        // الانتقال إلى Create.cshtml داخل TransferRequestController
+        window.location.href = window.appRoutes.createTransferRequest;
     };
 
     // ============================================
@@ -317,21 +292,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     initializeModals();
 
-});
-
-
-document.getElementById("addDriverForm").addEventListener("submit", function (e) {
-
-    if (!this.checkValidity()) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        this.classList.add("was-validated");
-        return;
-    }
-
-    this.classList.add("was-validated");
-
-    // لا تستخدم e.preventDefault()
-    // السماح للـ form بالـ POST إلى TransferRequest/Create
 });
