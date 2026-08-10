@@ -97,12 +97,9 @@ namespace Rassef.Controllers
             var request = new TransferRequest
             {
                 AvizNumber = model.AvizNumber,
-                TruckId = model.TruckId,
-                DriverId = model.DriverId,
                 PermitTypeId = model.PermitTypeId,
                 PermitNumber = model.PermitNumber,
                 DepartmentId = model.DepartmentId,
-                RequestStatusId = model.RequestStatusId
             };
 
             await _repository.AddAsync(request);
