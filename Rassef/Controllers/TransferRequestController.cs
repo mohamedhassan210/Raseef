@@ -1,4 +1,4 @@
-﻿namespace Rassef.Controllers
+namespace Rassef.Controllers
 {
     public class TransferRequestController : Controller
     {
@@ -34,22 +34,11 @@
             ViewBag.RequestStatuses = await _requestStatusRepository.GetAllAsync();
         }
 
-        // Index
+        // طلبات التحويل - Index
         public async Task<IActionResult> Index()
         {
-            var requests = await _repository.GetAllWithDetailsAsync();
-
-            var model = requests.Select(x => new TransferRequestListVM
-            {
-                Id = x.Id,
-                AvizNumber = x.AvizNumber,
-                Truck = $"{x.Truck.PlateNumber} {x.Truck.PlateLetter}",
-                Driver = x.Driver.FullName,
-                Department = x.Department.Name,
-                RequestStatus = x.RequestStatus.Name
-            }).ToList();
-
-            return View(model);
+          
+            return View();
         }
 
         // Details

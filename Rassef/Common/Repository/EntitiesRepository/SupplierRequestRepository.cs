@@ -19,6 +19,11 @@
                 .Include(x => x.CommodityType)
                 .Include(x => x.RequestStatus)
                 .Include(x => x.CreatedBy)
+                .Include(x => x.QueueTickets)
+                    .ThenInclude(q => q.TicketStatus)
+                .Include(x => x.QueueTickets)
+                    .ThenInclude(q => q.DockAssignments)
+                        .ThenInclude(da => da.Dock)
                 .ToListAsync();
         }
 

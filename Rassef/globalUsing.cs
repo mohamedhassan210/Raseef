@@ -34,6 +34,7 @@ global using Rassef.ViewModels.QueueSettings;
 global using Rassef.ViewModels.QueueTicket;
 global using Rassef.ViewModels.Shift;
 global using Rassef.ViewModels.Supplier;
+global using Rassef.ViewModels.SupplierRequest;
 global using Rassef.ViewModels.TransferRequest;
 global using Rassef.ViewModels.Truck;
 global using Rassef.ViewModels.Warehouse;

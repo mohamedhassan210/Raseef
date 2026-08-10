@@ -1,8 +1,8 @@
-﻿namespace Rassef.Controllers
+namespace Rassef.Controllers
 {
     public class SupplierRequestController : Controller
     {
-        private readonly ISupplierRequestRepository _supplierRequestRepository; // التعديل هنا
+        private readonly ISupplierRequestRepository _supplierRequestRepository;
         private readonly IRepository<Supplier> _supplierRepository;
         private readonly IRepository<Truck> _truckRepository;
         private readonly IRepository<Driver> _driverRepository;
@@ -11,10 +11,10 @@
         private readonly IRepository<CommodityTypes> _commodityTypeRepository;
         private readonly IRepository<RequestStatuses> _requestStatusRepository;
         private readonly IRepository<User> _userRepository;
-        private readonly IRepository<Truck> _truckTypeRepository;
+        private readonly IRepository<TruckTypes> _truckTypeRepository;
 
         public SupplierRequestController(
-            ISupplierRequestRepository supplierRequestRepository, // التعديل هنا
+            ISupplierRequestRepository supplierRequestRepository,
             IRepository<Supplier> supplierRepository,
             IRepository<Truck> truckRepository,
             IRepository<Driver> driverRepository,
@@ -23,7 +23,7 @@
             IRepository<CommodityTypes> commodityTypeRepository,
             IRepository<RequestStatuses> requestStatusRepository,
             IRepository<User> userRepository,
-            IRepository<Truck> truckTypeRepository)
+            IRepository<TruckTypes> truckTypeRepository)
         {
             _supplierRequestRepository = supplierRequestRepository;
             _supplierRepository = supplierRepository;
@@ -36,24 +36,41 @@
             _userRepository = userRepository;
             _truckTypeRepository = truckTypeRepository;
         }
-
         [HttpGet]
-        // Display all items
+        // طلبات التوريد - Index
         public async Task<IActionResult> Index()
         {
-            var requestsRepo = await _supplierRequestRepository.GetAllWithDetailsAsync();
+            var requestsRepo =
+                await _supplierRequestRepository.GetAllWithDetailsAsync();
 
-            var requests = requestsRepo.Select(x => new SupplierRequestListVM
+            var requests = requestsRepo
+            .SelectMany(x => x.QueueTickets.Select(ticket => new SupplierRequestListVM
             {
                 Id = x.Id,
-                SupplierName = x.Supplier?.Name ?? "غير محدد",
-                TruckPlateNumber = $"{x.Truck?.PlateLetter} {x.Truck?.PlateNumber}",
-                DriverName = x.Driver?.FullName ?? "غير محدد",
+                TicketNumber = ticket.TicketNumber,
+                TicketStatusName =
+                    ticket.TicketStatus?.Name ?? "غير محدد",
+                QueueTime = ticket.QueueTime,
+                DockName = ticket.DockAssignments
+                    .OrderByDescending(x => x.AssignedAt)
+                    .Select(x => x.Dock.DockName)
+                    .FirstOrDefault() ?? "غير محدد",
+                SupplierName =
+                    x.Supplier?.Name ?? "غير محدد",
+                TruckPlateNumber =
+                    $"{x.Truck?.PlateLetter} {x.Truck?.PlateNumber}",
+                DriverName =
+                    x.Driver?.FullName ?? "غير محدد",
                 DriverPhone = x.DriverPhone,
-                DepartmentName = x.Department?.Name ?? "غير محدد",
-                RequestStatusName = x.RequestStatus?.Name ?? "غير محدد",
-                PermitNumber = x.PermitNumber,
-            }).ToList();
+                DepartmentName =
+                    x.Department?.Name ?? "غير محدد",
+                RequestStatusName =
+                    x.RequestStatus?.Name ?? "غير محدد",
+                EmployeeName =
+                    x.CreatedBy?.Name ?? "غير محدد",
+                PermitNumber = x.PermitNumber
+            }))
+            .ToList();
 
             return View(requests);
         }
@@ -98,12 +115,10 @@
 
         [HttpGet]
         // Display create page
-        public async Task<IActionResult> Create(CreateSupplierRequestVM create)
+        public async Task<IActionResult> Create()
         {
-
-            var departments = _departmentRepository.GetAllAsync();
-            ViewBag.dpartment = departments;
-            return View(create);
+            var vm = new CreateSupplierRequestVM();
+            return View(await PopulateDropdownsAsync(vm));
         }
 
         [HttpPost]
@@ -259,7 +274,7 @@
                 DepartmentName = request.Department?.Name ?? "غير محدد",
                 PermitTypeName = request.PermitType?.Name ?? "غير محدد",
                 PermitNumber = request.PermitNumber,
-                CommodityTypeName = request.CommodityType?.Name ?? "غير محدد",  
+                CommodityTypeName = request.CommodityType?.Name ?? "غير محدد",
                 RequestStatusName = request.RequestStatus?.Name ?? "غير محدد",
                 IsFood = request.IsFood,
                 CreatedByName = request.CreatedBy?.Name ?? "غير محدد"
@@ -343,7 +358,7 @@
                 IsRefrigerated = create.IsRefrigerated,
                 TruckTypeId = create.TruckTypeId,
                 CreatedBy = currentUser
-                
+
             };
 
             await _truckRepository.AddAsync(truck);
@@ -411,8 +426,8 @@
 
             ViewBag.TruckTypes = new SelectList(
                 truckTypes,
-                "Id",
-                "Name",
+                nameof(TruckTypes.Id),
+                nameof(TruckTypes.Name),
                 selectedTruckTypeId
             );
         }
