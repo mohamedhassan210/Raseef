@@ -1,4 +1,7 @@
-﻿namespace Rassef.Controllers
+﻿using Microsoft.AspNetCore.Identity;
+using Rassef.ViewModels.Authentication.UserViewModels;
+
+namespace Rassef.Controllers
 {
     public class AuthenticationController : Controller
     {
@@ -8,6 +11,31 @@
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
+        }
+        // every employees
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var users = await _userRepository.GetAllAsync();
+
+            var allUsers = users.Select(u => new UserList
+            {
+                Name = u.Name,
+                Phone = u.Phone,
+                Email = u.Email.ToString(),
+                NationalId = u.NationalId,
+                UserCode = u.UserCode
+            }).ToList();
+
+            if (!allUsers.Any())
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "لا يوجد أي مستخدمين حتى الآن"
+                );
+            }
+
+            return View(allUsers);
         }
 
         [HttpGet]

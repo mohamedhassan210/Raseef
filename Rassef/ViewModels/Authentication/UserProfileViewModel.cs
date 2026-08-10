@@ -7,7 +7,6 @@
         public string NationalId { get; set; } = string.Empty;
         public Email Email { get; set; }
         private string? UserCode { get; set; }
-
         public string Phone { get; set; } = string.Empty;
     }
 }
