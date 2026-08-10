@@ -318,3 +318,20 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeModals();
 
 });
+
+
+document.getElementById("addDriverForm").addEventListener("submit", function (e) {
+
+    if (!this.checkValidity()) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        this.classList.add("was-validated");
+        return;
+    }
+
+    this.classList.add("was-validated");
+
+    // لا تستخدم e.preventDefault()
+    // السماح للـ form بالـ POST إلى TransferRequest/Create
+});

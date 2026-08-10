@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Rassef.Migrations
 {
     /// <inheritdoc />
-    public partial class intialdatabase : Migration
+    public partial class initialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -165,6 +166,24 @@ namespace Rassef.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Shifts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    StartTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    Duration = table.Column<TimeSpan>(type: "time", nullable: false),
+                    LastResetAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Shifts", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TicketStatuses",
                 columns: table => new
                 {
@@ -207,6 +226,29 @@ namespace Rassef.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_UserGroups", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "QueueSettings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ResetType = table.Column<int>(type: "int", nullable: false),
+                    ShiftId = table.Column<int>(type: "int", nullable: true),
+                    LastGlobalResetAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_QueueSettings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_QueueSettings_Shifts_ShiftId",
+                        column: x => x.ShiftId,
+                        principalTable: "Shifts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -400,6 +442,8 @@ namespace Rassef.Migrations
                     WarehouseId = table.Column<int>(type: "int", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: false),
                     DepartmentTypeId = table.Column<int>(type: "int", nullable: false),
+                    LastResetAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    Prefix = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
@@ -617,6 +661,7 @@ namespace Rassef.Migrations
                     EntryTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     ExitTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: false),
+                    ShiftId = table.Column<int>(type: "int", nullable: true),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
@@ -627,6 +672,12 @@ namespace Rassef.Migrations
                         name: "FK_QueueTickets_Departments_DepartmentId",
                         column: x => x.DepartmentId,
                         principalTable: "Departments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_QueueTickets_Shifts_ShiftId",
+                        column: x => x.ShiftId,
+                        principalTable: "Shifts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -784,6 +835,12 @@ namespace Rassef.Migrations
                 column: "DepartmentTypeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Departments_Prefix",
+                table: "Departments",
+                column: "Prefix",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Departments_WarehouseId",
                 table: "Departments",
                 column: "WarehouseId");
@@ -872,6 +929,11 @@ namespace Rassef.Migrations
                 column: "TicketId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_QueueSettings_ShiftId",
+                table: "QueueSettings",
+                column: "ShiftId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_QueueTickets_CreatedById",
                 table: "QueueTickets",
                 column: "CreatedById");
@@ -880,6 +942,11 @@ namespace Rassef.Migrations
                 name: "IX_QueueTickets_DepartmentId",
                 table: "QueueTickets",
                 column: "DepartmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_QueueTickets_ShiftId",
+                table: "QueueTickets",
+                column: "ShiftId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_QueueTickets_SupplierRequestId",
@@ -1013,6 +1080,9 @@ namespace Rassef.Migrations
                 name: "QueueActions");
 
             migrationBuilder.DropTable(
+                name: "QueueSettings");
+
+            migrationBuilder.DropTable(
                 name: "ExitTypes");
 
             migrationBuilder.DropTable(
@@ -1029,6 +1099,9 @@ namespace Rassef.Migrations
 
             migrationBuilder.DropTable(
                 name: "DockStatuses");
+
+            migrationBuilder.DropTable(
+                name: "Shifts");
 
             migrationBuilder.DropTable(
                 name: "SupplierRequests");
