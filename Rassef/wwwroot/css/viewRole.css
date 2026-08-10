@@ -149,18 +149,18 @@ body {
     flex-grow: 1;
 }
 
-.search-container input {
-    flex-grow: 1;
-    border: none;
-    outline: none;
-    background: #FCF3EE;
-    color: var(--text-dark);
-    font-family: var(--font-family);
-    font-size: 1.1rem;
-    font-weight: 500;
-    padding: 14px 26px;
-    border-radius: 100px;
-}
+    .search-container input {
+        flex-grow: 1;
+        border: none;
+        outline: none;
+        background: #f9f2f2;
+        color: var(--text-dark);
+        font-family: var(--font-family);
+        font-size: 1.1rem;
+        font-weight: 500;
+        padding: 14px 26px;
+        border-radius: 100px;
+    }
 
 .search-icon {
     background-color: var(--primary-color);
