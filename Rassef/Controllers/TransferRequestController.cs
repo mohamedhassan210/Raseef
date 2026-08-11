@@ -1,3 +1,9 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Rassef.Models.Entities;
+using Rassef.ViewModels.TransferRequest;
+using System.Security.Claims;
+
 namespace Rassef.Controllers
 {
     public class TransferRequestController : Controller
@@ -25,13 +31,22 @@ namespace Rassef.Controllers
             _requestStatusRepository = requestStatusRepository;
         }
 
-        private async Task LoadDataAsync()
+        private async Task LoadSelectListsAsync(CreateTransferRequestVM model)
         {
-            ViewBag.Trucks = await _truckRepository.GetAllAsync();
-            ViewBag.Drivers = await _driverRepository.GetAllAsync();
-            ViewBag.Departments = await _departmentRepository.GetAllAsync();
-            ViewBag.PermitTypes = await _permitTypeRepository.GetAllAsync();
-            ViewBag.RequestStatuses = await _requestStatusRepository.GetAllAsync();
+            var departments = await _departmentRepository.GetAllAsync();
+            var permitTypes = await _permitTypeRepository.GetAllAsync();
+
+            model.Departments = departments.Select(d => new SelectListItem
+            {
+                Value = d.Id.ToString(),
+                Text = d.Name
+            });
+
+            model.PermitTypes = permitTypes.Select(p => new SelectListItem
+            {
+                Value = p.Id.ToString(),
+                Text = p.Name
+            });
         }
 
         // طلبات التحويل - Index
@@ -72,7 +87,6 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            await LoadDataAsync();
             return View();
         }
 
@@ -83,23 +97,31 @@ namespace Rassef.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await LoadDataAsync();
+                await LoadSelectListsAsync(model);
                 return View(model);
             }
 
             if (await _repository.ExistsAsync(x => x.AvizNumber == model.AvizNumber))
             {
                 ModelState.AddModelError(nameof(model.AvizNumber), "رقم الأفيز مسجل بالفعل.");
-                await LoadDataAsync();
+                await LoadSelectListsAsync(model);
                 return View(model);
             }
+
+            // استخراج معرف المستخدم الحالي
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+            // تحديد الحالة الافتراضية للطلب (مثلاً 1 لـ Pending/New حسب قاعدة البيانات لديك)
+            int defaultStatusId = 1;
 
             var request = new TransferRequest
             {
                 AvizNumber = model.AvizNumber,
-                PermitTypeId = model.PermitTypeId,
                 PermitNumber = model.PermitNumber,
                 DepartmentId = model.DepartmentId,
+                PermitTypeId = model.PermitTypeId,
+                RequestStatusId = defaultStatusId,
+                CreatedById = userId
             };
 
             await _repository.AddAsync(request);
@@ -120,8 +142,6 @@ namespace Rassef.Controllers
                 return View();
             }
 
-            await LoadDataAsync();
-
             var model = new UpdateTransferRequestVM
             {
                 Id = request.Id,
@@ -134,6 +154,10 @@ namespace Rassef.Controllers
                 RequestStatusId = request.RequestStatusId
             };
 
+            ViewBag.Departments = await _departmentRepository.GetAllAsync();
+            ViewBag.PermitTypes = await _permitTypeRepository.GetAllAsync();
+            ViewBag.RequestStatuses = await _requestStatusRepository.GetAllAsync();
+
             return View(model);
         }
 
@@ -144,7 +168,9 @@ namespace Rassef.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await LoadDataAsync();
+                ViewBag.Departments = await _departmentRepository.GetAllAsync();
+                ViewBag.PermitTypes = await _permitTypeRepository.GetAllAsync();
+                ViewBag.RequestStatuses = await _requestStatusRepository.GetAllAsync();
                 return View(model);
             }
 
@@ -153,14 +179,15 @@ namespace Rassef.Controllers
             if (request == null)
             {
                 ModelState.AddModelError("", "طلب النقل غير موجود.");
-                await LoadDataAsync();
                 return View(model);
             }
 
             if (await _repository.ExistsAsync(x => x.AvizNumber == model.AvizNumber && x.Id != model.Id))
             {
                 ModelState.AddModelError(nameof(model.AvizNumber), "رقم الأفيز مسجل بالفعل.");
-                await LoadDataAsync();
+                ViewBag.Departments = await _departmentRepository.GetAllAsync();
+                ViewBag.PermitTypes = await _permitTypeRepository.GetAllAsync();
+                ViewBag.RequestStatuses = await _requestStatusRepository.GetAllAsync();
                 return View(model);
             }
 
@@ -222,6 +249,12 @@ namespace Rassef.Controllers
             await _repository.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // Ensure Order 
+        public async Task<IActionResult> EnsureOrder(int id)
+        {
+            return RedirectToAction("Recript", "Driver");
         }
     }
 }
