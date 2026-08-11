@@ -16,20 +16,25 @@ namespace Rassef.Controllers
         private readonly IRepository<Position> _positionRepository;
         private readonly IRepository<Truck> _truckRepository;
         private readonly IRepository<TruckTypes> _truckTypesRepository;
+        private readonly IRepository<Driver> _driverRepository;
+        private readonly IRepository<DriverType> _driverTypeRepository;
 
         public AdministrationController(
             IUserRepository userRepository,
             IRepository<Position> positionRepository,
             IRepository<Truck> truckRepository,
-                        IRepository<TruckTypes> truckTypeRepository)
+            IRepository<TruckTypes> truckTypeRepository,
+            IRepository<Driver> driverRepository,
+            IRepository<DriverType> driverTypeRepository)
         {
             _userRepository = userRepository;
             _positionRepository = positionRepository;
             _truckRepository = truckRepository;
             _truckTypesRepository = truckTypeRepository;
-
-            
+            _driverRepository = driverRepository;
+            _driverTypeRepository = driverTypeRepository;
         }
+
         //Employee Administration
         [HttpGet]
         public async Task<IActionResult> Index()
@@ -483,5 +488,259 @@ namespace Rassef.Controllers
 
             return RedirectToAction(nameof(TrucksIndex));
         }
+
+
+        ////////////////////
+        ////////////////////
+
+        //Driver Administration
+
+        [HttpGet]
+        public async Task<IActionResult> DriversIndex()
+        {
+            var drivers = await _driverRepository.GetAllAsync(query =>
+                query
+                    .Include(d => d.DeiverType)
+                    .Include(d => d.CreatedBy)
+            );
+
+            var driverList = drivers.Select(d => new ViewModels.Administration.DriverListVM
+            {
+                Id = d.Id,
+                FullName = d.FullName,
+                Phone = d.Phone,
+                NationalId = d.NationalId,
+                DriverType = d.DeiverType?.Name ?? "غير محدد",
+                CreatedBy = d.CreatedBy?.Name ?? "غير محدد"
+            }).ToList();
+
+            if (!driverList.Any())
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "لا يوجد أي سائقين حتى الآن."
+                );
+            }
+
+            return View(driverList);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> DriverDetails(int id)
+        {
+            var drivers = await _driverRepository.GetAllAsync(query =>
+                query
+                    .Include(d => d.DeiverType)
+                    .Include(d => d.TransferRequests)
+                    .Include(d => d.SupplierRequests)
+            );
+
+            var driver = drivers.FirstOrDefault(d => d.Id == id);
+
+            if (driver == null)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "هذا السائق غير موجود."
+                );
+
+                return RedirectToAction(nameof(DriversIndex));
+            }
+
+            int visitsCount =
+                (driver.TransferRequests?.Count ?? 0) +
+                (driver.SupplierRequests?.Count ?? 0);
+
+            var driverDetails = new ViewModels.Administration.DriverDetailsVM
+            {
+                Id = driver.Id,
+                FullName = driver.FullName,
+                DriverType = driver.DeiverType?.Name ?? "غير محدد",
+                Phone = driver.Phone,
+                NationalId = driver.NationalId,
+                VisitsCount = visitsCount
+            };
+
+            return View(driverDetails);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> DriverCreate()
+        {
+            var driverTypes = await _driverTypeRepository.GetAllAsync();
+
+            ViewBag.DriverTypes = driverTypes;
+
+            return View(new DriverCreateVM());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DriverCreate(DriverCreateVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var driverTypes = await _driverTypeRepository.GetAllAsync();
+
+                ViewBag.DriverTypes = driverTypes;
+
+                return View(model);
+            }
+
+            var currentUserId = int.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            );
+
+            var driver = new Driver
+            {
+                FullName = model.FullName,
+                Phone = model.Phone,
+                NationalId = model.NationalId,
+                DeiverTypeId = model.DeiverTypeId,
+                CreatedById = currentUserId
+            };
+
+            await _driverRepository.AddAsync(driver);
+            await _driverRepository.SaveChangesAsync();
+
+            TempData["Success"] = "تم إضافة السائق بنجاح.";
+
+            return RedirectToAction(nameof(DriversIndex));
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> DriverEdit(int id)
+        {
+            var driver = await _driverRepository.GetByIdAsync(id);
+
+            if (driver == null || driver.IsDeleted)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "هذا السائق غير موجود."
+                );
+
+                return RedirectToAction(nameof(DriversIndex));
+            }
+
+            var driverTypes = await _driverTypeRepository.GetAllAsync();
+
+            ViewBag.DriverTypes = driverTypes;
+
+            var model = new DriverEditVM
+            {
+                Id = driver.Id,
+                FullName = driver.FullName,
+                Phone = driver.Phone,
+                NationalId = driver.NationalId,
+                DeiverTypeId = driver.DeiverTypeId
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DriverEdit(DriverEditVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var driverTypes = await _driverTypeRepository.GetAllAsync();
+
+                ViewBag.DriverTypes = driverTypes;
+
+                return View(model);
+            }
+
+            var driver = await _driverRepository.GetByIdAsync(model.Id);
+
+            if (driver == null || driver.IsDeleted)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "هذا السائق غير موجود."
+                );
+
+                return RedirectToAction(nameof(DriversIndex));
+            }
+
+            driver.FullName = model.FullName;
+            driver.Phone = model.Phone;
+            driver.NationalId = model.NationalId;
+            driver.DeiverTypeId = model.DeiverTypeId;
+
+            driver.MarkAsUpdated();
+
+            _driverRepository.Update(driver);
+            await _driverRepository.SaveChangesAsync();
+
+            TempData["Success"] = "تم تعديل بيانات السائق بنجاح.";
+
+            return RedirectToAction(nameof(DriversIndex));
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> DriverDelete(int id)
+        {
+            var drivers = await _driverRepository.GetAllAsync(query =>
+                query
+                    .Include(d => d.DeiverType)
+            );
+
+            var driver = drivers.FirstOrDefault(d => d.Id == id && !d.IsDeleted);
+
+            if (driver == null)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "هذا السائق غير موجود."
+                );
+
+                return RedirectToAction(nameof(DriversIndex));
+            }
+
+            var model = new DriverDeleteVM
+            {
+                Id = driver.Id,
+                FullName = driver.FullName,
+                Phone = driver.Phone,
+                NationalId = driver.NationalId,
+                DriverType = driver.DeiverType?.Name ?? "غير محدد"
+            };
+
+            return View(model);
+        }
+
+        [HttpPost, ActionName("DriverDelete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DriverDeleteConfirmed(int id)
+        {
+            var driver = await _driverRepository.GetByIdAsync(id);
+
+            if (driver == null || driver.IsDeleted)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "هذا السائق غير موجود."
+                );
+
+                return RedirectToAction(nameof(DriversIndex));
+            }
+
+            driver.IsDeleted = true;
+            driver.MarkAsUpdated();
+
+            _driverRepository.Update(driver);
+            await _driverRepository.SaveChangesAsync();
+
+            TempData["Success"] = "تم حذف السائق بنجاح.";
+
+            return RedirectToAction(nameof(DriversIndex));
+        }
+
     }
 }
