@@ -18,16 +18,47 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(int id, int supplierId)
         {
+<<<<<<<<< Temporary merge branch 1
+            IEnumerable<Driver> drivers;
+=========
 
             var supplier = await _supplierRepository.GetByIdAsync(supplierId);
 
             if (supplier is null)
                 return RedirectToAction("Index", "Supplier");
+>>>>>>>>> Temporary merge branch 2
 
-            var truck = await _truckRepository.GetByIdAsync(id);
+            if (supplierId.HasValue && supplierId.Value > 0)
+            {
+                var supplier = await _supplierRepository.GetByIdAsync(supplierId.Value);
+                if (supplier is null) return RedirectToAction("Index", "Supplier");
 
+<<<<<<<<< Temporary merge branch 1
+                ViewBag.SupplierName = supplier.Name;
+                ViewBag.SupplierId = supplier.Id;
+                drivers = await _driverRepository.GetDriversBySupplierIdAsync(supplierId.Value);
+            }
+            else
+            {
+                // في حال عدم تمرير supplierId يتم عرض كافة السائقين
+                ViewBag.SupplierName = "جميع الشركات";
+                ViewBag.SupplierId = null;
+                drivers = await _driverRepository.GetAllAsync();
+            }
+
+            if (id.HasValue && id.Value > 0)
+            {
+                var truck = await _truckRepository.GetByIdAsync(id.Value);
+                ViewBag.TruckName = truck != null ? $"{truck.PlateLetter} {truck.PlateNumber}" : "سيارة غير محددة";
+            }
+            else
+            {
+                ViewBag.TruckName = "سيارة غير محددة";
+            }
+=========
             var drivers =
                 await _driverRepository.GetDriversBySupplierIdAsync(supplierId);
+>>>>>>>>> Temporary merge branch 2
 
             var driverList = drivers.Select(d => new DriverListVM
             {
@@ -37,6 +68,8 @@ namespace Rassef.Controllers
                 Phone = d.Phone
             }).ToList();
 
+<<<<<<<<< Temporary merge branch 1
+=========
             ViewBag.SupplierName = supplier.Name;
 
             ViewBag.TruckName =
@@ -46,6 +79,7 @@ namespace Rassef.Controllers
 
             ViewBag.SupplierId = supplierId;
 
+>>>>>>>>> Temporary merge branch 2
             return View(driverList);
         }
 
@@ -257,76 +291,6 @@ namespace Rassef.Controllers
                 Value = x.Id.ToString(),
                 Text = x.Name
             });
-        }
-        [HttpGet]
-        public async Task<IActionResult> TransferDrivers()
-        {
-
-            var allDrivers = await _driverRepository.GetAllAsync();
-
-            var driverList = allDrivers.Select(d => new DriverListVM
-            {
-                Id = d.Id,
-                FullName = d.FullName,
-                NationalId = d.NationalId,
-                Phone = d.Phone
-            }).ToList();
-
-            return View(driverList);
-        }
-
-
-
-        // Create Transfer (GET) - دي الدالة اللي هتفتحلك الصفحة
-        [HttpGet]
-        public async Task<IActionResult> addDriverTransfer()
-        {
-            // بنبعت الموديل فاضي وفيه قايمة الشركات عشان لو احتجتها في الـ Dropdown
-            var model = new CreateDriverVM
-            {
-                Suppliers = await GetSuppliersAsync()
-            };
-
-            return View(model);
-        }
-
-        // Create Transfer (POST)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> addDriverTransfer(CreateDriverVM create)
-        {
-            if (!ModelState.IsValid)
-            {
-                create.Suppliers = await GetSuppliersAsync();
-                return View(create);
-            }
-
-            if (await _driverRepository.ExistsAsync(x => x.NationalId == create.NationalId))
-            {
-                ModelState.AddModelError(nameof(create.NationalId), "الرقم القومي مسجل بالفعل.");
-                create.Suppliers = await GetSuppliersAsync();
-                return View(create);
-            }
-
-            if (await _driverRepository.ExistsAsync(x => x.Phone == create.Phone))
-            {
-                ModelState.AddModelError(nameof(create.Phone), "رقم الهاتف مسجل بالفعل.");
-                create.Suppliers = await GetSuppliersAsync();
-                return View(create);
-            }
-
-            var driver = new Driver
-            {
-                FullName = create.FullName,
-                NationalId = create.NationalId,
-                Phone = create.Phone,
-                CreatedById = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
-            };
-
-            await _driverRepository.AddAsync(driver);
-            await _driverRepository.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId });
         }
     }
 }
