@@ -43,10 +43,31 @@ namespace Rassef.Controllers
             });
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-           
-            return View();
+            var requests = await _repository.GetAllAsync(
+                include: query => query
+                    .Include(r => r.Truck)
+                    .Include(r => r.Driver)
+                    .Include(r => r.Department)
+                    .Include(r => r.PermitType)
+                    .Include(r => r.RequestStatus)
+            );
+
+            var model = requests.Select(request => new TransferRequestDetailsVM
+            {
+                Id = request.Id,
+                AvizNumber = request.AvizNumber,
+                Truck = request.Truck != null ? $"{request.Truck.PlateNumber} {request.Truck.PlateLetter}" : "غير محدد",
+                Driver = request.Driver != null ? request.Driver.FullName : "غير محدد",
+                Department = request.Department != null ? request.Department.Name : "غير محدد",
+                PermitType = request.PermitType != null ? request.PermitType.Name : "غير محدد",
+                PermitNumber = request.PermitNumber,
+                RequestStatus = request.RequestStatus != null ? request.RequestStatus.Name : "غير محدد"
+            }).ToList();
+
+            return View(model);
         }
 
         // Details

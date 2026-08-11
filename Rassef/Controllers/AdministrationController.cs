@@ -12,6 +12,7 @@ namespace Rassef.Controllers
         private readonly IRepository<TruckTypes> _truckTypesRepository;
         private readonly IRepository<Driver> _driverRepository;
         private readonly IRepository<DriverType> _driverTypeRepository;
+        private readonly IRepository<Supplier> _supplierRepository;
 
         public AdministrationController(
             IUserRepository userRepository,
@@ -19,7 +20,7 @@ namespace Rassef.Controllers
             IRepository<Truck> truckRepository,
             IRepository<TruckTypes> truckTypeRepository,
             IRepository<Driver> driverRepository,
-            IRepository<DriverType> driverTypeRepository , ITransferRequestRepository transferRequestRepository, ISupplierRequestRepository supplierRequestRepository)
+            IRepository<DriverType> driverTypeRepository , ITransferRequestRepository transferRequestRepository, ISupplierRequestRepository supplierRequestRepository, IRepository<Supplier> supplierRepository)
         {
             _userRepository = userRepository;
             _positionRepository = positionRepository;
@@ -29,6 +30,7 @@ namespace Rassef.Controllers
             _driverTypeRepository = driverTypeRepository;
             _Transferrepository = transferRequestRepository;
             _supplierRequestRepository = supplierRequestRepository;
+            _supplierRepository = supplierRepository;
         }
 
         //Employee Administration
@@ -804,6 +806,26 @@ namespace Rassef.Controllers
             .ToList();
 
             return View(requests);
+        }
+        // الموردين 
+        [HttpGet]
+        public async Task<IActionResult> Suppliers()
+        {
+            var suppliers = await _supplierRepository.GetAllAsync(
+                include: query => query.Include(s => s.CreatedBy)
+            );
+
+            var model = suppliers.Select(s => new SupplierListVM
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Phone = s.Phone,
+                SupCode = s.SupCode,
+                LogoURL = s.LogoURL,
+                HostEmployeeName = s.CreatedBy != null ? s.CreatedBy.Name : "غير محدد"
+            }).ToList();
+
+            return View(model);
         }
 
     }

@@ -39,8 +39,36 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            var requests = await _supplierRequestRepository.GetAllAsync(
+                include: query => query
+                    .Include(r => r.Supplier)
+                    .Include(r => r.Truck)
+                    .Include(r => r.Driver)
+                    .Include(r => r.Department)
+                    .Include(r => r.PermitType)
+                    .Include(r => r.CommodityType)
+                    .Include(r => r.RequestStatus)
+                    .Include(r => r.CreatedBy)
+            );
 
-            return View();
+            var model = requests.Select(request => new SupplierRequestDetailsVM
+            {
+                Id = request.Id,
+                SupplierName = request.Supplier?.Name ?? "غير محدد",
+                TruckInfo = request.Truck != null ? $"{request.Truck.PlateLetter} {request.Truck.PlateNumber}" : "غير محدد",
+                DriverName = request.Driver?.FullName ?? "غير محدد",
+                DriverPhone = request.DriverPhone,
+                DriverNationalCardPhoto = request.DriverNationalCardPhoto,
+                DepartmentName = request.Department?.Name ?? "غير محدد",
+                PermitTypeName = request.PermitType?.Name ?? "غير محدد",
+                PermitNumber = request.PermitNumber,
+                CommodityTypeName = request.CommodityType?.Name ?? "غير محدد",
+                RequestStatusName = request.RequestStatus?.Name ?? "غير محدد",
+                IsFood = request.IsFood,
+                CreatedByName = request.CreatedBy?.Name ?? "النظام"
+            }).ToList();
+
+            return View(model);
         }
 
         [HttpGet]

@@ -12,8 +12,8 @@ using Rassef.Data;
 namespace Rassef.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260811063352_initialcreate")]
-    partial class initialcreate
+    [Migration("20260811102916_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
