@@ -33,6 +33,9 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<DateTimeOffset?>("LastGlobalResetAt")
                         .HasColumnType("datetimeoffset");
 
@@ -72,6 +75,9 @@ namespace Rassef.Migrations
                     b.Property<int>("ExitTypeId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<int>("TicketId")
                         .HasColumnType("int");
 
@@ -106,6 +112,9 @@ namespace Rassef.Migrations
 
                     b.Property<int>("DepartmentTypeId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LastResetAt")
                         .HasColumnType("datetimeoffset");
@@ -164,6 +173,9 @@ namespace Rassef.Migrations
                     b.Property<int>("DockStatusId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
@@ -206,6 +218,9 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("FinishedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<int>("TicketId")
                         .HasColumnType("int");
 
@@ -245,6 +260,9 @@ namespace Rassef.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("NationalId")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -277,6 +295,9 @@ namespace Rassef.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<int>("PositionCode")
                         .HasColumnType("int");
@@ -316,6 +337,9 @@ namespace Rassef.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<int>("TicketId")
                         .HasColumnType("int");
@@ -381,6 +405,9 @@ namespace Rassef.Migrations
 
                     b.Property<DateTimeOffset>("ExitTime")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<DateTimeOffset>("QueueTime")
                         .HasColumnType("datetimeoffset");
@@ -465,6 +492,9 @@ namespace Rassef.Migrations
                     b.Property<int>("CreatedById")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LogoURL")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -524,6 +554,9 @@ namespace Rassef.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsFood")
                         .HasColumnType("bit");
@@ -598,6 +631,9 @@ namespace Rassef.Migrations
                     b.Property<int>("DriverId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("PermitNumber")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -646,6 +682,9 @@ namespace Rassef.Migrations
                     b.Property<int>("CreatedById")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsRefrigerated")
                         .HasColumnType("bit");
 
@@ -690,6 +729,9 @@ namespace Rassef.Migrations
                     b.Property<int>("CreatedById")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasMaxLength(250)
@@ -724,17 +766,15 @@ namespace Rassef.Migrations
                     b.Property<int>("Id")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<int?>("UserGroupId")
-                        .HasColumnType("int");
 
                     b.HasKey("GroupId", "PermissionId");
 
                     b.HasIndex("PermissionId");
-
-                    b.HasIndex("UserGroupId");
 
                     b.ToTable("GroupPermissions", (string)null);
                 });
@@ -765,6 +805,9 @@ namespace Rassef.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
@@ -791,10 +834,7 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("EmpCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("GroupId")
+                    b.Property<int?>("GroupId")
                         .HasColumnType("int");
 
                     b.Property<string>("HashPassword")
@@ -803,6 +843,9 @@ namespace Rassef.Migrations
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<bool>("IsChanged")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
@@ -823,6 +866,9 @@ namespace Rassef.Migrations
 
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UserCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserName")
                         .IsRequired()
@@ -849,16 +895,20 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<DateTimeOffset>("UpdatedAT")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserGroups");
+                    b.ToTable("UserGroups", (string)null);
                 });
 
             modelBuilder.Entity("Rassef.Models.StatusesAndActions.ActionTypes", b =>
@@ -871,6 +921,9 @@ namespace Rassef.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -896,6 +949,9 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -920,6 +976,9 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -943,6 +1002,9 @@ namespace Rassef.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -971,6 +1033,9 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -994,6 +1059,9 @@ namespace Rassef.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1019,6 +1087,9 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1042,6 +1113,9 @@ namespace Rassef.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1067,6 +1141,9 @@ namespace Rassef.Migrations
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1090,6 +1167,9 @@ namespace Rassef.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAT")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1117,6 +1197,9 @@ namespace Rassef.Migrations
 
                     b.Property<TimeSpan>("Duration")
                         .HasColumnType("time");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LastResetAt")
                         .HasColumnType("datetimeoffset");
@@ -1516,7 +1599,7 @@ namespace Rassef.Migrations
             modelBuilder.Entity("Rassef.Models.Identity.GroupPermission", b =>
                 {
                     b.HasOne("Rassef.Models.Identity.UserGroup", "Group")
-                        .WithMany()
+                        .WithMany("GroupPermissions")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1526,10 +1609,6 @@ namespace Rassef.Migrations
                         .HasForeignKey("PermissionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("Rassef.Models.Identity.UserGroup", null)
-                        .WithMany("GroupPermissions")
-                        .HasForeignKey("UserGroupId");
 
                     b.Navigation("Group");
 
@@ -1541,8 +1620,7 @@ namespace Rassef.Migrations
                     b.HasOne("Rassef.Models.Identity.UserGroup", "Group")
                         .WithMany("Users")
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Rassef.Models.Entities.Position", "Position")
                         .WithMany("Users")

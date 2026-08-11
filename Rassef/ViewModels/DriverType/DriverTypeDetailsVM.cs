@@ -1,4 +1,4 @@
-﻿    namespace Rassef.ViewModels.DriverType
+﻿namespace Rassef.ViewModels.DriverType
 {
     public class DriverTypeDetailsVM
     {

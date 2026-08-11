@@ -13,6 +13,6 @@
 
         public string NationalId { get; set; } = string.Empty;
 
-        public string UserCode { get; set; } = string.Empty;    
+        public string UserCode { get; set; } = string.Empty;
     }
 }

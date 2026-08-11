@@ -1,12 +1,11 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Rassef.Migrations
 {
     /// <inheritdoc />
-    public partial class initialCreate : Migration
+    public partial class initialcreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +18,8 @@ namespace Rassef.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -34,7 +34,8 @@ namespace Rassef.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -49,7 +50,8 @@ namespace Rassef.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -64,7 +66,8 @@ namespace Rassef.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -80,7 +83,8 @@ namespace Rassef.Migrations
                     Code = table.Column<int>(type: "int", nullable: true),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -95,7 +99,8 @@ namespace Rassef.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -112,7 +117,8 @@ namespace Rassef.Migrations
                     ActionName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -127,7 +133,8 @@ namespace Rassef.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -143,7 +150,8 @@ namespace Rassef.Migrations
                     PositionCode = table.Column<int>(type: "int", nullable: false),
                     PositionName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -158,7 +166,8 @@ namespace Rassef.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -176,7 +185,8 @@ namespace Rassef.Migrations
                     Duration = table.Column<TimeSpan>(type: "time", nullable: false),
                     LastResetAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -191,7 +201,8 @@ namespace Rassef.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -206,7 +217,8 @@ namespace Rassef.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -219,9 +231,10 @@ namespace Rassef.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -238,7 +251,8 @@ namespace Rassef.Migrations
                     ShiftId = table.Column<int>(type: "int", nullable: true),
                     LastGlobalResetAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -257,10 +271,10 @@ namespace Rassef.Migrations
                 {
                     GroupId = table.Column<int>(type: "int", nullable: false),
                     PermissionId = table.Column<int>(type: "int", nullable: false),
-                    UserGroupId = table.Column<int>(type: "int", nullable: true),
                     Id = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -277,11 +291,6 @@ namespace Rassef.Migrations
                         principalTable: "UserGroups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_GroupPermissions_UserGroups_UserGroupId",
-                        column: x => x.UserGroupId,
-                        principalTable: "UserGroups",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -296,13 +305,14 @@ namespace Rassef.Migrations
                     HashPassword = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     NationalId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    EmpCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     BranchCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PositionId = table.Column<int>(type: "int", nullable: false),
-                    GroupId = table.Column<int>(type: "int", nullable: false),
+                    GroupId = table.Column<int>(type: "int", nullable: true),
                     IsChanged = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -333,7 +343,8 @@ namespace Rassef.Migrations
                     CreatedById = table.Column<int>(type: "int", nullable: false),
                     DeiverTypeId = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -364,7 +375,8 @@ namespace Rassef.Migrations
                     LogoURL = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     CreatedById = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -390,7 +402,8 @@ namespace Rassef.Migrations
                     IsRefrigerated = table.Column<bool>(type: "bit", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -419,7 +432,8 @@ namespace Rassef.Migrations
                     Location = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -445,7 +459,8 @@ namespace Rassef.Migrations
                     LastResetAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     Prefix = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -482,7 +497,8 @@ namespace Rassef.Migrations
                     DockStatusId = table.Column<int>(type: "int", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -532,7 +548,8 @@ namespace Rassef.Migrations
                     IsFood = table.Column<bool>(type: "bit", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -603,7 +620,8 @@ namespace Rassef.Migrations
                     CreatedById = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedById1 = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -663,7 +681,8 @@ namespace Rassef.Migrations
                     CreatedById = table.Column<int>(type: "int", nullable: false),
                     ShiftId = table.Column<int>(type: "int", nullable: true),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -717,7 +736,8 @@ namespace Rassef.Migrations
                     CreatedById = table.Column<int>(type: "int", nullable: false),
                     ExitTypeId = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -754,7 +774,8 @@ namespace Rassef.Migrations
                     FinishedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -789,7 +810,8 @@ namespace Rassef.Migrations
                     ActionTypeId = table.Column<int>(type: "int", nullable: false),
                     ActionTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     CreatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    UpdatedAT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -894,11 +916,6 @@ namespace Rassef.Migrations
                 name: "IX_GroupPermissions_PermissionId",
                 table: "GroupPermissions",
                 column: "PermissionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_GroupPermissions_UserGroupId",
-                table: "GroupPermissions",
-                column: "UserGroupId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Permissions_ControllerName_ActionName",

@@ -1,11 +1,11 @@
-﻿    namespace Rassef.ViewModels.CommodityTypes
+﻿namespace Rassef.ViewModels.CommodityTypes
+{
+    public class UpdateCommodityTypesVM
     {
-        public class UpdateCommodityTypesVM
-        {
-            [Required]
-            public int Id { get; set; }
+        [Required]
+        public int Id { get; set; }
 
-            [Display(Name = "نوع السلعة")]
-            public string Name { get; set; } = string.Empty;
-        }
+        [Display(Name = "نوع السلعة")]
+        public string Name { get; set; } = string.Empty;
     }
+}

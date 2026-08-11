@@ -1,13 +1,13 @@
-﻿    namespace Rassef.ViewModels.CommodityTypes
+﻿namespace Rassef.ViewModels.CommodityTypes
+{
+    public class CommodityTypesListVM
     {
-        public class CommodityTypesListVM
-        {
-            public int Id { get; set; }
+        public int Id { get; set; }
 
-            [Display(Name = "نوع السلعة")]
-            public string Name { get; set; } = string.Empty;
+        [Display(Name = "نوع السلعة")]
+        public string Name { get; set; } = string.Empty;
 
-            [Display(Name = "عدد طلبات الموردين")]
-            public int SupplierRequestsCount { get; set; }
-        }
+        [Display(Name = "عدد طلبات الموردين")]
+        public int SupplierRequestsCount { get; set; }
     }
+}

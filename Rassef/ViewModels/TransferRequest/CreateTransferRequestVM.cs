@@ -26,6 +26,6 @@ namespace Rassef.ViewModels.TransferRequest
         // 4. رقم الأفيز (Input Text)
         [Display(Name = "رقم الأفيز")]
         public string AvizNumber { get; set; } = string.Empty;
-     
+
     }
 }
