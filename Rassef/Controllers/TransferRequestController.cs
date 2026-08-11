@@ -1,9 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Rassef.Models.Entities;
-using Rassef.ViewModels.TransferRequest;
-using System.Security.Claims;
-
 namespace Rassef.Controllers
 {
     public class TransferRequestController : Controller
@@ -87,7 +81,8 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            return View();
+
+            return View(new CreateTransferRequestVM());
         }
 
         // Create (POST)

@@ -257,6 +257,13 @@ namespace Rassef.Controllers
             return View();
         }
 
+        // Supplier of Transfer 
+        [HttpGet]
+        public async Task<IActionResult> ViewRole()
+        {
+            return View();
+        }
+
 
 
         //Helpers
