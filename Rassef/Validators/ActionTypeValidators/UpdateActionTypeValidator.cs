@@ -1,6 +1,6 @@
 ﻿namespace Rassef.Validators.ActionType
 {
-    public class UpdateActionTypeValidator: AbstractValidator<UpdateActionTypesVM>
+    public class UpdateActionTypeValidator : AbstractValidator<UpdateActionTypesVM>
     {
         public UpdateActionTypeValidator()
         {

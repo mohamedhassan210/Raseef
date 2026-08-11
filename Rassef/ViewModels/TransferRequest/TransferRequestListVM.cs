@@ -15,4 +15,3 @@
     public string RequestStatus { get; set; } = string.Empty;
 }
 
-  

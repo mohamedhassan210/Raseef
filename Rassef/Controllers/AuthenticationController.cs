@@ -8,13 +8,19 @@ namespace Rassef.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IJwtService _jwtService;
         private readonly IDriverRepository _driverRepository;
+        private readonly IQueueTicketRepository _queueTicketRepository;
+        private readonly IDepartmentRepository _departmentRepository;
+        private readonly IRepository<TicketStatuses> _ticketStatusRepository;
         private readonly IRepository<SupplierRequest> _transferRequestRepository;
-        public AuthenticationController(IUserRepository userRepository, IJwtService jwtService, ILogger<AuthenticationController> logger, IDriverRepository driverRepository, IRepository<SupplierRequest> transferRequestRepository)
+
+        public AuthenticationController(IUserRepository userRepository, IJwtService jwtService, ILogger<AuthenticationController> logger, IDriverRepository driverRepository, IRepository<SupplierRequest> transferRequestRepository, IDepartmentRepository departmentRepository, IRepository<TicketStatuses> ticketStatusesRepository)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
             _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
             _transferRequestRepository = transferRequestRepository ?? throw new ArgumentNullException(nameof(transferRequestRepository));
+            _departmentRepository = departmentRepository;
+            _ticketStatusRepository = ticketStatusesRepository;
         }
 
         [HttpGet]
@@ -251,12 +257,7 @@ namespace Rassef.Controllers
             return View();
         }
 
-        // View Role
-        [HttpGet]
-        public async Task<IActionResult> viewRole()
-        {
-            return View();
-        }
+
 
         //Helpers
         [HttpGet]

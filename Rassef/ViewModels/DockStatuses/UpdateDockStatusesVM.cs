@@ -1,11 +1,11 @@
-﻿    namespace Rassef.ViewModels.DockStatuses
+﻿namespace Rassef.ViewModels.DockStatuses
+{
+    public class UpdateDockStatusesVM
     {
-        public class UpdateDockStatusesVM
-        {
-            [Required]
-            public int Id { get; set; }
+        [Required]
+        public int Id { get; set; }
 
-            [Display(Name = "اسم حالة الرصيف")]
-            public string Name { get; set; } = string.Empty;
-        }
+        [Display(Name = "اسم حالة الرصيف")]
+        public string Name { get; set; } = string.Empty;
     }
+}

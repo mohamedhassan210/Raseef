@@ -1,8 +1,8 @@
-﻿    namespace Rassef.ViewModels.DepartmentType
+﻿namespace Rassef.ViewModels.DepartmentType
+{
+    public class CreateDepartmentTypesVM
     {
-        public class CreateDepartmentTypesVM
-        {
-            [Display(Name = "اسم نوع القسم")]
-            public string Name { get; set; } = string.Empty;
-        }
+        [Display(Name = "اسم نوع القسم")]
+        public string Name { get; set; } = string.Empty;
     }
+}
