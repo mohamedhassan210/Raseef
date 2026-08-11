@@ -20,7 +20,7 @@
    ========================================================================== */
 *, *::before, *::after {
     box-sizing: border-box;
-    margin: 0;
+    margin: 0; 
     padding: 0;
 }
 
@@ -52,17 +52,37 @@ body {
     overflow: hidden;
 }
 
+/* Container Layout */
 .page-container {
     width: 100%;
-    height: 100vh;
+    height: 100%; /* أخذ كامل المساحة المتاحة في الشاشة */
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* مهم للـ flex scrolling */
-    min-height: 0;
-    overflow: hidden;
+    overflow-y: auto; /* ده اللي هيشغل السكرول العمودي */
+    overflow-x: hidden; /* منع أي سكرول أفقي بالغلط */
+    padding-bottom: 40px; /* مسافة أمان عشان زرار الإضافة ميكونش لازق تحت */
 }
+
+    /* عشان شكل السكرول بار يبقى متناسق مع تصميمك */
+    .page-container::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .page-container::-webkit-scrollbar-track {
+        background: rgba(249, 242, 242, 0.5);
+        border-radius: 5px;
+    }
+
+    .page-container::-webkit-scrollbar-thumb {
+        background: rgba(235, 132, 45, 0.5);
+        border-radius: 5px;
+    }
+
+        .page-container::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
 
 /* ==========================================================================
    Header Section

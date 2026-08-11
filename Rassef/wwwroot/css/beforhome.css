@@ -12,7 +12,7 @@
         --gradient-supply: linear-gradient(135deg, #F9F2F2 0%, #F9F2F2 100%);
         --color-dark: #EB842D; 
         --color-white: #F9F2F2;
-        --easing-apple: cubic-bezier(0.22, 1, 0.36, 1);
+        --easing-apple: cubic-bezier(0.22, 1, 0.36, 1); 
         --duration-standard: 800ms;
     }
 
