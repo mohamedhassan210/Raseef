@@ -43,10 +43,9 @@ namespace Rassef.Controllers
             });
         }
 
-        // طلبات التحويل - Index
         public async Task<IActionResult> Index()
         {
-
+           
             return View();
         }
 

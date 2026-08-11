@@ -37,42 +37,10 @@ namespace Rassef.Controllers
             _truckTypeRepository = truckTypeRepository;
         }
         [HttpGet]
-        // طلبات التوريد - Index
         public async Task<IActionResult> Index()
         {
-            var requestsRepo =
-                await _supplierRequestRepository.GetAllWithDetailsAsync();
 
-            var requests = requestsRepo
-            .SelectMany(x => x.QueueTickets.Select(ticket => new SupplierRequestListVM
-            {
-                Id = x.Id,
-                TicketNumber = ticket.TicketNumber,
-                TicketStatusName =
-                    ticket.TicketStatus?.Name ?? "غير محدد",
-                QueueTime = ticket.QueueTime,
-                DockName = ticket.DockAssignments
-                    .OrderByDescending(x => x.AssignedAt)
-                    .Select(x => x.Dock.DockName)
-                    .FirstOrDefault() ?? "غير محدد",
-                SupplierName =
-                    x.Supplier?.Name ?? "غير محدد",
-                TruckPlateNumber =
-                    $"{x.Truck?.PlateLetter} {x.Truck?.PlateNumber}",
-                DriverName =
-                    x.Driver?.FullName ?? "غير محدد",
-                DriverPhone = x.DriverPhone,
-                DepartmentName =
-                    x.Department?.Name ?? "غير محدد",
-                RequestStatusName =
-                    x.RequestStatus?.Name ?? "غير محدد",
-                EmployeeName =
-                    x.CreatedBy?.Name ?? "غير محدد",
-                PermitNumber = x.PermitNumber
-            }))
-            .ToList();
-
-            return View(requests);
+            return View();
         }
 
         [HttpGet]
