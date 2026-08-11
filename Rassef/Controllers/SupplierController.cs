@@ -12,22 +12,24 @@
             _supplierRepository = supplierRepository;
             _fileService = fileService;
         }
-
         [HttpGet]
-        // Display all items
         public async Task<IActionResult> Index()
         {
-            var suppliers = await _supplierRepository.GetAllSuppliersWithRequestCountAsync();
+            var suppliers = await _supplierRepository.GetAllAsync(
+                include: query => query.Include(s => s.CreatedBy)
+            );
 
-            var listVM = suppliers.Select(s => new SupplierListVM
+            var model = suppliers.Select(s => new SupplierListVM
             {
                 Id = s.Id,
                 Name = s.Name,
                 Phone = s.Phone,
+                SupCode = s.SupCode,
                 LogoURL = s.LogoURL,
-                RequestsCount = s.SupplierRequests.Count,
-            });
-            return View(listVM);
+                HostEmployeeName = s.CreatedBy != null ? s.CreatedBy.Name : "غير محدد"
+            }).ToList();
+
+            return View(model);
         }
 
         [HttpGet]

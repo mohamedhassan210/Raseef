@@ -37,42 +37,38 @@ namespace Rassef.Controllers
             _truckTypeRepository = truckTypeRepository;
         }
         [HttpGet]
-        // طلبات التوريد - Index
         public async Task<IActionResult> Index()
         {
-            var requestsRepo =
-                await _supplierRequestRepository.GetAllWithDetailsAsync();
+            var requests = await _supplierRequestRepository.GetAllAsync(
+                include: query => query
+                    .Include(r => r.Supplier)
+                    .Include(r => r.Truck)
+                    .Include(r => r.Driver)
+                    .Include(r => r.Department)
+                    .Include(r => r.PermitType)
+                    .Include(r => r.CommodityType)
+                    .Include(r => r.RequestStatus)
+                    .Include(r => r.CreatedBy)
+            );
 
-            var requests = requestsRepo
-            .SelectMany(x => x.QueueTickets.Select(ticket => new SupplierRequestListVM
+            var model = requests.Select(request => new SupplierRequestDetailsVM
             {
-                Id = x.Id,
-                TicketNumber = ticket.TicketNumber,
-                TicketStatusName =
-                    ticket.TicketStatus?.Name ?? "غير محدد",
-                QueueTime = ticket.QueueTime,
-                DockName = ticket.DockAssignments
-                    .OrderByDescending(x => x.AssignedAt)
-                    .Select(x => x.Dock.DockName)
-                    .FirstOrDefault() ?? "غير محدد",
-                SupplierName =
-                    x.Supplier?.Name ?? "غير محدد",
-                TruckPlateNumber =
-                    $"{x.Truck?.PlateLetter} {x.Truck?.PlateNumber}",
-                DriverName =
-                    x.Driver?.FullName ?? "غير محدد",
-                DriverPhone = x.DriverPhone,
-                DepartmentName =
-                    x.Department?.Name ?? "غير محدد",
-                RequestStatusName =
-                    x.RequestStatus?.Name ?? "غير محدد",
-                EmployeeName =
-                    x.CreatedBy?.Name ?? "غير محدد",
-                PermitNumber = x.PermitNumber
-            }))
-            .ToList();
+                Id = request.Id,
+                SupplierName = request.Supplier?.Name ?? "غير محدد",
+                TruckInfo = request.Truck != null ? $"{request.Truck.PlateLetter} {request.Truck.PlateNumber}" : "غير محدد",
+                DriverName = request.Driver?.FullName ?? "غير محدد",
+                DriverPhone = request.DriverPhone,
+                DriverNationalCardPhoto = request.DriverNationalCardPhoto,
+                DepartmentName = request.Department?.Name ?? "غير محدد",
+                PermitTypeName = request.PermitType?.Name ?? "غير محدد",
+                PermitNumber = request.PermitNumber,
+                CommodityTypeName = request.CommodityType?.Name ?? "غير محدد",
+                RequestStatusName = request.RequestStatus?.Name ?? "غير محدد",
+                IsFood = request.IsFood,
+                CreatedByName = request.CreatedBy?.Name ?? "النظام"
+            }).ToList();
 
-            return View(requests);
+            return View(model);
         }
 
         [HttpGet]
