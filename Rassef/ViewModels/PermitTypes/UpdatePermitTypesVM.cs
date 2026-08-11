@@ -1,11 +1,11 @@
-﻿    namespace Rassef.ViewModels.PermitTypes
+﻿namespace Rassef.ViewModels.PermitTypes
+{
+    public class UpdatePermitTypesVM
     {
-        public class UpdatePermitTypesVM
-        {
-            [Required]
-            public int Id { get; set; }
+        [Required]
+        public int Id { get; set; }
 
-            [Display(Name = "اسم نوع التصريح")]
-            public string Name { get; set; } = string.Empty;
-        }
+        [Display(Name = "اسم نوع التصريح")]
+        public string Name { get; set; } = string.Empty;
     }
+}

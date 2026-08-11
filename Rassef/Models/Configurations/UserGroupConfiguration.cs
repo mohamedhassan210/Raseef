@@ -16,11 +16,11 @@
 
             builder.HasMany(ug => ug.Users)
                    .WithOne(u => u.Group)
-                   .HasForeignKey(u => u.GroupId) 
+                   .HasForeignKey(u => u.GroupId)
                    .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(ug => ug.GroupPermissions)
-                   .WithOne(gp => gp.Group) 
+                   .WithOne(gp => gp.Group)
                    .HasForeignKey(gp => gp.GroupId)
                    .OnDelete(DeleteBehavior.Restrict);
         }

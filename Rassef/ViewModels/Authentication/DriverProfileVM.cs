@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Rassef.ViewModels.Drivers
+﻿namespace Rassef.ViewModels.Drivers
 {
     public class DriverProfileVM
     {

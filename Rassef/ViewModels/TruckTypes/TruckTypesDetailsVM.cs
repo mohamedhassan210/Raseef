@@ -1,13 +1,13 @@
-﻿    namespace Rassef.ViewModels.TruckTypes
+﻿namespace Rassef.ViewModels.TruckTypes
+{
+    public class TruckTypesDetailsVM
     {
-        public class TruckTypesDetailsVM
-        {
-            public int Id { get; set; }
+        public int Id { get; set; }
 
-            [Display(Name = "اسم نوع الشاحنة")]
-            public string Name { get; set; } = string.Empty;
+        [Display(Name = "اسم نوع الشاحنة")]
+        public string Name { get; set; } = string.Empty;
 
-            [Display(Name = "عدد الشاحنات المرتبطة")]
-            public int TrucksCount { get; set; }
-        }
+        [Display(Name = "عدد الشاحنات المرتبطة")]
+        public int TrucksCount { get; set; }
     }
+}
