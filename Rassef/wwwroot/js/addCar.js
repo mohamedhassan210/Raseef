@@ -358,3 +358,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initializeModals();
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    // --- تنسيق خانة الحروف (إضافة مسافة بين الحروف تلقائياً) ---
+    const plateLettersInput = document.getElementById('plateLetters');
+    if (plateLettersInput) {
+        plateLettersInput.addEventListener('input', (e) => {
+            // السماح بالحروف العربية فقط وإزالة أي مسافات قديمة
+            let value = e.target.value.replace(/[^\u0600-\u06FF]/g, '');
+
+            // تقسيم الكلمة لحروف منفردة ثم دمجها بمسافات بينها
+            if (value.length > 0) {
+                value = value.split('').join(' ');
+            }
+
+            e.target.value = value;
+        });
+    }
+
+    // --- تنسيق خانة الأرقام (إضافة مسافة بين الأرقام تلقائياً) ---
+    const plateNumbersInput = document.getElementById('plateNumbers');
+    if (plateNumbersInput) {
+        plateNumbersInput.addEventListener('input', (e) => {
+            // السماح بالأرقام فقط وإزالة أي مسافات
+            let value = e.target.value.replace(/\D/g, '');
+
+            // تقسيم الأرقام وفصلها بمسافات
+            if (value.length > 0) {
+                value = value.split('').join(' ');
+            }
+
+            e.target.value = value;
+        });
+    }
+});

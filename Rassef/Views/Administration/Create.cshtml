@@ -1,0 +1,163 @@
+﻿@{
+    ViewData["Title"] = "إضافة موظف";
+    Layout = "_SupOrTra"; // قم بإلغاء التعليق إذا كان لديك Layout رئيسي
+}
+
+@section Styles {
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="~/css/addEmployee.css" asp-append-version="true">
+}
+
+<main class="page-container">
+    <!-- Header -->
+    <header class="page-header">
+        <div class="logo-wrapper header-right">
+            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-Fathalla" onerror="this.src='https://via.placeholder.com/120x60?text=Fathalla'">
+        </div>
+        <div class="title-wrapper">
+            <h1 class="main-title">إضافة موظف</h1>
+        </div>
+        <div class="logo-wrapper header-left">
+            <img src="~/img/logo.svg" alt="رصيفي" class="logo-raseefy" onerror="this.src='https://via.placeholder.com/120x60?text=Raseefy'">
+        </div>
+    </header> 
+
+    <!-- Navigation Action -->
+    <div class="nav-actions-container">
+        <a href="@Url.Action("Index", "Administration")" class="action-btn" aria-label="خطوة للخلف">
+            خطوة للخلف
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </a>
+    </div>
+
+    <!-- Form Card -->
+    <section class="form-card mt-3">
+        <form id="addEmployeeForm" class="needs-validation" novalidate>
+            <div class="row mb-4 gy-4">
+
+                <!-- اسم الموظف -->
+                <div class="col-md-6 order-md-1">
+                    <label for="empName" class="form-label fw-bold">اسم الموظف</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control custom-input" id="empName" name="EmpName" placeholder="ادخل اسم الموظف رباعي" pattern="^[\u0600-\u06FF]+(?:\s+[\u0600-\u06FF]+){3,}$" required autocomplete="off">
+                        <div class="invalid-feedback text-center mt-2">يرجى إدخال اسم الموظف رباعي باللغة العربية.</div>
+                    </div>
+                </div>
+
+                <!-- رقم الهاتف -->
+                <div class="col-md-6 order-md-2">
+                    <label for="empPhone" class="form-label fw-bold">رقم الهاتف</label>
+                    <div class="position-relative">
+                        <input type="tel" class="form-control custom-input" id="empPhone" name="EmpPhone" placeholder="ادخل رقم هاتف الموظف" pattern="^01[0125][0-9]{8}$" required autocomplete="tel" dir="rtl">
+                        <div class="invalid-feedback text-center mt-2">يرجى إدخال رقم هاتف مصري صحيح.</div>
+                    </div>
+                </div>
+
+                <!-- البريد الإلكتروني -->
+                <div class="col-md-6 order-md-3">
+                    <label for="empEmail" class="form-label fw-bold">البريد الإلكتروني</label>
+                    <div class="position-relative">
+                        <input type="email" class="form-control custom-input text-end" id="empEmail" name="EmpEmail" placeholder="ادخل البريد الإلكتروني للموظف" required autocomplete="email">
+                        <div class="invalid-feedback text-center mt-2">يرجى إدخال بريد إلكتروني صحيح.</div>
+                    </div>
+                </div>
+
+                <!-- الدور الوظيفي (Custom Dropdown) -->
+                <div class="col-md-6 order-md-4">
+                    <label class="form-label fw-bold" for="empRoleSelect">الدور</label>
+                    <div class="position-relative custom-dropdown-container">
+                        <select class="visually-hidden-select" id="empRoleSelect" name="EmpRole" required>
+                            <option value="" disabled selected>اختار الدور</option>
+                            <option value="مدير">مدير</option>
+                            <option value="مشرف">مشرف</option>
+                            <option value="موظف">موظف</option>
+                            <option value="مسؤول مخزن">مسؤول مخزن</option>
+                            <option value="مسؤول حركة">مسؤول حركة</option>
+                            <option value="محاسب">محاسب</option>
+                        </select>
+                        <div class="custom-dropdown" id="roleDropdown" aria-haspopup="listbox" aria-expanded="false">
+                            <div class="dropdown-header">
+                                <span class="selected-value text-muted">اختار الدور</span>
+                                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#e47925" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="18 15 12 9 6 15"></polyline>
+                                </svg>
+                            </div>
+                            <div class="dropdown-list" role="listbox">
+                                <div class="dropdown-item" role="option" data-value="مدير">مدير</div>
+                                <div class="dropdown-item" role="option" data-value="مشرف">مشرف</div>
+                                <div class="dropdown-item" role="option" data-value="موظف">موظف</div>
+                                <div class="dropdown-item" role="option" data-value="مسؤول مخزن">مسؤول مخزن</div>
+                                <div class="dropdown-item" role="option" data-value="مسؤول حركة">مسؤول حركة</div>
+                                <div class="dropdown-item" role="option" data-value="محاسب">محاسب</div>
+                            </div>
+                        </div>
+                        <div class="invalid-feedback text-center mt-2 dropdown-error-msg">يرجى اختيار دور الموظف.</div>
+                    </div>
+                </div>
+
+                <!-- الرقم القومي -->
+                <div class="col-md-6 order-md-5">
+                    <label for="empNationalId" class="form-label fw-bold">الرقم القومي</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control custom-input" id="empNationalId" name="EmpNationalId" placeholder="ادخل الرقم القومي للموظف" pattern="^[0-9]{14}$" required autocomplete="off">
+                        <div class="invalid-feedback text-center mt-2">الرقم القومي يجب أن يتكون من 14 رقمًا.</div>
+                    </div>
+                </div>
+
+                <!-- القسم (Custom Dropdown) -->
+                <div class="col-md-6 order-md-6">
+                    <label class="form-label fw-bold" for="empDeptSelect">القسم</label>
+                    <div class="position-relative custom-dropdown-container">
+                        <select class="visually-hidden-select" id="empDeptSelect" name="EmpDepartment" required>
+                            <option value="" disabled selected>اختار القسم</option>
+                            <option value="الموارد البشرية">الموارد البشرية</option>
+                            <option value="الحسابات">الحسابات</option>
+                            <option value="المخازن">المخازن</option>
+                            <option value="النقل">النقل</option>
+                            <option value="المشتريات">المشتريات</option>
+                            <option value="المبيعات">المبيعات</option>
+                            <option value="تكنولوجيا المعلومات">تكنولوجيا المعلومات</option>
+                        </select>
+                        <div class="custom-dropdown" id="deptDropdown" aria-haspopup="listbox" aria-expanded="false">
+                            <div class="dropdown-header">
+                                <span class="selected-value text-muted">اختار القسم</span>
+                                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#e47925" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="18 15 12 9 6 15"></polyline>
+                                </svg>
+                            </div>
+                            <div class="dropdown-list" role="listbox">
+                                <div class="dropdown-item" role="option" data-value="الموارد البشرية">الموارد البشرية</div>
+                                <div class="dropdown-item" role="option" data-value="الحسابات">الحسابات</div>
+                                <div class="dropdown-item" role="option" data-value="المخازن">المخازن</div>
+                                <div class="dropdown-item" role="option" data-value="النقل">النقل</div>
+                                <div class="dropdown-item" role="option" data-value="المشتريات">المشتريات</div>
+                                <div class="dropdown-item" role="option" data-value="المبيعات">المبيعات</div>
+                                <div class="dropdown-item" role="option" data-value="تكنولوجيا المعلومات">تكنولوجيا المعلومات</div>
+                            </div>
+                        </div>
+                        <div class="invalid-feedback text-center mt-2 dropdown-error-msg">يرجى اختيار القسم.</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <button type="submit" class="w-100 submit-btn mt-4">إضافة موظف جديد</button>
+        </form>
+    </section>
+</main>
+
+@section Scripts {
+    <script>
+        // تمرير مسارات الـ Routing إلى الجافاسكربت
+        window.appUrls = {
+            employeeIndex: '@Url.Action("Index", "Administration")'
+        };
+    </script>
+    <script src="~/js/addEmployee.js" asp-append-version="true"></script>
+}

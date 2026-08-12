@@ -172,3 +172,25 @@ body.is-loading {
         gap: 2px;
     }
 }
+
+@media (max-width: 400px) {
+    .raseefi-logo {
+        max-width: 10px;
+    }
+
+    .fathalla-logo {
+        max-width: 10px;
+    }
+
+    .fathalla-text {
+        max-width: 10px;
+    }
+
+    .fathalla-logo.shift-right {
+        transform: translateX(40px);
+    }
+
+    .fathalla-wrapper {
+        gap: 15px;
+    }
+}
