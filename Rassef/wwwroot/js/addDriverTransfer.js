@@ -47,32 +47,35 @@
     // 3. Custom Dropdown - شركة السائق (الأساسية)
     // ============================================
     const customDropdown = document.getElementById('customDropdown');
-    const dropdownHeader = customDropdown.querySelector('.dropdown-header');
-    const selectedValue = customDropdown.querySelector('.selected-value');
-    const dropdownItems = customDropdown.querySelectorAll('.dropdown-item');
 
-    dropdownHeader.addEventListener('click', (e) => {
-        e.stopPropagation();
-        customDropdown.classList.toggle('open');
-    });
+    if (customDropdown) {
+        const dropdownHeader = customDropdown.querySelector('.dropdown-header');
+        const selectedValue = customDropdown.querySelector('.selected-value');
+        const dropdownItems = customDropdown.querySelectorAll('.dropdown-item');
 
-    dropdownItems.forEach(item => {
-        item.addEventListener('click', (e) => {
+        dropdownHeader.addEventListener('click', (e) => {
             e.stopPropagation();
-            const value = item.getAttribute('data-value');
-            selectedValue.textContent = value;
-            companySelect.value = value;
-            dropdownItems.forEach(el => el.classList.remove('selected'));
-            item.classList.add('selected');
-            customDropdown.classList.remove('open');
+            customDropdown.classList.toggle('open');
         });
-    });
 
-    document.addEventListener('click', (e) => {
-        if (!customDropdown.contains(e.target)) {
-            customDropdown.classList.remove('open');
-        }
-    });
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const value = item.getAttribute('data-value');
+                selectedValue.textContent = value;
+                companySelect.value = value;
+                dropdownItems.forEach(el => el.classList.remove('selected'));
+                item.classList.add('selected');
+                customDropdown.classList.remove('open');
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!customDropdown.contains(e.target)) {
+                customDropdown.classList.remove('open');
+            }
+        });
+    }
 
     const toggleCompanySelection = () => {
         companyStaticView.classList.add('d-none');
@@ -114,7 +117,7 @@
     };
 
     const populateConfirmationData = (departmentName = "غير متوفر") => {
-        confirmCompany.textContent = pendingDriverInfo.company || "جهينة";
+        confirmCompany.textContent = pendingDriverInfo.company || "غير محدد";
         confirmDriverName.textContent = pendingDriverInfo.name || "غير متوفر";
         confirmDriverId.textContent = pendingDriverInfo.nationalId || "غير متوفر";
         confirmDriverdep.textContent = departmentName;
@@ -225,21 +228,36 @@
     };
 
     // ============================================
-    // 7. Form Validation & Submit (Trigger Modals)
+    // 7. Form Validation & Submit (تفعيل المودالات)
     // ============================================
     const validateForm = (event) => {
         event.preventDefault();
 
-        // التحقق من صحة البيانات
+        // التحقق من صحة البيانات بالمدخلات
         if (!form.checkValidity()) {
             event.stopPropagation();
             form.classList.add('was-validated');
             return;
         }
 
-        // Validation ناجحة
-        // الانتقال إلى Create.cshtml داخل TransferRequestController
-        window.location.href = window.appRoutes.createTransferRequest;
+        // معرفة اسم الشركة المعروض أو المختار
+        let currentCompany = '';
+        if (companyStaticView && !companyStaticView.classList.contains('d-none')) {
+            currentCompany = companyDisplay.value;
+        } else {
+            currentCompany = companySelect.value;
+        }
+
+        // حفظ بيانات السائق مؤقتاً لاستعراضها في المودال
+        pendingDriverInfo = {
+            name: driverName.value.trim(),
+            phone: driverPhone.value.trim(),
+            nationalId: nationalId.value.trim(),
+            company: currentCompany
+        };
+
+        // بدلاً من التوجيه المباشر -> يفتح مودال اختيار القسم أولاً
+        showConfirmationModal(deptModal);
     };
 
     // ============================================
@@ -255,7 +273,26 @@
         }
 
         if (btnConfirm) {
-            btnConfirm.addEventListener('click', () => {
+            btnConfirm.addEventListener('click', async () => {
+                // إرسال البيانات للـ Controller في الخلفية عبر AJAX (إذا لزم الأمر)
+                const formData = new FormData(form);
+                if (selectedDepartmentValue) {
+                    formData.append('DepartmentId', selectedDepartmentValue.id);
+                }
+
+                try {
+                    // يمكن تفعيل الإرسال الفعلي بالسيرفر هنا:
+                    /*
+                    await fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    */
+                } catch (err) {
+                    console.error("خطأ أثناء حفظ السائق:", err);
+                }
+
+                // توليد البون وعرض مودال النجاح
                 const ticketNum = generateTicketNumber();
                 if (ticketNumberDisplay) ticketNumberDisplay.textContent = ticketNum;
                 showConfirmationModal(successModal);

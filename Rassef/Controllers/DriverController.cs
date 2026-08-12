@@ -277,13 +277,25 @@ namespace Rassef.Controllers
 
 
 
-        // Create Transfer (GET) - دي الدالة اللي هتفتحلك الصفحة
         [HttpGet]
-        public async Task<IActionResult> addDriverTransfer()
+        public async Task<IActionResult> addDriverTransfer(int? supplierId, int? truckId)
         {
-            // بنبعت الموديل فاضي وفيه قايمة الشركات عشان لو احتجتها في الـ Dropdown
+            string supplierName = string.Empty;
+
+            if (supplierId.HasValue)
+            {
+                var supplier = await _supplierRepository.GetByIdAsync(supplierId.Value);
+                if (supplier != null)
+                {
+                    supplierName = supplier.Name;
+                }
+            }
+
             var model = new CreateDriverVM
             {
+                SupplierId = supplierId,
+                SupplierName = supplierName,
+                TruckId = truckId,
                 Suppliers = await GetSuppliersAsync()
             };
 
@@ -326,7 +338,7 @@ namespace Rassef.Controllers
             await _driverRepository.AddAsync(driver);
             await _driverRepository.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId });
+            // يمكنك التوجيه لصفحة الشاحنات مع إرجاع الـ truckId و supplierId إذا أردت متابعة الشاحنة
+            return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId, id = create.TruckId });
         }
     }
-}

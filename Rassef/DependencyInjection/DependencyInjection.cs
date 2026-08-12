@@ -1,25 +1,29 @@
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+
 namespace Rassef.Dependencyinjection
 {
-    // Eexstension Method
     public static class DependencyInjection
     {
         public static IServiceCollection AddDependcyInjection(this IServiceCollection services, IConfiguration configuration)
         {
-            // add sqlserver
+            // 1. Add SqlServer
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
             services.AddLogging();
-            // add services 
+
+            // 2. Add Controllers & Filters
             services.AddControllersWithViews(options =>
             {
                 options.Filters.Add<Rassef.Filters.FluentValidationActionFilter>();
             });
+
             services.AddExceptionHandler<GlobalExceptionHandling>();
             services.AddProblemDetails();
-            services.AddValidatorsFromAssemblyContaining<Program>(); // add validators 
+            services.AddValidatorsFromAssemblyContaining<Program>();
+
+            // 3. Add Repositories & Services
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            //add services 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICheckOutRepository, CheckOutRepository>();
             services.AddScoped<IDepartmentRepository, DepartmentRepository>();
@@ -38,9 +42,45 @@ namespace Rassef.Dependencyinjection
             services.AddScoped<ExcelExportService>();
             services.AddScoped<IWarehouseRepository, WarehouseRepository>();
             services.AddScoped<IJwtService, JwtService>();
-            services.Configure<JwtSettings>(
-              configuration.GetSection("Jwt"));
 
+            // 4. JWT Settings Configuration
+            var jwtSettingsSection = configuration.GetSection("Jwt");
+            services.Configure<JwtSettings>(jwtSettingsSection);
+            var jwtSettings = jwtSettingsSection.Get<JwtSettings>();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings?.Issuer,
+                    ValidAudience = jwtSettings?.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings?.Key ?? "YourDefaultSecretKeyHere"))
+                };
+
+                // 💡 قراءة التوكين تلقائياً من الـ Cookie المسماة "AccessToken"
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        if (context.Request.Cookies.TryGetValue("AccessToken", out var token))
+                        {
+                            context.Token = token;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+
+            // 6. Serilog Configuration
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
                 .MinimumLevel.Warning()
@@ -51,9 +91,9 @@ namespace Rassef.Dependencyinjection
                     retainedFileCountLimit: 30)
                 .CreateLogger();
 
-
             return services;
         }
+
         public static WebApplication AddMiddleWares(this WebApplication app)
         {
             app.UseExceptionHandler(options =>
@@ -62,18 +102,23 @@ namespace Rassef.Dependencyinjection
                 {
                     context.Response.Redirect("/Home/Error");
                 });
-            }); app.UseHttpsRedirection();
+            });
+
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
 
             app.UseMiddleware<LoggingBehavior>();
 
-            app.UseAuthorization();
+            // 🛑 الترتيب مهم جداً هنا:
+            app.UseAuthentication(); // 1. التعرف على هُوية المستخدم من الـ Cookie/JWT أولاً
+            app.UseAuthorization();  // 2. ثم فحص صلاحياته
 
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Authentication}/{action=Intro}/{id?}");
+
             return app;
         }
     }

@@ -166,45 +166,8 @@ namespace Rassef.Controllers
             });
             return RedirectToAction("AddRoleOrView", "Authentication");
         }
-        [HttpGet]
-        // Action Register
-        public async Task<IActionResult> Register()
-        => View();
-
-        [HttpPost]
-        // just for admin
-        public async Task<IActionResult> Register(RegisterViewModel register)
-        {
-            if (!ModelState.IsValid)
-                return View(register);
-
-            if (await _userRepository.ExistsAsync(x => x.UserName == register.UserName))
-            {
-                ModelState.AddModelError(nameof(register.UserName), "اسم المستخدم هذا موجود بالقعل .");
-                return View(register);
-            }
-
-            if (await _userRepository.ExistsAsync(x => x.Email == Email.Create(register.Email)))
-            {
-                ModelState.AddModelError(nameof(register.Email), "هذا الايميل موجود بالفعل .");
-                return View(register);
-            }
-
-            var user = new User
-            {
-                Name = register.FullName,
-                UserName = register.UserName,
-                Email = Email.Create(register.Email),
-                HashPassword = BCrypt.Net.BCrypt.HashPassword(register.Password)
-            };
-
-            await _userRepository.AddAsync(user);
-            await _userRepository.SaveChangesAsync();
-
-            TempData["Success"] = "تم التسجيل بنجاح.";
-
-            return RedirectToAction(nameof(Login));
-        }
+        
+    
         [HttpGet]
         // Action ForgetPassword
         public async Task<IActionResult> ForgetPassword()

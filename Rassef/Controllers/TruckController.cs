@@ -1,4 +1,6 @@
-﻿namespace Rassef.Controllers
+﻿using AspNetCoreGeneratedDocument;
+
+namespace Rassef.Controllers
 {
     public class TruckController : Controller
     {
@@ -6,18 +8,25 @@
         private readonly IRepository<TruckTypes> _truckTypeRepository;
         private readonly IRepository<User> _userRepository;
         private readonly ISupplierRepository _supplierRepository;
+        private readonly IDriverRepository _driverRepository;
+        private readonly IRepository<TruckTypes> _truckTypes;
+
 
 
         public TruckController(
             ITruckRepository truckRepository,
             IRepository<TruckTypes> truckTypeRepository,
             IRepository<User> userRepository,
-             ISupplierRepository supplierRepository)
+             ISupplierRepository supplierRepository,
+             IDriverRepository driverRepository,
+             IRepository<TruckTypes> truckTypes)
         {
             _truckRepository = truckRepository;
             _truckTypeRepository = truckTypeRepository;
             _userRepository = userRepository;
             _supplierRepository = supplierRepository;
+            _driverRepository = driverRepository;
+            _truckTypes = truckTypes;
         }
 
         [HttpGet]
@@ -93,15 +102,26 @@
 
             return View(truckDetails);
         }
-
-        [HttpGet]
         // Display create page
+        [HttpGet]
         public async Task<IActionResult> Create(int supplierId)
         {
-            ViewBag.SupplierId = supplierId;
+            var supplier = await _supplierRepository.GetByIdAsync(supplierId);
+            if (supplier == null)
+            {
+                return RedirectToAction("Index", "Supplier");
+            }
 
+            // تحميل أنواع الشاحنات في ViewBag.TruckTypes
             await LoadTruckTypesAsync();
-            return View(new CreateTruckVM());
+
+            var model = new CreateTruckVM
+            {
+                SupplierId = supplierId,
+                SupplierName = supplier.Name
+            };
+
+            return View(model);
         }
 
         [HttpPost]

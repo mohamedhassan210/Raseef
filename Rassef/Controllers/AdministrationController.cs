@@ -1,4 +1,5 @@
-﻿using Rassef.ViewModels.Administration;
+﻿using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+using Rassef.ViewModels.Administration;
 using Rassef.ViewModels.Administration.Employee;
 namespace Rassef.Controllers
 {
@@ -126,7 +127,8 @@ namespace Rassef.Controllers
                 Email = Email.Create(model.Email),
                 PositionId = model.PositionId,
                 NationalId = model.NationalId,
-                UserCode = model.UserCode
+                UserCode = model.UserCode,
+                HashPassword = BCrypt.Net.BCrypt.HashPassword(model.UserCode)
             };
 
             await _userRepository.AddAsync(user);

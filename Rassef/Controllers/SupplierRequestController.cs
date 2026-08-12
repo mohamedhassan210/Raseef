@@ -301,13 +301,52 @@ namespace Rassef.Controllers
         }
         // special acitons 
         [HttpGet]
-        public async Task<IActionResult> CreateTruckWithDriver(int supId)
+        public async Task<IActionResult> CreateTruckWithDriver(int supplierId)
         {
-            await LoadTruckTypesAsync();
-            await LoadDriversAsync();
-            var VM = new TruckWithDriverVM();
-            VM.SupId = supId;
-            return View(VM);
+            // 1. التحقق من وجود المورد
+            var supplier = await _supplierRepository.FindAsync(s => s.Id == supplierId);
+            if (supplier == null)
+            {
+                return NotFound("المورد غير موجود");
+            }
+
+            // 2. جلب البيانات من قاعدة البيانات
+            var allDrivers = await _driverRepository.GetAllAsync();
+            var allTruckTypes = await _truckTypeRepository.GetAllAsync();
+            var allSuppliers = await _supplierRepository.GetAllAsync();
+
+            var model = new TruckWithDriverVM
+            {
+                SupId = supplierId,
+
+                // جلب سائقي المورد
+                Drivers = allDrivers
+                    .Where(d => d.SupplierRequests != null &&
+                                d.SupplierRequests.Any(sr => sr.SupplierId == supplierId))
+                    .Select(d => new SelectListItem
+                    {
+                        Value = d.Id.ToString(),
+                        Text = d.FullName
+                    }).ToList(),
+
+                // جلب أنواع الشاحنات
+                TruckTypes = allTruckTypes
+                    .Select(t => new SelectListItem
+                    {
+                        Value = t.Id.ToString(),
+                        Text = t.Name
+                    }).ToList()
+            };
+
+            // 3. إرسال اسم المورد الحالي وقائمة الموردين/الشركات للـ View
+            ViewBag.SupplierName = supplier.Name;
+            ViewBag.Companies = allSuppliers.Select(s => new SelectListItem
+            {
+                Value = s.Name,
+                Text = s.Name
+            }).ToList();
+
+            return View(model);
         }
 
         [HttpPost]
@@ -316,9 +355,7 @@ namespace Rassef.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await LoadTruckTypesAsync(create.TruckTypeId);
-                await LoadDriversAsync(create.DriverId);
-
+                await ReloadTruckWithDriverDataAsync(create);
                 return View(create);
             }
 
@@ -327,10 +364,7 @@ namespace Rassef.Controllers
             if (string.IsNullOrWhiteSpace(userId))
             {
                 ModelState.AddModelError("", "يجب تسجيل الدخول أولاً.");
-
-                await LoadTruckTypesAsync(create.TruckTypeId);
-                await LoadDriversAsync(create.DriverId);
-
+                await ReloadTruckWithDriverDataAsync(create);
                 return View(create);
             }
 
@@ -339,10 +373,7 @@ namespace Rassef.Controllers
             if (currentUser is null)
             {
                 ModelState.AddModelError("", "لم يتم العثور على المستخدم.");
-
-                await LoadTruckTypesAsync(create.TruckTypeId);
-                await LoadDriversAsync(create.DriverId);
-
+                await ReloadTruckWithDriverDataAsync(create);
                 return View(create);
             }
 
@@ -354,7 +385,6 @@ namespace Rassef.Controllers
                 IsRefrigerated = create.IsRefrigerated,
                 TruckTypeId = create.TruckTypeId,
                 CreatedBy = currentUser
-
             };
 
             await _truckRepository.AddAsync(truck);
@@ -427,7 +457,36 @@ namespace Rassef.Controllers
                 selectedTruckTypeId
             );
         }
+        private async Task ReloadTruckWithDriverDataAsync(TruckWithDriverVM create)
+        {
+            var supplier = await _supplierRepository.FindAsync(s => s.Id == create.SupId);
+            ViewBag.SupplierName = supplier?.Name;
 
+            var allSuppliers = await _supplierRepository.GetAllAsync();
+            ViewBag.Companies = allSuppliers.Select(s => new SelectListItem
+            {
+                Value = s.Name,
+                Text = s.Name
+            }).ToList();
+
+            var allDrivers = await _driverRepository.GetAllAsync();
+            create.Drivers = allDrivers
+                .Where(d => d.SupplierRequests != null &&
+                            d.SupplierRequests.Any(sr => sr.SupplierId == create.SupId))
+                .Select(d => new SelectListItem
+                {
+                    Value = d.Id.ToString(),
+                    Text = d.FullName
+                }).ToList();
+
+            var allTruckTypes = await _truckTypeRepository.GetAllAsync();
+            create.TruckTypes = allTruckTypes
+                .Select(t => new SelectListItem
+                {
+                    Value = t.Id.ToString(),
+                    Text = t.Name
+                }).ToList();
+        }
         #endregion
     }
 }

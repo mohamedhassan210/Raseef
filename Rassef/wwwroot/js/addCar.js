@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // Custom Form Dropdown Logic (للشركة) - محدث لدعم أي شركة
+    // Custom Form Dropdown Logic (للشركة والديناميك)
     // ==========================================
     document.querySelectorAll('.custom-dropdown').forEach(customDropdown => {
         if (customDropdown.id === 'dept-dropdown-container') return;
@@ -76,23 +76,17 @@ document.addEventListener('DOMContentLoaded', () => {
         dropdownItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const value = item.getAttribute('data-value');
+                const value = item.getAttribute('data-value'); // ID المورد
+                const text = item.textContent.trim();          // اسم المورد
 
                 if (selectedValue) {
-                    selectedValue.textContent = value;
+                    selectedValue.textContent = text;
                     selectedValue.classList.remove('placeholder-color');
                 }
 
                 if (nativeSelect) {
-                    // التأكد من إضافة الخيار لو مش موجود في الـ Select المخفي عشان الـ Validation يقبله
-                    let optionExists = Array.from(nativeSelect.options).some(option => option.value === value);
-                    if (!optionExists) {
-                        const newOption = new Option(value, value, true, true);
-                        nativeSelect.add(newOption);
-                    }
-
                     nativeSelect.value = value;
-                    nativeSelect.disabled = false; // فك التعطيل عشان يقبل الـ Submit
+                    nativeSelect.disabled = false;
                     nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
                 }
 
@@ -143,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const populateConfirmationData = (departmentName = "غير متوفر") => {
         confirmCompany.textContent = pendingTruckInfo.company || "غير متوفر";
         confirmTruck.textContent = pendingTruckInfo.truckPlate || "غير متوفر";
-        confirmDriverName.textContent = pendingTruckInfo.driverName || "غير محدد"; // مفيش سواق في شاشة الإضافة
+        confirmDriverName.textContent = pendingTruckInfo.driverName || "غير محدد";
         confirmDriverdep.textContent = departmentName;
     };
 
@@ -151,19 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. Department Custom Dropdown Logic (للمودال)
     // ==========================================
     const initDepartmentDropdown = () => {
-        const departmentsData = [
-            { id: 101, name: "قسم الاستلام" },
-            { id: 102, name: "قسم المخازن" },
-            { id: 103, name: "قسم التوزيع" },
-            { id: 104, name: "قسم المبيعات" }
-        ];
-
-        if (deptDropdownList) {
-            deptDropdownList.innerHTML = departmentsData.map(dept =>
-                `<div class="dropdown-item" data-id="${dept.id}" data-value="${dept.name}">${dept.name}</div>`
-            ).join('');
-        }
-
+        // تم إلغاء القائمة الوهمية (departmentsData) واعتماد العناصر المكتوبة بالـ HTML من قاعدة البيانات
         const deptItems = deptDropdownList ? deptDropdownList.querySelectorAll('.dropdown-item') : [];
 
         if (deptDropdownHeader) {
@@ -179,8 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
                 selectedDepartmentValue = {
-                    id: parseInt(item.getAttribute('data-id')),
-                    name: item.getAttribute('data-value')
+                    id: parseInt(item.getAttribute('data-id') || item.getAttribute('data-value')),
+                    name: item.textContent.trim()
                 };
                 deptSelectedValue.textContent = selectedDepartmentValue.name;
                 deptSelectedValue.classList.remove('text-muted');
@@ -254,7 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     if (form) {
         form.addEventListener('submit', (event) => {
-            // نمنع إرسال الفورم الفوري والانتقال لصفحة أخرى
             event.preventDefault();
 
             if (!form.checkValidity()) {
@@ -263,26 +244,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // استخراج اسم الشركة بشكل صحيح ومضمون
-            let selectedCompany = "";
+            // استخراج اسم الشركة لعرضها المباشر في المودال
+            let selectedCompanyText = "";
             const isSelectVisible = companySelectView && !companySelectView.classList.contains('d-none');
 
-            if (isSelectVisible && companySelect) {
-                selectedCompany = companySelect.value;
-                console.log(selectedCompany)
-
+            if (isSelectVisible) {
+                const selectedDropdown = companySelectView.querySelector('.selected-value');
+                selectedCompanyText = selectedDropdown ? selectedDropdown.textContent.trim() : "";
             } else {
-                selectedCompany = document.getElementById('companyDisplay')?.value;
-                console.log(selectedCompany)
+                selectedCompanyText = document.getElementById('companyDisplay')?.value;
             }
 
             const plateLetters = document.getElementById('plateLetters');
             const plateNumbers = document.getElementById('plateNumbers');
             const fullPlate = `${plateLetters ? plateLetters.value.trim() : ""} ${plateNumbers ? plateNumbers.value.trim() : ""}`;
 
-            // تجهيز البيانات
             pendingTruckInfo = {
-                company: selectedCompany,
+                company: selectedCompanyText,
                 truckPlate: fullPlate,
                 driverName: "غير محدد"
             };
@@ -290,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // تصفير مودال الأقسام ثم فتحه
             selectedDepartmentValue = null;
             if (deptSelectedValue) {
-                deptSelectedValue.textContent = 'اختار الشاحنة';
+                deptSelectedValue.textContent = 'اختر القسم';
                 deptSelectedValue.classList.add('text-muted');
             }
             if (deptDropdownHeader) deptDropdownHeader.classList.remove('error');
@@ -309,15 +287,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (btnEdit) {
             btnEdit.addEventListener('click', () => {
-                closeModal(); // قفل المودال عشان اليوزر يرجع يعدل في الفورم براحته
+                closeModal();
             });
         }
 
         if (btnConfirm) {
-            btnConfirm.addEventListener('click', () => {
-                const ticketNum = generateTicketNumber();
-                if (ticketNumberDisplay) ticketNumberDisplay.textContent = ticketNum;
-                showConfirmationModal(successModal);
+            btnConfirm.addEventListener('click', async () => {
+                const formData = new FormData(form);
+
+                if (selectedDepartmentValue) {
+                    formData.append('DepartmentId', selectedDepartmentValue.id);
+                }
+
+                try {
+                    btnConfirm.disabled = true;
+                    btnConfirm.innerText = "جاري الحفظ...";
+
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        }
+                    });
+
+                    if (response.ok) {
+                        const ticketNum = generateTicketNumber();
+                        if (ticketNumberDisplay) ticketNumberDisplay.textContent = ticketNum;
+
+                        showConfirmationModal(successModal);
+                    } else {
+                        alert("حدث خطأ أثناء حفظ الشاحنة في قاعدة البيانات.");
+                    }
+                } catch (error) {
+                    console.error("Error submitting truck form:", error);
+                    alert("فشل الاتصال بالسيرفر. حاول مرة أخرى.");
+                } finally {
+                    btnConfirm.disabled = false;
+                    btnConfirm.innerText = "تأكيد";
+                }
             });
         }
 
@@ -333,7 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // إغلاق المودال عند الضغط خارجه أو بالـ ESC
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) {
                 if (!deptModal.classList.contains('d-none') || !confirmModal.classList.contains('d-none')) {
@@ -357,37 +364,28 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     initializeModals();
-});
 
-document.addEventListener('DOMContentLoaded', () => {
-    // --- تنسيق خانة الحروف (إضافة مسافة بين الحروف تلقائياً) ---
+    // ==========================================
+    // 9. Plate Inputs Formatting (Letters & Numbers)
+    // ==========================================
     const plateLettersInput = document.getElementById('plateLetters');
     if (plateLettersInput) {
         plateLettersInput.addEventListener('input', (e) => {
-            // السماح بالحروف العربية فقط وإزالة أي مسافات قديمة
             let value = e.target.value.replace(/[^\u0600-\u06FF]/g, '');
-
-            // تقسيم الكلمة لحروف منفردة ثم دمجها بمسافات بينها
             if (value.length > 0) {
                 value = value.split('').join(' ');
             }
-
             e.target.value = value;
         });
     }
 
-    // --- تنسيق خانة الأرقام (إضافة مسافة بين الأرقام تلقائياً) ---
     const plateNumbersInput = document.getElementById('plateNumbers');
     if (plateNumbersInput) {
         plateNumbersInput.addEventListener('input', (e) => {
-            // السماح بالأرقام فقط وإزالة أي مسافات
             let value = e.target.value.replace(/\D/g, '');
-
-            // تقسيم الأرقام وفصلها بمسافات
             if (value.length > 0) {
                 value = value.split('').join(' ');
             }
-
             e.target.value = value;
         });
     }
