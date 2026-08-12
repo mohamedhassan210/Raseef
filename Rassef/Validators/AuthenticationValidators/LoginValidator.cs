@@ -10,7 +10,7 @@ namespace Rassef.Validators.AuthenticationValidators
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("كلمة المرور مطلوبة.")
-                .MinimumLength(8).WithMessage("يجب ألا تقل كلمة المرور عن 8 أحرف.");
+                .MinimumLength(6).WithMessage("يجب ألا تقل كلمة المرور عن 6 أحرف.");
         }
     }
 }
