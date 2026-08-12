@@ -127,6 +127,7 @@
                 Id = supplier.Id,
                 Name = supplier.Name,
                 Phone = supplier.Phone,
+                SupCode = supplier.SupCode, // <-- ربط كود المورد
                 ExistingLogoURL = supplier.LogoURL
             };
 
@@ -135,35 +136,54 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Action Edit
         public async Task<IActionResult> Edit(UpdateSupplierVM model)
         {
+            // 1. التحقق من صحة المدخلات
             if (!ModelState.IsValid)
+            {
                 return View(model);
+            }
 
+            // 2. جلب المورد من قاعدة البيانات
             var supplier = await _supplierRepository.GetByIdAsync(model.Id);
 
             if (supplier == null)
             {
                 ModelState.AddModelError("", "هذا المورد غير موجود");
-                return View(supplier);
+                return View(model);
             }
 
-            supplier.Name = model.Name;
-            supplier.Phone = model.Phone;
-
-            if (model.LogoFile != null)
+            try
             {
-                _fileService.DeleteImage(supplier.LogoURL);
+                // 3. تحديث الخصائص
+                supplier.Name = model.Name;
+                supplier.Phone = model.Phone;
+                supplier.SupCode = model.SupCode;
 
-                supplier.LogoURL = await _fileService.UploadImageAsync(model.LogoFile);
+                // 4. معالجة الصورة
+                if (model.LogoFile != null)
+                {
+                    if (!string.IsNullOrEmpty(supplier.LogoURL))
+                    {
+                        _fileService.DeleteImage(supplier.LogoURL);
+                    }
+
+                    supplier.LogoURL = await _fileService.UploadImageAsync(model.LogoFile);
+                }
+
+                // 5. حفظ التعديلات
+                _supplierRepository.Update(supplier);
+                await _supplierRepository.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "تم تعديل بيانات المورد بنجاح!";
+                return RedirectToAction(nameof(Index));
             }
-
-            _supplierRepository.Update(supplier);
-            await _supplierRepository.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "تم تعديل بيانات المورد بنجاح!";
-            return RedirectToAction(nameof(Index));
+            catch (Exception ex)
+            {
+                var realMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                ModelState.AddModelError("", $"حدث خطأ أثناء الحفظ: {realMessage}");
+                return View(model);
+            }
         }
 
         [HttpPost]
