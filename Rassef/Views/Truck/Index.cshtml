@@ -1,0 +1,146 @@
+﻿@* @model IEnumerable<TruckListVM> *@
+@model IEnumerable<Rassef.ViewModels.Truck.TruckListVM>
+@{
+    ViewData["Title"] = "   جهينة";
+    Layout = "_SupOrTra"; // تأكد من استخدام اسم الـ Layout الصحيح لمشروعك
+}
+
+<!-- استدعاء الخطوط -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- استدعاء ملف الـ CSS باستخدام Tag Helper لضمان عدم الكاش -->
+<link rel="stylesheet" href="~/css/companyCars.css" asp-append-version="true" />
+
+<main class="page-container">
+    <header class="page-header">
+        <div class="logo-wrapper header-right">
+            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-Fathalla" onerror="this.src='https://via.placeholder.com/120x60?text=Fathalla'">
+        </div>
+
+        <div class="title-wrapper">
+            <!-- إذا كان اسم المورد ديناميكي يمكن استبداله بـ @ViewBag.SupplierName -->
+            <h1 class="main-title">شاحنات @ViewBag.SupplierName</h1>
+        </div>
+
+        <div class="logo-wrapper header-left">
+            <img src="~/img/logo.svg" alt="رصيفي" class="brand-logo logo-raseefy" style="height: 80px;" onerror="this.src='https://via.placeholder.com/120x60?text=Raseefy'">
+        </div>
+    </header>
+
+    <div class="nav-actions-container">
+        <!-- استخدام MVC Routing لزر الإضافة -->
+        <a
+           asp-controller="SupplierRequest"
+           asp-action="CreateTruckWithDriver"
+           asp-route-supplierId="@ViewBag.SupplierId"
+           class="action-btn"
+           aria-label="إضافة جديد">
+
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+
+            إضافة جديد
+        </a>
+
+        <!-- استخدام MVC Routing لزر الرجوع للخلف -->
+        <a asp-controller="Supplier" asp-action="Index" class="action-btn" aria-label="خطوة للخلف">
+            خطوة للخلف
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </a>
+    </div>
+
+    <section class="search-section" aria-label="البحث عن سيارة">
+        <div class="search-wrapper">
+            <button type="button" class="search-btn" id="search-btn" aria-label="بحث">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+            <!-- شريط البحث (يتم تصفيته بواسطة الجافاسكريبت لحظياً) -->
+            <input type="text"
+                   id="search-input"
+                   class="search-input"
+                   placeholder="ادخل رقم أو حروف السيارة"
+                   aria-label="ادخل رقم أو حروف السيارة للبحث"
+                   autocomplete="off">
+        </div>
+    </section>
+
+    <section class="cards-section" id="cards-container" aria-label="قائمة السيارات">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var truck in Model)
+            {
+                // تحديد نوع الشاحنة
+                bool isCooling = truck.IsRefrigerated;
+
+                // SVG Path
+                string iconPath;
+                string typeLabel;
+
+                if (isCooling)
+                {
+                    // Snowflake (تبريد)
+                    iconPath = "M11 2h2v4.27l2.36-2.36 1.41 1.41L13.41 8.68 17 10.73V7h2v3.73l3.36-1.94 1 1.73L20 12l3.36 1.94-1 1.73L19 13.73V17h-2v-3.73l-3.59 2.05 3.36 3.36-1.41 1.41L13 17.73V22h-2v-4.27l-2.36 2.36-1.41-1.41L10.59 15.32 7 13.27V17H5v-3.73l-3.36 1.94-1-1.73L4 12 .64 10.06l1-1.73L5 10.27V7h2v3.73l3.59-2.05-3.36-3.36 1.41-1.41L11 6.27V2z";
+                    typeLabel = "تبريد";
+                }
+                else
+                {
+                    // Truck (غير تبريد)
+                    iconPath = "M20 8h-3V4H3c-1.1 0-2 .9-2 2v10c0 .55.45 1 1 1h1a3 3 0 0 0 6 0h6a3 3 0 0 0 6 0h1c.55 0 1-.45 1-1v-4l-3-4zM6 18.5A1.5 1.5 0 1 1 6 15a1.5 1.5 0 0 1 0 3.5zm13 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm-2-7V10h2.5l1.5 2H17z";
+                    typeLabel = "غير تبريد";
+                }
+
+                <article class="truck-card">
+                    <div class="btnAndArticle">
+                        <div class="license-plate" aria-label="لوحة السيارة: @truck.PlateNumber @truck.PlateLetter">
+                            <div class="plate-header">
+                                <span class="plate-country">مصر</span>
+                                <span class="plate-country-en">EGYPT</span>
+                            </div>
+                            <div class="plate-body">
+                                <span class="plate-numbers">@truck.PlateNumber</span>
+                                <span class="plate-letters">@truck.PlateLetter</span>
+                            </div>
+                        </div>
+
+                        <div class="card-details">
+                            <h2 class="vehicle-title">سيارة @truck.TruckTypeName</h2>
+                            <div class="d-flex gap-2 details">
+                                <div class="vehicle-type">
+                                    <svg class="type-icon" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="@iconPath" fill-rule="evenodd" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>@typeLabel</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-action">
+                        <!-- تمرير الـ ID لصفحة السائقين عن طريق MVC Routing -->
+                        <a asp-controller="Driver" asp-action="Index" asp-route-id="@truck.Id" asp-route-supplierId="@truck.supplierId" class="select-btn">اختيار السيارة</a>
+                    </div>
+                </article>
+            }
+        }
+        else
+        {
+            <div class="text-center mt-5" style="color: var(--dark-text); font-size: 1.2rem;">
+                لا توجد سيارات مطابقة لبحثك.
+            </div>
+        }
+    </section>
+</main>
+
+@section Scripts {
+    <script src="~/js/companyCars.js" asp-append-version="true"></script>
+}
