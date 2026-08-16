@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "سائقين";
     Layout = "_SupOrTra";
 }
@@ -215,7 +215,7 @@
         window.pageData = {
             truckName: '@Html.Raw(ViewBag.TruckName ?? "غير محدد")',
             dockName: 'A',
-            employeeName: '@User.Identity.Name' // أو تستخدم القيمة الثابتة 'محمد حسين'
+            employeeName: '@(User.Identity?.Name ?? "محمد حسين")' // أو تستخدم القيمة الثابتة 'محمد حسين'
         };
 
         window.routes = {

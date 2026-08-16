@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "شاحنات التحويل";
     Layout = "_SupOrTra";
 }
@@ -128,7 +128,7 @@
         window.pageData = {
             truckName: '@Html.Raw(ViewBag.TruckName ?? "غير محدد")',
             dockName: 'A',
-            employeeName: '@User.Identity.Name'
+            employeeName: '@(User.Identity?.Name ?? "محمد حسين")'
         };
 
         window.routes = {

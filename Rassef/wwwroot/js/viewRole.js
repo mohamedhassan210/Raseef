@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // إظهار أو إخفاء العنصر
             if (matchesFilter && matchesSearch) {
-                card.style.display = "flex"; // استخدام flex لضبط محاذاة الكارت الأفقي
+                card.style.display = "grid"; // استخدام grid لضبط الألوان والمحاذاة بشكل سليم
             } else {
                 card.style.display = "none";
             }

@@ -1,4 +1,4 @@
-﻿using Rassef.ViewModels.Authentication.UserViewModels;
+using Rassef.ViewModels.Authentication.UserViewModels;
 using Rassef.ViewModels.Drivers;
 
 namespace Rassef.Controllers
@@ -8,12 +8,20 @@ namespace Rassef.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IJwtService _jwtService;
         private readonly IDriverRepository _driverRepository;
-        private readonly IQueueTicketRepository _queueTicketRepository;
+        private readonly IRepository<SupplierRequest> _transferRequestRepository;
         private readonly IDepartmentRepository _departmentRepository;
         private readonly IRepository<TicketStatuses> _ticketStatusRepository;
-        private readonly IRepository<SupplierRequest> _transferRequestRepository;
+        private readonly IRepository<QueueTicket> _ticketRepository;
 
-        public AuthenticationController(IUserRepository userRepository, IJwtService jwtService, ILogger<AuthenticationController> logger, IDriverRepository driverRepository, IRepository<SupplierRequest> transferRequestRepository, IDepartmentRepository departmentRepository, IRepository<TicketStatuses> ticketStatusesRepository)
+        public AuthenticationController(
+            IUserRepository userRepository,
+            IJwtService jwtService,
+            ILogger<AuthenticationController> logger,
+            IDriverRepository driverRepository,
+            IRepository<SupplierRequest> transferRequestRepository,
+            IDepartmentRepository departmentRepository,
+            IRepository<TicketStatuses> ticketStatusesRepository,
+            IRepository<QueueTicket> ticketRepository)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
@@ -21,6 +29,7 @@ namespace Rassef.Controllers
             _transferRequestRepository = transferRequestRepository ?? throw new ArgumentNullException(nameof(transferRequestRepository));
             _departmentRepository = departmentRepository;
             _ticketStatusRepository = ticketStatusesRepository;
+            _ticketRepository = ticketRepository;
         }
 
         [HttpGet]
@@ -224,7 +233,49 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> ViewRole()
         {
-            return View();
+            var ticketsList = await _ticketRepository.GetAllAsync(query => query
+                .Include(t => t.Department)
+                .Include(t => t.TicketStatus)
+                .Include(t => t.SupplierRequest)
+                    .ThenInclude(sr => sr.Driver)
+                .Include(t => t.SupplierRequest)
+                    .ThenInclude(sr => sr.Truck)
+                .Include(t => t.TransferRequest)
+                    .ThenInclude(tr => tr.Driver)
+                .Include(t => t.TransferRequest)
+                    .ThenInclude(tr => tr.Truck)
+                .Include(t => t.DockAssignments)
+                    .ThenInclude(da => da.Dock)
+            );
+
+            var ticketViewModels = ticketsList.Select(t => {
+                var dockAssignment = t.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
+                return new QueueTicketListVM
+                {
+                    Id = t.Id,
+                    TicketNumber = t.TicketNumber ?? "A1",
+                    TicketStatusName = t.TicketStatus != null ? t.TicketStatus.Name : "إنتظار",
+                    DriverName = t.SupplierRequest?.Driver?.FullName ?? t.TransferRequest?.Driver?.FullName ?? "غير محدد",
+                    TruckNumber = t.SupplierRequest?.Truck != null ? $"{t.SupplierRequest.Truck.PlateLetter} {t.SupplierRequest.Truck.PlateNumber}" : (t.TransferRequest?.Truck != null ? $"{t.TransferRequest.Truck.PlateLetter} {t.TransferRequest.Truck.PlateNumber}" : "غير محدد"),
+                    DepartmentName = t.Department?.Name ?? "غير محدد",
+                    DockName = dockAssignment?.Dock?.DockName ?? "A1",
+                    EntryTime = t.EntryTime != DateTimeOffset.MinValue ? t.EntryTime : t.CreatedAT
+                };
+            }).ToList();
+
+            int waitingCount = ticketViewModels.Count(x => x.TicketStatusName == "إنتظار" || x.TicketStatusName == "انتظار" || x.TicketStatusName == "في الطابور");
+            int inProgressCount = ticketViewModels.Count(x => x.TicketStatusName == "جاري" || x.TicketStatusName == "قيد التنفيذ");
+            int completedCount = ticketViewModels.Count(x => x.TicketStatusName == "تم" || x.TicketStatusName == "مكتملة");
+
+            var viewModel = new QueueTicketIndexVM
+            {
+                Tickets = ticketViewModels,
+                WaitingCount = waitingCount,
+                InProgressCount = inProgressCount,
+                CompletedCount = completedCount
+            };
+
+            return View("viewRole", viewModel);
         }
 
 

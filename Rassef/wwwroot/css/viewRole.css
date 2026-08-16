@@ -279,33 +279,29 @@ body {
 .role-card {
     display: grid;
 
-    /*
-       RTL:
-       رقم الدور | الحالة | الموظف | السيارة | الرصيف | القسم | الوقت
-    */
     grid-template-columns:
+        60px
         70px
-        75px
-        1.6fr
+        1.4fr
+        1.1fr
+        90px
         1.2fr
-        110px
-        1.2fr
-        120px;
+        100px;
 
     align-items: center;
 
     direction: rtl;
 
     width: 100%;
-    min-height: 64px;
+    min-height: 60px;
 
     background-color: var(--card-bg);
     border: 1px solid var(--primary-orange);
     border-radius: 10px;
 
-    padding: 10px 20px;
+    padding: 8px 14px;
 
-    column-gap: 25px;
+    column-gap: 12px;
 
     flex-wrap: unset;
 }
@@ -313,15 +309,16 @@ body {
 .info-group {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
 
     min-width: 0;
     width: 100%;
 }
 
 .info-icon {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
     color: var(--text-dark);
+    flex-shrink: 0;
 }
 
 .info-text {
@@ -334,7 +331,7 @@ body {
 
 .info-value {
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 0.85rem;
 
     white-space: nowrap;
     overflow: hidden;
@@ -342,7 +339,7 @@ body {
 }
 
 .info-label {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     color: var(--text-muted);
 
     white-space: nowrap;
@@ -355,19 +352,19 @@ body {
     align-items: center;
     justify-content: center;
 
-    width: 70px;
-    min-width: 70px;
+    width: 60px;
+    min-width: 60px;
 }
 
 .role-number-val {
     color: var(--primary-orange);
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
     line-height: 1;
 }
 
 .role-number-label {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     color: var(--text-muted);
     white-space: nowrap;
 }

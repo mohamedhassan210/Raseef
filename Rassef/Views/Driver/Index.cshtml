@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Rassef.ViewModels.Driver.DriverListVM>
+@model IEnumerable<Rassef.ViewModels.Driver.DriverListVM>
 
 @{
     ViewData["Title"] = $"سائقين {ViewBag.SupplierName}";
@@ -90,11 +90,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-action d-flex gap-2">
+                    <div class="card-action">
                         <button class="select-btn" type="button" aria-label="اختيار السائق">اختيار السائق</button>
-                        <a asp-controller="Driver" asp-action="Update" asp-route-id="@driver.Id" class="btn btn-sm btn-outline-warning d-flex align-items-center justify-content-center px-3" title="تعديل">
-                            تعديل
-                        </a>
                     </div>
                 </article>
             }
