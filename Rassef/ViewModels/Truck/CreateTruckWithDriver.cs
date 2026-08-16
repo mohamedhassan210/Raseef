@@ -1,4 +1,4 @@
-﻿namespace Rassef.Models.ViewModels.Truck
+namespace Rassef.Models.ViewModels.Truck
 {
     public class TruckWithDriverVM
     {
@@ -20,6 +20,12 @@
         [Display(Name = "السائق")]
         public int DriverId { get; set; }
         public int SupId { get; set; }
+        public int? DepartmentId { get; set; }
+
+        public string? NewDriverName { get; set; }
+        public string? NewDriverNationalId { get; set; }
+        public string? NewDriverPhone { get; set; }
+
         public IEnumerable<SelectListItem> Drivers { get; set; }
             = new List<SelectListItem>();
 

@@ -12,6 +12,8 @@ namespace Rassef.Controllers
         private readonly IRepository<RequestStatuses> _requestStatusRepository;
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<TruckTypes> _truckTypeRepository;
+        private readonly IRepository<QueueTicket> _ticketRepository;
+        private readonly IRepository<TicketStatuses> _ticketStatusRepository;
 
         public SupplierRequestController(
             ISupplierRequestRepository supplierRequestRepository,
@@ -23,7 +25,9 @@ namespace Rassef.Controllers
             IRepository<CommodityTypes> commodityTypeRepository,
             IRepository<RequestStatuses> requestStatusRepository,
             IRepository<User> userRepository,
-            IRepository<TruckTypes> truckTypeRepository)
+            IRepository<TruckTypes> truckTypeRepository,
+            IRepository<QueueTicket> ticketRepository,
+            IRepository<TicketStatuses> ticketStatusRepository)
         {
             _supplierRequestRepository = supplierRequestRepository;
             _supplierRepository = supplierRepository;
@@ -35,6 +39,8 @@ namespace Rassef.Controllers
             _requestStatusRepository = requestStatusRepository;
             _userRepository = userRepository;
             _truckTypeRepository = truckTypeRepository;
+            _ticketRepository = ticketRepository;
+            _ticketStatusRepository = ticketStatusRepository;
         }
         [HttpGet]
         public async Task<IActionResult> Index()
@@ -282,7 +288,6 @@ namespace Rassef.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        // Delete item
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var request = await _supplierRequestRepository.GetByIdAsync(id);
@@ -301,8 +306,9 @@ namespace Rassef.Controllers
         }
         // special acitons 
         [HttpGet]
-        public async Task<IActionResult> CreateTruckWithDriver(int supplierId)
+        public async Task<IActionResult> CreateTruckWithDriver(int supplierId, int? selectedDriverId, bool autoOpenModal = false)
         {
+            ViewBag.AutoOpenModal = autoOpenModal;
             // 1. التحقق من وجود المورد
             var supplier = await _supplierRepository.FindAsync(s => s.Id == supplierId);
             if (supplier == null)
@@ -315,21 +321,23 @@ namespace Rassef.Controllers
             var allTruckTypes = await _truckTypeRepository.GetAllAsync();
             var allSuppliers = await _supplierRepository.GetAllAsync();
 
+            var supplierDrivers = allDrivers
+                .Where(d => (d.SupplierRequests != null && d.SupplierRequests.Any(sr => sr.SupplierId == supplierId))
+                         || (selectedDriverId.HasValue && d.Id == selectedDriverId.Value))
+                .Select(d => new SelectListItem
+                {
+                    Value = d.Id.ToString(),
+                    Text = d.FullName,
+                    Selected = selectedDriverId.HasValue && d.Id == selectedDriverId.Value
+                }).ToList();
+
+            int initialDriverId = selectedDriverId ?? (supplierDrivers.Any() ? int.Parse(supplierDrivers.First().Value) : 0);
+
             var model = new TruckWithDriverVM
             {
                 SupId = supplierId,
-
-                // جلب سائقي المورد
-                Drivers = allDrivers
-                    .Where(d => d.SupplierRequests != null &&
-                                d.SupplierRequests.Any(sr => sr.SupplierId == supplierId))
-                    .Select(d => new SelectListItem
-                    {
-                        Value = d.Id.ToString(),
-                        Text = d.FullName
-                    }).ToList(),
-
-                // جلب أنواع الشاحنات
+                DriverId = initialDriverId,
+                Drivers = supplierDrivers,
                 TruckTypes = allTruckTypes
                     .Select(t => new SelectListItem
                     {
@@ -337,6 +345,13 @@ namespace Rassef.Controllers
                         Text = t.Name
                     }).ToList()
             };
+
+            var allDepartments = await _departmentRepository.GetAllAsync();
+            ViewBag.Departments = allDepartments.Select(d => new SelectListItem
+            {
+                Value = d.Id.ToString(),
+                Text = d.Name
+            }).ToList();
 
             // 3. إرسال اسم المورد الحالي وقائمة الموردين/الشركات للـ View
             ViewBag.SupplierName = supplier.Name;
@@ -353,6 +368,19 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateTruckWithDriver(TruckWithDriverVM create)
         {
+            if (create.TruckTypeId <= 0)
+            {
+                var allTruckTypes = await _truckTypeRepository.GetAllAsync();
+                var defaultType = allTruckTypes.FirstOrDefault();
+                if (defaultType == null)
+                {
+                    defaultType = new TruckTypes { Name = "عام" };
+                    await _truckTypeRepository.AddAsync(defaultType);
+                    await _truckTypeRepository.SaveChangesAsync();
+                }
+                create.TruckTypeId = defaultType.Id;
+            }
+
             if (!ModelState.IsValid)
             {
                 await ReloadTruckWithDriverDataAsync(create);
@@ -377,6 +405,35 @@ namespace Rassef.Controllers
                 return View(create);
             }
 
+            // 0. إنشاء السائق إذا تم إدخاله من خلال المودال المباشر (+)
+            if (!string.IsNullOrWhiteSpace(create.NewDriverName))
+            {
+                Driver? targetDriver = null;
+                if (!string.IsNullOrWhiteSpace(create.NewDriverNationalId))
+                {
+                    targetDriver = await _driverRepository.FindAsync(d => d.NationalId == create.NewDriverNationalId);
+                }
+
+                if (targetDriver == null)
+                {
+                    int driverTypeId = 1;
+
+                    targetDriver = new Driver
+                    {
+                        FullName = create.NewDriverName,
+                        NationalId = !string.IsNullOrWhiteSpace(create.NewDriverNationalId) ? create.NewDriverNationalId : "10000000000000",
+                        Phone = !string.IsNullOrWhiteSpace(create.NewDriverPhone) ? create.NewDriverPhone : "01000000000",
+                        DeiverTypeId = driverTypeId,
+                        CreatedBy = currentUser
+                    };
+
+                    await _driverRepository.AddAsync(targetDriver);
+                    await _driverRepository.SaveChangesAsync();
+                }
+
+                create.DriverId = targetDriver.Id;
+            }
+
             var truck = new Truck
             {
                 PlateNumber = create.PlateNumber,
@@ -390,14 +447,52 @@ namespace Rassef.Controllers
             await _truckRepository.AddAsync(truck);
             await _truckRepository.SaveChangesAsync();
 
-            return RedirectToAction(
-                nameof(Create),
-                new CreateSupplierRequestVM
-                {
-                    TruckId = truck.Id,
-                    DriverId = create.DriverId,
-                    SupplierId = create.SupId,
-                });
+            // 2. إنشاء طلب توريد (SupplierRequest)
+            int targetDepartmentId = create.DepartmentId.HasValue && create.DepartmentId.Value > 0 ? create.DepartmentId.Value : 1;
+
+            var supplierRequest = new SupplierRequest
+            {
+                SupplierId = create.SupId,
+                TruckId = truck.Id,
+                DriverId = create.DriverId,
+                DepartmentId = targetDepartmentId,
+                PermitTypeId = 1,
+                CommodityTypeId = 1,
+                RequestStatusId = 1,
+                CreatedBy = currentUser
+            };
+
+            await _supplierRequestRepository.AddAsync(supplierRequest);
+            await _supplierRequestRepository.SaveChangesAsync();
+
+            // 3. إنشاء دور / تذكرة دور (QueueTicket)
+            var department = await _departmentRepository.GetByIdAsync(targetDepartmentId);
+            var prefix = department?.Prefix ?? "A";
+            var allTickets = await _ticketRepository.GetAllAsync();
+            var departmentTicketsCount = allTickets.Count(t => t.DepartmentId == targetDepartmentId);
+            var ticketNumber = $"{prefix}{departmentTicketsCount + 1}";
+
+            var allTicketStatuses = await _ticketStatusRepository.GetAllAsync();
+            var status = allTicketStatuses.FirstOrDefault(s => s.Name.Contains("انتظار") || s.Name.Contains("إنتظار")) ?? allTicketStatuses.FirstOrDefault();
+            int statusId = status?.Id ?? 1;
+
+            var queueTicket = new QueueTicket
+            {
+                TicketNumber = ticketNumber,
+                DepartmentId = targetDepartmentId,
+                TicketStatusId = statusId,
+                SupplierRequestId = supplierRequest.Id,
+                QueueTime = DateTimeOffset.Now,
+                EntryTime = DateTimeOffset.Now,
+                ExitTime = DateTimeOffset.MinValue,
+                CreatedBy = currentUser
+            };
+
+            await _ticketRepository.AddAsync(queueTicket);
+            await _ticketRepository.SaveChangesAsync();
+
+            // 4. التوجيه لـ ViewRole لعرض الأدوار الحالية
+            return RedirectToAction("ViewRole", "Authentication");
         }
 
         #region Helpers
@@ -435,6 +530,19 @@ namespace Rassef.Controllers
 
             return vm;
         }
+
+        private async Task PopulateTruckTypesViewBagAsync(int? selectedTruckTypeId = null)
+        {
+            var truckTypes = await _truckTypeRepository.GetAllAsync();
+
+            ViewBag.TruckTypes = new SelectList(
+                truckTypes,
+                nameof(TruckTypes.Id),
+                nameof(TruckTypes.Name),
+                selectedTruckTypeId
+            );
+        }
+
         private async Task LoadDriversAsync(int? selectedDriverId = null)
         {
             var drivers = await _driverRepository.GetAllAsync();
@@ -446,6 +554,7 @@ namespace Rassef.Controllers
                 selectedDriverId
             );
         }
+
         private async Task LoadTruckTypesAsync(int? selectedTruckTypeId = null)
         {
             var truckTypes = await _truckTypeRepository.GetAllAsync();
@@ -457,10 +566,18 @@ namespace Rassef.Controllers
                 selectedTruckTypeId
             );
         }
+
         private async Task ReloadTruckWithDriverDataAsync(TruckWithDriverVM create)
         {
             var supplier = await _supplierRepository.FindAsync(s => s.Id == create.SupId);
             ViewBag.SupplierName = supplier?.Name;
+
+            var allDepartments = await _departmentRepository.GetAllAsync();
+            ViewBag.Departments = allDepartments.Select(d => new SelectListItem
+            {
+                Value = d.Id.ToString(),
+                Text = d.Name
+            }).ToList();
 
             var allSuppliers = await _supplierRepository.GetAllAsync();
             ViewBag.Companies = allSuppliers.Select(s => new SelectListItem
@@ -471,12 +588,13 @@ namespace Rassef.Controllers
 
             var allDrivers = await _driverRepository.GetAllAsync();
             create.Drivers = allDrivers
-                .Where(d => d.SupplierRequests != null &&
-                            d.SupplierRequests.Any(sr => sr.SupplierId == create.SupId))
+                .Where(d => (d.SupplierRequests != null && d.SupplierRequests.Any(sr => sr.SupplierId == create.SupId))
+                         || d.Id == create.DriverId)
                 .Select(d => new SelectListItem
                 {
                     Value = d.Id.ToString(),
-                    Text = d.FullName
+                    Text = d.FullName,
+                    Selected = d.Id == create.DriverId
                 }).ToList();
 
             var allTruckTypes = await _truckTypeRepository.GetAllAsync();

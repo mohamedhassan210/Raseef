@@ -101,8 +101,9 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-
-            return View(new CreateTransferRequestVM());
+            var model = new CreateTransferRequestVM();
+            await LoadSelectListsAsync(model);
+            return View(model);
         }
 
         // Create (POST)
@@ -267,7 +268,7 @@ namespace Rassef.Controllers
         }
 
         // Ensure Order 
-        public async Task<IActionResult> EnsureOrder(int id)
+        public IActionResult EnsureOrder(int id)
         {
             return RedirectToAction("Recript", "Driver");
         }
