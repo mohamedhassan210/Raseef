@@ -4,9 +4,9 @@ namespace Rassef.Controllers
 {
     public class DepartmentTypeController : Controller
     {
-        private readonly IRepository<DepartmentType> _repository;
+        private readonly IRepository<DepartmentTypes> _repository;
 
-        public DepartmentTypeController(IRepository<DepartmentType> repository)
+        public DepartmentTypeController(IRepository<DepartmentTypes> repository)
         {
             _repository = repository;
         }
@@ -70,7 +70,7 @@ namespace Rassef.Controllers
                 return View(model);
             }
 
-            var departmentType = new DepartmentType
+            var departmentType = new DepartmentTypes
             {
                 Name = model.Name
             };

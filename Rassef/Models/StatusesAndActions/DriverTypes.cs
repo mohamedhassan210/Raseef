@@ -1,6 +1,6 @@
 ﻿namespace Rassef.Models.StatusesAndActions
 {
-    public class DriverType : BaseEntity
+    public class DriverTypes : BaseEntity
     {
         public int? Code { get; set; }
         public string Name { get; set; } = string.Empty;

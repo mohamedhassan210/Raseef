@@ -1,8 +1,8 @@
 ﻿namespace Rassef.Models.Configurations
 {
-    public class DepartmentTypeConfiguration : IEntityTypeConfiguration<DepartmentType>
+    public class DepartmentTypeConfiguration : IEntityTypeConfiguration<DepartmentTypes>
     {
-        public void Configure(EntityTypeBuilder<DepartmentType> builder)
+        public void Configure(EntityTypeBuilder<DepartmentTypes> builder)
         {
             builder.ToTable("DepartmentTypes");
 

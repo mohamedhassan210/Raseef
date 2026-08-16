@@ -26,7 +26,6 @@
     </header>
 
     <div class="nav-actions-container" style="justify-content: flex-end;">
-        <!-- تعديل رابط العودة للوراء ليستخدم MVC Routing -->
         <a href="@Url.Action("Index", "Truck")" class="action-btn" aria-label="خطوة للخلف">
             خطوة للخلف
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -41,6 +40,7 @@
 
             <div class="row mb-4 gy-4">
 
+                <!-- رقم الشاحنة -->
                 <div class="col-md-6 order-md-1">
                     <label class="form-label fw-bold">رقم الشاحنة</label>
                     <div class="d-flex gap-3 responsive-gap">
@@ -55,6 +55,7 @@
                     </div>
                 </div>
 
+                <!-- سعة التخزين -->
                 <div class="col-md-6 order-md-2">
                     <label class="form-label fw-bold">سعة التخزين</label>
                     <div class="input-group has-validation">
@@ -64,6 +65,7 @@
                     </div>
                 </div>
 
+                <!-- نوع الشاحنة -->
                 <div class="col-md-6 order-md-3">
                     <label class="form-label fw-bold d-block">نوع الشاحنة</label>
                     <div class="d-flex mt-3 custom-radio-group justify-content-start gap-4">
@@ -78,22 +80,15 @@
                     </div>
                 </div>
 
+                <!-- شركة الشاحنة (بدون قيم ثابتة) -->
                 <div class="col-md-6 order-md-4">
                     <label class="form-label fw-bold">شركة الشاحنة</label>
 
-                    <!-- Custom Select View -->
                     <div class="position-relative d-none w-100" id="companySelectView">
-
-                        <!-- Hidden Native Select -->
                         <select class="d-none" id="companySelect" required disabled>
                             <option value="" disabled selected>ادخل القسم</option>
-                            <option value="جهينة">جهينة</option>
-                            <option value="حلواني إخوان">حلواني إخوان</option>
-                            <option value="أكوافينا">أكوافينا</option>
-                            <option value="المكتبة الرقمية">المكتبة الرقمية</option>
                         </select>
 
-                        <!-- Custom UI Dropdown -->
                         <div class="custom-dropdown" id="customDropdown">
                             <div class="dropdown-header">
                                 <span class="selected-value placeholder-color">ادخل القسم</span>
@@ -102,19 +97,14 @@
                                 </svg>
                             </div>
                             <div class="dropdown-list">
-                                <div class="dropdown-item" data-value="جهينة">جهينة</div>
-                                <div class="dropdown-item" data-value="نودلز">نودلز</div>
-                                <div class="dropdown-item" data-value="دومتي">دومتي</div>
-                                <div class="dropdown-item" data-value="المراعي">المراعي</div>
-                                <div class="dropdown-item" data-value="قسم المثلجات"></div>
+                                <!-- سيتم تعبئة العناصر ديناميكياً هنا -->
                             </div>
                         </div>
                         <div class="invalid-feedback mt-2">يرجى اختيار شركة الشاحنة.</div>
                     </div>
 
-                    <!-- Static View -->
                     <div class="position-relative static-view-container" id="companyStaticView">
-                        <input type="text" class="form-control custom-input text-end static-input" id="companyDisplay" value="جهينة" readonly>
+                        <input type="text" class="form-control custom-input text-end static-input" id="companyDisplay" value="" readonly>
                         <button type="button" class="edit-icon-btn" id="editCompanyBtn" aria-label="تعديل الشركة">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -124,49 +114,22 @@
                     </div>
                 </div>
 
-              @*   <div class="col-md-6 order-md-5">
+                <!-- سائق الشاحنة -->
+                <div class="col-md-6 order-md-5">
                     <label class="form-label fw-bold">سائق الشاحنة</label>
-                    <div class="d-flex gap-3 align-items-stretch">
-
-                        <!-- القائمة المنسدلة المخصصة -->
-                        <div class="position-relative flex-grow-1" id="driverSelectView">
-                            <select class="d-none" id="driverSelect" required>
-                                <option value="" disabled selected>اختر السائق</option>
-                                <option value="محمد أحمد">محمد أحمد</option>
-                                <option value="محمود علي">محمود علي</option>
-                                <option value="عبدالله حسن">عبدالله حسن</option>
-                                <option value="أحمد سمير">أحمد سمير</option>
-                                <option value="يوسف خالد">يوسف خالد</option>
-                            </select>
-
-                            <div class="custom-dropdown" id="customDriverDropdown">
-                                <div class="dropdown-header">
-                                    <span class="selected-value placeholder-color">اختر السائق</span>
-                                    <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#e47925" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="18 15 12 9 6 15"></polyline>
-                                    </svg>
-                                </div>
-                                <div class="dropdown-list">
-                                    <div class="dropdown-item" data-value="محمد أحمد">محمد أحمد</div>
-                                    <div class="dropdown-item" data-value="محمود علي">محمود علي</div>
-                                    <div class="dropdown-item" data-value="عبدالله حسن">عبدالله حسن</div>
-                                    <div class="dropdown-item" data-value="أحمد سمير">أحمد سمير</div>
-                                    <div class="dropdown-item" data-value="يوسف خالد">يوسف خالد</div>
-                                </div>
-                            </div>
-                            <div class="invalid-feedback mt-2">يرجى اختيار سائق الشاحنة.</div>
-                        </div>
-
-                        <!-- تعديل رابط زر إضافة سائق ليستخدم MVC Routing -->
-                        <a href="@Url.Action("Create", "Driver")" class="add-driver-btn" aria-label="إضافة سائق جديد">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="@Url.Action("Create", "Driver")" class="btn btn-outline-warning d-flex align-items-center justify-content-center" id="addDriverPlusBtn" style="height: 38px; width: 38px; border-radius: 8px;" aria-label="إضافة سائق جديد">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
                             </svg>
                         </a>
-
+                        <div class="position-relative flex-grow-1">
+                            <input type="text" class="form-control custom-input" id="driverTextField" placeholder="اختر السائق" readonly required>
+                            <div class="invalid-feedback mt-2">يرجى اختيار سائق الشاحنة.</div>
+                        </div>
                     </div>
-                </div> *@
+                </div>
 
             </div>
 
@@ -182,6 +145,25 @@
     window.routes = {
         truckIndex: '@Url.Action("Index", "Truck")'
     };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const addDriverBtn = document.getElementById('addDriverPlusBtn');
+        if (addDriverBtn) {
+            addDriverBtn.addEventListener('click', () => {
+                localStorage.setItem('returnTruckUrl', window.location.href);
+            });
+        }
+
+        const newlyAddedDriverName = localStorage.getItem('newDriverName');
+        if (newlyAddedDriverName) {
+            const driverInput = document.getElementById('driverTextField');
+            if (driverInput) {
+                driverInput.value = newlyAddedDriverName;
+            }
+            localStorage.removeItem('newDriverName');
+            localStorage.removeItem('newDriverId');
+        }
+    });
 </script>
 
 <script src="~/js/addCar.js" asp-append-version="true"></script>

@@ -1,8 +1,8 @@
 ﻿namespace Rassef.Models.Configurations
 {
-    public class DriverTypeConfiguration : IEntityTypeConfiguration<DriverType>
+    public class DriverTypeConfiguration : IEntityTypeConfiguration<DriverTypes>
     {
-        public void Configure(EntityTypeBuilder<DriverType> builder)
+        public void Configure(EntityTypeBuilder<DriverTypes> builder)
         {
             builder.ToTable("DriverTypes");
 

@@ -4,9 +4,9 @@ namespace Rassef.Controllers
 {
     public class DriverTypeController : Controller
     {
-        private readonly IRepository<DriverType> _repository;
+        private readonly IRepository<DriverTypes> _repository;
 
-        public DriverTypeController(IRepository<DriverType> repository)
+        public DriverTypeController(IRepository<DriverTypes> repository)
         {
             _repository = repository;
         }
@@ -72,7 +72,7 @@ namespace Rassef.Controllers
                 return View(model);
             }
 
-            var driverType = new DriverType
+            var driverType = new DriverTypes
             {
                 Code = model.Code,
                 Name = model.Name

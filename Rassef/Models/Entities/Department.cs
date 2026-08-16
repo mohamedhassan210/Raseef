@@ -10,7 +10,7 @@
         public Warehouse Warehouse { get; set; }
         public int DepartmentTypeId { get; set; }
         public DateTimeOffset? LastResetAt { get; set; }
-        public DepartmentType DepartmentType { get; set; }
+        public DepartmentTypes DepartmentType { get; set; }
         public string Prefix { get; set; } = string.Empty;
         public ICollection<Dock> Docks { get; set; } = new HashSet<Dock>();
         public ICollection<QueueTicket> QueueTickets { get; set; } = new HashSet<QueueTicket>();

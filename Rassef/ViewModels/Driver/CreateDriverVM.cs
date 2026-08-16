@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.Rendering;
-
-namespace Rassef.ViewModels.Driver
+﻿namespace Rassef.ViewModels.Driver
 {
     public class CreateDriverVM
     {
@@ -17,7 +13,7 @@ namespace Rassef.ViewModels.Driver
 
         [Display(Name = "المورد")]
         public int? SupplierId { get; set; }
-
+      
 
         [Display(Name = "اسم الشركة")]
         public string? SupplierName { get; set; }

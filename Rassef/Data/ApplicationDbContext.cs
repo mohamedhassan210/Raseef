@@ -22,6 +22,19 @@
         public virtual DbSet<TransferRequest> TransferRequests => Set<TransferRequest>();
         public virtual DbSet<Truck> Trucks => Set<Truck>();
         public virtual DbSet<Warehouse> Warehouses => Set<Warehouse>();
+        //action and status 
+        public virtual DbSet<DriverTypes> DriverTypes => Set<DriverTypes>();
+        public virtual DbSet<CommodityTypes> CommodityTypes => Set<CommodityTypes>();
+        public virtual DbSet<DepartmentTypes> DepartmentTypes => Set<DepartmentTypes>();
+        public virtual DbSet<DockStatuses> DockStatuses => Set<DockStatuses>();
+        public virtual DbSet<ExitTypes> ExitTypes => Set<ExitTypes>();
+        public virtual DbSet<PermitTypes> PermitTypes => Set<PermitTypes>();
+        public virtual DbSet<QueueSettings> QueueSettings => Set<QueueSettings>();
+        public virtual DbSet<RequestStatuses> RequestStatuses => Set<RequestStatuses>();
+        public virtual DbSet<TicketStatuses> TicketStatuses => Set<TicketStatuses>();
+        public virtual DbSet<TruckTypes> TruckTypes => Set<TruckTypes>();
+
+
         public ApplicationDbContext(DbContextOptions<DbContext> options) : base(options) { }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

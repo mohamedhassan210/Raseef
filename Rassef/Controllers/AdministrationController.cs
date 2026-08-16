@@ -12,7 +12,7 @@ namespace Rassef.Controllers
         private readonly IRepository<Truck> _truckRepository;
         private readonly IRepository<TruckTypes> _truckTypesRepository;
         private readonly IRepository<Driver> _driverRepository;
-        private readonly IRepository<DriverType> _driverTypeRepository;
+        private readonly IRepository<DriverTypes> _driverTypeRepository;
         private readonly IRepository<Supplier> _supplierRepository;
 
         public AdministrationController(
@@ -21,7 +21,7 @@ namespace Rassef.Controllers
             IRepository<Truck> truckRepository,
             IRepository<TruckTypes> truckTypeRepository,
             IRepository<Driver> driverRepository,
-            IRepository<DriverType> driverTypeRepository , ITransferRequestRepository transferRequestRepository, ISupplierRequestRepository supplierRequestRepository, IRepository<Supplier> supplierRepository)
+            IRepository<DriverTypes> driverTypeRepository , ITransferRequestRepository transferRequestRepository, ISupplierRequestRepository supplierRequestRepository, IRepository<Supplier> supplierRepository)
         {
             _userRepository = userRepository;
             _positionRepository = positionRepository;
