@@ -61,7 +61,7 @@
             <div class="stat-card waiting-stat">
                 <h3 class="stat-title">إنتظار</h3>
                 <div class="stat-data">
-                    <span class="stat-number" id="waitCount">0</span>
+                    <span class="stat-number" id="waitCount">@Model.WaitingCount</span>
                     <span class="stat-label">دور في الانتظار</span>
                 </div>
                 <div class="stat-icon-wrapper"><i class="far fa-clock"></i></div>
@@ -70,7 +70,7 @@
             <div class="stat-card active-stat">
                 <h3 class="stat-title">جاري</h3>
                 <div class="stat-data">
-                    <span class="stat-number" id="activeCount">0</span>
+                    <span class="stat-number" id="activeCount">@Model.InProgressCount</span>
                     <span class="stat-label">دور جاري</span>
                 </div>
                 <div class="stat-icon-wrapper"><i class="far fa-clock"></i></div>
@@ -79,7 +79,7 @@
             <div class="stat-card completed-stat">
                 <h3 class="stat-title">تم</h3>
                 <div class="stat-data">
-                    <span class="stat-number" id="doneCount">0</span>
+                    <span class="stat-number" id="doneCount">@Model.CompletedCount</span>
                     <span class="stat-label">دور تم</span>
                 </div>
                 <div class="stat-icon-wrapper"><i class="far fa-clock"></i></div>
@@ -90,7 +90,78 @@
         <section class="roles-section">
             <h2 class="section-title">قائمة الأدوار</h2>
             <div id="rolesContainer" class="roles-container">
-                <!-- سيتم حقن البطاقات هنا عن طريق الجافاسكريبت -->
+
+                <!-- رسم الكروت من الموديل مباشرة -->
+                @foreach (var ticket in Model.Tickets)
+                {
+                    // تحديد كلاس الـ CSS والشكل بناءً على الحالة
+                    string statusClass = ticket.TicketStatusName == "تم" ? "completed" :
+                    ticket.TicketStatusName == "جاري" ? "active" : "waiting";
+
+                    // بنضيف data-status و data-search عشان الفلترة والجافاسكريبت
+                    <div class="role-card @statusClass"
+                         data-status="@ticket.TicketStatusName"
+                         data-search="@ticket.TicketNumber @ticket.DriverName @ticket.TruckNumber @ticket.DepartmentName">
+
+                        <!-- 1. رقم الدور (يمين الكارت) -->
+                        <div class="card-ticket-number">
+                            <span class="number">@ticket.TicketNumber</span>
+                            <span class="label">رقم الدور</span>
+                        </div>
+
+                        <!-- 2. حالة الدور (Badge) -->
+                        <div class="card-status-badge @statusClass">
+                            <span>@ticket.TicketStatusName</span>
+                        </div>
+
+                        <!-- 3. بيانات السائق -->
+                        <div class="card-info-item">
+                            <i class="fas fa-user"></i>
+                            <div>
+                                <span class="value">@ticket.DriverName</span>
+                                <span class="label">اسم السائق</span>
+                            </div>
+                        </div>
+
+                        <!-- 4. رقم الشاحنة / السيارة -->
+                        <div class="card-info-item">
+                            <i class="fas fa-truck"></i>
+                            <div>
+                                <span class="value">@ticket.TruckNumber</span>
+                                <span class="label">رقم السيارة</span>
+                            </div>
+                        </div>
+
+                        <!-- 5. رقم الرصيف -->
+                        <div class="card-info-item">
+                            <i class="fas fa-warehouse"></i>
+                            <div>
+                                <span class="value">@ticket.DockName</span>
+                                <span class="label">رقم الرصيف</span>
+                            </div>
+                        </div>
+
+                        <!-- 6. القسم -->
+                        <div class="card-info-item">
+                            <i class="fas fa-code-branch"></i>
+                            <div>
+                                <span class="value">@ticket.DepartmentName</span>
+                                <span class="label">القسم</span>
+                            </div>
+                        </div>
+
+                        <!-- 7. وقت الدخول (يسار الكارت) -->
+                        <div class="card-time-item">
+                            <i class="far fa-clock"></i>
+                            <div>
+                                <span class="value">@ticket.EntryTime.ToString("hh:mm tt")</span>
+                                <span class="label">وقت الدخول</span>
+                            </div>
+                        </div>
+
+                    </div>
+                }
+
             </div>
         </section>
     </div>
