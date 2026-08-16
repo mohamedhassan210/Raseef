@@ -145,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. Department Custom Dropdown Logic (للمودال)
     // ==========================================
     const initDepartmentDropdown = () => {
-        // تم إلغاء القائمة الوهمية (departmentsData) واعتماد العناصر المكتوبة بالـ HTML من قاعدة البيانات
         const deptItems = deptDropdownList ? deptDropdownList.querySelectorAll('.dropdown-item') : [];
 
         if (deptDropdownHeader) {
@@ -244,7 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // استخراج اسم الشركة لعرضها المباشر في المودال
             let selectedCompanyText = "";
             const isSelectVisible = companySelectView && !companySelectView.classList.contains('d-none');
 
@@ -265,7 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 driverName: "غير محدد"
             };
 
-            // تصفير مودال الأقسام ثم فتحه
             selectedDepartmentValue = null;
             if (deptSelectedValue) {
                 deptSelectedValue.textContent = 'اختر القسم';
@@ -366,27 +363,137 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeModals();
 
     // ==========================================
-    // 9. Plate Inputs Formatting (Letters & Numbers)
+    // 9. Plate Inputs Formatting
     // ==========================================
-    const plateLettersInput = document.getElementById('plateLetters');
-    if (plateLettersInput) {
-        plateLettersInput.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/[^\u0600-\u06FF]/g, '');
-            if (value.length > 0) {
-                value = value.split('').join(' ');
+
+    /**
+     * Real-Time Plate Formatter
+     *
+     * الوظائف:
+     * - الحروف: عربي فقط.
+     * - الأرقام: أرقام فقط.
+     * - إزالة جميع المسافات اليدوية.
+     * - إضافة Space تلقائي بين كل Character.
+     * - الحفاظ على مكان الـ Cursor.
+     * - يدعم الكتابة، الحذف، الـ Paste، والتنقل داخل النص.
+     */
+    const setupPlateFormatting = (inputElement, allowedCharactersRegex) => {
+        if (!inputElement) return;
+
+        inputElement.addEventListener('input', () => {
+
+            // القيمة الحالية بعد إدخال المستخدم
+            const currentValue = inputElement.value;
+
+            // مكان الـ Cursor الحالي بعد عملية الإدخال/الحذف
+            const cursorPosition = inputElement.selectionStart ?? currentValue.length;
+
+            // --------------------------------------------------
+            // 1. حساب عدد الـ Characters الصالحة قبل الـ Cursor
+            // --------------------------------------------------
+
+            const textBeforeCursor = currentValue.slice(0, cursorPosition);
+
+            const validCharactersBeforeCursor = [
+                ...textBeforeCursor
+            ].filter(char => allowedCharactersRegex.test(char))
+                .length;
+
+            // --------------------------------------------------
+            // 2. تنظيف القيمة بالكامل
+            // --------------------------------------------------
+
+            const rawValue = [
+                ...currentValue
+            ].filter(char => allowedCharactersRegex.test(char));
+
+            // --------------------------------------------------
+            // 3. إضافة Space بين كل Character
+            // --------------------------------------------------
+
+            const formattedValue = rawValue.join(' ');
+
+            // --------------------------------------------------
+            // 4. تحديث القيمة فقط إذا تغيرت
+            // --------------------------------------------------
+
+            if (inputElement.value !== formattedValue) {
+                inputElement.value = formattedValue;
             }
-            e.target.value = value;
+
+            // --------------------------------------------------
+            // 5. حساب مكان الـ Cursor الجديد
+            // --------------------------------------------------
+
+            let newCursorPosition = 0;
+
+            if (validCharactersBeforeCursor > 0) {
+
+                let characterCounter = 0;
+
+                for (let i = 0; i < formattedValue.length; i++) {
+
+                    if (allowedCharactersRegex.test(formattedValue[i])) {
+                        characterCounter++;
+                    }
+
+                    if (characterCounter === validCharactersBeforeCursor) {
+                        newCursorPosition = i + 1;
+                        break;
+                    }
+                }
+
+            } else {
+                newCursorPosition = 0;
+            }
+
+            // --------------------------------------------------
+            // 6. حماية الـ Cursor من تجاوز طول النص
+            // --------------------------------------------------
+
+            newCursorPosition = Math.min(
+                newCursorPosition,
+                formattedValue.length
+            );
+
+            // --------------------------------------------------
+            // 7. إعادة الـ Cursor لمكانه
+            // --------------------------------------------------
+
+            requestAnimationFrame(() => {
+                try {
+                    inputElement.setSelectionRange(
+                        newCursorPosition,
+                        newCursorPosition
+                    );
+                } catch (error) {
+                    console.warn('Could not restore cursor position:', error);
+                }
+            });
         });
-    }
+    };
+
+
+    // ==========================================
+    // 9.1 حقل حروف لوحة السيارة
+    // ==========================================
+
+    const plateLettersInput = document.getElementById('plateLetters');
+
+    setupPlateFormatting(
+        plateLettersInput,
+        /[\u0600-\u06FF]/
+    );
+
+
+    // ==========================================
+    // 9.2 حقل أرقام لوحة السيارة
+    // ==========================================
 
     const plateNumbersInput = document.getElementById('plateNumbers');
-    if (plateNumbersInput) {
-        plateNumbersInput.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 0) {
-                value = value.split('').join(' ');
-            }
-            e.target.value = value;
-        });
-    }
+
+    setupPlateFormatting(
+        plateNumbersInput,
+        /[0-9]/
+    );
 });

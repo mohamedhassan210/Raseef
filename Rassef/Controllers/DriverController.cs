@@ -276,7 +276,6 @@ namespace Rassef.Controllers
         }
 
 
-
         [HttpGet]
         public async Task<IActionResult> addDriverTransfer(int? supplierId, int? truckId)
         {
