@@ -6,12 +6,21 @@ namespace Rassef.Controllers
         private readonly IDriverRepository _driverRepository;
         private readonly ISupplierRepository _supplierRepository;
         private readonly ITruckRepository _truckRepository;
+        private readonly IRepository<Department> _departmentRepository;
+        private readonly IRepository<DriverTypes> _driverTypeRepository;
 
-        public DriverController(IDriverRepository repository, ISupplierRepository supplierRepository, ITruckRepository truckRepository)
+        public DriverController(
+            IDriverRepository repository,
+            ISupplierRepository supplierRepository,
+            ITruckRepository truckRepository,
+            IRepository<Department> departmentRepository,
+            IRepository<DriverTypes> driverTypeRepository)
         {
             _driverRepository = repository;
             _supplierRepository = supplierRepository;
             _truckRepository = truckRepository;
+            _departmentRepository = departmentRepository;
+            _driverTypeRepository = driverTypeRepository;
         }
 
         // Get All Drivers
@@ -50,7 +59,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Recript()
+        public IActionResult Recript()
         {
             return View();
         }
@@ -80,12 +89,25 @@ namespace Rassef.Controllers
 
         // Create (GET)
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(int? supplierId)
         {
             var model = new CreateDriverVM
             {
+                SupplierId = supplierId,
                 Suppliers = await GetSuppliersAsync()
             };
+
+            if (supplierId.HasValue && supplierId.Value > 0)
+            {
+                var supplier = await _supplierRepository.GetByIdAsync(supplierId.Value);
+                if (supplier != null)
+                {
+                    model.SupplierName = supplier.Name;
+                }
+            }
+
+            var departments = await _departmentRepository.GetAllAsync();
+            ViewBag.Departments = departments.Select(d => new { id = d.Id, name = d.Name }).ToList();
 
             return View(model);
         }
@@ -98,6 +120,8 @@ namespace Rassef.Controllers
             if (!ModelState.IsValid)
             {
                 create.Suppliers = await GetSuppliersAsync();
+                var depts = await _departmentRepository.GetAllAsync();
+                ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
                 return View(create);
             }
 
@@ -105,6 +129,8 @@ namespace Rassef.Controllers
             {
                 ModelState.AddModelError(nameof(create.NationalId), "الرقم القومي مسجل بالفعل.");
                 create.Suppliers = await GetSuppliersAsync();
+                var depts = await _departmentRepository.GetAllAsync();
+                ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
                 return View(create);
             }
 
@@ -112,7 +138,25 @@ namespace Rassef.Controllers
             {
                 ModelState.AddModelError(nameof(create.Phone), "رقم الهاتف مسجل بالفعل.");
                 create.Suppliers = await GetSuppliersAsync();
+                var depts = await _departmentRepository.GetAllAsync();
+                ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
                 return View(create);
+            }
+
+            var allDriverTypes = await _driverTypeRepository.GetAllAsync();
+            var defaultDriverType = allDriverTypes.FirstOrDefault();
+            int driverTypeId;
+
+            if (defaultDriverType == null)
+            {
+                defaultDriverType = new DriverTypes { Code = 1, Name = "عام" };
+                await _driverTypeRepository.AddAsync(defaultDriverType);
+                await _driverTypeRepository.SaveChangesAsync();
+                driverTypeId = defaultDriverType.Id;
+            }
+            else
+            {
+                driverTypeId = defaultDriverType.Id;
             }
 
             var driver = new Driver
@@ -120,11 +164,17 @@ namespace Rassef.Controllers
                 FullName = create.FullName,
                 NationalId = create.NationalId,
                 Phone = create.Phone,
+                DeiverTypeId = driverTypeId,
                 CreatedById = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
             };
 
             await _driverRepository.AddAsync(driver);
             await _driverRepository.SaveChangesAsync();
+
+            if (create.SupplierId.HasValue && create.SupplierId.Value > 0)
+            {
+                return RedirectToAction("CreateTruckWithDriver", "SupplierRequest", new { supplierId = create.SupplierId.Value, selectedDriverId = driver.Id, autoOpenModal = true });
+            }
 
             return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId });
         }
@@ -326,11 +376,28 @@ namespace Rassef.Controllers
                 return View(create);
             }
 
+            var allDriverTypes = await _driverTypeRepository.GetAllAsync();
+            var defaultDriverType = allDriverTypes.FirstOrDefault();
+            int driverTypeId;
+
+            if (defaultDriverType == null)
+            {
+                defaultDriverType = new DriverTypes { Code = 1, Name = "عام" };
+                await _driverTypeRepository.AddAsync(defaultDriverType);
+                await _driverTypeRepository.SaveChangesAsync();
+                driverTypeId = defaultDriverType.Id;
+            }
+            else
+            {
+                driverTypeId = defaultDriverType.Id;
+            }
+
             var driver = new Driver
             {
                 FullName = create.FullName,
                 NationalId = create.NationalId,
                 Phone = create.Phone,
+                DeiverTypeId = driverTypeId,
                 CreatedById = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
             };
 

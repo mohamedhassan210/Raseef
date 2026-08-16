@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using Rassef.ViewModels.Administration;
 using Rassef.ViewModels.Administration.Employee;
 namespace Rassef.Controllers
@@ -67,35 +67,34 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            //var users = await _userRepository.GetAllAsync(query =>
-            //    query.Include(u => u.Position)
-            //);
+            var users = await _userRepository.GetAllAsync(query =>
+                query.Include(u => u.Position)
+            );
 
-            //var user = users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+            var user = users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
 
-            //if (user == null)
-            //{
-            //    ModelState.AddModelError(
-            //        string.Empty,
-            //        "هذا الموظف غير موجود."
-            //    );
+            if (user == null)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "هذا الموظف غير موجود."
+                );
 
-            //    return RedirectToAction(nameof(Index));
-            //}
+                return RedirectToAction(nameof(Index));
+            }
 
-            //var employee = new EmployeeDetailsVM
-            //{
-            //    Id = user.Id,
-            //    Name = user.Name,
-            //    UserCode = user.UserCode ?? string.Empty,
-            //    Role = user.Position?.PositionName ?? "غير محدد",
-            //    Phone = user.Phone,
-            //    Email = user.Email?.ToString() ?? string.Empty,
-            //    NationalId = user.NationalId
-            //};
+            var employee = new EmployeeDetailsVM
+            {
+                Id = user.Id,
+                Name = user.Name,
+                UserCode = user.UserCode ?? string.Empty,
+                Role = user.Position?.PositionName ?? "غير محدد",
+                Phone = user.Phone,
+                Email = user.Email?.ToString() ?? string.Empty,
+                NationalId = user.NationalId
+            };
 
-            //return View(employee);
-            return View();
+            return View(employee);
         }
 
         [HttpGet]
@@ -112,6 +111,13 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(EmployeeCreateVM model)
         {
+            // فحص فرادة الرقم القومي للموظف
+            var existingUser = await _userRepository.FindAsync(u => u.NationalId == model.NationalId && !u.IsDeleted);
+            if (existingUser != null)
+            {
+                ModelState.AddModelError(nameof(model.NationalId), "الرقم القومي مُسجل لموظف آخر بالفعل.");
+            }
+
             if (!ModelState.IsValid)
             {
                 var positions = await _positionRepository.GetAllAsync();
@@ -142,45 +148,51 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            //var users = await _userRepository.GetAllAsync(query =>
-            //    query.Include(u => u.Position)
-            //);
+            var users = await _userRepository.GetAllAsync(query =>
+                query.Include(u => u.Position)
+            );
 
-            //var user = users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+            var user = users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
 
-            //if (user == null)
-            //{
-            //    ModelState.AddModelError(
-            //        string.Empty,
-            //        "هذا الموظف غير موجود."
-            //    );
+            if (user == null)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "هذا الموظف غير موجود."
+                );
 
-            //    return RedirectToAction(nameof(Index));
-            //}
+                return RedirectToAction(nameof(Index));
+            }
 
-            //var positions = await _positionRepository.GetAllAsync();
+            var positions = await _positionRepository.GetAllAsync();
 
-            //ViewBag.Positions = positions;
+            ViewBag.Positions = positions;
 
-            //var employee = new EmployeeEditVM
-            //{
-            //    Id = user.Id,
-            //    Name = user.Name,
-            //    Phone = user.Phone,
-            //    Email = user.Email?.ToString() ?? string.Empty,
-            //    PositionId = user.PositionId,
-            //    NationalId = user.NationalId,
-            //    UserCode = user.UserCode ?? string.Empty
-            //};
+            var employee = new EmployeeEditVM
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Phone = user.Phone,
+                Email = user.Email?.ToString() ?? string.Empty,
+                PositionId = user.PositionId,
+                NationalId = user.NationalId,
+                UserCode = user.UserCode ?? string.Empty
+            };
 
-            //return View(employee);
-            return View();
+            return View(employee);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EmployeeEditVM model)
         {
+            // فحص فرادة الرقم القومي عند التعديل
+            var existingUser = await _userRepository.FindAsync(u => u.NationalId == model.NationalId && u.Id != model.Id && !u.IsDeleted);
+            if (existingUser != null)
+            {
+                ModelState.AddModelError(nameof(model.NationalId), "الرقم القومي مُسجل لموظف آخر بالفعل.");
+            }
+
             if (!ModelState.IsValid)
             {
                 var positions = await _positionRepository.GetAllAsync();
@@ -582,6 +594,12 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DriverCreate(DriverCreateVM model)
         {
+            var existingDriver = await _driverRepository.FindAsync(d => d.NationalId == model.NationalId && !d.IsDeleted);
+            if (existingDriver != null)
+            {
+                ModelState.AddModelError(nameof(model.NationalId), "الرقم القومي مُسجل لسائق آخر بالفعل.");
+            }
+
             if (!ModelState.IsValid)
             {
                 var driverTypes = await _driverTypeRepository.GetAllAsync();
@@ -648,6 +666,12 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DriverEdit(DriverEditVM model)
         {
+            var existingDriver = await _driverRepository.FindAsync(d => d.NationalId == model.NationalId && d.Id != model.Id && !d.IsDeleted);
+            if (existingDriver != null)
+            {
+                ModelState.AddModelError(nameof(model.NationalId), "الرقم القومي مُسجل لسائق آخر بالفعل.");
+            }
+
             if (!ModelState.IsValid)
             {
                 var driverTypes = await _driverTypeRepository.GetAllAsync();

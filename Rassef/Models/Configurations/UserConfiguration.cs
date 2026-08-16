@@ -1,4 +1,4 @@
-﻿namespace Rassef.Configurations
+namespace Rassef.Configurations
 {
     public class UserConfiguration : IEntityTypeConfiguration<User>
     {
@@ -19,6 +19,13 @@
             builder.Property(u => u.HashPassword)
                    .IsRequired()
                    .HasMaxLength(255);
+
+            builder.Property(u => u.NationalId)
+                   .IsRequired()
+                   .HasMaxLength(14);
+
+            builder.HasIndex(u => u.NationalId)
+                   .IsUnique();
 
             builder.OwnsOne(u => u.Email, email =>
             {
