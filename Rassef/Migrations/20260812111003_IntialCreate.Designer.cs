@@ -12,7 +12,7 @@ using Rassef.Data;
 namespace Rassef.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260812102355_IntialCreate")]
+    [Migration("20260812111003_IntialCreate")]
     partial class IntialCreate
     {
         /// <inheritdoc />

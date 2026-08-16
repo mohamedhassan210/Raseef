@@ -342,3 +342,4 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId, id = create.TruckId });
         }
     }
+}
