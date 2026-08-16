@@ -293,6 +293,85 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        private async Task<IEnumerable<SelectListItem>> GetSuppliersAsync()
+        {
+            var suppliers = await _supplierRepository.GetAllAsync();
+
+            return suppliers.Select(x => new SelectListItem
+            {
+                Value = x.Id.ToString(),
+                Text = x.Name
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> MainTraDrivers()
+        {
+
+            var allTrucks = await _truckRepository.GetAllAsync();
+
+            var truckList = allTrucks.Select(d => new TruckListVM
+            {
+                Id = d.Id,
+                PlateNumber = d.PlateNumber,
+                PlateLetter = d.PlateLetter,
+                StorageCapacity = d.StorageCapacity,
+                IsRefrigerated = d.IsRefrigerated
+            }).ToList();
+
+            return View(truckList);
+        }
+
+        // Create (GET)
+        [HttpGet]
+        public async Task<IActionResult> AddTraDriver()
+        {
+            var model = new CreateDriverVM
+            {
+                Suppliers = await GetSuppliersAsync()
+            };
+
+            return View(model);
+        }
+
+        // Create (POST)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddTraDriver(CreateDriverVM create)
+        {
+            if (!ModelState.IsValid)
+            {
+                create.Suppliers = await GetSuppliersAsync();
+                return View(create);
+            }
+
+            if (await _driverRepository.ExistsAsync(x => x.NationalId == create.NationalId))
+            {
+                ModelState.AddModelError(nameof(create.NationalId), "الرقم القومي مسجل بالفعل.");
+                create.Suppliers = await GetSuppliersAsync();
+                return View(create);
+            }
+
+            if (await _driverRepository.ExistsAsync(x => x.Phone == create.Phone))
+            {
+                ModelState.AddModelError(nameof(create.Phone), "رقم الهاتف مسجل بالفعل.");
+                create.Suppliers = await GetSuppliersAsync();
+                return View(create);
+            }
+
+            var driver = new Driver
+            {
+                FullName = create.FullName,
+                NationalId = create.NationalId,
+                Phone = create.Phone,
+                CreatedById = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
+            };
+
+            await _driverRepository.AddAsync(driver);
+            await _driverRepository.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId });
+        }
         #region Helpers
         private async Task LoadTruckTypesAsync(int? selectedTruckTypeId = null)
         {

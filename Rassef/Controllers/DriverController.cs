@@ -1,3 +1,4 @@
+
 namespace Rassef.Controllers
 {
     public class DriverController : Controller
@@ -5,20 +6,19 @@ namespace Rassef.Controllers
         private readonly IDriverRepository _driverRepository;
         private readonly ISupplierRepository _supplierRepository;
         private readonly ITruckRepository _truckRepository;
-       private readonly ApplicationDbContext _context;
 
-        public DriverController(IDriverRepository repository, ISupplierRepository supplierRepository, ITruckRepository truckRepository , ApplicationDbContext context )
+        public DriverController(IDriverRepository repository, ISupplierRepository supplierRepository, ITruckRepository truckRepository)
         {
             _driverRepository = repository;
             _supplierRepository = supplierRepository;
             _truckRepository = truckRepository;
-            _context = context;
         }
 
         // Get All Drivers
         [HttpGet]
         public async Task<IActionResult> Index(int id, int supplierId)
         {
+
             var supplier = await _supplierRepository.GetByIdAsync(supplierId);
 
             if (supplier is null)
@@ -26,7 +26,8 @@ namespace Rassef.Controllers
 
             var truck = await _truckRepository.GetByIdAsync(id);
 
-            var drivers = await _driverRepository.GetDriversBySupplierIdAsync(supplierId);
+            var drivers =
+                await _driverRepository.GetDriversBySupplierIdAsync(supplierId);
 
             var driverList = drivers.Select(d => new DriverListVM
             {
@@ -37,7 +38,12 @@ namespace Rassef.Controllers
             }).ToList();
 
             ViewBag.SupplierName = supplier.Name;
-            ViewBag.TruckName = truck != null ? $"{truck.PlateLetter} {truck.PlateNumber}" : "سيارة غير محددة";
+
+            ViewBag.TruckName =
+                truck != null
+                    ? $"{truck.PlateLetter} {truck.PlateNumber}"
+                    : "سيارة غير محددة";
+
             ViewBag.SupplierId = supplierId;
 
             return View(driverList);
@@ -74,22 +80,12 @@ namespace Rassef.Controllers
 
         // Create (GET)
         [HttpGet]
-        public async Task<IActionResult> Create(int? supplierId)
+        public async Task<IActionResult> Create()
         {
             var model = new CreateDriverVM
             {
-                SupplierId = supplierId,
                 Suppliers = await GetSuppliersAsync()
             };
-
-            if (supplierId.HasValue)
-            {
-                var supplier = await _supplierRepository.GetByIdAsync(supplierId.Value);
-                if (supplier != null)
-                {
-                    model.SupplierName = supplier.Name;
-                }
-            }
 
             return View(model);
         }
@@ -124,17 +120,11 @@ namespace Rassef.Controllers
                 FullName = create.FullName,
                 NationalId = create.NationalId,
                 Phone = create.Phone,
-                CreatedById = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!),
-                DeiverTypeId = _context.DriverTypes.Where(x=>x.Name == "سائق خارجى").First().Id,
-
+                CreatedById = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
             };
 
             await _driverRepository.AddAsync(driver);
             await _driverRepository.SaveChangesAsync();
-
-            // حفظ بيانات للـ Modal الخاص بالنجاح في صفحة الـ Index
-            TempData["ShowSuccessModal"] = true;
-            TempData["TicketNumber"] = $"A{driver.Id}";
 
             return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId });
         }
@@ -157,12 +147,11 @@ namespace Rassef.Controllers
                 NationalId = drv.NationalId,
                 Phone = drv.Phone,
                 SupplierId = targetSupplierId,
-                Suppliers = await GetSuppliersAsync()
+                Suppliers = await GetSuppliersAsync() // جلب قائمة الشركات
             };
 
             return View(driverVM);
         }
-
         // POST: Driver/Update
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -201,7 +190,6 @@ namespace Rassef.Controllers
 
             return RedirectToAction(nameof(Index), new { supplierId = updateDriverVM.SupplierId });
         }
-
         // Delete (GET)
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
@@ -270,10 +258,10 @@ namespace Rassef.Controllers
                 Text = x.Name
             });
         }
-
         [HttpGet]
         public async Task<IActionResult> TransferDrivers()
         {
+
             var allDrivers = await _driverRepository.GetAllAsync();
 
             var driverList = allDrivers.Select(d => new DriverListVM
@@ -286,6 +274,7 @@ namespace Rassef.Controllers
 
             return View(driverList);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> addDriverTransfer(int? supplierId, int? truckId)
@@ -348,6 +337,7 @@ namespace Rassef.Controllers
             await _driverRepository.AddAsync(driver);
             await _driverRepository.SaveChangesAsync();
 
+            // يمكنك التوجيه لصفحة الشاحنات مع إرجاع الـ truckId و supplierId إذا أردت متابعة الشاحنة
             return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId, id = create.TruckId });
         }
     }
