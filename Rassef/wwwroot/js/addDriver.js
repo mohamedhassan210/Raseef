@@ -134,12 +134,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. Department Custom Dropdown (للمودال)
     // ============================================
     const initDepartmentDropdown = () => {
-        const departmentsData = [
-            { id: 101, name: "قسم الاستلام" },
-            { id: 102, name: "قسم المخازن" },
-            { id: 103, name: "قسم التوزيع" },
-            { id: 104, name: "قسم المبيعات" }
-        ];
+        const departmentsData = (window.departmentsData && window.departmentsData.length > 0)
+            ? window.departmentsData
+            : [
+                { id: 101, name: "قسم الاستلام" },
+                { id: 102, name: "قسم المخازن" },
+                { id: 103, name: "قسم التوزيع" },
+                { id: 104, name: "قسم المبيعات" }
+            ];
 
         if (deptDropdownList) {
             deptDropdownList.innerHTML = departmentsData.map(dept =>
@@ -257,13 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 // تغيير نص الزر
                 btnConfirm.disabled = true;
                 btnConfirm.innerHTML = 'جاري الحفظ... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-
-                // التحقق مما إذا كان هناك رابط عودة محفوظ (تم القدوم من صفحة الشاحنات)
-                const returnUrl = localStorage.getItem('returnTruckUrl');
-                if (returnUrl) {
-                    localStorage.removeItem('returnTruckUrl'); // مسحه بعد الاستخدام
-                    form.action = returnUrl; // يمكنك توجيه الفورم الرابط السابق مباشرة أو ترك الإرسال العادي
-                }
 
                 // الإرسال الفعلي للفورم للسيرفر
                 form.submit();
