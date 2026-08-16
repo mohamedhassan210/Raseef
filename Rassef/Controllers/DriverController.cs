@@ -276,7 +276,6 @@ namespace Rassef.Controllers
         }
 
 
-
         [HttpGet]
         public async Task<IActionResult> addDriverTransfer(int? supplierId, int? truckId)
         {
@@ -342,3 +341,4 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId, id = create.TruckId });
         }
     }
+}
