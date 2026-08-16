@@ -1,11 +1,10 @@
-﻿namespace Rassef.Controllers
+namespace Rassef.Controllers
 {
     public class QueueActionController : Controller
     {
         private readonly IRepository<QueueAction> _queueActionRepository;
         private readonly IRepository<QueueTicket> _ticketRepository;
         private readonly IRepository<ActionTypes> _actionTypeRepository;
-
 
         public QueueActionController(
             IRepository<QueueAction> queueActionRepository,
@@ -16,11 +15,9 @@
             _queueActionRepository = queueActionRepository;
             _ticketRepository = ticketRepository;
             _actionTypeRepository = actionTypeRepository;
-
         }
 
         [HttpGet]
-        // Display all items
         public async Task<IActionResult> Index()
         {
             var actions = await _queueActionRepository.GetAllAsync();
@@ -38,7 +35,6 @@
         }
 
         [HttpGet]
-        // Display details
         public async Task<IActionResult> Details(int id)
         {
             var action = await _queueActionRepository.GetByIdAsync(id);
@@ -64,7 +60,6 @@
         }
 
         [HttpGet]
-        // Display create page
         public async Task<IActionResult> Create()
         {
             var model = new CreateQueueActionVM();
@@ -74,12 +69,18 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Create new item
         public async Task<IActionResult> Create(CreateQueueActionVM model)
         {
             if (model is null)
             {
-                ModelState.AddModelError(string.Empty, " لا يوجد بيانات .");
+                model = new CreateQueueActionVM();
+                ModelState.AddModelError(string.Empty, "لا يوجد بيانات.");
+                await PopulateDropdowns(model);
+                return View(model);
+            }
+
+            if (!ModelState.IsValid)
+            {
                 await PopulateDropdowns(model);
                 return View(model);
             }
@@ -99,7 +100,6 @@
         }
 
         [HttpGet]
-        // Action Edit
         public async Task<IActionResult> Edit(int id)
         {
             var action = await _queueActionRepository.GetByIdAsync(id);
@@ -126,13 +126,12 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Action Edit
         public async Task<IActionResult> Edit(UpdateQueueActionVM model)
         {
-
             if (model is null)
             {
-                ModelState.AddModelError(string.Empty, " لا يوجد بيانات .");
+                model = new UpdateQueueActionVM();
+                ModelState.AddModelError(string.Empty, "لا يوجد بيانات.");
                 await PopulateDropdowns(model);
                 return View(model);
             }
@@ -159,7 +158,6 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Delete item
         public async Task<IActionResult> Delete(int id)
         {
             var action = await _queueActionRepository.GetByIdAsync(id);

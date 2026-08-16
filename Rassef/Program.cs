@@ -20,7 +20,7 @@ namespace Rassef
 
             app.AddMiddleWares();
 
-            app.Run();
+            await app.RunAsync();
         }
     }
 }
