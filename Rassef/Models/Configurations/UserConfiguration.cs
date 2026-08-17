@@ -38,12 +38,14 @@ namespace Rassef.Configurations
             builder.HasOne(u => u.Group)
                    .WithMany(g => g.Users)
                    .HasForeignKey(u => u.GroupId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   // ARCH-4: تغيير من Cascade إلى Restrict - حذف المجموعة لن يحذف كل موظفيها تلقائياً
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(u => u.Position)
                    .WithMany(p => p.Users)
                    .HasForeignKey(u => u.PositionId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   // ARCH-4: تغيير من Cascade إلى Restrict - حذف المنصب لن يحذف كل موظفيه تلقائياً
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(x => x.Suppliers)
                 .WithOne(x => x.CreatedBy)

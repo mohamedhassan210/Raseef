@@ -1,4 +1,4 @@
-﻿namespace Rassef.Data
+namespace Rassef.Data
 {
     public class ApplicationDbContext : DbContext
     {
@@ -33,9 +33,11 @@
         public virtual DbSet<RequestStatuses> RequestStatuses => Set<RequestStatuses>();
         public virtual DbSet<TicketStatuses> TicketStatuses => Set<TicketStatuses>();
         public virtual DbSet<TruckTypes> TruckTypes => Set<TruckTypes>();
+        // ARCH-1: إضافة DbSet<Shift> الذي كان مفقوداً رغم استخدامه في Controllers
+        public virtual DbSet<Shift> Shifts => Set<Shift>();
 
 
-        public ApplicationDbContext(DbContextOptions<DbContext> options) : base(options) { }
+        // CQ-4: حذف الـ Constructor الزائد بـ DbContextOptions<DbContext> - Anti-Pattern
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
