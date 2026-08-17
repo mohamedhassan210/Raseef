@@ -1,6 +1,12 @@
+@model CreateDriverVM
 @{
     ViewData["Title"] = "إضافة شاحنة";
     Layout = "_SupOrTra";
+    var selectedSupplier = Model?.Suppliers?.FirstOrDefault(s => s.Value == Model?.SupplierId?.ToString());
+    var displaySupplierName = !string.IsNullOrWhiteSpace(Model?.SupplierName)
+        ? Model.SupplierName
+        : (selectedSupplier != null ? selectedSupplier.Text : (Model?.Suppliers?.FirstOrDefault()?.Text ?? "تحويلات الفروع"));
+    var hasPredefinedSupplier = (Model?.SupplierId != null && Model.SupplierId > 0) || !string.IsNullOrWhiteSpace(Model?.SupplierName);
 }
 
 <!-- ملفات الـ CSS -->
@@ -38,6 +44,8 @@
 
     <section class="form-card mt-3">
         <form id="addCarForm" class="needs-validation" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="SupplierName" value="@displaySupplierName" />
 
             <div class="row mb-4 gy-4">
 
@@ -82,39 +90,52 @@
                     <label class="form-label fw-bold">شركة الشاحنة</label>
 
                     <!-- Custom Select View -->
-                    <div class="position-relative d-none w-100" id="companySelectView">
+                    <div class="position-relative @(hasPredefinedSupplier ? "d-none" : "") w-100" id="companySelectView">
 
                         <!-- Hidden Native Select -->
-                        <select class="d-none" id="companySelect" required disabled>
-                            <option value="" disabled selected>ادخل القسم</option>
-                            <option value="جهينة">جهينة</option>
-                            <option value="حلواني إخوان">حلواني إخوان</option>
-                            <option value="أكوافينا">أكوافينا</option>
-                            <option value="المكتبة الرقمية">المكتبة الرقمية</option>
+                        <select class="d-none" id="companySelect" name="SupplierId">
+                            <option value="" disabled selected>اختر الشركة</option>
+                            @if (Model?.Suppliers != null)
+                            {
+                                foreach (var supplier in Model.Suppliers)
+                                {
+                                    <option value="@supplier.Value">@supplier.Text</option>
+                                }
+                            }
                         </select>
 
                         <!-- Custom UI Dropdown -->
                         <div class="custom-dropdown" id="customDropdown">
                             <div class="dropdown-header">
-                                <span class="selected-value placeholder-color">ادخل القسم</span>
+                                <span class="selected-value @(hasPredefinedSupplier ? "" : "placeholder-color")">@displaySupplierName</span>
                                 <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#e47925" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="18 15 12 9 6 15"></polyline>
                                 </svg>
                             </div>
                             <div class="dropdown-list">
-                                <div class="dropdown-item" data-value="جهينة">جهينة</div>
-                                <div class="dropdown-item" data-value="نودلز">نودلز</div>
-                                <div class="dropdown-item" data-value="دومتي">دومتي</div>
-                                <div class="dropdown-item" data-value="المراعي">المراعي</div>
-                                <div class="dropdown-item" data-value="قسم المثلجات"></div>
+                                @if (Model?.Suppliers != null && Model.Suppliers.Any())
+                                {
+                                    foreach (var supplier in Model.Suppliers)
+                                    {
+                                        <div class="dropdown-item @(supplier.Value == Model?.SupplierId?.ToString() ? "selected" : "")" data-value="@supplier.Value">@supplier.Text</div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="dropdown-item disabled text-muted">لا توجد شركات متاحة</div>
+                                }
                             </div>
                         </div>
                         <div class="invalid-feedback mt-2">يرجى اختيار شركة الشاحنة.</div>
                     </div>
 
                     <!-- Static View -->
-                    <div class="position-relative static-view-container" id="companyStaticView">
-                        <input type="text" class="form-control custom-input text-end static-input" id="companyDisplay" value="جهينة" readonly>
+                    <div class="position-relative static-view-container @(hasPredefinedSupplier ? "" : "d-none")" id="companyStaticView">
+                        <input type="text" class="form-control custom-input text-end static-input" id="companyDisplay" value="@displaySupplierName" readonly>
+                        @if (hasPredefinedSupplier)
+                        {
+                            <input type="hidden" name="SupplierId" id="hiddenSupplierId" value="@Model?.SupplierId" />
+                        }
                     </div>
                 </div>
 

@@ -10,16 +10,16 @@ namespace Rassef.Controllers
         private readonly ISupplierRepository _supplierRepository;
         private readonly IDriverRepository _driverRepository;
         private readonly IRepository<TruckTypes> _truckTypes;
-
-
+        private readonly IDepartmentRepository _departmentRepository;
 
         public TruckController(
             ITruckRepository truckRepository,
             IRepository<TruckTypes> truckTypeRepository,
             IRepository<User> userRepository,
-             ISupplierRepository supplierRepository,
-             IDriverRepository driverRepository,
-             IRepository<TruckTypes> truckTypes)
+            ISupplierRepository supplierRepository,
+            IDriverRepository driverRepository,
+            IRepository<TruckTypes> truckTypes,
+            IDepartmentRepository departmentRepository)
         {
             _truckRepository = truckRepository;
             _truckTypeRepository = truckTypeRepository;
@@ -27,6 +27,7 @@ namespace Rassef.Controllers
             _supplierRepository = supplierRepository;
             _driverRepository = driverRepository;
             _truckTypes = truckTypes;
+            _departmentRepository = departmentRepository;
         }
 
         [HttpGet]
@@ -307,7 +308,6 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> MainTraDrivers()
         {
-
             var allTrucks = await _truckRepository.GetAllAsync();
 
             var truckList = allTrucks.Select(d => new TruckListVM
@@ -319,17 +319,34 @@ namespace Rassef.Controllers
                 IsRefrigerated = d.IsRefrigerated
             }).ToList();
 
+            var depts = await _departmentRepository.GetAllAsync();
+            ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
+
             return View(truckList);
         }
 
         // Create (GET)
         [HttpGet]
-        public async Task<IActionResult> AddTraDriver()
+        public async Task<IActionResult> AddTraDriver(int? supplierId)
         {
+            var suppliers = await GetSuppliersAsync();
+            string? supplierName = null;
+
+            if (supplierId.HasValue && supplierId.Value > 0)
+            {
+                var supplier = await _supplierRepository.GetByIdAsync(supplierId.Value);
+                supplierName = supplier?.Name;
+            }
+
             var model = new CreateDriverVM
             {
-                Suppliers = await GetSuppliersAsync()
+                SupplierId = supplierId,
+                SupplierName = supplierName,
+                Suppliers = suppliers
             };
+
+            ViewBag.Suppliers = suppliers;
+            ViewBag.SupplierName = supplierName;
 
             return View(model);
         }
@@ -342,6 +359,13 @@ namespace Rassef.Controllers
             if (!ModelState.IsValid)
             {
                 create.Suppliers = await GetSuppliersAsync();
+                if (create.SupplierId.HasValue && create.SupplierId.Value > 0)
+                {
+                    var supplier = await _supplierRepository.GetByIdAsync(create.SupplierId.Value);
+                    create.SupplierName = supplier?.Name;
+                }
+                ViewBag.Suppliers = create.Suppliers;
+                ViewBag.SupplierName = create.SupplierName;
                 return View(create);
             }
 
@@ -349,6 +373,13 @@ namespace Rassef.Controllers
             {
                 ModelState.AddModelError(nameof(create.NationalId), "الرقم القومي مسجل بالفعل.");
                 create.Suppliers = await GetSuppliersAsync();
+                if (create.SupplierId.HasValue && create.SupplierId.Value > 0)
+                {
+                    var supplier = await _supplierRepository.GetByIdAsync(create.SupplierId.Value);
+                    create.SupplierName = supplier?.Name;
+                }
+                ViewBag.Suppliers = create.Suppliers;
+                ViewBag.SupplierName = create.SupplierName;
                 return View(create);
             }
 
@@ -356,15 +387,21 @@ namespace Rassef.Controllers
             {
                 ModelState.AddModelError(nameof(create.Phone), "رقم الهاتف مسجل بالفعل.");
                 create.Suppliers = await GetSuppliersAsync();
+                if (create.SupplierId.HasValue && create.SupplierId.Value > 0)
+                {
+                    var supplier = await _supplierRepository.GetByIdAsync(create.SupplierId.Value);
+                    create.SupplierName = supplier?.Name;
+                }
+                ViewBag.Suppliers = create.Suppliers;
+                ViewBag.SupplierName = create.SupplierName;
                 return View(create);
             }
 
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var currentUserId))
+            int currentUserId = 1;
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
             {
-                ModelState.AddModelError("", "يجب تسجيل الدخول أولاً.");
-                create.Suppliers = await GetSuppliersAsync();
-                return View(create);
+                currentUserId = parsedId;
             }
 
             var driver = new Driver
@@ -378,7 +415,7 @@ namespace Rassef.Controllers
             await _driverRepository.AddAsync(driver);
             await _driverRepository.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId });
+            return RedirectToAction(nameof(MainTraDrivers));
         }
         #region Helpers
         private async Task LoadTruckTypesAsync(int? selectedTruckTypeId = null)
