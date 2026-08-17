@@ -3,7 +3,8 @@ namespace Rassef.Common.Repository.EntitiesRepository
     public class DriverRepository : Repository<Driver>, IDriverRepository
     {
         private readonly ApplicationDbContext _context;
-        public DriverRepository(ApplicationDbContext db, ApplicationDbContext context) : base(db)
+        // CQ-3: إصلاح Constructor - كان يأخذ نفس DbContext مرتين بأسماء مختلفة
+        public DriverRepository(ApplicationDbContext context) : base(context)
         {
             _context = context;
         }

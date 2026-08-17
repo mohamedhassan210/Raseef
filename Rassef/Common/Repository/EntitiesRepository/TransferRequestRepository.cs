@@ -1,4 +1,4 @@
-﻿
+
 
 namespace Rassef.Common.Repository.EntitiesRepository
 {
@@ -15,7 +15,14 @@ namespace Rassef.Common.Repository.EntitiesRepository
             return await _context.TransferRequests
                 .Include(x => x.Truck)
                 .Include(x => x.Driver)
+                .Include(x => x.Department)
                 .Include(x => x.PermitType)
+                .Include(x => x.RequestStatus)
+                .Include(x => x.QueueTickets)
+                    .ThenInclude(q => q.TicketStatus)
+                .Include(x => x.QueueTickets)
+                    .ThenInclude(q => q.DockAssignments)
+                        .ThenInclude(da => da.Dock)
                 .ToListAsync();
         }
 
@@ -27,6 +34,11 @@ namespace Rassef.Common.Repository.EntitiesRepository
                 .Include(x => x.Department)
                 .Include(x => x.PermitType)
                 .Include(x => x.RequestStatus)
+                .Include(x => x.QueueTickets)
+                    .ThenInclude(q => q.TicketStatus)
+                .Include(x => x.QueueTickets)
+                    .ThenInclude(q => q.DockAssignments)
+                        .ThenInclude(da => da.Dock)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
     }
