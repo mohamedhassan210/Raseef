@@ -5,7 +5,7 @@ namespace Rassef.Controllers
         private readonly ISupplierRequestRepository _supplierRequestRepository;
         private readonly IRepository<Supplier> _supplierRepository;
         private readonly IRepository<Truck> _truckRepository;
-        private readonly IRepository<Driver> _driverRepository;
+        private readonly IDriverRepository _driverRepository;
         private readonly IRepository<Department> _departmentRepository;
         private readonly IRepository<PermitTypes> _permitTypeRepository;
         private readonly IRepository<CommodityTypes> _commodityTypeRepository;
@@ -21,7 +21,7 @@ namespace Rassef.Controllers
             ISupplierRequestRepository supplierRequestRepository,
             IRepository<Supplier> supplierRepository,
             IRepository<Truck> truckRepository,
-            IRepository<Driver> driverRepository,
+            IDriverRepository driverRepository,
             IRepository<Department> departmentRepository,
             IRepository<PermitTypes> permitTypeRepository,
             IRepository<CommodityTypes> commodityTypeRepository,
@@ -322,20 +322,27 @@ namespace Rassef.Controllers
                 return NotFound("المورد غير موجود");
             }
 
-            // 2. جلب البيانات من قاعدة البيانات
-            var allDrivers = await _driverRepository.GetAllAsync();
-            var allTruckTypes = await _truckTypeRepository.GetAllAsync();
-            var allSuppliers = await _supplierRepository.GetAllAsync();
+            // 2. جلب السائقين التابعين لهذا المورد تحديداً
+            var supplierDriversEntities = (await _driverRepository.GetDriversBySupplierIdAsync(supplierId)).ToList();
+            if (selectedDriverId.HasValue && !supplierDriversEntities.Any(d => d.Id == selectedDriverId.Value))
+            {
+                var selDriver = await _driverRepository.GetByIdAsync(selectedDriverId.Value);
+                if (selDriver != null)
+                {
+                    supplierDriversEntities.Add(selDriver);
+                }
+            }
 
-            var supplierDrivers = allDrivers
-                .Where(d => (d.SupplierRequests != null && d.SupplierRequests.Any(sr => sr.SupplierId == supplierId))
-                         || (selectedDriverId.HasValue && d.Id == selectedDriverId.Value))
+            var supplierDrivers = supplierDriversEntities
                 .Select(d => new SelectListItem
                 {
                     Value = d.Id.ToString(),
                     Text = d.FullName,
                     Selected = selectedDriverId.HasValue && d.Id == selectedDriverId.Value
                 }).ToList();
+
+            var allTruckTypes = await _truckTypeRepository.GetAllAsync();
+            var allSuppliers = await _supplierRepository.GetAllAsync();
 
             int initialDriverId = selectedDriverId ?? (supplierDrivers.Any() ? int.Parse(supplierDrivers.First().Value) : 0);
 
@@ -654,10 +661,17 @@ namespace Rassef.Controllers
                 Text = s.Name
             }).ToList();
 
-            var allDrivers = await _driverRepository.GetAllAsync();
-            create.Drivers = allDrivers
-                .Where(d => (d.SupplierRequests != null && d.SupplierRequests.Any(sr => sr.SupplierId == create.SupId))
-                         || d.Id == create.DriverId)
+            var supplierDriversEntities = (await _driverRepository.GetDriversBySupplierIdAsync(create.SupId)).ToList();
+            if (create.DriverId > 0 && !supplierDriversEntities.Any(d => d.Id == create.DriverId))
+            {
+                var selDriver = await _driverRepository.GetByIdAsync(create.DriverId);
+                if (selDriver != null)
+                {
+                    supplierDriversEntities.Add(selDriver);
+                }
+            }
+
+            create.Drivers = supplierDriversEntities
                 .Select(d => new SelectListItem
                 {
                     Value = d.Id.ToString(),

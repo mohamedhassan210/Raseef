@@ -26,7 +26,8 @@ namespace Rassef.Common.Repository.EntitiesRepository
         public async Task<IEnumerable<Driver>> GetDriversBySupplierIdAsync(int supplierId)
         {
             return await _context.Drivers
-                .Where(d => d.SupplierRequests.Any(sr => sr.SupplierId == supplierId) || !d.SupplierRequests.Any())
+                .Include(d => d.SupplierRequests)
+                .Where(d => d.SupplierRequests.Any(sr => sr.SupplierId == supplierId))
                 .ToListAsync();
         }
         public async Task<bool> HasRequestsAsync(int driverId)

@@ -7,8 +7,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const companyStaticView = document.getElementById('companyStaticView');
     const companySelectView = document.getElementById('companySelectView');
     const companySelect = document.getElementById('companySelect');
-    const submitbtn = document.getElementById('submit-btn');
+    const submitBtn = document.getElementById('submit-btn');
     const form = document.getElementById('addCarForm');
+
+    const plateNumbersInput = document.getElementById('plateNumbers');
+    const plateLettersInput = document.getElementById('plateLetters');
+    const storageCapacityInput = document.getElementById('storageCapacity');
+    const driverSelect = document.getElementById('driverSelect');
 
     // ==========================================
     // 2. DOM Elements (Modals)
@@ -17,11 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const deptModal = document.getElementById('department-modal');
     const confirmModal = document.getElementById('confirmation-modal');
     const successModal = document.getElementById('success-modal');
+    const addDriverModal = document.getElementById('add-driver-modal');
+
+    const btnOpenAddDriverModal = document.getElementById('btn-open-inline-driver-modal');
+    const btnSaveInlineDriver = document.getElementById('btn-save-inline-driver');
+    const btnCancelAddDriver = document.getElementById('btn-cancel-add-driver');
 
     const btnConfirmDept = document.getElementById('btn-confirm-dept');
     const btnEdit = document.getElementById('btn-edit');
     const btnConfirm = document.getElementById('btn-confirm');
-    const btnBack = document.getElementById('btn-back');
     const btnPrint = document.getElementById('btn-print');
 
     const confirmCompany = document.getElementById('confirm-company');
@@ -37,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const deptErrorMsg = document.getElementById('dept-error-msg');
 
     let selectedDepartmentValue = null;
-    let pendingTruckInfo = {}; // متغير لحفظ بيانات الفورم لعرضها في المودال
+    let pendingTruckInfo = {}; // بيانات تأكيد العرض في المودال
 
     // ==========================================
     // 3. Toggle Company Input logic
@@ -51,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // Custom Form Dropdown Logic (للشركة والديناميك)
+    // 4. Custom Dropdowns Logic (Driver & Company)
     // ==========================================
     document.querySelectorAll('.custom-dropdown').forEach(customDropdown => {
         if (customDropdown.id === 'dept-dropdown-container') return;
@@ -61,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dropdownItems = customDropdown.querySelectorAll('.dropdown-item');
 
         const container = customDropdown.closest('.col-md-6') || customDropdown.parentElement;
-        const nativeSelect = container.querySelector('select.d-none');
+        const nativeSelect = container ? container.querySelector('select') : null;
 
         if (dropdownHeader) {
             dropdownHeader.addEventListener('click', (e) => {
@@ -76,12 +85,15 @@ document.addEventListener('DOMContentLoaded', () => {
         dropdownItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const value = item.getAttribute('data-value'); // ID المورد
-                const text = item.textContent.trim();          // اسم المورد
+                if (item.classList.contains('disabled')) return;
+
+                const value = item.getAttribute('data-value');
+                const text = item.textContent.trim();
 
                 if (selectedValue) {
                     selectedValue.textContent = text;
                     selectedValue.classList.remove('placeholder-color');
+                    selectedValue.classList.remove('text-muted');
                 }
 
                 if (nativeSelect) {
@@ -93,6 +105,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 dropdownItems.forEach(el => el.classList.remove('selected'));
                 item.classList.add('selected');
                 customDropdown.classList.remove('open');
+
+                // إزالة علامة الخطأ عند الاختيار
+                const invalidFeedback = container ? container.querySelector('.invalid-feedback') : null;
+                if (invalidFeedback) invalidFeedback.style.display = 'none';
             });
         });
     });
@@ -106,7 +122,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 4. Modal System Functions
+    // 5. Modal System Functions
+    // ==========================================
     const showConfirmationModal = (modalElement) => {
         document.querySelectorAll('.custom-modal-container').forEach(m => {
             m.classList.remove('active-modal');
@@ -133,24 +150,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     };
 
-    const hideConfirmationModal = (modalElement) => {
-        if (modalElement) {
-            modalElement.classList.remove('active-modal');
-            modalElement.classList.add('d-none');
-        }
-        if (modalOverlay) modalOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-    };
-
     const populateConfirmationData = (departmentName = "غير متوفر") => {
-        confirmCompany.textContent = pendingTruckInfo.company || "غير متوفر";
-        confirmTruck.textContent = pendingTruckInfo.truckPlate || "غير متوفر";
-        confirmDriverName.textContent = pendingTruckInfo.driverName || "غير محدد";
-        confirmDriverdep.textContent = departmentName;
+        if (confirmCompany) confirmCompany.textContent = pendingTruckInfo.company || "غير متوفر";
+        if (confirmTruck) confirmTruck.textContent = pendingTruckInfo.truckPlate || "غير متوفر";
+        if (confirmDriverName) confirmDriverName.textContent = pendingTruckInfo.driverName || "غير محدد";
+        if (confirmDriverdep) confirmDriverdep.textContent = departmentName;
     };
 
     // ==========================================
-    // 5. Department Custom Dropdown Logic (للمودال)
+    // 6. Department Custom Dropdown Logic (المودال)
     // ==========================================
     const initDepartmentDropdown = () => {
         const deptItems = deptDropdownList ? deptDropdownList.querySelectorAll('.dropdown-item') : [];
@@ -158,9 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (deptDropdownHeader) {
             deptDropdownHeader.addEventListener('click', (e) => {
                 e.stopPropagation();
-                deptDropdownContainer.classList.toggle('open');
+                if (deptDropdownContainer) deptDropdownContainer.classList.toggle('open');
                 deptDropdownHeader.classList.remove('error');
-                deptErrorMsg.style.display = 'none';
+                if (deptErrorMsg) deptErrorMsg.style.display = 'none';
             });
         }
 
@@ -171,25 +179,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     id: parseInt(item.getAttribute('data-id') || item.getAttribute('data-value')),
                     name: item.textContent.trim()
                 };
-                deptSelectedValue.textContent = selectedDepartmentValue.name;
-                deptSelectedValue.classList.remove('text-muted');
+                if (deptSelectedValue) {
+                    deptSelectedValue.textContent = selectedDepartmentValue.name;
+                    deptSelectedValue.classList.remove('text-muted');
+                }
 
                 deptItems.forEach(el => el.classList.remove('selected'));
                 item.classList.add('selected');
 
-                deptDropdownContainer.classList.remove('open');
-                deptDropdownHeader.classList.remove('error');
-                deptErrorMsg.style.display = 'none';
+                if (deptDropdownContainer) deptDropdownContainer.classList.remove('open');
+                if (deptDropdownHeader) deptDropdownHeader.classList.remove('error');
+                if (deptErrorMsg) deptErrorMsg.style.display = 'none';
             });
         });
 
         if (btnConfirmDept) {
             btnConfirmDept.addEventListener('click', () => {
                 if (!selectedDepartmentValue) {
-                    deptDropdownHeader.classList.add('error');
-                    deptErrorMsg.style.display = 'block';
-                    deptDropdownHeader.style.animation = 'shake 0.4s';
-                    setTimeout(() => deptDropdownHeader.style.animation = '', 400);
+                    if (deptDropdownHeader) deptDropdownHeader.classList.add('error');
+                    if (deptErrorMsg) deptErrorMsg.style.display = 'block';
+                    if (deptDropdownHeader) {
+                        deptDropdownHeader.style.animation = 'shake 0.4s';
+                        setTimeout(() => deptDropdownHeader.style.animation = '', 400);
+                    }
                     return;
                 }
                 populateConfirmationData(selectedDepartmentValue.name);
@@ -198,322 +210,113 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ==========================================
-    // 6. Ticket & Print Logic
-    // ==========================================
-    let shiftTicketCounter = 0;
-    const generateTicketNumber = () => {
-        shiftTicketCounter++;
-        let rawDockName = window.pageData?.dockName || 'A';
-        let dockInitial = rawDockName.length > 0 ? rawDockName.charAt(0).toUpperCase() : 'A';
-        return `${dockInitial}${shiftTicketCounter}`;
-    };
+    initDepartmentDropdown();
 
-    const printTicket = () => {
-        if (btnPrint) {
-            btnPrint.innerHTML = 'جاري التجهيز... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 8px;"></span>';
-            btnPrint.disabled = true;
+    // ==========================================
+    // 7. Validation Helpers
+    // ==========================================
+    const validateTruckFields = () => {
+        let isValid = true;
+
+        if (!plateNumbersInput || !plateNumbersInput.value.trim()) {
+            if (plateNumbersInput) plateNumbersInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            if (plateNumbersInput) plateNumbersInput.classList.remove('is-invalid');
         }
 
-        const ticketNum = ticketNumberDisplay ? ticketNumberDisplay.textContent : '0';
-        const deptName = selectedDepartmentValue ? selectedDepartmentValue.name : 'غير محدد';
-        const empName = window.pageData?.employeeName || 'اسم الموظف';
-        const dock = window.pageData?.dockName || 'A';
+        if (!plateLettersInput || !plateLettersInput.value.trim()) {
+            if (plateLettersInput) plateLettersInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            if (plateLettersInput) plateLettersInput.classList.remove('is-invalid');
+        }
 
-        const receiptData = {
-            ticketNumber: ticketNum,
-            waitingCount: '0',
-            department: deptName,
-            dockNumber: dock,
-            employeeName: empName,
-            createdAt: new Date().toISOString()
-        };
+        if (!storageCapacityInput || !storageCapacityInput.value.trim() || parseFloat(storageCapacityInput.value) <= 0) {
+            if (storageCapacityInput) storageCapacityInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            if (storageCapacityInput) storageCapacityInput.classList.remove('is-invalid');
+        }
 
-        localStorage.setItem('receiptData', JSON.stringify(receiptData));
+        if (!isValid) {
+            form.classList.add('was-validated');
+            // التركيز على أول حقل غير صالح
+            const firstInvalid = form.querySelector('.is-invalid, :invalid');
+            if (firstInvalid) firstInvalid.focus();
+        }
 
-        setTimeout(() => {
-            if (window.routes && window.routes.receiptPage) {
-                window.location.href = window.routes.receiptPage;
-            }
-        }, 1500);
+        return isValid;
+    };
+
+    const getFullPlateString = () => {
+        const letters = plateLettersInput ? plateLettersInput.value.trim() : "";
+        const numbers = plateNumbersInput ? plateNumbersInput.value.trim() : "";
+        return `${letters} ${numbers}`.trim();
+    };
+
+    const getSelectedCompanyName = () => {
+        const isSelectVisible = companySelectView && !companySelectView.classList.contains('d-none');
+        if (isSelectVisible) {
+            const selectedDropdown = companySelectView.querySelector('.selected-value');
+            return selectedDropdown ? selectedDropdown.textContent.trim() : "";
+        }
+        return document.getElementById('companyDisplay')?.value || "";
     };
 
     // ==========================================
-    // 7. Form Submission (The Trigger!)
+    // 8. زر إضافة سائق جديد (+)
+    //    يتحقق من ملء بيانات الشاحنة أولاً!
     // ==========================================
-    if (form) {
-        form.addEventListener('submit', (event) => {
-            event.preventDefault();
+    const handleOpenAddDriver = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
 
-            if (!form.checkValidity()) {
-                event.stopPropagation();
-                form.classList.add('was-validated');
-                return;
-            }
+        // 1. التحقق من ملء بيانات الشاحنة أولاً
+        if (!validateTruckFields()) {
+            return;
+        }
 
-            let selectedCompanyText = "";
-            const isSelectVisible = companySelectView && !companySelectView.classList.contains('d-none');
+        // 2. إعادة ضبط حقول مودال السائق
+        const nameInput = document.getElementById('inlineDriverFullName');
+        const natIdInput = document.getElementById('inlineDriverNationalId');
+        const phoneInput = document.getElementById('inlineDriverPhone');
+        if (nameInput) nameInput.value = '';
+        if (natIdInput) natIdInput.value = '';
+        if (phoneInput) phoneInput.value = '';
 
-            if (isSelectVisible) {
-                const selectedDropdown = companySelectView.querySelector('.selected-value');
-                selectedCompanyText = selectedDropdown ? selectedDropdown.textContent.trim() : "";
-            } else {
-                selectedCompanyText = document.getElementById('companyDisplay')?.value;
-            }
+        const nameErr = document.getElementById('inlineDriverNameErr');
+        const natIdErr = document.getElementById('inlineDriverNationalIdErr');
+        const phoneErr = document.getElementById('inlineDriverPhoneErr');
+        if (nameErr) nameErr.style.display = 'none';
+        if (natIdErr) natIdErr.style.display = 'none';
+        if (phoneErr) phoneErr.style.display = 'none';
 
-            const plateLetters = document.getElementById('plateLetters');
-            const plateNumbers = document.getElementById('plateNumbers');
-            const fullPlate = `${plateLetters ? plateLetters.value.trim() : ""} ${plateNumbers ? plateNumbers.value.trim() : ""}`;
+        // 3. فتح مودال السائق
+        if (addDriverModal) {
+            showConfirmationModal(addDriverModal);
+            setTimeout(() => {
+                if (nameInput) nameInput.focus();
+            }, 100);
+        }
+    };
 
-            const driverSelectedSpan = document.querySelector('#customDriverDropdown .selected-value');
-            const driverNameText = (driverSelectedSpan && !driverSelectedSpan.classList.contains('placeholder-color')) ? driverSelectedSpan.textContent.trim() : "غير محدد";
-
-            pendingTruckInfo = {
-                company: selectedCompanyText,
-                truckPlate: fullPlate,
-                driverName: driverNameText
-            };
-
-            selectedDepartmentValue = null;
-            if (deptSelectedValue) {
-                deptSelectedValue.textContent = 'اختر القسم';
-                deptSelectedValue.classList.add('text-muted');
-            }
-            if (deptDropdownHeader) deptDropdownHeader.classList.remove('error');
-            if (deptErrorMsg) deptErrorMsg.style.display = 'none';
-            document.querySelectorAll('#dept-dropdown-list .dropdown-item').forEach(i => i.classList.remove('selected'));
-
-            showConfirmationModal(deptModal);
-        });
+    if (btnOpenAddDriverModal) {
+        btnOpenAddDriverModal.addEventListener('click', handleOpenAddDriver);
     }
-
-    // ==========================================
-    // 8. Initialize Modals Events
-    // ==========================================
-    const initializeModals = () => {
-        initDepartmentDropdown();
-
-        if (btnEdit) {
-            btnEdit.addEventListener('click', () => {
-                closeModal();
-            });
-        }
-
-        if (btnConfirm) {
-            btnConfirm.addEventListener('click', async () => {
-                btnConfirm.disabled = true;
-                btnConfirm.innerText = "جاري الحفظ...";
-
-                if (selectedDepartmentValue) {
-                    let hiddenDept = document.getElementById('hiddenDepartmentId');
-                    if (!hiddenDept) {
-                        hiddenDept = document.createElement('input');
-                        hiddenDept.type = 'hidden';
-                        hiddenDept.id = 'hiddenDepartmentId';
-                        hiddenDept.name = 'DepartmentId';
-                        form.appendChild(hiddenDept);
-                    }
-                    hiddenDept.value = selectedDepartmentValue.id;
-                }
-
-                form.submit();
-            });
-        }
-
-        if (btnBack) {
-            btnBack.addEventListener('click', () => {
-                closeModal();
-            });
-        }
-
-        if (btnPrint) {
-            btnPrint.addEventListener('click', () => {
-                printTicket();
-            });
-        }
-
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) {
-                if (!deptModal.classList.contains('d-none') || !confirmModal.classList.contains('d-none')) {
-                    closeModal();
-                }
-                if (deptDropdownContainer) deptDropdownContainer.classList.remove('open');
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                if (deptDropdownContainer && deptDropdownContainer.classList.contains('open')) {
-                    deptDropdownContainer.classList.remove('open');
-                } else if (modalOverlay.classList.contains('active')) {
-                    if (!deptModal.classList.contains('d-none') || !confirmModal.classList.contains('d-none')) {
-                        closeModal();
-                    }
-                }
-            }
-        });
-    };
-
-    initializeModals();
-
-    // ==========================================
-    // 9. Plate Inputs Formatting
-    // ==========================================
-
-    /**
-     * Real-Time Plate Formatter
-     *
-     * الوظائف:
-     * - الحروف: عربي فقط.
-     * - الأرقام: أرقام فقط.
-     * - إزالة جميع المسافات اليدوية.
-     * - إضافة Space تلقائي بين كل Character.
-     * - الحفاظ على مكان الـ Cursor.
-     * - يدعم الكتابة، الحذف، الـ Paste، والتنقل داخل النص.
-     */
-    const setupPlateFormatting = (inputElement, allowedCharactersRegex) => {
-        if (!inputElement) return;
-
-        inputElement.addEventListener('input', () => {
-
-            // القيمة الحالية بعد إدخال المستخدم
-            const currentValue = inputElement.value;
-
-            // مكان الـ Cursor الحالي بعد عملية الإدخال/الحذف
-            const cursorPosition = inputElement.selectionStart ?? currentValue.length;
-
-            // --------------------------------------------------
-            // 1. حساب عدد الـ Characters الصالحة قبل الـ Cursor
-            // --------------------------------------------------
-
-            const textBeforeCursor = currentValue.slice(0, cursorPosition);
-
-            const validCharactersBeforeCursor = [
-                ...textBeforeCursor
-            ].filter(char => allowedCharactersRegex.test(char))
-                .length;
-
-            // --------------------------------------------------
-            // 2. تنظيف القيمة بالكامل
-            // --------------------------------------------------
-
-            const rawValue = [
-                ...currentValue
-            ].filter(char => allowedCharactersRegex.test(char));
-
-            // --------------------------------------------------
-            // 3. إضافة Space بين كل Character
-            // --------------------------------------------------
-
-            const formattedValue = rawValue.join(' ');
-
-            // --------------------------------------------------
-            // 4. تحديث القيمة فقط إذا تغيرت
-            // --------------------------------------------------
-
-            if (inputElement.value !== formattedValue) {
-                inputElement.value = formattedValue;
-            }
-
-            // --------------------------------------------------
-            // 5. حساب مكان الـ Cursor الجديد
-            // --------------------------------------------------
-
-            let newCursorPosition = 0;
-
-            if (validCharactersBeforeCursor > 0) {
-
-                let characterCounter = 0;
-
-                for (let i = 0; i < formattedValue.length; i++) {
-
-                    if (allowedCharactersRegex.test(formattedValue[i])) {
-                        characterCounter++;
-                    }
-
-                    if (characterCounter === validCharactersBeforeCursor) {
-                        newCursorPosition = i + 1;
-                        break;
-                    }
-                }
-
-            } else {
-                newCursorPosition = 0;
-            }
-
-            // --------------------------------------------------
-            // 6. حماية الـ Cursor من تجاوز طول النص
-            // --------------------------------------------------
-
-            newCursorPosition = Math.min(
-                newCursorPosition,
-                formattedValue.length
-            );
-
-            // --------------------------------------------------
-            // 7. إعادة الـ Cursor لمكانه
-            // --------------------------------------------------
-
-            requestAnimationFrame(() => {
-                try {
-                    inputElement.setSelectionRange(
-                        newCursorPosition,
-                        newCursorPosition
-                    );
-                } catch (error) {
-                    console.warn('Could not restore cursor position:', error);
-                }
-            });
-        });
-    };
-
-
-    // ==========================================
-    // 9.1 حقل حروف لوحة السيارة
-    // ==========================================
-
-    const plateLettersInput = document.getElementById('plateLetters');
-
-    setupPlateFormatting(
-        plateLettersInput,
-        /[\u0600-\u06FF]/
-    );
-
-
-    // ==========================================
-    // 9.2 حقل أرقام لوحة السيارة
-    // ==========================================
-
-    const plateNumbersInput = document.getElementById('plateNumbers');
-
-    setupPlateFormatting(
-        plateNumbersInput,
-        /[0-9]/
-    );
-
-    // ==========================================
-    // 10. التعامل مع مودال إضافة سائق جديد المباشر (+)
-    // ==========================================
-    const addDriverModal = document.getElementById('add-driver-modal');
-    const openAddDriverModalBtn = document.getElementById('btn-open-inline-driver-modal');
-    const btnSaveInlineDriver = document.getElementById('btn-save-inline-driver');
-    const btnCancelAddDriver = document.getElementById('btn-cancel-add-driver');
 
     document.addEventListener('click', (e) => {
         const targetBtn = e.target.closest('#btn-open-inline-driver-modal, .add-driver-btn');
         if (targetBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            const modal = document.getElementById('add-driver-modal');
-            if (modal) {
-                showConfirmationModal(modal);
-            }
+            handleOpenAddDriver(e);
         }
     });
 
-    if (btnCancelAddDriver && addDriverModal) {
+    if (btnCancelAddDriver) {
         btnCancelAddDriver.addEventListener('click', () => {
-            hideConfirmationModal(addDriverModal);
+            closeModal();
         });
     }
 
@@ -534,14 +337,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (nameErr) nameErr.style.display = 'none';
             }
 
-            if (!natIdInput || natIdInput.value.trim().length !== 14) {
-                if (natIdErr) natIdErr.style.display = 'block';
+            if (!natIdInput || natIdInput.value.trim().length !== 14 || !/^\d{14}$/.test(natIdInput.value.trim())) {
+                if (natIdErr) nameErr ? natIdErr.style.display = 'block' : null;
                 isValid = false;
             } else {
                 if (natIdErr) natIdErr.style.display = 'none';
             }
 
-            if (!phoneInput || !phoneInput.value.trim()) {
+            if (!phoneInput || !phoneInput.value.trim() || phoneInput.value.trim().length < 10) {
                 if (phoneErr) phoneErr.style.display = 'block';
                 isValid = false;
             } else {
@@ -550,6 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!isValid) return;
 
+            // حفظ بيانات السائق الجديد في حقول hidden داخل الفورم
             let inputName = document.getElementById('hiddenNewDriverName');
             if (!inputName) {
                 inputName = document.createElement('input');
@@ -580,79 +384,186 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             inputPhone.value = phoneInput.value.trim();
 
-            const pNumbersInput = document.getElementById('plateNumbers');
-            const pLettersInput = document.getElementById('plateLetters');
-            const selectedCompanyText = document.getElementById('companyDisplay')?.value || "";
-            const fullPlate = `${pLettersInput ? pLettersInput.value.trim() : ""} ${pNumbersInput ? pNumbersInput.value.trim() : ""}`;
+            // تحديث العرض على الشاشة
+            const driverSelectedSpan = document.querySelector('#customDriverDropdown .selected-value');
+            if (driverSelectedSpan) {
+                driverSelectedSpan.textContent = nameInput.value.trim();
+                driverSelectedSpan.classList.remove('placeholder-color');
+            }
 
             pendingTruckInfo = {
-                company: selectedCompanyText,
-                truckPlate: fullPlate,
+                company: getSelectedCompanyName(),
+                truckPlate: getFullPlateString(),
                 driverName: nameInput.value.trim()
             };
 
-            hideConfirmationModal(addDriverModal);
-            setTimeout(() => {
-                showConfirmationModal(deptModal);
-            }, 200);
+            // الانتقال لمودال اختيار القسم
+            selectedDepartmentValue = null;
+            if (deptSelectedValue) {
+                deptSelectedValue.textContent = 'اختر القسم';
+                deptSelectedValue.classList.add('text-muted');
+            }
+            document.querySelectorAll('#dept-dropdown-list .dropdown-item').forEach(i => i.classList.remove('selected'));
+
+            showConfirmationModal(deptModal);
         });
     }
 
-    const pendingTruckDataRaw = sessionStorage.getItem('pendingTruckData');
-    if (pendingTruckDataRaw) {
-        try {
-            const pendingTruckData = JSON.parse(pendingTruckDataRaw);
+    // ==========================================
+    // 9. زر الإرسال الأساسي للفورم (إضافة شاحنة جديدة)
+    // ==========================================
+    if (form) {
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
 
-            const pNumbersInput = document.getElementById('plateNumbers');
-            const pLettersInput = document.getElementById('plateLetters');
-            const sCapInput = document.getElementById('storageCapacity');
-            const tCoolingInput = document.getElementById('typeCooling');
-            const tNormalInput = document.getElementById('typeNormal');
-
-            if (pNumbersInput && pendingTruckData.plateNumbers !== undefined && pendingTruckData.plateNumbers !== '') {
-                pNumbersInput.value = pendingTruckData.plateNumbers;
-                pNumbersInput.dispatchEvent(new Event('input', { bubbles: true }));
+            // التحقق من بيانات الشاحنة
+            if (!validateTruckFields()) {
+                event.stopPropagation();
+                return;
             }
-            if (pLettersInput && pendingTruckData.plateLetters !== undefined && pendingTruckData.plateLetters !== '') {
-                pLettersInput.value = pendingTruckData.plateLetters;
-                pLettersInput.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-            if (sCapInput && pendingTruckData.storageCapacity !== undefined && pendingTruckData.storageCapacity !== '') {
-                sCapInput.value = pendingTruckData.storageCapacity;
-            }
-            if (pendingTruckData.isRefrigerated !== undefined) {
-                if (pendingTruckData.isRefrigerated) {
-                    if (tCoolingInput) tCoolingInput.checked = true;
-                } else {
-                    if (tNormalInput) tNormalInput.checked = true;
-                }
-            if (window.autoOpenModal || pendingTruckData.autoOpenModal) {
-                setTimeout(() => {
-                    const selectedCompanyText = document.getElementById('companyDisplay')?.value || "";
-                    const fullPlate = `${pLettersInput ? pLettersInput.value.trim() : ""} ${pNumbersInput ? pNumbersInput.value.trim() : ""}`;
-                    const driverSelectedSpan = document.querySelector('#customDriverDropdown .selected-value');
-                    const driverNameText = (driverSelectedSpan && !driverSelectedSpan.classList.contains('placeholder-color')) ? driverSelectedSpan.textContent.trim() : "السائق الجديد";
 
-                    pendingTruckInfo = {
-                        company: selectedCompanyText,
-                        truckPlate: fullPlate,
-                        driverName: driverNameText
-                    };
+            // التحقق من اختيار السائق
+            const hasNewDriver = document.getElementById('hiddenNewDriverName')?.value;
+            const hasSelectedDriver = driverSelect && driverSelect.value && driverSelect.value !== '0';
 
-                    selectedDepartmentValue = null;
-                    if (deptSelectedValue) {
-                        deptSelectedValue.textContent = 'اختر القسم';
-                        deptSelectedValue.classList.add('text-muted');
-                    }
-
-                    if (deptModal) {
-                        showConfirmationModal(deptModal);
-                    }
-                }, 350);
+            if (!hasNewDriver && !hasSelectedDriver) {
+                const driverContainer = document.getElementById('driverSelectView');
+                const feedback = driverContainer ? driverContainer.querySelector('.invalid-feedback') : null;
+                if (feedback) feedback.style.display = 'block';
+                return;
             }
-        } catch (e) {
-            console.error('Error restoring pendingTruckData:', e);
-        }
-        sessionStorage.removeItem('pendingTruckData');
+
+            const driverSelectedSpan = document.querySelector('#customDriverDropdown .selected-value');
+            const driverNameText = (driverSelectedSpan && !driverSelectedSpan.classList.contains('placeholder-color'))
+                ? driverSelectedSpan.textContent.trim()
+                : "غير محدد";
+
+            pendingTruckInfo = {
+                company: getSelectedCompanyName(),
+                truckPlate: getFullPlateString(),
+                driverName: driverNameText
+            };
+
+            selectedDepartmentValue = null;
+            if (deptSelectedValue) {
+                deptSelectedValue.textContent = 'اختر القسم';
+                deptSelectedValue.classList.add('text-muted');
+            }
+            if (deptDropdownHeader) deptDropdownHeader.classList.remove('error');
+            if (deptErrorMsg) deptErrorMsg.style.display = 'none';
+            document.querySelectorAll('#dept-dropdown-list .dropdown-item').forEach(i => i.classList.remove('selected'));
+
+            showConfirmationModal(deptModal);
+        });
     }
+
+    // ==========================================
+    // 10. أحداث المودالات وتأكيد الإرسال
+    // ==========================================
+    if (btnEdit) {
+        btnEdit.addEventListener('click', () => {
+            closeModal();
+        });
+    }
+
+    if (btnConfirm) {
+        btnConfirm.addEventListener('click', () => {
+            btnConfirm.disabled = true;
+            btnConfirm.innerText = "جاري الحفظ وإصدار الدور...";
+
+            if (selectedDepartmentValue) {
+                let hiddenDept = document.getElementById('hiddenDepartmentId');
+                if (!hiddenDept) {
+                    hiddenDept = document.createElement('input');
+                    hiddenDept.type = 'hidden';
+                    hiddenDept.id = 'hiddenDepartmentId';
+                    hiddenDept.name = 'DepartmentId';
+                    form.appendChild(hiddenDept);
+                }
+                hiddenDept.value = selectedDepartmentValue.id;
+            }
+
+            form.submit();
+        });
+    }
+
+    if (btnPrint) {
+        btnPrint.addEventListener('click', () => {
+            if (window.routes && window.routes.truckIndex) {
+                window.location.href = window.routes.truckIndex;
+            }
+        });
+    }
+
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                if (!deptModal?.classList.contains('d-none') || !confirmModal?.classList.contains('d-none') || !addDriverModal?.classList.contains('d-none')) {
+                    closeModal();
+                }
+                if (deptDropdownContainer) deptDropdownContainer.classList.remove('open');
+            }
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (deptDropdownContainer && deptDropdownContainer.classList.contains('open')) {
+                deptDropdownContainer.classList.remove('open');
+            } else if (modalOverlay && modalOverlay.classList.contains('active')) {
+                closeModal();
+            }
+        }
+    });
+
+    // ==========================================
+    // 11. Plate Inputs Formatting
+    // ==========================================
+    const setupPlateFormatting = (inputElement, allowedCharactersRegex) => {
+        if (!inputElement) return;
+
+        inputElement.addEventListener('input', () => {
+            const currentValue = inputElement.value;
+            const cursorPosition = inputElement.selectionStart ?? currentValue.length;
+
+            const textBeforeCursor = currentValue.slice(0, cursorPosition);
+            const validCharactersBeforeCursor = [...textBeforeCursor].filter(char => allowedCharactersRegex.test(char)).length;
+
+            const rawValue = [...currentValue].filter(char => allowedCharactersRegex.test(char));
+            const formattedValue = rawValue.join(' ');
+
+            if (inputElement.value !== formattedValue) {
+                inputElement.value = formattedValue;
+            }
+
+            let newCursorPosition = 0;
+            if (validCharactersBeforeCursor > 0) {
+                let characterCounter = 0;
+                for (let i = 0; i < formattedValue.length; i++) {
+                    if (allowedCharactersRegex.test(formattedValue[i])) {
+                        characterCounter++;
+                    }
+                    if (characterCounter === validCharactersBeforeCursor) {
+                        newCursorPosition = i + 1;
+                        break;
+                    }
+                }
+            } else {
+                newCursorPosition = 0;
+            }
+
+            newCursorPosition = Math.min(newCursorPosition, formattedValue.length);
+
+            requestAnimationFrame(() => {
+                try {
+                    inputElement.setSelectionRange(newCursorPosition, newCursorPosition);
+                } catch (error) {
+                    console.warn('Could not restore cursor position:', error);
+                }
+            });
+        });
+    };
+
+    setupPlateFormatting(plateLettersInput, /[\u0600-\u06FF]/);
+    setupPlateFormatting(plateNumbersInput, /[0-9]/);
 });

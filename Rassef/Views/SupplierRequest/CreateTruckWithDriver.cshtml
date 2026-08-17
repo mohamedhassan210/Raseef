@@ -144,8 +144,13 @@
                     <div class="d-flex gap-3 align-items-stretch">
 
                         <div class="position-relative flex-grow-1" id="driverSelectView">
+                            @{
+                                var selectedDriver = Model?.Drivers?.FirstOrDefault(d => d.Selected || (Model.DriverId > 0 && d.Value == Model.DriverId.ToString()));
+                                var selectedDriverText = selectedDriver != null ? selectedDriver.Text : "اختر السائق";
+                                var hasSelectedDriver = selectedDriver != null;
+                            }
                             <select class="d-none" id="driverSelect" asp-for="DriverId" required>
-                                <option value="" disabled selected>اختر السائق</option>
+                                <option value="" disabled>اختر السائق</option>
                                 @if (Model?.Drivers != null)
                                 {
                                     foreach (var driver in Model.Drivers)
@@ -157,7 +162,7 @@
 
                             <div class="custom-dropdown" id="customDriverDropdown">
                                 <div class="dropdown-header">
-                                    <span class="selected-value placeholder-color">اختر السائق</span>
+                                    <span class="selected-value @(hasSelectedDriver ? "" : "placeholder-color")">@selectedDriverText</span>
                                     <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#e47925" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                         <polyline points="18 15 12 9 6 15"></polyline>
                                     </svg>
