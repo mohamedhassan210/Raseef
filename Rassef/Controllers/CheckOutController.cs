@@ -1,31 +1,34 @@
-﻿namespace Rassef.Controllers
+namespace Rassef.Controllers
 {
     public class CheckOutController : Controller
     {
         private readonly ICheckOutRepository _repository;
         private readonly IRepository<QueueTicket> _ticketRepo;
         private readonly IRepository<ExitTypes> _exitTypeRepo;
+        private readonly IRepository<TicketStatuses> _ticketStatusRepo;
 
         public CheckOutController(
             ICheckOutRepository repository,
             IRepository<QueueTicket> ticketRepo,
-            IRepository<ExitTypes> exitTypeRepo)
+            IRepository<ExitTypes> exitTypeRepo,
+            IRepository<TicketStatuses> ticketStatusRepo)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _ticketRepo = ticketRepo ?? throw new ArgumentNullException(nameof(ticketRepo));
             _exitTypeRepo = exitTypeRepo ?? throw new ArgumentNullException(nameof(exitTypeRepo));
+            _ticketStatusRepo = ticketStatusRepo ?? throw new ArgumentNullException(nameof(ticketStatusRepo));
         }
 
         [HttpGet]
-        // Display all items
+        // Display all items - CQ-8: استخدام GetAllWithDetailsAsync لتفادي NullReferenceException
         public async Task<IActionResult> Index()
         {
-            var checkOuts = await _repository.GetAllAsync();
+            var checkOuts = await _repository.GetAllWithDetailsAsync();
 
             var checkOutViewModels = checkOuts.Select(x => new CheckOutListVM
             {
                 Id = x.Id,
-                TicketNumber = x.QueueTicket.TicketNumber,
+                TicketNumber = x.QueueTicket?.TicketNumber ?? "غير محدد",
                 ExitTypeName = x.ExitType?.Name ?? "غير محدد",
                 ExitTime = x.ExitTime
             });
@@ -48,7 +51,7 @@
             var model = new CheckOutDetailsVM
             {
                 Id = id,
-                TicketNumber = checkOut.QueueTicket.TicketNumber,
+                TicketNumber = checkOut.QueueTicket?.TicketNumber ?? "غير محدد",
                 ExitTypeName = checkOut.ExitType?.Name ?? "غير محدد",
                 ExitTime = checkOut.ExitTime,
                 CreatedBy = checkOut.CreatedBy?.Name ?? "النظام"
@@ -67,7 +70,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Create new item
+        // Create new item - BL-5: تحديث حالة التذكرة إلى "تم" عند الخروج
         public async Task<IActionResult> Create(CreateCheckOutVM create)
         {
             if (!ModelState.IsValid)
@@ -86,6 +89,22 @@
             await _repository.AddAsync(checkOut);
             await _repository.SaveChangesAsync();
 
+            // BL-5: تحديث حالة التذكرة إلى "تم" تلقائياً
+            var ticket = await _ticketRepo.GetByIdAsync(create.TicketId);
+            if (ticket != null)
+            {
+                var doneStatus = await _ticketStatusRepo.FindAsync(s =>
+                    s.Name.Contains("تم") || s.Name.Contains("مكتمل"));
+                if (doneStatus != null)
+                {
+                    ticket.TicketStatusId = doneStatus.Id;
+                    ticket.ExitTime = create.ExitTime;
+                    _ticketRepo.Update(ticket);
+                    await _ticketRepo.SaveChangesAsync();
+                }
+            }
+
+            TempData["Success"] = "تم تسجيل الخروج بنجاح.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -158,7 +177,7 @@
             var vm = new CheckOutDetailsVM
             {
                 Id = checkOut.Id,
-                TicketNumber = checkOut.QueueTicket.TicketNumber
+                TicketNumber = checkOut.QueueTicket?.TicketNumber ?? "غير محدد"
             };
 
             return View(vm);
