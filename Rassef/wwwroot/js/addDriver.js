@@ -43,35 +43,51 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Custom Dropdown - شركة السائق 
     // ============================================
     const customDropdown = document.getElementById('customDropdown');
-    const dropdownHeader = customDropdown.querySelector('.dropdown-header');
-    const selectedValue = customDropdown.querySelector('.selected-value');
-    const dropdownItems = customDropdown.querySelectorAll('.dropdown-item');
+    if (customDropdown) {
+        const dropdownHeader = customDropdown.querySelector('.dropdown-header');
+        const selectedValue = customDropdown.querySelector('.selected-value');
+        const dropdownItems = customDropdown.querySelectorAll('.dropdown-item');
 
-    dropdownHeader.addEventListener('click', (e) => {
-        e.stopPropagation();
-        customDropdown.classList.toggle('open');
-    });
-
-    dropdownItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const value = item.getAttribute('data-value');
-            const text = item.textContent;
-
-            selectedValue.textContent = text;
-            companySelect.value = value;
-
-            dropdownItems.forEach(el => el.classList.remove('selected'));
-            item.classList.add('selected');
-            customDropdown.classList.remove('open');
-        });
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!customDropdown.contains(e.target)) {
-            customDropdown.classList.remove('open');
+        if (dropdownHeader) {
+            dropdownHeader.addEventListener('click', (e) => {
+                e.stopPropagation();
+                customDropdown.classList.toggle('open');
+            });
         }
-    });
+
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (item.classList.contains('disabled')) return;
+
+                const value = item.getAttribute('data-value');
+                const text = item.textContent.trim();
+
+                if (selectedValue) {
+                    selectedValue.textContent = text;
+                    selectedValue.classList.remove('placeholder-color');
+                }
+
+                if (companySelect) {
+                    companySelect.value = value;
+                    companySelect.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+
+                const hiddenSupplierName = document.querySelector('input[name="SupplierName"]');
+                if (hiddenSupplierName) hiddenSupplierName.value = text;
+
+                dropdownItems.forEach(el => el.classList.remove('selected'));
+                item.classList.add('selected');
+                customDropdown.classList.remove('open');
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!customDropdown.contains(e.target)) {
+                customDropdown.classList.remove('open');
+            }
+        });
+    }
 
     const toggleCompanySelection = () => {
         companyStaticView.classList.add('d-none');

@@ -112,6 +112,21 @@ namespace Rassef.Controllers
             return View(model);
         }
 
+        private async Task PrepareCreateDriverVMAsync(CreateDriverVM create)
+        {
+            create.Suppliers = await GetSuppliersAsync();
+            if (create.SupplierId.HasValue && create.SupplierId.Value > 0)
+            {
+                var supplier = await _supplierRepository.GetByIdAsync(create.SupplierId.Value);
+                if (supplier != null)
+                {
+                    create.SupplierName = supplier.Name;
+                }
+            }
+            var depts = await _departmentRepository.GetAllAsync();
+            ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
+        }
+
         // Create (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -119,27 +134,21 @@ namespace Rassef.Controllers
         {
             if (!ModelState.IsValid)
             {
-                create.Suppliers = await GetSuppliersAsync();
-                var depts = await _departmentRepository.GetAllAsync();
-                ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
+                await PrepareCreateDriverVMAsync(create);
                 return View(create);
             }
 
             if (await _driverRepository.ExistsAsync(x => x.NationalId == create.NationalId))
             {
                 ModelState.AddModelError(nameof(create.NationalId), "الرقم القومي مسجل بالفعل.");
-                create.Suppliers = await GetSuppliersAsync();
-                var depts = await _departmentRepository.GetAllAsync();
-                ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
+                await PrepareCreateDriverVMAsync(create);
                 return View(create);
             }
 
             if (await _driverRepository.ExistsAsync(x => x.Phone == create.Phone))
             {
                 ModelState.AddModelError(nameof(create.Phone), "رقم الهاتف مسجل بالفعل.");
-                create.Suppliers = await GetSuppliersAsync();
-                var depts = await _departmentRepository.GetAllAsync();
-                ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
+                await PrepareCreateDriverVMAsync(create);
                 return View(create);
             }
 

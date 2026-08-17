@@ -2,7 +2,11 @@
 @{
     ViewData["Title"] = "إضافة سائق";
     Layout = "_SupOrTra";
-    var defaultSupplierName = Model?.SupplierName ?? "اختر الشركة";
+    var selectedSupplier = Model?.Suppliers?.FirstOrDefault(s => s.Value == Model?.SupplierId?.ToString());
+    var displaySupplierName = !string.IsNullOrWhiteSpace(Model?.SupplierName)
+        ? Model.SupplierName
+        : (selectedSupplier != null ? selectedSupplier.Text : "اختر الشركة");
+    var hasPredefinedSupplier = (Model?.SupplierId != null && Model.SupplierId > 0) || !string.IsNullOrWhiteSpace(Model?.SupplierName);
 }
 
 @section Styles {
@@ -29,7 +33,7 @@
     </header>
 
     <div class="nav-actions-container" style="justify-content: flex-end;">
-        <a href="@Url.Action("Index", "Truck")" class="action-btn" aria-label="خطوة للخلف">
+        <a href="@Url.Action("Index", "Truck", new { supplierId = Model?.SupplierId })" class="action-btn" aria-label="خطوة للخلف">
             خطوة للخلف
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -40,6 +44,9 @@
 
     <section class="form-card mt-3">
         <form id="addDriverForm" class="needs-validation" asp-action="Create" asp-controller="Driver" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="SupplierName" />
+
             <div class="row mb-4 gy-4">
                 <div class="col-md-6 order-md-1">
                     <label asp-for="FullName" class="form-label fw-bold">اسم السائق</label>
@@ -71,9 +78,9 @@
                 <div class="col-md-6 order-md-4">
                     <label asp-for="SupplierId" class="form-label fw-bold">شركة السائق</label>
 
-                    <div class="position-relative @(Model?.SupplierId != null ? "d-none" : "")" id="companySelectView">
-                        <select asp-for="SupplierId" class="d-none" id="companySelect" required="@(Model?.SupplierId == null ? "required" : null)">
-                            <option value="" disabled selected>اختر الشركة</option>
+                    <div class="position-relative @(hasPredefinedSupplier ? "d-none" : "")" id="companySelectView">
+                        <select asp-for="SupplierId" class="d-none" id="companySelect" required="@(hasPredefinedSupplier ? null : "required")">
+                            <option value="" disabled>اختر الشركة</option>
                             @if (Model?.Suppliers != null)
                             {
                                 foreach (var supplier in Model.Suppliers)
@@ -85,18 +92,22 @@
 
                         <div class="custom-dropdown" id="customDropdown">
                             <div class="dropdown-header">
-                                <span class="selected-value">اختر الشركة</span>
+                                <span class="selected-value @(selectedSupplier != null ? "" : "placeholder-color")">@(selectedSupplier?.Text ?? "اختر الشركة")</span>
                                 <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#e47925" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="18 15 12 9 6 15"></polyline>
                                 </svg>
                             </div>
                             <div class="dropdown-list">
-                                @if (Model?.Suppliers != null)
+                                @if (Model?.Suppliers != null && Model.Suppliers.Any())
                                 {
                                     foreach (var supplier in Model.Suppliers)
                                     {
-                                        <div class="dropdown-item" data-value="@supplier.Value">@supplier.Text</div>
+                                        <div class="dropdown-item @(supplier.Value == Model?.SupplierId?.ToString() ? "selected" : "")" data-value="@supplier.Value">@supplier.Text</div>
                                     }
+                                }
+                                else
+                                {
+                                    <div class="dropdown-item disabled text-muted">لا توجد شركات متاحة</div>
                                 }
                             </div>
                         </div>
@@ -104,10 +115,10 @@
                         <span asp-validation-for="SupplierId" class="text-danger mt-2 d-block text-center"></span>
                     </div>
 
-                    <div class="position-relative static-view-container @(Model?.SupplierId != null ? "" : "d-none")" id="companyStaticView">
-                        <input type="text" class="form-control custom-input text-end static-input" id="companyDisplay" value="@defaultSupplierName" readonly>
+                    <div class="position-relative static-view-container @(hasPredefinedSupplier ? "" : "d-none")" id="companyStaticView">
+                        <input type="text" class="form-control custom-input text-end static-input" id="companyDisplay" value="@displaySupplierName" readonly>
 
-                        @if (Model?.SupplierId != null)
+                        @if (hasPredefinedSupplier)
                         {
                             <input type="hidden" asp-for="SupplierId" id="hiddenSupplierId" />
                         }
