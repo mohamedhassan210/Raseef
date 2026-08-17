@@ -1,4 +1,4 @@
-﻿namespace Rassef.Controllers
+namespace Rassef.Controllers
 {
     public class QueueSettingsController : Controller
     {
@@ -67,13 +67,21 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Create new item
+        // Create new item - BL-7: التحقق من عدم وجود إعدادات سابقة (سجل واحد فقط)
         public async Task<IActionResult> Create(CreateQueueSettingsVM model)
         {
             if (!ModelState.IsValid)
             {
                 await PopulateDropdown(model);
                 return View(model);
+            }
+
+            // BL-7: منع إنشاء أكثر من سجل QueueSettings واحد في النظام
+            var existingSettings = await _repository.FindAsync(x => true);
+            if (existingSettings != null)
+            {
+                TempData["Error"] = "توجد إعدادات بالفعل. قم بتعديل الإعدادات الحالية بدلاً من إنشاء جديدة.";
+                return RedirectToAction(nameof(Update), new { id = existingSettings.Id });
             }
 
             var settings = new QueueSettings
