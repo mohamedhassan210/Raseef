@@ -1,14 +1,14 @@
-﻿namespace Rassef.Controllers
+namespace Rassef.Controllers
 {
     public class DockAssignmentController : Controller
     {
-        private readonly IRepository<DockAssignment> _assignmentRepository;
+        private readonly IDockAssignmentRepository _assignmentRepository;
         private readonly IRepository<Dock> _dockRepository;
         private readonly IRepository<QueueTicket> _ticketRepository;
         private readonly IRepository<User> _userRepository;
 
         public DockAssignmentController(
-            IRepository<DockAssignment> assignmentRepository,
+            IDockAssignmentRepository assignmentRepository,
             IRepository<Dock> dockRepository,
             IRepository<QueueTicket> ticketRepository,
             IRepository<User> userRepository)
@@ -19,11 +19,11 @@
             _userRepository = userRepository;
         }
 
-        // Get All
+        // Get All - CQ-7: استخدام GetAllWithDetailsAsync لجلب Dock و QueueTicket
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var assignmentsRepo = await _assignmentRepository.GetAllAsync();
+            var assignmentsRepo = await _assignmentRepository.GetAllWithDetailsAsync();
 
             var assignments = assignmentsRepo.Select(x => new DockAssignmentListVM
             {
@@ -82,13 +82,24 @@
             return View(vm);
         }
 
-        // Post Create
+        // Post Create - BL-6: منع تكرار تعيين نفس التذكرة لأكثر من رصيف في نفس الوقت
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateDockAssignmentVM create)
         {
             if (!ModelState.IsValid)
             {
+                create = await PopulateCreateDropdownsAsync(create);
+                return View(create);
+            }
+
+            // BL-6: التحقق من عدم وجود تعيين نشط لنفس التذكرة
+            bool alreadyAssigned = await _assignmentRepository.ExistsAsync(
+                a => a.TicketId == create.TicketId && a.FinishedAt > DateTimeOffset.Now);
+
+            if (alreadyAssigned)
+            {
+                ModelState.AddModelError("", "هذه التذكرة معينة لرصيف آخر بالفعل. أنهِ التعيين الحالي أولاً.");
                 create = await PopulateCreateDropdownsAsync(create);
                 return View(create);
             }
