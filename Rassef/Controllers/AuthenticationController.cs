@@ -126,12 +126,6 @@ namespace Rassef.Controllers
         // Action Login
         public async Task<IActionResult> Login(LoginViewModel login)
         {
-            var h1 = BCrypt.Net.BCrypt.HashPassword("123456");
-            // "$2a$11$3kET7XVlcnG0U4OXPKdIMOUTZIFkPTmbMbDX0igacQADKFLCD808O"
-
-            var ff = BCrypt.Net.BCrypt.HashPassword("Fares0606");
-            // "$2a$11$OJy53DWPgjZqx40yaSTgduDXorTU3/p3QtQ5fZHU1IvrgjMAoaQHq"
-
             if (!ModelState.IsValid)
             {
                 return View(login);
@@ -263,9 +257,17 @@ namespace Rassef.Controllers
                 };
             }).ToList();
 
-            int waitingCount = ticketViewModels.Count(x => x.TicketStatusName == "إنتظار" || x.TicketStatusName == "انتظار" || x.TicketStatusName == "في الطابور");
-            int inProgressCount = ticketViewModels.Count(x => x.TicketStatusName == "جاري" || x.TicketStatusName == "قيد التنفيذ");
-            int completedCount = ticketViewModels.Count(x => x.TicketStatusName == "تم" || x.TicketStatusName == "مكتملة");
+            // PERF-3: حساب الإحصائيات في مرور واحد بدلاً من 3 loops
+            int waitingCount = 0, inProgressCount = 0, completedCount = 0;
+            foreach (var t in ticketViewModels)
+            {
+                if (t.TicketStatusName == "إنتظار" || t.TicketStatusName == "انتظار" || t.TicketStatusName == "في الطابور")
+                    waitingCount++;
+                else if (t.TicketStatusName == "جاري" || t.TicketStatusName == "قيد التنفيذ")
+                    inProgressCount++;
+                else if (t.TicketStatusName == "تم" || t.TicketStatusName == "مكتملة")
+                    completedCount++;
+            }
 
             var viewModel = new QueueTicketIndexVM
             {
