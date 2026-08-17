@@ -257,21 +257,37 @@ namespace Rassef.Controllers
                 };
             }).ToList();
 
-            // PERF-3: حساب الإحصائيات في مرور واحد بدلاً من 3 loops
+            // حساب الإحصائيات في مرور واحد
             int waitingCount = 0, inProgressCount = 0, completedCount = 0;
             foreach (var t in ticketViewModels)
             {
-                if (t.TicketStatusName == "إنتظار" || t.TicketStatusName == "انتظار" || t.TicketStatusName == "في الطابور")
+                var s = t.TicketStatusName.Replace("إ", "ا").Trim();
+                if (s.Contains("انتظار") || s.Contains("طابور") || s.Contains("معلق"))
                     waitingCount++;
-                else if (t.TicketStatusName == "جاري" || t.TicketStatusName == "قيد التنفيذ")
+                else if (s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل"))
                     inProgressCount++;
-                else if (t.TicketStatusName == "تم" || t.TicketStatusName == "مكتملة")
+                else if (s.Contains("تم") || s.Contains("مكتمل") || s.Contains("منتهي") || s.Contains("خروج"))
                     completedCount++;
             }
 
+            // ترتيب الأدوار منطقياً: الجارية أولاً ثم بالانتظار ثم المنتهية
+            int GetStatusPriority(string statusName)
+            {
+                var s = statusName.Replace("إ", "ا").Trim();
+                if (s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل")) return 1;
+                if (s.Contains("انتظار") || s.Contains("طابور") || s.Contains("معلق")) return 2;
+                if (s.Contains("تم") || s.Contains("مكتمل") || s.Contains("منتهي") || s.Contains("خروج")) return 3;
+                return 4;
+            }
+
+            var orderedViewModels = ticketViewModels
+                .OrderBy(t => GetStatusPriority(t.TicketStatusName))
+                .ThenByDescending(t => t.Id)
+                .ToList();
+
             var viewModel = new QueueTicketIndexVM
             {
-                Tickets = ticketViewModels,
+                Tickets = orderedViewModels,
                 WaitingCount = waitingCount,
                 InProgressCount = inProgressCount,
                 CompletedCount = completedCount

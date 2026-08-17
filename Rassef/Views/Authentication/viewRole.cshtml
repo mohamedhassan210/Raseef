@@ -46,11 +46,11 @@
                 <button class="filter-btn active" data-filter="الكل">الكل</button>
                 <button class="filter-btn" data-filter="إنتظار">إنتظار</button>
                 <button class="filter-btn" data-filter="جاري">جاري</button>
-                <button class="filter-btn" data-filter="تم">تم</button>
+                <button class="filter-btn" data-filter="مكتملة">مكتملة</button>
             </div>
 
             <div class="search-container">
-                <input type="text" id="searchInput" placeholder="ادخل رقم الدور أو العربية أو اسم الموظف">
+                <input type="text" id="searchInput" placeholder="ابحث برقم الدور، السائق، رقم الشاحنة، أو القسم...">
                 <div class="search-icon">
                     <i class="fas fa-search"></i>
                 </div>
@@ -60,8 +60,8 @@
         <!-- بطاقات الإحصائيات -->
         <section class="stats-section">
             <div class="stat-card waiting-stat">
-                <h3 class="stat-title">إنتظار</h3>
                 <div class="stat-data">
+                    <h3 class="stat-title">إنتظار</h3>
                     <span class="stat-number" id="waitCount">@(Model?.WaitingCount ?? 0)</span>
                     <span class="stat-label">دور في الانتظار</span>
                 </div>
@@ -69,27 +69,29 @@
             </div>
 
             <div class="stat-card active-stat">
-                <h3 class="stat-title">جاري</h3>
                 <div class="stat-data">
+                    <h3 class="stat-title">جاري</h3>
                     <span class="stat-number" id="activeCount">@(Model?.InProgressCount ?? 0)</span>
-                    <span class="stat-label">دور جاري</span>
+                    <span class="stat-label">دور قيد التنفيذ</span>
                 </div>
-                <div class="stat-icon-wrapper"><i class="far fa-clock"></i></div>
+                <div class="stat-icon-wrapper"><i class="fas fa-truck-loading"></i></div>
             </div>
 
             <div class="stat-card completed-stat">
-                <h3 class="stat-title">تم</h3>
                 <div class="stat-data">
+                    <h3 class="stat-title">مكتملة</h3>
                     <span class="stat-number" id="doneCount">@(Model?.CompletedCount ?? 0)</span>
-                    <span class="stat-label">دور تم</span>
+                    <span class="stat-label">دور تم إنجازه</span>
                 </div>
-                <div class="stat-icon-wrapper"><i class="far fa-clock"></i></div>
+                <div class="stat-icon-wrapper"><i class="fas fa-check-circle"></i></div>
             </div>
         </section>
 
         <!-- قائمة الأدوار -->
         <section class="roles-section">
-            <h2 class="section-title">قائمة الأدوار</h2>
+            <div class="section-header-row">
+                <h2 class="section-title">قائمة الأدوار (@(Model?.Tickets?.Count ?? 0))</h2>
+            </div>
             <div id="rolesContainer" class="roles-container">
 
                 <!-- رسم الكروت من الموديل مباشرة -->
@@ -97,12 +99,29 @@
                 {
                     foreach (var ticket in Model.Tickets)
                     {
-                        string badgeClass = ticket.TicketStatusName == "تم" || ticket.TicketStatusName == "مكتملة" ? "status-done" :
-                                           ticket.TicketStatusName == "جاري" || ticket.TicketStatusName == "قيد التنفيذ" ? "status-active" : "status-wait";
+                        string statusDisplay = "إنتظار";
+                        string badgeClass = "status-wait";
+
+                        var norm = (ticket.TicketStatusName ?? "").Replace("إ", "ا").Trim();
+                        if (norm.Contains("تم") || norm.Contains("مكتمل") || norm.Contains("منتهي") || norm.Contains("خروج"))
+                        {
+                            statusDisplay = "مكتملة";
+                            badgeClass = "status-done";
+                        }
+                        else if (norm.Contains("جاري") || norm.Contains("تنفيذ") || norm.Contains("تشغيل"))
+                        {
+                            statusDisplay = "جاري";
+                            badgeClass = "status-active";
+                        }
+                        else
+                        {
+                            statusDisplay = "إنتظار";
+                            badgeClass = "status-wait";
+                        }
 
                         <div class="role-card"
-                             data-status="@ticket.TicketStatusName"
-                             data-search="@ticket.TicketNumber @ticket.DriverName @ticket.TruckNumber @ticket.DepartmentName">
+                             data-status="@statusDisplay"
+                             data-search="@ticket.TicketNumber @ticket.DriverName @ticket.TruckNumber @ticket.DepartmentName @ticket.DockName">
 
                             <!-- 1. رقم الدور -->
                             <div class="role-number-group">
@@ -113,14 +132,14 @@
                             <!-- 2. حالة الدور (Badge) -->
                             <div class="status-badge @badgeClass">
                                 <span class="status-dot-small"></span>
-                                <span>@ticket.TicketStatusName</span>
+                                <span>@statusDisplay</span>
                             </div>
 
                             <!-- 3. بيانات السائق -->
                             <div class="info-group">
                                 <i class="fas fa-user info-icon"></i>
                                 <div class="info-text">
-                                    <span class="info-value">@ticket.DriverName</span>
+                                    <span class="info-value" title="@ticket.DriverName">@ticket.DriverName</span>
                                     <span class="info-label">اسم السائق</span>
                                 </div>
                             </div>
@@ -129,7 +148,7 @@
                             <div class="info-group">
                                 <i class="fas fa-truck info-icon"></i>
                                 <div class="info-text">
-                                    <span class="info-value">@ticket.TruckNumber</span>
+                                    <span class="info-value" title="@ticket.TruckNumber">@ticket.TruckNumber</span>
                                     <span class="info-label">رقم السيارة</span>
                                 </div>
                             </div>
@@ -147,7 +166,7 @@
                             <div class="info-group">
                                 <i class="fas fa-code-branch info-icon"></i>
                                 <div class="info-text">
-                                    <span class="info-value">@ticket.DepartmentName</span>
+                                    <span class="info-value" title="@ticket.DepartmentName">@ticket.DepartmentName</span>
                                     <span class="info-label">القسم</span>
                                 </div>
                             </div>
@@ -166,7 +185,10 @@
                 }
                 else
                 {
-                    <p style="text-align:center; width:100%; color:#888;">لا توجد أدوار لعرضها حالياً.</p>
+                    <div class="empty-state">
+                        <i class="far fa-clipboard"></i>
+                        <p>لا توجد أدوار مسجلة حالياً في النظام.</p>
+                    </div>
                 }
 
             </div>
@@ -174,6 +196,6 @@
     </div>
 
     <!-- استدعاء ملف الجافاسكريبت مباشرة بدون section -->
-    <script src="~/js/viewRole.js"></script>
+    <script src="~/js/viewRole.js" asp-append-version="true"></script>
 </body>
 </html> 
