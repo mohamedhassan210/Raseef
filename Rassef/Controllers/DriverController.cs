@@ -159,13 +159,20 @@ namespace Rassef.Controllers
                 driverTypeId = defaultDriverType.Id;
             }
 
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int currentUserId = 1;
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
+            {
+                currentUserId = parsedId;
+            }
+
             var driver = new Driver
             {
                 FullName = create.FullName,
                 NationalId = create.NationalId,
                 Phone = create.Phone,
                 DeiverTypeId = driverTypeId,
-                CreatedById = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
+                CreatedById = currentUserId
             };
 
             await _driverRepository.AddAsync(driver);
@@ -392,13 +399,20 @@ namespace Rassef.Controllers
                 driverTypeId = defaultDriverType.Id;
             }
 
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int currentUserId = 1;
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
+            {
+                currentUserId = parsedId;
+            }
+
             var driver = new Driver
             {
                 FullName = create.FullName,
                 NationalId = create.NationalId,
                 Phone = create.Phone,
                 DeiverTypeId = driverTypeId,
-                CreatedById = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
+                CreatedById = currentUserId
             };
 
             await _driverRepository.AddAsync(driver);

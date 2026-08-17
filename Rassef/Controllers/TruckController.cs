@@ -1,4 +1,4 @@
-﻿using AspNetCoreGeneratedDocument;
+using AspNetCoreGeneratedDocument;
 
 namespace Rassef.Controllers
 {
@@ -167,7 +167,7 @@ namespace Rassef.Controllers
             await _truckRepository.SaveChangesAsync();
 
             TempData["Success"] = "تم إضافة الشاحنة بنجاح.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { supplierid = create.SupplierId });
         }
 
         [HttpGet]
@@ -359,12 +359,20 @@ namespace Rassef.Controllers
                 return View(create);
             }
 
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var currentUserId))
+            {
+                ModelState.AddModelError("", "يجب تسجيل الدخول أولاً.");
+                create.Suppliers = await GetSuppliersAsync();
+                return View(create);
+            }
+
             var driver = new Driver
             {
                 FullName = create.FullName,
                 NationalId = create.NationalId,
                 Phone = create.Phone,
-                CreatedById = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
+                CreatedById = currentUserId
             };
 
             await _driverRepository.AddAsync(driver);

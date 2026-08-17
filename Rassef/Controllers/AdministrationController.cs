@@ -384,8 +384,13 @@ namespace Rassef.Controllers
                 return View(model);
             }
 
-            // جلب معرف الموظف الحالي من الـ Claims
-            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            // جلب معرف الموظف الحالي من الـ Claims بأمان
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int currentUserId = 1;
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
+            {
+                currentUserId = parsedId;
+            }
 
             var truck = new Truck
             {
@@ -609,9 +614,12 @@ namespace Rassef.Controllers
                 return View(model);
             }
 
-            var currentUserId = int.Parse(
-                User.FindFirstValue(ClaimTypes.NameIdentifier)!
-            );
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int currentUserId = 1;
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
+            {
+                currentUserId = parsedId;
+            }
 
             var driver = new Driver
             {

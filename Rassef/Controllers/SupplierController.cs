@@ -1,4 +1,4 @@
-﻿namespace Rassef.Controllers
+namespace Rassef.Controllers
 {
     public class SupplierController : Controller
     {
@@ -104,8 +104,8 @@
             }
             catch (Exception ex)
             {
-                var realMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                return Content($"السبب الحقيقي للخطأ: {realMessage}");
+                ModelState.AddModelError("", "حدث خطأ أثناء حفظ بيانات المورد، يرجى المحاولة لاحقاً.");
+                return View(model);
             }
         }
 

@@ -1,4 +1,4 @@
-﻿namespace Rassef.Controllers
+namespace Rassef.Controllers
 {
     public class WarehousesController : Controller
     {
@@ -20,7 +20,11 @@
         // Display all items
         public async Task<IActionResult> Index()
         {
-            var warehouses = await _warehouseRepository.GetAllAsync();
+            var warehouses = await _warehouseRepository.GetAllAsync(query => query
+                .Include(w => w.CreatedBy)
+                .Include(w => w.Departments)
+                .Include(w => w.Docks)
+            );
 
             var viewModelList = warehouses.Select(w => new WarehouseListVM
             {
@@ -45,7 +49,13 @@
                 return View(new WarehouseDetailsVM());
             }
 
-            var warehouse = await _warehouseRepository.GetByIdAsync(id.Value);
+            var warehouses = await _warehouseRepository.GetAllAsync(query => query
+                .Include(w => w.CreatedBy)
+                .Include(w => w.Departments)
+                .Include(w => w.Docks)
+            );
+
+            var warehouse = warehouses.FirstOrDefault(w => w.Id == id.Value);
 
             if (warehouse == null)
             {
