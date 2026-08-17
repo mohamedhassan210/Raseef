@@ -1,4 +1,4 @@
-﻿namespace Rassef.Controllers
+namespace Rassef.Controllers
 {
     public class QueueTicketController : Controller
     {
@@ -9,6 +9,7 @@
         private readonly IRepository<SupplierRequest> _supplierRequestRepository;
         private readonly IRepository<QueueSettings> _queueSettingsRepository;
         private readonly IRepository<Shift> _shiftRepository;
+        private readonly IUserRepository _userRepository;
 
         public QueueTicketController(
             IRepository<QueueSettings> queueSettingsRepository,
@@ -17,7 +18,8 @@
             IRepository<Department> departmentRepository,
             IRepository<TicketStatuses> ticketStatusRepository,
             IRepository<TransferRequest> transferRequestRepository,
-            IRepository<SupplierRequest> supplierRequestRepository)
+            IRepository<SupplierRequest> supplierRequestRepository,
+            IUserRepository userRepository)
         {
             _ticketRepository = ticketRepository;
             _departmentRepository = departmentRepository;
@@ -26,6 +28,7 @@
             _supplierRequestRepository = supplierRequestRepository;
             _queueSettingsRepository = queueSettingsRepository;
             _shiftRepository = shiftRepository;
+            _userRepository = userRepository;
         }
         //  الادوار الحالية 
         [HttpGet]
@@ -121,7 +124,7 @@
         [HttpGet]
         public async Task<IActionResult> viewRole()
         {
-            // 1. جلب كل التذاكر مع الـ Includes المطلوبة عشان السائق والشاحنة والقسم والرصيف يظهروا
+            // 1. جلب كل التذاكر مع الـ Includes المطلوبة عشان السائق والشاحنة والقسم والرصيف يظهروا بأمان
             var ticketsList = await _ticketRepository.GetAllAsync(query => query
                 .Include(t => t.Department)
                 .Include(t => t.TicketStatus)
@@ -134,28 +137,37 @@
                     .ThenInclude(tr => tr.Driver)
                 .Include(t => t.TransferRequest)
                     .ThenInclude(tr => tr.Truck)
-            // لو عندك علاقة للأرصفة (DockAssignments) تقدر تضيفها هنا
+                .Include(t => t.DockAssignments)
+                    .ThenInclude(da => da.Dock)
             );
 
-            // 2. تحويل الـ Data لـ ViewModel (لو عندك Mapper أو هتعملها يدوي)
-            var ticketViewModels = ticketsList.Select(t => new QueueTicketListVM
-            {
-                Id = t.Id,
-                TicketNumber = t.TicketNumber,
-                TicketStatusName = t.TicketStatus != null ? t.TicketStatus.Name : "انتظار",
-                DriverName = t.SupplierRequest != null ? t.SupplierRequest.Driver.FullName :
-                             (t.TransferRequest != null ? t.TransferRequest.Driver.FullName : "غير متوفر"),
-                TruckNumber = t.SupplierRequest != null ? t.SupplierRequest.Truck.PlateNumber :
-                              (t.TransferRequest != null ? t.TransferRequest.Truck.PlateNumber : "غير متوفر"),
-                DepartmentName = t.Department != null ? t.Department.Name : "غير متوفر",
-                DockName = "رصيف 5", // تقدر تربطها بجدول DockAssignments لو مربوطة فعلياً
-                EntryTime = t.EntryTime
+            // 2. تحويل الـ Data لـ ViewModel مع التحقق من الـ null
+            var ticketViewModels = ticketsList.Select(t => {
+                var dockAssignment = t.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
+                return new QueueTicketListVM
+                {
+                    Id = t.Id,
+                    TicketNumber = t.TicketNumber ?? "A1",
+                    TicketStatusName = t.TicketStatus != null ? t.TicketStatus.Name : "انتظار",
+                    DriverName = t.SupplierRequest?.Driver?.FullName ?? t.TransferRequest?.Driver?.FullName ?? "غير محدد",
+                    TruckNumber = t.SupplierRequest?.Truck != null ? $"{t.SupplierRequest.Truck.PlateLetter} {t.SupplierRequest.Truck.PlateNumber}" : (t.TransferRequest?.Truck != null ? $"{t.TransferRequest.Truck.PlateLetter} {t.TransferRequest.Truck.PlateNumber}" : "غير محدد"),
+                    DepartmentName = t.Department?.Name ?? "غير محدد",
+                    DockName = dockAssignment?.Dock?.DockName ?? "غير محدد",
+                    EntryTime = t.EntryTime != DateTimeOffset.MinValue ? t.EntryTime : t.CreatedAT
+                };
             }).ToList();
 
-            // 3. حساب الإحصائيات (الانتظار، الجاري، تم)
-            int waitingCount = ticketViewModels.Count(x => x.TicketStatusName == "انتظار" || x.TicketStatusName == "في الطابور");
-            int inProgressCount = ticketViewModels.Count(x => x.TicketStatusName == "جاري" || x.TicketStatusName == "قيد التنفيذ");
-            int completedCount = ticketViewModels.Count(x => x.TicketStatusName == "تم" || x.TicketStatusName == "مكتملة");
+            // 3. حساب الإحصائيات في مرور واحد
+            int waitingCount = 0, inProgressCount = 0, completedCount = 0;
+            foreach (var t in ticketViewModels)
+            {
+                if (t.TicketStatusName == "إنتظار" || t.TicketStatusName == "انتظار" || t.TicketStatusName == "في الطابور")
+                    waitingCount++;
+                else if (t.TicketStatusName == "جاري" || t.TicketStatusName == "قيد التنفيذ")
+                    inProgressCount++;
+                else if (t.TicketStatusName == "تم" || t.TicketStatusName == "مكتملة")
+                    completedCount++;
+            }
 
             // 4. تجميع الموديل النهائي للـ View
             var viewModel = new QueueTicketIndexVM
@@ -326,6 +338,18 @@
 
             var ticketNumber = $"{department.Prefix}{counter}";
 
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            User? currentUser = null;
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var uId))
+            {
+                currentUser = await _userRepository.GetByIdAsync(uId);
+            }
+            if (currentUser == null)
+            {
+                var allUsers = await _userRepository.GetAllAsync();
+                currentUser = allUsers.FirstOrDefault();
+            }
+
             var ticket = new QueueTicket
             {
                 TicketNumber = ticketNumber,
@@ -336,7 +360,8 @@
                 QueueTime = DateTimeOffset.Now,
                 EntryTime = DateTimeOffset.MinValue,
                 ExitTime = DateTimeOffset.MinValue,
-                ShiftId = settings.ResetType == ResetType.ByShift ? settings.ShiftId : null
+                ShiftId = settings.ResetType == ResetType.ByShift ? settings.ShiftId : null,
+                CreatedBy = currentUser!
             };
 
             await _ticketRepository.AddAsync(ticket);

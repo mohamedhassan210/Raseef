@@ -14,6 +14,8 @@ namespace Rassef.Controllers
         private readonly IRepository<TruckTypes> _truckTypeRepository;
         private readonly IRepository<QueueTicket> _ticketRepository;
         private readonly IRepository<TicketStatuses> _ticketStatusRepository;
+        private readonly IRepository<QueueSettings> _queueSettingsRepository;
+        private readonly IRepository<Shift> _shiftRepository;
 
         public SupplierRequestController(
             ISupplierRequestRepository supplierRequestRepository,
@@ -27,7 +29,9 @@ namespace Rassef.Controllers
             IRepository<User> userRepository,
             IRepository<TruckTypes> truckTypeRepository,
             IRepository<QueueTicket> ticketRepository,
-            IRepository<TicketStatuses> ticketStatusRepository)
+            IRepository<TicketStatuses> ticketStatusRepository,
+            IRepository<QueueSettings> queueSettingsRepository,
+            IRepository<Shift> shiftRepository)
         {
             _supplierRequestRepository = supplierRequestRepository;
             _supplierRepository = supplierRepository;
@@ -41,6 +45,8 @@ namespace Rassef.Controllers
             _truckTypeRepository = truckTypeRepository;
             _ticketRepository = ticketRepository;
             _ticketStatusRepository = ticketStatusRepository;
+            _queueSettingsRepository = queueSettingsRepository;
+            _shiftRepository = shiftRepository;
         }
         [HttpGet]
         public async Task<IActionResult> Index()
@@ -418,11 +424,17 @@ namespace Rassef.Controllers
                 {
                     int driverTypeId = 1;
 
+                    // SEC-5: استخدام GUID فريد بدلاً من قيم ثابتة تسبب Unique Constraint Violation
+                    var uniqueSuffix = Guid.NewGuid().ToString("N")[..6];
                     targetDriver = new Driver
                     {
                         FullName = create.NewDriverName,
-                        NationalId = !string.IsNullOrWhiteSpace(create.NewDriverNationalId) ? create.NewDriverNationalId : "10000000000000",
-                        Phone = !string.IsNullOrWhiteSpace(create.NewDriverPhone) ? create.NewDriverPhone : "01000000000",
+                        NationalId = !string.IsNullOrWhiteSpace(create.NewDriverNationalId)
+                            ? create.NewDriverNationalId
+                            : $"TEMP{uniqueSuffix}",
+                        Phone = !string.IsNullOrWhiteSpace(create.NewDriverPhone)
+                            ? create.NewDriverPhone
+                            : $"0100{uniqueSuffix}",
                         DeiverTypeId = driverTypeId,
                         CreatedBy = currentUser
                     };
@@ -450,27 +462,82 @@ namespace Rassef.Controllers
             // 2. إنشاء طلب توريد (SupplierRequest)
             int targetDepartmentId = create.DepartmentId.HasValue && create.DepartmentId.Value > 0 ? create.DepartmentId.Value : 1;
 
+            // BL-2: جلب القيم الافتراضية بالاسم بدلاً من ID=1 الثابتة
+            var defaultPermit = await _permitTypeRepository.FindAsync(p => true);
+            var defaultCommodity = await _commodityTypeRepository.FindAsync(c => true);
+            var defaultStatus = await _requestStatusRepository.FindAsync(s => true);
+
             var supplierRequest = new SupplierRequest
             {
                 SupplierId = create.SupId,
                 TruckId = truck.Id,
                 DriverId = create.DriverId,
                 DepartmentId = targetDepartmentId,
-                PermitTypeId = 1,
-                CommodityTypeId = 1,
-                RequestStatusId = 1,
+                PermitTypeId = defaultPermit?.Id ?? 1,
+                CommodityTypeId = defaultCommodity?.Id ?? 1,
+                RequestStatusId = defaultStatus?.Id ?? 1,
                 CreatedBy = currentUser
             };
 
             await _supplierRequestRepository.AddAsync(supplierRequest);
             await _supplierRequestRepository.SaveChangesAsync();
 
-            // 3. إنشاء دور / تذكرة دور (QueueTicket)
+            // 3. إنشاء دور / تذكرة دور (QueueTicket) مع مراعاة إعدادات الـ Reset
             var department = await _departmentRepository.GetByIdAsync(targetDepartmentId);
             var prefix = department?.Prefix ?? "A";
+
+            var settings = await _queueSettingsRepository.FindAsync(x => true);
+            DateTimeOffset resetDate = DateTimeOffset.MinValue;
+
+            if (settings != null)
+            {
+                switch (settings.ResetType)
+                {
+                    case ResetType.Daily:
+                        resetDate = DateTimeOffset.Now.Date;
+                        break;
+                    case ResetType.ByShift:
+                        if (settings.ShiftId.HasValue)
+                        {
+                            var shift = await _shiftRepository.GetByIdAsync(settings.ShiftId.Value);
+                            if (shift != null)
+                            {
+                                resetDate = DateTime.Today.Add(shift.StartTime);
+                                if (shift.LastResetAt.HasValue && shift.LastResetAt > resetDate)
+                                    resetDate = shift.LastResetAt.Value;
+                            }
+                        }
+                        break;
+                    case ResetType.Manual:
+                        resetDate = settings.LastGlobalResetAt ?? DateTimeOffset.MinValue;
+                        break;
+                }
+
+                if (settings.LastGlobalResetAt.HasValue && settings.LastGlobalResetAt > resetDate)
+                    resetDate = settings.LastGlobalResetAt.Value;
+            }
+
+            if (department?.LastResetAt.HasValue == true && department.LastResetAt.Value > resetDate)
+                resetDate = department.LastResetAt.Value;
+
             var allTickets = await _ticketRepository.GetAllAsync();
-            var departmentTicketsCount = allTickets.Count(t => t.DepartmentId == targetDepartmentId);
-            var ticketNumber = $"{prefix}{departmentTicketsCount + 1}";
+            var lastTicket = allTickets
+                .Where(x => x.DepartmentId == targetDepartmentId && x.CreatedAT >= resetDate)
+                .OrderByDescending(x => x.CreatedAT)
+                .FirstOrDefault();
+
+            int counter = 1;
+            if (lastTicket != null)
+            {
+                var digits = new string(lastTicket.TicketNumber
+                    .Where(char.IsDigit)
+                    .ToArray());
+
+                if (!string.IsNullOrWhiteSpace(digits) && int.TryParse(digits, out var parsedCounter))
+                    counter = parsedCounter + 1;
+            }
+
+            var ticketNumber = $"{prefix}{counter}";
 
             var allTicketStatuses = await _ticketStatusRepository.GetAllAsync();
             var status = allTicketStatuses.FirstOrDefault(s => s.Name.Contains("انتظار") || s.Name.Contains("إنتظار")) ?? allTicketStatuses.FirstOrDefault();
@@ -485,6 +552,7 @@ namespace Rassef.Controllers
                 QueueTime = DateTimeOffset.Now,
                 EntryTime = DateTimeOffset.Now,
                 ExitTime = DateTimeOffset.MinValue,
+                ShiftId = settings?.ResetType == ResetType.ByShift ? settings.ShiftId : null,
                 CreatedBy = currentUser
             };
 
