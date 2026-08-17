@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     // 1. DOM Elements
     const searchInput = document.getElementById('search-input');
     const cardsContainer = document.getElementById('cards-container');
@@ -27,18 +27,16 @@
     const deptErrorMsg = document.getElementById('dept-error-msg');
     let selectedDepartmentValue = null;
 
-    // 2. Search & Filter Logic (تحديث للبحث برقم لوحة السيارة)
+    // 2. Search & Filter Logic
     const filterTrucks = () => {
+        if (!searchInput || !cardsContainer) return;
         const query = searchInput.value.trim().toLowerCase();
         const cards = cardsContainer.querySelectorAll('.truck-card');
 
         cards.forEach(card => {
             const plate = (card.getAttribute('data-plate') || "").toLowerCase();
-
-            // شيلنا المسافات من اللوحة في البحث عشان لو اليوزر كتب الرقم ورا بعضه
             if (plate.replace(/\s+/g, '').includes(query.replace(/\s+/g, ''))) {
                 card.style.display = 'flex';
-                card.style.animation = 'fadeIn 0.3s ease-in-out';
             } else {
                 card.style.display = 'none';
             }
@@ -51,12 +49,11 @@
 
     // 3. Modal System & Workflow
     const showConfirmationModal = (modalElement) => {
-        deptModal.classList.remove('active-modal');
-        deptModal.classList.add('d-none');
-        confirmModal.classList.remove('active-modal');
-        confirmModal.classList.add('d-none');
-        successModal.classList.remove('active-modal');
-        successModal.classList.add('d-none');
+        if (!modalOverlay || !modalElement) return;
+
+        if (deptModal) { deptModal.classList.remove('active-modal'); deptModal.classList.add('d-none'); }
+        if (confirmModal) { confirmModal.classList.remove('active-modal'); confirmModal.classList.add('d-none'); }
+        if (successModal) { successModal.classList.remove('active-modal'); successModal.classList.add('d-none'); }
 
         modalOverlay.classList.add('active');
         modalElement.classList.remove('d-none');
@@ -69,21 +66,20 @@
     };
 
     const closeModal = () => {
+        if (!modalOverlay) return;
         modalOverlay.classList.remove('active');
-        deptModal.classList.remove('active-modal');
-        confirmModal.classList.remove('active-modal');
-        successModal.classList.remove('active-modal');
-        deptDropdownContainer.classList.remove('open');
+        if (deptModal) deptModal.classList.remove('active-modal');
+        if (confirmModal) confirmModal.classList.remove('active-modal');
+        if (successModal) successModal.classList.remove('active-modal');
+        if (deptDropdownContainer) deptDropdownContainer.classList.remove('open');
         document.body.style.overflow = '';
     };
 
     const populateConfirmationData = (truckPlate, departmentName = "غير متوفر") => {
-        const company = "تحويل داخلي";
-
-        confirmCompany.textContent = company;
-        confirmTruck.textContent = truckPlate; // حطينا رقم السيارة هنا
-        confirmDriverName.textContent = "غير محدد"; // لو مفيش سائق مرتبط حالياً
-        confirmDriverdep.textContent = departmentName;
+        if (confirmCompany) confirmCompany.textContent = "تحويل داخلي";
+        if (confirmTruck) confirmTruck.textContent = truckPlate || "غير محدد";
+        if (confirmDriverName) confirmDriverName.textContent = "سائق تحويل";
+        if (confirmDriverdep) confirmDriverdep.textContent = departmentName;
     };
 
     const attachSelectionEvents = () => {
@@ -91,23 +87,25 @@
         selectButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 const card = e.target.closest('.truck-card');
-                const plateData = card.getAttribute('data-plate');
+                const plateData = card ? card.getAttribute('data-plate') : "";
 
                 selectedDepartmentValue = null;
-                deptSelectedValue.textContent = 'اختار القسم';
-                deptSelectedValue.classList.add('text-muted');
-                deptDropdownHeader.classList.remove('error');
-                deptErrorMsg.style.display = 'none';
-                const deptItems = document.querySelectorAll('#dept-dropdown-list .dropdown-item');
-                deptItems.forEach(i => i.classList.remove('selected'));
-                deptDropdownContainer.classList.remove('open');
+                if (deptSelectedValue) {
+                    deptSelectedValue.textContent = 'اختار القسم';
+                    deptSelectedValue.classList.add('text-muted');
+                }
+                if (deptDropdownHeader) deptDropdownHeader.classList.remove('error');
+                if (deptErrorMsg) deptErrorMsg.style.display = 'none';
+                document.querySelectorAll('#dept-dropdown-list .dropdown-item').forEach(i => i.classList.remove('selected'));
+                if (deptDropdownContainer) deptDropdownContainer.classList.remove('open');
 
-                // تعديل التخزين ليكون خاص بالسيارة
                 localStorage.setItem('pendingTruck', JSON.stringify({
                     plate: plateData
                 }));
 
-                showConfirmationModal(deptModal);
+                if (deptModal) {
+                    showConfirmationModal(deptModal);
+                }
             });
         });
     };
@@ -115,25 +113,31 @@
 
     // 4. Department Custom Dropdown Logic
     const initDepartmentDropdown = () => {
-        const departmentsData = [
-            { id: 101, name: "قسم الاستلام" },
-            { id: 102, name: "قسم المخازن" },
-            { id: 103, name: "قسم التوزيع" },
-            { id: 104, name: "قسم المبيعات" }
-        ];
+        const departmentsData = (window.departmentsData && window.departmentsData.length > 0)
+            ? window.departmentsData
+            : [
+                { id: 101, name: "قسم الاستلام" },
+                { id: 102, name: "قسم المخازن" },
+                { id: 103, name: "قسم التوزيع" },
+                { id: 104, name: "قسم المبيعات" }
+            ];
 
-        //deptDropdownList.innerHTML = departmentsData.map(dept =>
-        //    `<div class="dropdown-item" data-id="${dept.id}" data-value="${dept.name}">${dept.name}</div>`
-        //).join('');
+        if (deptDropdownList) {
+            deptDropdownList.innerHTML = departmentsData.map(dept =>
+                `<div class="dropdown-item" data-id="${dept.id}" data-value="${dept.name}">${dept.name}</div>`
+            ).join('');
+        }
 
-        //const deptItems = deptDropdownList.querySelectorAll('.dropdown-item');
+        const deptItems = deptDropdownList ? deptDropdownList.querySelectorAll('.dropdown-item') : [];
 
-        deptDropdownHeader.addEventListener('click', (e) => {
-            e.stopPropagation();
-            deptDropdownContainer.classList.toggle('open');
-            deptDropdownHeader.classList.remove('error');
-            deptErrorMsg.style.display = 'none';
-        });
+        if (deptDropdownHeader) {
+            deptDropdownHeader.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (deptDropdownContainer) deptDropdownContainer.classList.toggle('open');
+                deptDropdownHeader.classList.remove('error');
+                if (deptErrorMsg) deptErrorMsg.style.display = 'none';
+            });
+        }
 
         deptItems.forEach(item => {
             item.addEventListener('click', (e) => {
@@ -144,53 +148,61 @@
                     name: item.getAttribute('data-value')
                 };
 
-                deptSelectedValue.textContent = selectedDepartmentValue.name;
-                deptSelectedValue.classList.remove('text-muted');
+                if (deptSelectedValue) {
+                    deptSelectedValue.textContent = selectedDepartmentValue.name;
+                    deptSelectedValue.classList.remove('text-muted');
+                }
 
                 deptItems.forEach(el => el.classList.remove('selected'));
                 item.classList.add('selected');
 
-                deptDropdownContainer.classList.remove('open');
-                deptDropdownHeader.classList.remove('error');
-                deptErrorMsg.style.display = 'none';
+                if (deptDropdownContainer) deptDropdownContainer.classList.remove('open');
+                if (deptDropdownHeader) deptDropdownHeader.classList.remove('error');
+                if (deptErrorMsg) deptErrorMsg.style.display = 'none';
             });
         });
 
-        btnConfirmDept.addEventListener('click', () => {
-            if (!selectedDepartmentValue) {
-                deptDropdownHeader.classList.add('error');
-                deptErrorMsg.style.display = 'block';
-                deptDropdownHeader.style.animation = 'shake 0.4s';
-                setTimeout(() => deptDropdownHeader.style.animation = '', 400);
-                return;
-            }
+        if (btnConfirmDept) {
+            btnConfirmDept.addEventListener('click', () => {
+                if (!selectedDepartmentValue) {
+                    if (deptDropdownHeader) {
+                        deptDropdownHeader.classList.add('error');
+                        deptDropdownHeader.style.animation = 'shake 0.4s';
+                        setTimeout(() => deptDropdownHeader.style.animation = '', 400);
+                    }
+                    if (deptErrorMsg) deptErrorMsg.style.display = 'block';
+                    return;
+                }
 
-            const pendingData = JSON.parse(localStorage.getItem('pendingTruck')) || {};
-            pendingData.department = selectedDepartmentValue;
-            localStorage.setItem('pendingTruck', JSON.stringify(pendingData));
+                const pendingData = JSON.parse(localStorage.getItem('pendingTruck')) || {};
+                pendingData.department = selectedDepartmentValue;
+                localStorage.setItem('pendingTruck', JSON.stringify(pendingData));
 
-            populateConfirmationData(pendingData.plate, pendingData.department.name);
-            showConfirmationModal(confirmModal);
-        });
+                populateConfirmationData(pendingData.plate, pendingData.department.name);
+                if (confirmModal) showConfirmationModal(confirmModal);
+            });
+        }
     };
 
-    // 5. Ticket Badge Visual Counter Logic
+    // 5. Ticket Generation
     let shiftTicketCounter = 0;
     const generateTicketNumber = () => {
         shiftTicketCounter++;
         let rawDockName = window.pageData?.dockName;
-        let dockInitial = rawDockName && rawDockName.length > 0 ? rawDockName.charAt(0).toUpperCase() : 'A';
-        return `${dockInitial}${shiftTicketCounter}`;
+        let dockInitial = rawDockName && rawDockName.length > 0 ? rawDockName.charAt(0).toUpperCase() : 'TR';
+        return `${dockInitial}-${String(shiftTicketCounter).padStart(4, '0')}`;
     };
 
     const printTicket = () => {
-        btnPrint.innerHTML = 'جاري الانتقال للإيصال... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 8px;"></span>';
-        btnPrint.disabled = true;
+        if (btnPrint) {
+            btnPrint.innerHTML = 'جاري الانتقال للإيصال... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 8px;"></span>';
+            btnPrint.disabled = true;
+        }
 
-        const ticketNum = ticketNumberDisplay.textContent;
-        const deptName = selectedDepartmentValue ? selectedDepartmentValue.name : 'غير محدد';
-        const empName = window.pageData?.employeeName || 'محمد حسين';
-        const dock = window.pageData?.dockName || 'A';
+        const ticketNum = ticketNumberDisplay ? ticketNumberDisplay.textContent : 'TR-0001';
+        const deptName = selectedDepartmentValue ? selectedDepartmentValue.name : 'قسم التحويل';
+        const empName = window.pageData?.employeeName || 'موظف النظام';
+        const dock = window.pageData?.dockName || 'A1';
         const waitCount = '0';
 
         const receiptData = {
@@ -210,50 +222,68 @@
             } else {
                 window.location.href = "/Driver/Recript";
             }
-        }, 800);
+        }, 600);
     };
 
     // 6. Initialize App
     const initializeModals = () => {
         initDepartmentDropdown();
 
-        btnEdit.addEventListener('click', () => {
-            if (window.routes && window.routes.backRoute) {
-                window.location.href = window.routes.backRoute;
-            }
-        });
-
-        btnConfirm.addEventListener('click', () => {
-            const ticketNum = generateTicketNumber();
-            ticketNumberDisplay.textContent = ticketNum;
-            showConfirmationModal(successModal);
-        });
-
-        btnBack.addEventListener('click', () => {
-            if (window.routes && window.routes.backRoute) {
-                window.location.href = window.routes.backRoute;
-            }
-        });
-
-        btnPrint.addEventListener('click', () => {
-            printTicket();
-        });
-
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) {
-                if (!deptModal.classList.contains('d-none') || !confirmModal.classList.contains('d-none')) {
+        if (btnEdit) {
+            btnEdit.addEventListener('click', () => {
+                if (deptModal) {
+                    showConfirmationModal(deptModal);
+                } else {
                     closeModal();
                 }
-                deptDropdownContainer.classList.remove('open');
-            }
-        });
+            });
+        }
+
+        if (btnConfirm) {
+            btnConfirm.addEventListener('click', () => {
+                const ticketNum = generateTicketNumber();
+                if (ticketNumberDisplay) ticketNumberDisplay.textContent = ticketNum;
+                if (successModal) showConfirmationModal(successModal);
+            });
+        }
+
+        if (btnBack) {
+            btnBack.addEventListener('click', () => {
+                if (window.routes && window.routes.viewRole) {
+                    window.location.href = window.routes.viewRole;
+                } else if (window.routes && window.routes.backRoute) {
+                    window.location.href = window.routes.backRoute;
+                } else {
+                    window.location.href = "/Authentication/viewRole";
+                }
+            });
+        }
+
+        if (btnPrint) {
+            btnPrint.addEventListener('click', () => {
+                printTicket();
+            });
+        }
+
+        if (modalOverlay) {
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) {
+                    if ((deptModal && !deptModal.classList.contains('d-none')) ||
+                        (confirmModal && !confirmModal.classList.contains('d-none'))) {
+                        closeModal();
+                    }
+                    if (deptDropdownContainer) deptDropdownContainer.classList.remove('open');
+                }
+            });
+        }
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                if (deptDropdownContainer.classList.contains('open')) {
+                if (deptDropdownContainer && deptDropdownContainer.classList.contains('open')) {
                     deptDropdownContainer.classList.remove('open');
-                } else if (modalOverlay.classList.contains('active')) {
-                    if (!deptModal.classList.contains('d-none') || !confirmModal.classList.contains('d-none')) {
+                } else if (modalOverlay && modalOverlay.classList.contains('active')) {
+                    if ((deptModal && !deptModal.classList.contains('d-none')) ||
+                        (confirmModal && !confirmModal.classList.contains('d-none'))) {
                         closeModal();
                     }
                 }
