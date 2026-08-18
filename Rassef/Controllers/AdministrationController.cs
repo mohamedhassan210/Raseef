@@ -799,68 +799,79 @@ namespace Rassef.Controllers
         // طلبات التحويل - Index
         public async Task<IActionResult> TransferRequests()
         {
-            var requestsRepo =
-              await _Transferrepository.GetAllWithDetailsAsync();
+            var requestsRepo = await _Transferrepository.GetAllWithDetailsAsync();
 
-            var requests = requestsRepo
-            .SelectMany(x => x.QueueTickets.Select(ticket => new TransferRequestListVM
+            var requests = requestsRepo.Select(x =>
             {
-                Id = x.Id,
-                TicketNumber = ticket.TicketNumber,
-                AvizNumber = x.AvizNumber,
-                DateTime = ticket.QueueTime,
-                DepartmentName = x.Department.Name ?? "غير محدد",
-                DriverName = x.Driver.FullName ?? "غير محدد",
-                EmployeeName =
-                    x.CreatedBy?.Name ?? "غير محدد",
-                TruckPlateNumber =
-                    $"{x.Truck?.PlateLetter} {x.Truck?.PlateNumber}",
-                RequestStatus = x.RequestStatus.Name,
-                DockName = ticket.DockAssignments
-                    .OrderByDescending(x => x.AssignedAt)
-                    .Select(x => x.Dock.DockName)
-                    .FirstOrDefault() ?? "غير محدد",
+                var ticket = x.QueueTickets?.OrderByDescending(q => q.CreatedAT).FirstOrDefault();
+                var dockName = ticket?.DockAssignments?
+                    .OrderByDescending(da => da.AssignedAt)
+                    .Select(da => da.Dock?.DockName)
+                    .FirstOrDefault() ?? "A1";
 
-            }))
-            .ToList();
+                var empName = !string.IsNullOrWhiteSpace(x.CreatedBy?.Name) ? x.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(ticket?.CreatedBy?.Name) ? ticket.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(x.CreatedBy?.UserName) ? x.CreatedBy.UserName
+                    : (!string.IsNullOrWhiteSpace(ticket?.CreatedBy?.UserName) ? ticket.CreatedBy.UserName
+                    : "المسؤول")));
+
+                return new TransferRequestListVM
+                {
+                    Id = x.Id,
+                    RequestType = "تحويل",
+                    TicketNumber = ticket?.TicketNumber ?? "TR-0001",
+                    AvizNumber = !string.IsNullOrWhiteSpace(x.AvizNumber) ? x.AvizNumber : $"AVIZ-{x.Id:D4}",
+                    DateTime = ticket?.QueueTime ?? x.CreatedAT,
+                    DepartmentName = x.Department?.Name ?? "غير محدد",
+                    DriverName = x.Driver?.FullName ?? "غير محدد",
+                    EmployeeName = empName,
+                    TruckPlateNumber = x.Truck != null ? $"{x.Truck.PlateLetter} {x.Truck.PlateNumber}" : "غير محدد",
+                    RequestStatus = x.RequestStatus?.Name ?? "قيد الانتظار",
+                    DockName = dockName
+                };
+            }).ToList();
 
             return View(requests);
         }
+
         [HttpGet]
         // طلبات التوريد - Index
         public async Task<IActionResult> SupplierRequests()
         {
-            var requestsRepo =
-                await _supplierRequestRepository.GetAllWithDetailsAsync();
+            var requestsRepo = await _supplierRequestRepository.GetAllWithDetailsAsync();
 
-            var requests = requestsRepo
-            .SelectMany(x => x.QueueTickets.Select(ticket => new SupplierRequestListVM
+            var requests = requestsRepo.Select(x =>
             {
-                Id = x.Id,
-                TicketNumber = ticket.TicketNumber,
-                TicketStatusName =
-                    ticket.TicketStatus?.Name ?? "غير محدد",
-                QueueTime = ticket.QueueTime,
-                DockName = ticket.DockAssignments
-                    .OrderByDescending(x => x.AssignedAt)
-                    .Select(x => x.Dock.DockName)
-                    .FirstOrDefault() ?? "غير محدد",
-                SupplierName =
-                    x.Supplier?.Name ?? "غير محدد",
-                TruckPlateNumber =
-                    $"{x.Truck?.PlateLetter} {x.Truck?.PlateNumber}",
-                DriverName =
-                    x.Driver?.FullName ?? "غير محدد",
-                DriverPhone = x.DriverPhone,
-                DepartmentName =
-                    x.Department?.Name ?? "غير محدد",
-                RequestStatusName =
-                    x.RequestStatus?.Name ?? "غير محدد",
-                EmployeeName =
-                    x.CreatedBy?.Name ?? "غير محدد",
-                PermitNumber = x.PermitNumber
-            }))
-            .ToList();
+                var ticket = x.QueueTickets?.OrderByDescending(q => q.CreatedAT).FirstOrDefault();
+                var dockName = ticket?.DockAssignments?
+                    .OrderByDescending(da => da.AssignedAt)
+                    .Select(da => da.Dock?.DockName)
+                    .FirstOrDefault() ?? "A1";
+
+                var empName = !string.IsNullOrWhiteSpace(x.CreatedBy?.Name) ? x.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(ticket?.CreatedBy?.Name) ? ticket.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(x.CreatedBy?.UserName) ? x.CreatedBy.UserName
+                    : (!string.IsNullOrWhiteSpace(ticket?.CreatedBy?.UserName) ? ticket.CreatedBy.UserName
+                    : "المسؤول")));
+
+                return new SupplierRequestListVM
+                {
+                    Id = x.Id,
+                    RequestType = "توريد",
+                    TicketNumber = ticket?.TicketNumber ?? "A1",
+                    TicketStatusName = ticket?.TicketStatus?.Name ?? "إنتظار",
+                    QueueTime = ticket?.QueueTime ?? x.CreatedAT,
+                    DockName = dockName,
+                    SupplierName = x.Supplier?.Name ?? "غير محدد",
+                    TruckPlateNumber = x.Truck != null ? $"{x.Truck.PlateLetter} {x.Truck.PlateNumber}" : "غير محدد",
+                    DriverName = x.Driver?.FullName ?? "غير محدد",
+                    DriverPhone = x.DriverPhone ?? x.Driver?.Phone ?? "",
+                    DepartmentName = x.Department?.Name ?? "غير محدد",
+                    RequestStatusName = x.RequestStatus?.Name ?? "قيد الانتظار",
+                    EmployeeName = empName,
+                    PermitNumber = x.PermitNumber ?? ""
+                };
+            }).ToList();
 
             return View(requests);
         }
