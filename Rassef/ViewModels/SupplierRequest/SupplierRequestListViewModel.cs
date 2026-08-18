@@ -1,6 +1,9 @@
-﻿public class SupplierRequestListVM
+public class SupplierRequestListVM
 {
     public int Id { get; set; }
+
+    [Display(Name = "نوع الطلب")]
+    public string RequestType { get; set; } = "توريد";
 
     [Display(Name = "المورد")]
     public string SupplierName { get; set; } = string.Empty;

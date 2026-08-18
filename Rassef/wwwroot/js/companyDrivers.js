@@ -215,6 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const receiptData = {
             ticketNumber: ticketNum,
+            requestType: 'توريد',
             waitingCount: waitCount,
             department: deptName,
             dockNumber: dock,

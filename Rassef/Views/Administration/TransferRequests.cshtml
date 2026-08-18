@@ -98,6 +98,7 @@
                     <thead>
                         <tr>
                             <th>رقم التذكرة</th>
+                            <th>نوع الطلب</th>
                             <th>رقم الأفيز</th>
                             <th>السائق</th>
                             <th>الشاحنة</th>
@@ -114,6 +115,9 @@
                             {
                                 <tr class="table-row">
                                     <td>@item.TicketNumber</td>
+                                    <td>
+                                        <span class="badge-type-transfer" style="background: #e3f2fd; color: #1976d2; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; border: 1px solid #bbdefb;">تحويل</span>
+                                    </td>
                                     <td>@item.AvizNumber</td>
                                     <td>@item.DriverName</td>
                                     <td>@item.TruckPlateNumber</td>
@@ -127,7 +131,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="8" class="empty-state">لا يوجد أي طلبات تحويل حالياً</td>
+                                <td colspan="9" class="empty-state">لا يوجد أي طلبات تحويل حالياً</td>
                             </tr>
                         }
                     </tbody>

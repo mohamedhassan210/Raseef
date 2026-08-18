@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
 
     // ============================================
     // 1. DOM Elements (Form & Inputs)
@@ -209,6 +209,7 @@
 
         const receiptData = {
             ticketNumber: ticketNum,
+            requestType: 'تحويل',
             waitingCount: '0',
             department: deptName,
             dockNumber: dock,

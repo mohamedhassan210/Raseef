@@ -66,8 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return dom.body.textContent || text;
     };
 
+    const elRequestType = document.getElementById('rec-request-type');
+
     // تطبيق البيانات على الـ UI
     elTicketNum.textContent = receiptData.ticketNumber || '--';
+    if (elRequestType) {
+        elRequestType.textContent = receiptData.requestType || 'توريد';
+    }
     elWaiting.textContent = receiptData.waitingCount || '--';
     elDepartment.textContent = decodeHtmlEntities(receiptData.department) || '--';
     elDock.textContent = receiptData.dockNumber || '--';
