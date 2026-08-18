@@ -157,7 +157,8 @@ namespace Rassef.Controllers
                 return View(login);
             }
 
-            var token = _jwtService.GenerateToken(user.Id, user.Email);
+            var userNameToPass = !string.IsNullOrWhiteSpace(user.Name) ? user.Name : (!string.IsNullOrWhiteSpace(user.UserName) ? user.UserName : user.Email?.ToString());
+            var token = _jwtService.GenerateToken(user.Id, user.Email, userNameToPass);
 
             Response.Cookies.Append("AccessToken", token, new CookieOptions
             {
