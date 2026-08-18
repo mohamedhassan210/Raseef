@@ -17,17 +17,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const elDate = document.getElementById('rec-date');
     const elTime = document.getElementById('rec-time');
 
-    // جلب البيانات من LocalStorage
+    const serverData = window.serverReceipt;
     const rawData = localStorage.getItem('receiptData');
 
-    if (!rawData) {
+    if (!serverData && !rawData) {
         // حالة عدم وجود بيانات
         emptyState.classList.remove('d-none');
 
         // تفعيل زر الرجوع في حالة الـ Empty State
         if (btnBackEmpty) {
             btnBackEmpty.addEventListener('click', () => {
-                window.location.href = window.routes?.driversPage || '/Driver/Index';
+                window.location.href = window.routes?.viewRole || window.routes?.backRoute || '/Authentication/viewRole';
             });
         }
         return;
@@ -35,8 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // إظهار حاوية الإيصال
     receiptMain.classList.remove('d-none');
+    emptyState.classList.add('d-none');
 
-    const receiptData = JSON.parse(rawData);
+    const receiptData = serverData || JSON.parse(rawData);
 
     // دالة لتهيئة التاريخ والوقت
     const formatDateTime = (isoString) => {
@@ -69,16 +70,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const elRequestType = document.getElementById('rec-request-type');
 
     // تطبيق البيانات على الـ UI
-    elTicketNum.textContent = receiptData.ticketNumber || '--';
-    if (elRequestType) {
-        elRequestType.textContent = receiptData.requestType || 'توريد';
+    if (receiptData.ticketNumber) elTicketNum.textContent = receiptData.ticketNumber;
+    if (elRequestType && receiptData.requestType) {
+        elRequestType.textContent = receiptData.requestType;
     }
-    elWaiting.textContent = receiptData.waitingCount || '--';
-    elDepartment.textContent = decodeHtmlEntities(receiptData.department) || '--';
-    elDock.textContent = receiptData.dockNumber || '--';
+    if (receiptData.waitingCount !== undefined) elWaiting.textContent = receiptData.waitingCount;
+    if (receiptData.departmentName || receiptData.department) {
+        elDepartment.textContent = decodeHtmlEntities(receiptData.departmentName || receiptData.department);
+    }
+    if (receiptData.dockName || receiptData.dockNumber) {
+        elDock.textContent = receiptData.dockName || receiptData.dockNumber;
+    }
 
     const empName = decodeHtmlEntities(receiptData.employeeName);
-    elEmployee.textContent = (empName && empName !== '--') ? empName : 'موظف الاستقبال';
+    const loggedInName = window.currentUserName || 'المسؤول';
+    elEmployee.textContent = (empName && empName !== '--' && empName !== 'موظف الاستقبال') ? empName : loggedInName;
 
     // تطبيق الوقت
     if (receiptData.createdAt) {
@@ -90,7 +96,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // إعداد أزرار الأكشن
     if (btnBack) {
         btnBack.addEventListener('click', () => {
-            window.location.href = window.routes?.driversPage || '/Driver/Index';
+            if (window.routes && window.routes.viewRole) {
+                window.location.href = window.routes.viewRole;
+            } else if (window.routes && window.routes.backRoute) {
+                window.location.href = window.routes.backRoute;
+            } else {
+                window.location.href = window.routes?.driversPage || '/Driver/Index';
+            }
         });
     }
 

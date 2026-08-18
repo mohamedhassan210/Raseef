@@ -584,8 +584,8 @@ namespace Rassef.Controllers
             await _ticketRepository.AddAsync(queueTicket);
             await _ticketRepository.SaveChangesAsync();
 
-            // 4. التوجيه لـ ViewRole لعرض الأدوار الحالية
-            return RedirectToAction("Recript", "Driver");
+            // 4. التوجيه لـ Recript مع تمرير رقم التذكرة
+            return RedirectToAction("Recript", "Driver", new { ticketId = queueTicket.Id });
         }
 
         #region Helpers
