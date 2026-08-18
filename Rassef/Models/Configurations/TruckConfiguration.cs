@@ -1,4 +1,4 @@
-﻿namespace Rassef.Configurations
+namespace Rassef.Configurations
 {
     public class TruckConfiguration : IEntityTypeConfiguration<Truck>
     {
@@ -9,6 +9,14 @@
             builder.Property(t => t.PlateNumber)
                    .IsRequired()
                    .HasMaxLength(50);
+
+            builder.Property(t => t.PlateLetter)
+                   .IsRequired()
+                   .HasMaxLength(50);
+
+            // Composite unique index on PlateNumber + PlateLetter
+            builder.HasIndex(t => new { t.PlateNumber, t.PlateLetter })
+                   .IsUnique();
 
             builder.Property(t => t.StorageCapacity)
                    .IsRequired();

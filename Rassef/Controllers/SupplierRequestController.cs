@@ -453,18 +453,36 @@ namespace Rassef.Controllers
                 create.DriverId = targetDriver.Id;
             }
 
-            var truck = new Truck
-            {
-                PlateNumber = create.PlateNumber,
-                PlateLetter = create.PlateLetter,
-                StorageCapacity = create.StorageCapacity,
-                IsRefrigerated = create.IsRefrigerated,
-                TruckTypeId = create.TruckTypeId,
-                CreatedBy = currentUser
-            };
+            var plateNum = create.PlateNumber?.Trim() ?? "";
+            var plateLet = create.PlateLetter?.Trim() ?? "";
 
-            await _truckRepository.AddAsync(truck);
-            await _truckRepository.SaveChangesAsync();
+            var existingTruck = await _truckRepository.FindAsync(t => t.PlateNumber == plateNum && t.PlateLetter == plateLet && !t.IsDeleted);
+            Truck truck;
+
+            if (existingTruck != null)
+            {
+                truck = existingTruck;
+                truck.StorageCapacity = create.StorageCapacity;
+                truck.IsRefrigerated = create.IsRefrigerated;
+                truck.TruckTypeId = create.TruckTypeId;
+                _truckRepository.Update(truck);
+                await _truckRepository.SaveChangesAsync();
+            }
+            else
+            {
+                truck = new Truck
+                {
+                    PlateNumber = plateNum,
+                    PlateLetter = plateLet,
+                    StorageCapacity = create.StorageCapacity,
+                    IsRefrigerated = create.IsRefrigerated,
+                    TruckTypeId = create.TruckTypeId,
+                    CreatedBy = currentUser
+                };
+
+                await _truckRepository.AddAsync(truck);
+                await _truckRepository.SaveChangesAsync();
+            }
 
             // 2. إنشاء طلب توريد (SupplierRequest)
             int targetDepartmentId = create.DepartmentId.HasValue && create.DepartmentId.Value > 0 ? create.DepartmentId.Value : 1;
@@ -567,7 +585,7 @@ namespace Rassef.Controllers
             await _ticketRepository.SaveChangesAsync();
 
             // 4. التوجيه لـ ViewRole لعرض الأدوار الحالية
-            return RedirectToAction("ViewRole", "Authentication");
+            return RedirectToAction("Recript", "Driver");
         }
 
         #region Helpers

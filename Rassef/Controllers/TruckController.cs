@@ -154,10 +154,20 @@ namespace Rassef.Controllers
                 return View(create);
             }
 
+            var plateNum = create.PlateNumber?.Trim() ?? "";
+            var plateLet = create.PlateLetter?.Trim() ?? "";
+
+            if (await _truckRepository.ExistsAsync(x => x.PlateNumber == plateNum && x.PlateLetter == plateLet && !x.IsDeleted))
+            {
+                ModelState.AddModelError(nameof(create.PlateNumber), "رقم وحروف اللوحة مسجلة بالفعل لشاحنة أخرى.");
+                await LoadTruckTypesAsync(create.TruckTypeId);
+                return View(create);
+            }
+
             var truck = new Truck
             {
-                PlateNumber = create.PlateNumber,
-                PlateLetter = create.PlateLetter,
+                PlateNumber = plateNum,
+                PlateLetter = plateLet,
                 StorageCapacity = create.StorageCapacity,
                 IsRefrigerated = create.IsRefrigerated,
                 TruckTypeId = create.TruckTypeId,
@@ -226,8 +236,18 @@ namespace Rassef.Controllers
                 return View(update);
             }
 
-            truck.PlateNumber = update.PlateNumber;
-            truck.PlateLetter = update.PlateLetter;
+            var plateNum = update.PlateNumber?.Trim() ?? "";
+            var plateLet = update.PlateLetter?.Trim() ?? "";
+
+            if (await _truckRepository.ExistsAsync(x => x.PlateNumber == plateNum && x.PlateLetter == plateLet && x.Id != update.Id && !x.IsDeleted))
+            {
+                ModelState.AddModelError(nameof(update.PlateNumber), "رقم وحروف اللوحة مسجلة بالفعل لشاحنة أخرى.");
+                await LoadTruckTypesAsync(update.TruckTypeId);
+                return View(update);
+            }
+
+            truck.PlateNumber = plateNum;
+            truck.PlateLetter = plateLet;
             truck.StorageCapacity = update.StorageCapacity;
             truck.IsRefrigerated = update.IsRefrigerated;
             truck.TruckTypeId = update.TruckTypeId;

@@ -384,6 +384,17 @@ namespace Rassef.Controllers
                 return View(model);
             }
 
+            // التحقق من عدم تكرار رقم وحروف اللوحة معاً
+            var plateNum = model.PlateNumber?.Trim() ?? "";
+            var plateLet = model.PlateLetter?.Trim() ?? "";
+
+            if (await _truckRepository.ExistsAsync(x => x.PlateNumber == plateNum && x.PlateLetter == plateLet && !x.IsDeleted))
+            {
+                ModelState.AddModelError(nameof(model.PlateNumber), "رقم وحروف اللوحة مسجلة بالفعل لشاحنة أخرى.");
+                ViewBag.TruckTypes = await _truckTypesRepository.GetAllAsync();
+                return View(model);
+            }
+
             // جلب معرف الموظف الحالي من الـ Claims بأمان
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             int currentUserId = 1;
@@ -394,8 +405,8 @@ namespace Rassef.Controllers
 
             var truck = new Truck
             {
-                PlateLetter = model.PlateLetter,
-                PlateNumber = model.PlateNumber,
+                PlateLetter = plateLet,
+                PlateNumber = plateNum,
                 StorageCapacity = model.StorageCapacity,
                 IsRefrigerated = model.IsRefrigerated,
                 TruckTypeId = model.TruckTypeId,
@@ -465,8 +476,18 @@ namespace Rassef.Controllers
                 return RedirectToAction(nameof(TrucksIndex));
             }
 
-            truck.PlateLetter = model.PlateLetter;
-            truck.PlateNumber = model.PlateNumber;
+            var plateNum = model.PlateNumber?.Trim() ?? "";
+            var plateLet = model.PlateLetter?.Trim() ?? "";
+
+            if (await _truckRepository.ExistsAsync(x => x.PlateNumber == plateNum && x.PlateLetter == plateLet && x.Id != model.Id && !x.IsDeleted))
+            {
+                ModelState.AddModelError(nameof(model.PlateNumber), "رقم وحروف اللوحة مسجلة بالفعل لشاحنة أخرى.");
+                ViewBag.TruckTypes = await _truckTypesRepository.GetAllAsync();
+                return View(model);
+            }
+
+            truck.PlateLetter = plateLet;
+            truck.PlateNumber = plateNum;
             truck.StorageCapacity = model.StorageCapacity;
             truck.IsRefrigerated = model.IsRefrigerated;
             truck.TruckTypeId = model.TruckTypeId;
