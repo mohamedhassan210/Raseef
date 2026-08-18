@@ -225,7 +225,7 @@
         window.pageData = {
             truckName: '@Html.Raw(ViewBag.TruckName ?? "شاحنة تحويل")',
             dockName: 'A',
-            employeeName: '@(User.Identity?.Name ?? "محمد حسين")'
+            employeeName: '@Html.Raw(!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "محمد حسين")'
         };
 
         window.routes = {

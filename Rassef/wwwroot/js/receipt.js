@@ -55,12 +55,25 @@ document.addEventListener('DOMContentLoaded', () => {
         return { dateFormatted, timeFormatted };
     };
 
+    // دالة لفك تشفير الرموز الخاصة بـ HTML إن وُجدت
+    const decodeHtmlEntities = (text) => {
+        if (!text) return '';
+        const parser = new DOMParser();
+        const dom = parser.parseFromString(
+            '<!doctype html><body>' + text,
+            'text/html'
+        );
+        return dom.body.textContent || text;
+    };
+
     // تطبيق البيانات على الـ UI
     elTicketNum.textContent = receiptData.ticketNumber || '--';
     elWaiting.textContent = receiptData.waitingCount || '--';
-    elDepartment.textContent = receiptData.department || '--';
+    elDepartment.textContent = decodeHtmlEntities(receiptData.department) || '--';
     elDock.textContent = receiptData.dockNumber || '--';
-    elEmployee.textContent = receiptData.employeeName || '--';
+
+    const empName = decodeHtmlEntities(receiptData.employeeName);
+    elEmployee.textContent = (empName && empName !== '--') ? empName : 'موظف الاستقبال';
 
     // تطبيق الوقت
     if (receiptData.createdAt) {
@@ -70,34 +83,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // إعداد أزرار الأكشن
-    btnBack.addEventListener('click', () => {
-        // هنا بيقرأ المسار الديناميكي اللي جياله من الـ CSHTML
-        window.location.href = window.routes?.driversPage || '/Driver/Index';
-    });
-
-    btnPrint.addEventListener('click', () => {
-        window.print();
-    });
-
-
-    // تطبيق الوقت
-    if (receiptData.createdAt) {
-        const { dateFormatted, timeFormatted } = formatDateTime(receiptData.createdAt);
-        elDate.textContent = dateFormatted;
-        elTime.textContent = timeFormatted;
+    if (btnBack) {
+        btnBack.addEventListener('click', () => {
+            window.location.href = window.routes?.driversPage || '/Driver/Index';
+        });
     }
 
-    // إعداد أزرار الأكشن
-    btnBack.addEventListener('click', () => {
-        window.location.href = window.routes?.driversPage || '/Driver/Index';
-    });
+    if (btnPrint) {
+        btnPrint.addEventListener('click', () => {
+            window.print();
+        });
+    }
 
-    btnPrint.addEventListener('click', () => {
-        window.print();
-    });
-
-    // 👇 الإضافة الجديدة: أول ما صفحة الريسيبت تفتح وتظهر، تطبع نفسها تلقائياً
+    // أول ما صفحة الريسيبت تفتح، تطبع نفسها تلقائياً
     setTimeout(() => {
         window.print();
-    }, 500); // تأخير نص ثانية عشان نضمن إن الصفحة رسمت نفسها والبيانات ظهرت قبل ما نافذة الطباعة تفتح
+    }, 500);
 });
