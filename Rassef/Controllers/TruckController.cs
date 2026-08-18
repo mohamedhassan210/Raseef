@@ -371,6 +371,9 @@ namespace Rassef.Controllers
         public async Task<IActionResult> AddTraDriver(int? supplierId)
         {
             var suppliers = await GetSuppliersAsync();
+            var allDrivers = await _driverRepository.GetAllAsync();
+            var driversList = allDrivers.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.FullName }).ToList();
+            
             string? supplierName = null;
 
             if (supplierId.HasValue && supplierId.Value > 0)
@@ -379,11 +382,12 @@ namespace Rassef.Controllers
                 supplierName = supplier?.Name;
             }
 
-            var model = new CreateDriverVM
+            var model = new Rassef.ViewModels.Truck.AddTraTruckVM
             {
                 SupplierId = supplierId,
                 SupplierName = supplierName,
-                Suppliers = suppliers
+                Suppliers = suppliers,
+                Drivers = driversList
             };
 
             ViewBag.Suppliers = suppliers;
@@ -395,66 +399,96 @@ namespace Rassef.Controllers
         // Create (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddTraDriver(CreateDriverVM create)
+        public async Task<IActionResult> AddTraDriver(Rassef.ViewModels.Truck.AddTraTruckVM create)
         {
-            if (!ModelState.IsValid)
-            {
-                create.Suppliers = await GetSuppliersAsync();
-                if (create.SupplierId.HasValue && create.SupplierId.Value > 0)
-                {
-                    var supplier = await _supplierRepository.GetByIdAsync(create.SupplierId.Value);
-                    create.SupplierName = supplier?.Name;
-                }
-                ViewBag.Suppliers = create.Suppliers;
-                ViewBag.SupplierName = create.SupplierName;
-                return View(create);
-            }
-
-            if (await _driverRepository.ExistsAsync(x => x.NationalId == create.NationalId))
-            {
-                ModelState.AddModelError(nameof(create.NationalId), "الرقم القومي مسجل بالفعل.");
-                create.Suppliers = await GetSuppliersAsync();
-                if (create.SupplierId.HasValue && create.SupplierId.Value > 0)
-                {
-                    var supplier = await _supplierRepository.GetByIdAsync(create.SupplierId.Value);
-                    create.SupplierName = supplier?.Name;
-                }
-                ViewBag.Suppliers = create.Suppliers;
-                ViewBag.SupplierName = create.SupplierName;
-                return View(create);
-            }
-
-            if (await _driverRepository.ExistsAsync(x => x.Phone == create.Phone))
-            {
-                ModelState.AddModelError(nameof(create.Phone), "رقم الهاتف مسجل بالفعل.");
-                create.Suppliers = await GetSuppliersAsync();
-                if (create.SupplierId.HasValue && create.SupplierId.Value > 0)
-                {
-                    var supplier = await _supplierRepository.GetByIdAsync(create.SupplierId.Value);
-                    create.SupplierName = supplier?.Name;
-                }
-                ViewBag.Suppliers = create.Suppliers;
-                ViewBag.SupplierName = create.SupplierName;
-                return View(create);
-            }
-
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             int currentUserId = 1;
             if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
             {
                 currentUserId = parsedId;
             }
+            var currentUser = await _userRepository.GetByIdAsync(currentUserId);
 
-            var driver = new Driver
+            var plateNum = create.PlateNumber?.Trim() ?? "";
+            var plateLet = create.PlateLetter?.Trim() ?? "";
+
+            if (await _truckRepository.ExistsAsync(x => x.PlateNumber == plateNum && x.PlateLetter == plateLet && !x.IsDeleted))
             {
-                FullName = create.FullName,
-                NationalId = create.NationalId,
-                Phone = create.Phone,
-                CreatedById = currentUserId
+                ModelState.AddModelError("PlateNumber", "رقم وحروف اللوحة مسجلة بالفعل لشاحنة أخرى.");
+                create.Suppliers = await GetSuppliersAsync();
+                ViewBag.Suppliers = create.Suppliers;
+                ViewBag.SupplierName = create.SupplierName;
+                return View(create);
+            }
+
+            var truck = new Truck
+            {
+                PlateNumber = plateNum,
+                PlateLetter = plateLet,
+                StorageCapacity = create.StorageCapacity ?? 0,
+                IsRefrigerated = create.TruckType == "تبريد",
+                TruckTypeId = 1, // Default or parsed if available
+                CreatedBy = currentUser
             };
 
-            await _driverRepository.AddAsync(driver);
-            await _driverRepository.SaveChangesAsync();
+            await _truckRepository.AddAsync(truck);
+            await _truckRepository.SaveChangesAsync();
+
+            Driver? driver = null;
+            if (!string.IsNullOrWhiteSpace(create.NewDriverName) && !string.IsNullOrWhiteSpace(create.NewDriverNationalId) && !string.IsNullOrWhiteSpace(create.NewDriverPhone))
+            {
+                if (!await _driverRepository.ExistsAsync(x => x.NationalId == create.NewDriverNationalId || x.Phone == create.NewDriverPhone))
+                {
+                    driver = new Driver
+                    {
+                        FullName = create.NewDriverName,
+                        NationalId = create.NewDriverNationalId,
+                        Phone = create.NewDriverPhone,
+                        CreatedById = currentUserId
+                    };
+                    await _driverRepository.AddAsync(driver);
+                    await _driverRepository.SaveChangesAsync();
+                }
+            }
+
+            if (create.DepartmentId.HasValue && create.DepartmentId.Value > 0)
+            {
+                var finalDriverId = driver?.Id ?? create.DriverId ?? 1; // Fallback to 1 if not provided
+                
+                var req = new TransferRequest
+                {
+                    DepartmentId = create.DepartmentId.Value,
+                    TruckId = truck.Id,
+                    DriverId = finalDriverId,
+                    PermitTypeId = 1,
+                    PermitNumber = "N/A",
+                    AvizNumber = "N/A",
+                    RequestStatusId = 1,
+                    CreatedById = currentUserId
+                };
+                await _transferRequestRepository.AddAsync(req);
+                await _transferRequestRepository.SaveChangesAsync();
+
+                var ticket = new QueueTicket
+                {
+                    TicketNumber = $"T-{req.Id}",
+                    DepartmentId = create.DepartmentId.Value,
+                    TicketStatusId = 1,
+                    TransferRequestId = req.Id,
+                    QueueTime = DateTimeOffset.Now,
+                    EntryTime = DateTimeOffset.Now,
+                    ExitTime = DateTimeOffset.MinValue,
+                    CreatedBy = currentUser
+                };
+                await _ticketRepository.AddAsync(ticket);
+                await _ticketRepository.SaveChangesAsync();
+                
+                TempData["Success"] = $"تم إضافة الشاحنة وإصدار الدور رقم {ticket.TicketNumber} بنجاح.";
+            }
+            else 
+            {
+                TempData["Success"] = "تم إضافة الشاحنة بنجاح.";
+            }
 
             return RedirectToAction(nameof(MainTraDrivers));
         }
@@ -537,7 +571,7 @@ namespace Rassef.Controllers
                 PermitNumber = $"PER-TR-{DateTime.Now.Ticks % 100000}",
                 AvizNumber = avizNumber,
                 RequestStatusId = defaultStatus?.Id ?? 1,
-                CreatedById = currentUser?.Id.ToString() ?? "1",
+                CreatedById = currentUser?.Id ?? 1,
                 CreatedBy = currentUser!
             };
 

@@ -1,0 +1,88 @@
+@model Rassef.ViewModels.Administration.DriverDetailsVM
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رصيف — تفاصيل السائق</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-page">
+        <!-- SIDEBAR -->
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-top">
+                <h1 class="sidebar-title">لوحة التحكم</h1>
+                <ul class="sidebar-menu">
+                    <li>
+                        <a href="@Url.Action("DriversIndex", "Administration")" class="sidebar-item">
+                            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+                            <span>الرجوع</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="sidebar-user">
+                <div class="user-info-group">
+                    <div class="user-avatar-box">
+                        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name">@(User.Identity?.Name ?? "المسؤول")</span>
+                        <span class="user-role">لوحة الإدارة</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="header-right">
+                    <h2 class="header-title">تفاصيل السائق - @Model.FullName</h2>
+                </div>
+                <div class="header-left-logos">
+                    <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
+                    <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
+                </div>
+            </header>
+
+            <div class="details-container">
+                <div class="details-card">
+                    <div class="details-header">
+                        <h3>معلومات السائق</h3>
+                    </div>
+                    <div class="details-body">
+                        <div class="detail-row">
+                            <span class="detail-label">الاسم بالكامل:</span>
+                            <span class="detail-value">@Model.FullName</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">الرقم القومي:</span>
+                            <span class="detail-value">@Model.NationalId</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">رقم الهاتف:</span>
+                            <span class="detail-value" dir="ltr" style="text-align: right;">@Model.Phone</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">نوع السائق:</span>
+                            <span class="detail-value">@Model.DriverType</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">عدد الزيارات:</span>
+                            <span class="detail-value">@Model.VisitsCount زيارة</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

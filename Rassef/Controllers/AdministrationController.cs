@@ -301,16 +301,39 @@ namespace Rassef.Controllers
                 query.Where(t => !t.IsDeleted)
                      .Include(t => t.CreatedBy)
                      .Include(t => t.TruckType)
+                     .Include(t => t.SupplierRequests)
+                        .ThenInclude(sr => sr.Supplier)
+                     .Include(t => t.TransferRequests)
             );
 
-            var truckList = trucks.Select(t => new ViewModels.Administration.TruckListVM
-            {
-                Id = t.Id,
-                PlateNumber = $"{t.PlateLetter} {t.PlateNumber}",
-                IsRefrigerated = t.IsRefrigerated ? "تبريد" : "لا تبريد",
-                Company = t.TruckType?.Name ?? "غير محدد",
-                StorageCapacity = t.StorageCapacity,
-                HostEmployeeName = t.CreatedBy?.Name ?? "غير محدد"
+            var truckList = trucks.Select(t => {
+                string companyName = "غير محدد";
+                var latestSupplier = t.SupplierRequests?.OrderByDescending(r => r.CreatedAT).FirstOrDefault();
+                var latestTransfer = t.TransferRequests?.OrderByDescending(r => r.CreatedAT).FirstOrDefault();
+                
+                if (latestSupplier != null && latestTransfer != null) {
+                    if (latestSupplier.CreatedAT > latestTransfer.CreatedAT) {
+                        companyName = latestSupplier.Supplier?.Name ?? "غير محدد";
+                    } else {
+                        companyName = "تحويل داخلي";
+                    }
+                } else if (latestSupplier != null) {
+                    companyName = latestSupplier.Supplier?.Name ?? "غير محدد";
+                } else if (latestTransfer != null) {
+                    companyName = "تحويل داخلي";
+                } else if (t.TruckType != null) {
+                    companyName = t.TruckType.Name;
+                }
+
+                return new ViewModels.Administration.TruckListVM
+                {
+                    Id = t.Id,
+                    PlateNumber = $"{t.PlateLetter} {t.PlateNumber}",
+                    IsRefrigerated = t.IsRefrigerated ? "تبريد" : "لا تبريد",
+                    Company = companyName,
+                    StorageCapacity = t.StorageCapacity,
+                    HostEmployeeName = !string.IsNullOrWhiteSpace(t.CreatedBy?.Name) ? t.CreatedBy.Name : (!string.IsNullOrWhiteSpace(t.CreatedBy?.UserName) ? t.CreatedBy.UserName : "المسؤول")
+                };
             }).ToList();
 
             if (!truckList.Any())
