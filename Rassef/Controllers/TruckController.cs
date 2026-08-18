@@ -11,6 +11,13 @@ namespace Rassef.Controllers
         private readonly IDriverRepository _driverRepository;
         private readonly IRepository<TruckTypes> _truckTypes;
         private readonly IDepartmentRepository _departmentRepository;
+        private readonly ITransferRequestRepository _transferRequestRepository;
+        private readonly IRepository<QueueTicket> _ticketRepository;
+        private readonly IRepository<TicketStatuses> _ticketStatusRepository;
+        private readonly IRepository<RequestStatuses> _requestStatusRepository;
+        private readonly IRepository<PermitTypes> _permitTypeRepository;
+        private readonly IRepository<Dock> _dockRepository;
+        private readonly IRepository<DockAssignment> _dockAssignmentRepository;
 
         public TruckController(
             ITruckRepository truckRepository,
@@ -19,7 +26,14 @@ namespace Rassef.Controllers
             ISupplierRepository supplierRepository,
             IDriverRepository driverRepository,
             IRepository<TruckTypes> truckTypes,
-            IDepartmentRepository departmentRepository)
+            IDepartmentRepository departmentRepository,
+            ITransferRequestRepository transferRequestRepository,
+            IRepository<QueueTicket> ticketRepository,
+            IRepository<TicketStatuses> ticketStatusRepository,
+            IRepository<RequestStatuses> requestStatusRepository,
+            IRepository<PermitTypes> permitTypeRepository,
+            IRepository<Dock> dockRepository,
+            IRepository<DockAssignment> dockAssignmentRepository)
         {
             _truckRepository = truckRepository;
             _truckTypeRepository = truckTypeRepository;
@@ -28,6 +42,13 @@ namespace Rassef.Controllers
             _driverRepository = driverRepository;
             _truckTypes = truckTypes;
             _departmentRepository = departmentRepository;
+            _transferRequestRepository = transferRequestRepository;
+            _ticketRepository = ticketRepository;
+            _ticketStatusRepository = ticketStatusRepository;
+            _requestStatusRepository = requestStatusRepository;
+            _permitTypeRepository = permitTypeRepository;
+            _dockRepository = dockRepository;
+            _dockAssignmentRepository = dockAssignmentRepository;
         }
 
         [HttpGet]
@@ -437,6 +458,165 @@ namespace Rassef.Controllers
 
             return RedirectToAction(nameof(MainTraDrivers));
         }
+        [HttpPost]
+        public async Task<IActionResult> CreateTransferTicket([FromBody] CreateTransferTicketDto dto)
+        {
+            if (dto == null || dto.TruckId <= 0 || dto.DepartmentId <= 0)
+            {
+                return BadRequest(new { success = false, message = "بيانات غير مكتملة." });
+            }
+
+            var truck = await _truckRepository.GetByIdAsync(dto.TruckId);
+            if (truck == null)
+            {
+                return NotFound(new { success = false, message = "الشاحنة غير موجودة." });
+            }
+
+            var department = await _departmentRepository.GetByIdAsync(dto.DepartmentId);
+            if (department == null)
+            {
+                return NotFound(new { success = false, message = "القسم غير موجود." });
+            }
+
+            // Get or fallback driver
+            Driver? driver = null;
+            if (dto.DriverId.HasValue && dto.DriverId.Value > 0)
+            {
+                driver = await _driverRepository.GetByIdAsync(dto.DriverId.Value);
+            }
+            if (driver == null)
+            {
+                driver = (await _driverRepository.GetAllAsync()).FirstOrDefault();
+            }
+            if (driver == null)
+            {
+                driver = new Driver
+                {
+                    FullName = "سائق تحويل عام",
+                    NationalId = $"NAT{DateTime.Now.Ticks % 100000000}",
+                    Phone = "01000000000"
+                };
+                await _driverRepository.AddAsync(driver);
+                await _driverRepository.SaveChangesAsync();
+            }
+
+            // Get current logged-in user
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            User? currentUser = null;
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
+            {
+                currentUser = await _userRepository.GetByIdAsync(parsedId);
+            }
+            if (currentUser == null)
+            {
+                var email = User.FindFirstValue(ClaimTypes.Email);
+                if (!string.IsNullOrWhiteSpace(email))
+                {
+                    var allUsers = await _userRepository.GetAllAsync();
+                    currentUser = allUsers.FirstOrDefault(u => u.Email != null && u.Email.ToString() == email);
+                }
+            }
+            if (currentUser == null)
+            {
+                currentUser = (await _userRepository.GetAllAsync()).FirstOrDefault();
+            }
+
+            var defaultPermit = (await _permitTypeRepository.GetAllAsync()).FirstOrDefault();
+            var defaultStatus = (await _requestStatusRepository.GetAllAsync()).FirstOrDefault();
+
+            var allTransfers = await _transferRequestRepository.GetAllAsync();
+            int nextAvizNumber = allTransfers.Count() + 1;
+            string avizNumber = $"AVIZ-{nextAvizNumber:D4}";
+
+            var transferRequest = new TransferRequest
+            {
+                TruckId = truck.Id,
+                DriverId = driver.Id,
+                DepartmentId = department.Id,
+                PermitTypeId = defaultPermit?.Id ?? 1,
+                PermitNumber = $"PER-TR-{DateTime.Now.Ticks % 100000}",
+                AvizNumber = avizNumber,
+                RequestStatusId = defaultStatus?.Id ?? 1,
+                CreatedById = currentUser?.Id.ToString() ?? "1",
+                CreatedBy = currentUser!
+            };
+
+            await _transferRequestRepository.AddAsync(transferRequest);
+            await _transferRequestRepository.SaveChangesAsync();
+
+            // Generate QueueTicket
+            string prefix = !string.IsNullOrWhiteSpace(department.Prefix) ? department.Prefix.Trim() : "TR";
+            if (string.IsNullOrWhiteSpace(prefix)) prefix = "A";
+
+            var allTickets = await _ticketRepository.GetAllAsync();
+            var lastTicket = allTickets
+                .Where(x => x.DepartmentId == department.Id)
+                .OrderByDescending(x => x.CreatedAT)
+                .FirstOrDefault();
+
+            int counter = 1;
+            if (lastTicket != null && !string.IsNullOrWhiteSpace(lastTicket.TicketNumber))
+            {
+                var digits = new string(lastTicket.TicketNumber.Where(char.IsDigit).ToArray());
+                if (!string.IsNullOrWhiteSpace(digits) && int.TryParse(digits, out var parsedCounter))
+                    counter = parsedCounter + 1;
+            }
+
+            string ticketNumber = $"{prefix}{counter}";
+
+            var allTicketStatuses = await _ticketStatusRepository.GetAllAsync();
+            var ticketStatus = allTicketStatuses.FirstOrDefault(s => s.Name.Contains("انتظار") || s.Name.Contains("إنتظار")) ?? allTicketStatuses.FirstOrDefault();
+
+            var queueTicket = new QueueTicket
+            {
+                TicketNumber = ticketNumber,
+                DepartmentId = department.Id,
+                TicketStatusId = ticketStatus?.Id ?? 1,
+                TransferRequestId = transferRequest.Id,
+                QueueTime = DateTimeOffset.Now,
+                EntryTime = DateTimeOffset.Now,
+                ExitTime = DateTimeOffset.MinValue,
+                CreatedBy = currentUser
+            };
+
+            await _ticketRepository.AddAsync(queueTicket);
+            await _ticketRepository.SaveChangesAsync();
+
+            // Assign to dock if available
+            var allDocks = await _dockRepository.GetAllAsync();
+            var availableDock = allDocks.FirstOrDefault(d => d.DepartmentId == department.Id);
+            string dockName = availableDock?.DockName ?? $"{prefix}1";
+
+            if (availableDock != null)
+            {
+                var dockAssignment = new DockAssignment
+                {
+                    DockId = availableDock.Id,
+                    TicketId = queueTicket.Id,
+                    AssignedAt = DateTimeOffset.Now,
+                    CreatedBy = currentUser!
+                };
+                await _dockAssignmentRepository.AddAsync(dockAssignment);
+                await _dockAssignmentRepository.SaveChangesAsync();
+            }
+
+            string employeeName = currentUser?.Name ?? (!string.IsNullOrWhiteSpace(currentUser?.UserName) ? currentUser.UserName : (User.Identity?.Name ?? "المسؤول"));
+
+            return Json(new
+            {
+                success = true,
+                ticketId = queueTicket.Id,
+                ticketNumber = ticketNumber,
+                requestType = "تحويل",
+                waitingCount = allTickets.Count(t => t.DepartmentId == department.Id && t.TicketStatusId == (ticketStatus?.Id ?? 1)),
+                departmentName = department.Name,
+                dockName = dockName,
+                employeeName = employeeName,
+                truckPlate = $"{truck.PlateLetter} {truck.PlateNumber}",
+                driverName = driver.FullName
+            });
+        }
+
         #region Helpers
         private async Task LoadTruckTypesAsync(int? selectedTruckTypeId = null)
         {
@@ -447,5 +627,12 @@ namespace Rassef.Controllers
                 selectedTruckTypeId);
         }
         #endregion
+    }
+
+    public class CreateTransferTicketDto
+    {
+        public int TruckId { get; set; }
+        public int DepartmentId { get; set; }
+        public int? DriverId { get; set; }
     }
 }

@@ -65,6 +65,7 @@
             foreach (var truck in Model)
             {
                 <article class="truck-card d-flex align-items-center justify-content-between p-3 mb-3"
+                         data-truck-id="@truck.Id"
                          data-plate="@truck.PlateNumber @truck.PlateLetter"
                          style="background-color: #fdf5ef; border: 1px solid #eb842d; border-radius: 12px;">
 
@@ -225,13 +226,14 @@
         window.pageData = {
             truckName: '@Html.Raw(ViewBag.TruckName ?? "شاحنة تحويل")',
             dockName: 'A',
-            employeeName: '@Html.Raw(!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "محمد حسين")'
+            employeeName: '@Html.Raw(!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "المسؤول")'
         };
 
         window.routes = {
             backRoute: '@Url.Action("SupOrTra", "Authentication")',
             viewRole: '@Url.Action("ViewRole", "Authentication")',
-            receiptPage: '@Url.Action("Recript", "Driver")'
+            receiptPage: '@Url.Action("Recript", "Driver")',
+            createTransferTicket: '@Url.Action("CreateTransferTicket", "Truck")'
         };
     </script>
     <script src="~/js/companyTraDrivers.js" asp-append-version="true"></script>
