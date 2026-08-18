@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Rassef.Dependencyinjection
 {
@@ -63,7 +63,9 @@ namespace Rassef.Dependencyinjection
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwtSettings?.Issuer,
                     ValidAudience = jwtSettings?.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings?.Key ?? "YourDefaultSecretKeyHere"))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings?.Key ?? "YourDefaultSecretKeyHere")),
+                    NameClaimType = ClaimTypes.Name,
+                    RoleClaimType = ClaimTypes.Role
                 };
 
                 // 💡 قراءة التوكين تلقائياً من الـ Cookie المسماة "AccessToken"

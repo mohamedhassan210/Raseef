@@ -9,11 +9,15 @@ namespace Rassef.ViewModels.Authentication.JWT
 
         public string GenerateToken(int UserId, Email Email, string? name = null)
         {
+            var userNameValue = !string.IsNullOrWhiteSpace(name) ? name : (Email?.ToString() ?? "المستخدم");
             var cliams = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, UserId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, UserId.ToString()),
                 new Claim(ClaimTypes.Email, Email?.ToString() ?? ""),
-                new Claim(ClaimTypes.Name, !string.IsNullOrWhiteSpace(name) ? name : (Email?.ToString() ?? "المستخدم"))
+                new Claim(ClaimTypes.Name, userNameValue),
+                new Claim("name", userNameValue),
+                new Claim(JwtRegisteredClaimNames.Name, userNameValue)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
