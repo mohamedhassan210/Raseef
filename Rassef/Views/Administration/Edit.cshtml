@@ -1,6 +1,8 @@
-﻿@{
+@model Rassef.ViewModels.Administration.Employee.EmployeeEditVM
+@{
     ViewData["Title"] = "تعديل الموظف";
-    Layout = "_SupOrTra"; // تم الاعتماد على الـ Layout كما طلبت
+    Layout = "_SupOrTra";
+    var positions = ViewBag.Positions as IEnumerable<Rassef.Models.Entities.Position> ?? new List<Rassef.Models.Entities.Position>();
 }
 
 @section Styles {
@@ -26,40 +28,42 @@
     </header>
 
     <!-- Navigation Action -->
-    <div class="nav-actions-container">
-        <button id="btnBackToDetails" class="action-btn" aria-label="خطوة للخلف">
+    <div class="nav-actions-container" style="justify-content: flex-end;">
+        <a href="@Url.Action("Details", "Administration", new { id = Model?.Id })" class="action-btn" aria-label="خطوة للخلف">
             خطوة للخلف
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
-        </button>
+        </a>
     </div>
 
-    <!-- Loading State -->
-    <div id="loadingState" class="state-container">
-        <div class="spinner"></div>
-        <p>جاري تحميل بيانات الموظف...</p>
-    </div>
+    <!-- Form Card -->
+    <section id="formSection" class="form-card mt-3">
+        <form method="post" action="@Url.Action("Edit", "Administration")" id="editEmployeeForm" class="needs-validation" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@Model?.Id" />
 
-    <!-- Error State -->
-    <div id="errorState" class="state-container d-none">
-        <h3 class="text-danger mb-3">تعذر تحميل بيانات الموظف</h3>
-        <p class="text-muted mb-4">قد يكون الموظف غير موجود أو تم حذفه.</p>
-        <button id="btnErrorBack" class="btn-action-orange">العودة إلى الموظفين</button>
-    </div>
+            @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+            {
+                <div class="alert alert-danger text-end mb-4">
+                    <ul class="mb-0" style="list-style-type: none; padding-right: 0;">
+                        @foreach (var modelError in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@modelError.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
 
-    <!-- Form Card (Hidden initially) -->
-    <section id="formSection" class="form-card mt-3 d-none">
-        <form id="editEmployeeForm" class="needs-validation" novalidate>
             <div class="row mb-4 gy-4">
 
                 <!-- اسم الموظف -->
                 <div class="col-md-6 order-md-1">
                     <label for="empName" class="form-label fw-bold">اسم الموظف</label>
                     <div class="position-relative">
-                        <input type="text" class="form-control custom-input" id="empName" name="EmpName" placeholder="ادخل اسم الموظف رباعي" pattern="^[\u0600-\u06FF]+(?:\s+[\u0600-\u06FF]+){3,}$" required autocomplete="off">
-                        <div class="invalid-feedback text-center mt-2">يرجى إدخال اسم الموظف رباعي باللغة العربية.</div>
+                        <input type="text" class="form-control custom-input" id="empName" name="Name" value="@Model?.Name" placeholder="ادخل اسم الموظف رباعي" required autocomplete="off">
+                        <div class="invalid-feedback text-center mt-2">يرجى إدخال اسم الموظف.</div>
                     </div>
                 </div>
 
@@ -67,52 +71,70 @@
                 <div class="col-md-6 order-md-2">
                     <label for="empPhone" class="form-label fw-bold">رقم الهاتف</label>
                     <div class="position-relative">
-                        <input type="tel" class="form-control custom-input" id="empPhone" name="EmpPhone" placeholder="ادخل رقم هاتف الموظف" pattern="^01[0125][0-9]{8}$" required autocomplete="tel" dir="rtl">
-                        <div class="invalid-feedback text-center mt-2">يرجى إدخال رقم هاتف مصري صحيح.</div>
+                        <input type="tel" class="form-control custom-input" id="empPhone" name="Phone" value="@Model?.Phone" placeholder="ادخل رقم هاتف الموظف" pattern="^01[0125][0-9]{8}$" required autocomplete="tel" dir="rtl">
+                        <div class="invalid-feedback text-center mt-2">يرجى إدخال رقم هاتف مصري صحيح (11 رقم).</div>
                     </div>
                 </div>
 
-                <!-- الدور الوظيفي (Custom Dropdown) -->
+                <!-- البريد الإلكتروني -->
                 <div class="col-md-6 order-md-3">
-                    <label class="form-label fw-bold" for="empRoleSelect">الدور</label>
+                    <label for="empEmail" class="form-label fw-bold">البريد الإلكتروني</label>
+                    <div class="position-relative">
+                        <input type="email" class="form-control custom-input text-end" id="empEmail" name="Email" value="@Model?.Email" placeholder="ادخل البريد الإلكتروني للموظف" required autocomplete="email">
+                        <div class="invalid-feedback text-center mt-2">يرجى إدخال بريد إلكتروني صحيح.</div>
+                    </div>
+                </div>
+
+                <!-- الدور الوظيفي -->
+                <div class="col-md-6 order-md-4">
+                    <label class="form-label fw-bold" for="empRoleSelect">الدور الوظيفي</label>
                     <div class="position-relative custom-dropdown-container">
-                        <select class="visually-hidden-select" id="empRoleSelect" name="EmpRole" required>
-                            <option value="" disabled selected>اختار الدور</option>
-                            <option value="مدير">مدير</option>
-                            <option value="مشرف">مشرف</option>
-                            <option value="موظف">موظف</option>
-                            <option value="مسؤول مخزن">مسؤول مخزن</option>
-                            <option value="مسؤول حركة">مسؤول حركة</option>
-                            <option value="محاسب">محاسب</option>
-                            <option value="موظف إداري">موظف إداري</option>
+                        <select class="visually-hidden-select" id="empRoleSelect" name="PositionId" required>
+                            @if (Model == null || Model.PositionId == 0)
+                            {
+                                <option value="" disabled selected>اختار الدور</option>
+                            }
+                            else
+                            {
+                                <option value="" disabled>اختار الدور</option>
+                            }
+                            @foreach (var pos in positions)
+                            {
+                                if (Model?.PositionId == pos.Id)
+                                {
+                                    <option value="@pos.Id" selected>@pos.PositionName</option>
+                                }
+                                else
+                                {
+                                    <option value="@pos.Id">@pos.PositionName</option>
+                                }
+                            }
                         </select>
                         <div class="custom-dropdown" id="roleDropdown" aria-haspopup="listbox" aria-expanded="false">
                             <div class="dropdown-header">
-                                <span class="selected-value text-muted" id="roleSelectedText">اختار الدور</span>
+                                @{
+                                    var selPos = positions.FirstOrDefault(p => p.Id == Model?.PositionId);
+                                }
+                                <span class="selected-value @(selPos != null ? "" : "text-muted")" id="roleSelectedText">@(selPos != null ? selPos.PositionName : "اختار الدور")</span>
                                 <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#e47925" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="18 15 12 9 6 15"></polyline>
                                 </svg>
                             </div>
                             <div class="dropdown-list" role="listbox">
-                                <div class="dropdown-item" role="option" data-value="مدير">مدير</div>
-                                <div class="dropdown-item" role="option" data-value="مشرف">مشرف</div>
-                                <div class="dropdown-item" role="option" data-value="موظف">موظف</div>
-                                <div class="dropdown-item" role="option" data-value="مسؤول مخزن">مسؤول مخزن</div>
-                                <div class="dropdown-item" role="option" data-value="مسؤول حركة">مسؤول حركة</div>
-                                <div class="dropdown-item" role="option" data-value="محاسب">محاسب</div>
-                                <div class="dropdown-item" role="option" data-value="موظف إداري">موظف إداري</div>
+                                @if (positions.Any())
+                                {
+                                    @foreach (var pos in positions)
+                                    {
+                                        <div class="dropdown-item @(Model?.PositionId == pos.Id ? "selected" : "")" role="option" data-value="@pos.Id" data-text="@pos.PositionName">@pos.PositionName</div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="dropdown-item disabled text-muted">لا توجد أدوار مضافة</div>
+                                }
                             </div>
                         </div>
                         <div class="invalid-feedback text-center mt-2 dropdown-error-msg">يرجى اختيار دور الموظف.</div>
-                    </div>
-                </div>
-
-                <!-- البريد الإلكتروني -->
-                <div class="col-md-6 order-md-4">
-                    <label for="empEmail" class="form-label fw-bold">البريد الإلكتروني</label>
-                    <div class="position-relative">
-                        <input type="email" class="form-control custom-input text-end" id="empEmail" name="EmpEmail" placeholder="ادخل البريد الإلكتروني للموظف" required autocomplete="email">
-                        <div class="invalid-feedback text-center mt-2">يرجى إدخال بريد إلكتروني صحيح.</div>
                     </div>
                 </div>
 
@@ -120,61 +142,74 @@
                 <div class="col-md-6 order-md-5">
                     <label for="empNationalId" class="form-label fw-bold">الرقم القومي</label>
                     <div class="position-relative">
-                        <input type="text" class="form-control custom-input" id="empNationalId" name="EmpNationalId" placeholder="ادخل الرقم القومي للموظف" pattern="^[0-9]{14}$" required autocomplete="off">
+                        <input type="text" class="form-control custom-input" id="empNationalId" name="NationalId" value="@Model?.NationalId" placeholder="ادخل الرقم القومي (14 رقم)" pattern="^[0-9]{14}$" required autocomplete="off">
                         <div class="invalid-feedback text-center mt-2">الرقم القومي يجب أن يتكون من 14 رقمًا.</div>
                     </div>
                 </div>
 
-                <!-- القسم (Custom Dropdown) -->
+                <!-- كود الموظف -->
                 <div class="col-md-6 order-md-6">
-                    <label class="form-label fw-bold" for="empDeptSelect">القسم</label>
-                    <div class="position-relative custom-dropdown-container">
-                        <select class="visually-hidden-select" id="empDeptSelect" name="EmpDepartment" required>
-                            <option value="" disabled selected>اختار القسم</option>
-                            <option value="الموارد البشرية">الموارد البشرية</option>
-                            <option value="الحسابات">الحسابات</option>
-                            <option value="المخازن">المخازن</option>
-                            <option value="النقل">النقل</option>
-                            <option value="المشتريات">المشتريات</option>
-                            <option value="المبيعات">المبيعات</option>
-                            <option value="تكنولوجيا المعلومات">تكنولوجيا المعلومات</option>
-                        </select>
-                        <div class="custom-dropdown" id="deptDropdown" aria-haspopup="listbox" aria-expanded="false">
-                            <div class="dropdown-header">
-                                <span class="selected-value text-muted" id="deptSelectedText">اختار القسم</span>
-                                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#e47925" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="18 15 12 9 6 15"></polyline>
-                                </svg>
-                            </div>
-                            <div class="dropdown-list" role="listbox">
-                                <div class="dropdown-item" role="option" data-value="الموارد البشرية">الموارد البشرية</div>
-                                <div class="dropdown-item" role="option" data-value="الحسابات">الحسابات</div>
-                                <div class="dropdown-item" role="option" data-value="المخازن">المخازن</div>
-                                <div class="dropdown-item" role="option" data-value="النقل">النقل</div>
-                                <div class="dropdown-item" role="option" data-value="المشتريات">المشتريات</div>
-                                <div class="dropdown-item" role="option" data-value="المبيعات">المبيعات</div>
-                                <div class="dropdown-item" role="option" data-value="تكنولوجيا المعلومات">تكنولوجيا المعلومات</div>
-                            </div>
-                        </div>
-                        <div class="invalid-feedback text-center mt-2 dropdown-error-msg">يرجى اختيار القسم.</div>
+                    <label for="empUserCode" class="form-label fw-bold">كود الموظف</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control custom-input text-end" id="empUserCode" name="UserCode" value="@Model?.UserCode" placeholder="ادخل كود الموظف" required autocomplete="off">
+                        <div class="invalid-feedback text-center mt-2">يرجى إدخال كود الموظف.</div>
                     </div>
                 </div>
 
             </div>
 
-            <button type="submit" id="btnSubmitEdit" class="w-100 submit-btn mt-4">تعديل بيانات الموظف</button>
+            <button type="submit" class="w-100 submit-btn mt-4">تحديث بيانات الموظف</button>
         </form>
     </section>
 </main>
 
 @section Scripts {
     <script>
-        window.mvcRoutes = {
-            employeeDetailsUrl: '@Url.Action("Details", "Administration")',
-            employeeIndexUrl: '@Url.Action("Index", "Administration")'
-        };
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('editEmployeeForm');
+            const customDropdown = document.getElementById('roleDropdown');
+            const hiddenSelect = document.getElementById('empRoleSelect');
+            const header = customDropdown ? customDropdown.querySelector('.dropdown-header') : null;
+            const selectedText = document.getElementById('roleSelectedText');
+            const items = customDropdown ? customDropdown.querySelectorAll('.dropdown-item') : [];
+
+            if (header && customDropdown) {
+                header.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    customDropdown.classList.toggle('open');
+                });
+
+                items.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const val = item.getAttribute('data-value');
+                        const text = item.getAttribute('data-text');
+                        if (hiddenSelect) hiddenSelect.value = val;
+                        if (selectedText) {
+                            selectedText.textContent = text;
+                            selectedText.classList.remove('text-muted');
+                        }
+                        items.forEach(i => i.classList.remove('selected'));
+                        item.classList.add('selected');
+                        customDropdown.classList.remove('open');
+                        customDropdown.classList.remove('is-invalid-dropdown');
+                    });
+                });
+
+                document.addEventListener('click', () => {
+                    customDropdown.classList.remove('open');
+                });
+            }
+
+            if (form) {
+                form.addEventListener('submit', (e) => {
+                    if (hiddenSelect && !hiddenSelect.value) {
+                        e.preventDefault();
+                        if (customDropdown) customDropdown.classList.add('is-invalid-dropdown');
+                        form.classList.add('was-validated');
+                    }
+                });
+            }
+        });
     </script>
-    <script src="~/js/api.js" asp-append-version="true"></script>
-    <script src="~/js/app.js" asp-append-version="true"></script>
-    <script src="~/js/editEmployee.js" asp-append-version="true"></script>
 }

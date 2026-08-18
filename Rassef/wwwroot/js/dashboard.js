@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
 
     // DOM Elements
     const tableBody = document.getElementById('employeeTableBody');
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const exportBtn = document.getElementById('exportBtn');
     const addEmployeeBtn = document.getElementById('addEmployeeBtn');
 
-    // Global State
+    // Global State with Real Database Employees Data passed from MVC
     const state = {
         currentPage: 1,
         itemsPerPage: 10,
@@ -20,47 +20,37 @@ document.addEventListener('DOMContentLoaded', async () => {
             "name": "الإسم", "phone": "رقم الهاتف", "role": "الدور",
             "code": "الكود", "email": "البريد الإلكتروني", "nationalId": "الرقم القومي"
         },
-        allData: [] // Store fetched data
+        allData: Array.isArray(window.initialEmployeesData) ? window.initialEmployeesData : []
     };
 
-    // 1. Fetch Data centrally from API
-    async function loadData() {
-        try {
-            state.allData = await EmployeesAPI.getAll();
-            renderTable();
-        } catch (error) {
-            console.error("Failed to load employees", error);
-        }
-    }
-
-    // 2. Filter & Sort Logic
+    // 1. Filter & Sort Logic
     function filterEmployees() {
-        let filtered = state.allData;
+        let filtered = [...state.allData];
 
         // Apply Search (Real-time)
         if (state.searchTerm) {
             const term = state.searchTerm.toLowerCase();
             filtered = filtered.filter(emp =>
-                emp.name.toLowerCase().includes(term) ||
-                emp.phone.includes(term) ||
-                emp.email.toLowerCase().includes(term) ||
-                emp.role.toLowerCase().includes(term) ||
-                emp.nationalId.includes(term) ||
-                emp.code.toLowerCase().includes(term)
+                (emp.name && emp.name.toLowerCase().includes(term)) ||
+                (emp.phone && emp.phone.includes(term)) ||
+                (emp.email && emp.email.toLowerCase().includes(term)) ||
+                (emp.role && emp.role.toLowerCase().includes(term)) ||
+                (emp.nationalId && emp.nationalId.includes(term)) ||
+                (emp.code && emp.code.toLowerCase().includes(term))
             );
         }
 
         // Apply Sorting
         filtered.sort((a, b) => {
-            const valA = String(a[state.sortBy]);
-            const valB = String(b[state.sortBy]);
+            const valA = String(a[state.sortBy] || "");
+            const valB = String(b[state.sortBy] || "");
             return valA.localeCompare(valB, 'ar');
         });
 
         return filtered;
     }
 
-    // 3. Render Table
+    // 2. Render Table
     function renderTable() {
         if (!tableBody) return;
 
@@ -84,18 +74,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             pageData.forEach((emp) => {
                 const tr = document.createElement('tr');
                 tr.className = 'table-row';
+                const detailsUrl = window.mvcRoutes?.detailsEmployeeUrl 
+                    ? `${window.mvcRoutes.detailsEmployeeUrl}/${emp.id}` 
+                    : `/Administration/Details/${emp.id}`;
+
                 tr.innerHTML = `
-                    <td>${emp.name}</td>
-                    <td>${emp.phone}</td>
-                    <td class="cell-email">${emp.email}</td>
-                    <td>${emp.role}</td>
-                    <td>${emp.nationalId}</td>
-                    <td class="cell-code">${emp.code}</td>
+                    <td>${emp.name || '--'}</td>
+                    <td>${emp.phone || '--'}</td>
+                    <td class="cell-email">${emp.email || '--'}</td>
+                    <td>${emp.role || '--'}</td>
+                    <td>${emp.nationalId || '--'}</td>
+                    <td class="cell-code">${emp.code || '--'}</td>
                     <td>
-                        <button class="btn-table-details" data-id="${emp.id}">
+                        <a href="${detailsUrl}" class="btn-table-details" style="text-decoration: none;">
                             <span>تفاصيل</span>
                             <span>&larr;</span>
-                        </button>
+                        </a>
                     </td>
                 `;
                 tableBody.appendChild(tr);
@@ -105,7 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderPagination(totalPages);
     }
 
-    // 4. Render Dynamic Pagination UI
+    // 3. Render Dynamic Pagination UI
     function renderPagination(totalPages) {
         if (!paginationContainer) return;
         paginationContainer.innerHTML = '';
@@ -156,10 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderTable();
     }
 
-    // ==================================================
-    // EVENT LISTENERS
-    // ==================================================
-
+    // 4. Event Listeners
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             state.searchTerm = e.target.value.trim();
@@ -207,51 +198,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // الانتقال لصفحة التفاصيل (يشتغل على MVC أو HTML عادي)
-    if (tableBody) {
-        tableBody.addEventListener('click', (e) => {
-            const detailsBtn = e.target.closest('.btn-table-details');
-            if (detailsBtn) {
-                const empId = detailsBtn.dataset.id;
-                if (empId) {
-                    // لو شغالين على MVC
-                    if (window.mvcRoutes && window.mvcRoutes.detailsEmployeeUrl) {
-                        window.location.href = window.mvcRoutes.detailsEmployeeUrl + '?id=' + empId;
-                    }
-                    // لو بنجرب على HTML عادي
-                    else {
-                        window.location.href = `Details.cshtml?id=${empId}`;
-                    }
-                }
-            }
-        });
-    }
-
-    // زر إضافة موظف (يشتغل على MVC أو HTML عادي)
-    if (addEmployeeBtn) {
-        addEmployeeBtn.addEventListener('click', () => {
-            // لو شغالين على MVC
-            if (window.mvcRoutes && window.mvcRoutes.createEmployeeUrl) {
-                window.location.href = window.mvcRoutes.createEmployeeUrl;
-            }
-            // لو بنجرب على HTML عادي
-            else {
-                window.location.href = 'Create.cshtml';
-            }
-        });
-    }
-
     if (exportBtn) {
         exportBtn.addEventListener('click', () => {
             const filteredData = filterEmployees();
             if (filteredData.length === 0) {
-                if (typeof showToast === 'function') showToast('لا توجد بيانات للتصدير', 'error');
+                alert('لا توجد بيانات للتصدير');
                 return;
             }
 
             let csvContent = "الاسم,رقم الهاتف,البريد الإلكتروني,الدور,الرقم القومي,الكود\n";
             filteredData.forEach(row => {
-                csvContent += `${row.name},${row.phone},${row.email},${row.role},${row.nationalId},${row.code}\n`;
+                csvContent += `${row.name || ''},${row.phone || ''},${row.email || ''},${row.role || ''},${row.nationalId || ''},${row.code || ''}\n`;
             });
 
             const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -265,17 +222,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
-            if (typeof showToast === 'function') showToast('تم تصدير البيانات بنجاح', 'success');
-        });
-    }
-
-    // زر إضافة موظف باستخدام MVC Route
-    if (addEmployeeBtn) {
-        addEmployeeBtn.addEventListener('click', () => {
-            if (window.mvcRoutes) {
-                window.location.href = window.mvcRoutes.createEmployeeUrl;
-            }
         });
     }
 
@@ -292,6 +238,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Initialize fetching and rendering
-    await loadData();
+    // Render Initial State
+    renderTable();
 });
