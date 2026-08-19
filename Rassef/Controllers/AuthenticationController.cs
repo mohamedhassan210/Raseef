@@ -157,7 +157,8 @@ namespace Rassef.Controllers
                 return View(login);
             }
 
-            var token = _jwtService.GenerateToken(user.Id, user.Email);
+            var userNameToPass = !string.IsNullOrWhiteSpace(user.Name) ? user.Name : (!string.IsNullOrWhiteSpace(user.UserName) ? user.UserName : user.Email?.ToString());
+            var token = _jwtService.GenerateToken(user.Id, user.Email, userNameToPass);
 
             Response.Cookies.Append("AccessToken", token, new CookieOptions
             {
@@ -231,6 +232,8 @@ namespace Rassef.Controllers
                 .Include(t => t.Department)
                 .Include(t => t.TicketStatus)
                 .Include(t => t.SupplierRequest)
+                    .ThenInclude(sr => sr.Supplier)
+                .Include(t => t.SupplierRequest)
                     .ThenInclude(sr => sr.Driver)
                 .Include(t => t.SupplierRequest)
                     .ThenInclude(sr => sr.Truck)
@@ -244,6 +247,10 @@ namespace Rassef.Controllers
 
             var ticketViewModels = ticketsList.Select(t => {
                 var dockAssignment = t.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
+                bool isSupplier = t.SupplierRequestId != null || t.SupplierRequest != null;
+                string reqType = isSupplier ? "توريد" : "تحويل";
+                string company = isSupplier ? (t.SupplierRequest?.Supplier?.Name ?? "غير محدد") : "تحويل داخلي";
+
                 return new QueueTicketListVM
                 {
                     Id = t.Id,
@@ -253,6 +260,8 @@ namespace Rassef.Controllers
                     TruckNumber = t.SupplierRequest?.Truck != null ? $"{t.SupplierRequest.Truck.PlateLetter} {t.SupplierRequest.Truck.PlateNumber}" : (t.TransferRequest?.Truck != null ? $"{t.TransferRequest.Truck.PlateLetter} {t.TransferRequest.Truck.PlateNumber}" : "غير محدد"),
                     DepartmentName = t.Department?.Name ?? "غير محدد",
                     DockName = dockAssignment?.Dock?.DockName ?? "A1",
+                    RequestType = reqType,
+                    CompanyName = company,
                     EntryTime = t.EntryTime != DateTimeOffset.MinValue ? t.EntryTime : t.CreatedAT
                 };
             }).ToList();

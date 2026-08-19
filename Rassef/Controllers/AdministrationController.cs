@@ -301,16 +301,39 @@ namespace Rassef.Controllers
                 query.Where(t => !t.IsDeleted)
                      .Include(t => t.CreatedBy)
                      .Include(t => t.TruckType)
+                     .Include(t => t.SupplierRequests)
+                        .ThenInclude(sr => sr.Supplier)
+                     .Include(t => t.TransferRequests)
             );
 
-            var truckList = trucks.Select(t => new ViewModels.Administration.TruckListVM
-            {
-                Id = t.Id,
-                PlateNumber = $"{t.PlateLetter} {t.PlateNumber}",
-                IsRefrigerated = t.IsRefrigerated ? "تبريد" : "لا تبريد",
-                Company = t.TruckType?.Name ?? "غير محدد",
-                StorageCapacity = t.StorageCapacity,
-                HostEmployeeName = t.CreatedBy?.Name ?? "غير محدد"
+            var truckList = trucks.Select(t => {
+                string companyName = "غير محدد";
+                var latestSupplier = t.SupplierRequests?.OrderByDescending(r => r.CreatedAT).FirstOrDefault();
+                var latestTransfer = t.TransferRequests?.OrderByDescending(r => r.CreatedAT).FirstOrDefault();
+                
+                if (latestSupplier != null && latestTransfer != null) {
+                    if (latestSupplier.CreatedAT > latestTransfer.CreatedAT) {
+                        companyName = latestSupplier.Supplier?.Name ?? "غير محدد";
+                    } else {
+                        companyName = "تحويل داخلي";
+                    }
+                } else if (latestSupplier != null) {
+                    companyName = latestSupplier.Supplier?.Name ?? "غير محدد";
+                } else if (latestTransfer != null) {
+                    companyName = "تحويل داخلي";
+                } else if (t.TruckType != null) {
+                    companyName = t.TruckType.Name;
+                }
+
+                return new ViewModels.Administration.TruckListVM
+                {
+                    Id = t.Id,
+                    PlateNumber = $"{t.PlateLetter} {t.PlateNumber}",
+                    IsRefrigerated = t.IsRefrigerated ? "تبريد" : "لا تبريد",
+                    Company = companyName,
+                    StorageCapacity = t.StorageCapacity,
+                    HostEmployeeName = !string.IsNullOrWhiteSpace(t.CreatedBy?.Name) ? t.CreatedBy.Name : (!string.IsNullOrWhiteSpace(t.CreatedBy?.UserName) ? t.CreatedBy.UserName : "المسؤول")
+                };
             }).ToList();
 
             if (!truckList.Any())
@@ -384,6 +407,17 @@ namespace Rassef.Controllers
                 return View(model);
             }
 
+            // التحقق من عدم تكرار رقم وحروف اللوحة معاً
+            var plateNum = model.PlateNumber?.Trim() ?? "";
+            var plateLet = model.PlateLetter?.Trim() ?? "";
+
+            if (await _truckRepository.ExistsAsync(x => x.PlateNumber == plateNum && x.PlateLetter == plateLet && !x.IsDeleted))
+            {
+                ModelState.AddModelError(nameof(model.PlateNumber), "رقم وحروف اللوحة مسجلة بالفعل لشاحنة أخرى.");
+                ViewBag.TruckTypes = await _truckTypesRepository.GetAllAsync();
+                return View(model);
+            }
+
             // جلب معرف الموظف الحالي من الـ Claims بأمان
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             int currentUserId = 1;
@@ -394,8 +428,8 @@ namespace Rassef.Controllers
 
             var truck = new Truck
             {
-                PlateLetter = model.PlateLetter,
-                PlateNumber = model.PlateNumber,
+                PlateLetter = plateLet,
+                PlateNumber = plateNum,
                 StorageCapacity = model.StorageCapacity,
                 IsRefrigerated = model.IsRefrigerated,
                 TruckTypeId = model.TruckTypeId,
@@ -465,8 +499,18 @@ namespace Rassef.Controllers
                 return RedirectToAction(nameof(TrucksIndex));
             }
 
-            truck.PlateLetter = model.PlateLetter;
-            truck.PlateNumber = model.PlateNumber;
+            var plateNum = model.PlateNumber?.Trim() ?? "";
+            var plateLet = model.PlateLetter?.Trim() ?? "";
+
+            if (await _truckRepository.ExistsAsync(x => x.PlateNumber == plateNum && x.PlateLetter == plateLet && x.Id != model.Id && !x.IsDeleted))
+            {
+                ModelState.AddModelError(nameof(model.PlateNumber), "رقم وحروف اللوحة مسجلة بالفعل لشاحنة أخرى.");
+                ViewBag.TruckTypes = await _truckTypesRepository.GetAllAsync();
+                return View(model);
+            }
+
+            truck.PlateLetter = plateLet;
+            truck.PlateNumber = plateNum;
             truck.StorageCapacity = model.StorageCapacity;
             truck.IsRefrigerated = model.IsRefrigerated;
             truck.TruckTypeId = model.TruckTypeId;
@@ -778,68 +822,79 @@ namespace Rassef.Controllers
         // طلبات التحويل - Index
         public async Task<IActionResult> TransferRequests()
         {
-            var requestsRepo =
-              await _Transferrepository.GetAllWithDetailsAsync();
+            var requestsRepo = await _Transferrepository.GetAllWithDetailsAsync();
 
-            var requests = requestsRepo
-            .SelectMany(x => x.QueueTickets.Select(ticket => new TransferRequestListVM
+            var requests = requestsRepo.Select(x =>
             {
-                Id = x.Id,
-                TicketNumber = ticket.TicketNumber,
-                AvizNumber = x.AvizNumber,
-                DateTime = ticket.QueueTime,
-                DepartmentName = x.Department.Name ?? "غير محدد",
-                DriverName = x.Driver.FullName ?? "غير محدد",
-                EmployeeName =
-                    x.CreatedBy?.Name ?? "غير محدد",
-                TruckPlateNumber =
-                    $"{x.Truck?.PlateLetter} {x.Truck?.PlateNumber}",
-                RequestStatus = x.RequestStatus.Name,
-                DockName = ticket.DockAssignments
-                    .OrderByDescending(x => x.AssignedAt)
-                    .Select(x => x.Dock.DockName)
-                    .FirstOrDefault() ?? "غير محدد",
+                var ticket = x.QueueTickets?.OrderByDescending(q => q.CreatedAT).FirstOrDefault();
+                var dockName = ticket?.DockAssignments?
+                    .OrderByDescending(da => da.AssignedAt)
+                    .Select(da => da.Dock?.DockName)
+                    .FirstOrDefault() ?? "A1";
 
-            }))
-            .ToList();
+                var empName = !string.IsNullOrWhiteSpace(x.CreatedBy?.Name) ? x.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(ticket?.CreatedBy?.Name) ? ticket.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(x.CreatedBy?.UserName) ? x.CreatedBy.UserName
+                    : (!string.IsNullOrWhiteSpace(ticket?.CreatedBy?.UserName) ? ticket.CreatedBy.UserName
+                    : "المسؤول")));
+
+                return new TransferRequestListVM
+                {
+                    Id = x.Id,
+                    RequestType = "تحويل",
+                    TicketNumber = ticket?.TicketNumber ?? "TR-0001",
+                    AvizNumber = !string.IsNullOrWhiteSpace(x.AvizNumber) ? x.AvizNumber : $"AVIZ-{x.Id:D4}",
+                    DateTime = ticket?.QueueTime ?? x.CreatedAT,
+                    DepartmentName = x.Department?.Name ?? "غير محدد",
+                    DriverName = x.Driver?.FullName ?? "غير محدد",
+                    EmployeeName = empName,
+                    TruckPlateNumber = x.Truck != null ? $"{x.Truck.PlateLetter} {x.Truck.PlateNumber}" : "غير محدد",
+                    RequestStatus = x.RequestStatus?.Name ?? "قيد الانتظار",
+                    DockName = dockName
+                };
+            }).ToList();
 
             return View(requests);
         }
+
         [HttpGet]
         // طلبات التوريد - Index
         public async Task<IActionResult> SupplierRequests()
         {
-            var requestsRepo =
-                await _supplierRequestRepository.GetAllWithDetailsAsync();
+            var requestsRepo = await _supplierRequestRepository.GetAllWithDetailsAsync();
 
-            var requests = requestsRepo
-            .SelectMany(x => x.QueueTickets.Select(ticket => new SupplierRequestListVM
+            var requests = requestsRepo.Select(x =>
             {
-                Id = x.Id,
-                TicketNumber = ticket.TicketNumber,
-                TicketStatusName =
-                    ticket.TicketStatus?.Name ?? "غير محدد",
-                QueueTime = ticket.QueueTime,
-                DockName = ticket.DockAssignments
-                    .OrderByDescending(x => x.AssignedAt)
-                    .Select(x => x.Dock.DockName)
-                    .FirstOrDefault() ?? "غير محدد",
-                SupplierName =
-                    x.Supplier?.Name ?? "غير محدد",
-                TruckPlateNumber =
-                    $"{x.Truck?.PlateLetter} {x.Truck?.PlateNumber}",
-                DriverName =
-                    x.Driver?.FullName ?? "غير محدد",
-                DriverPhone = x.DriverPhone,
-                DepartmentName =
-                    x.Department?.Name ?? "غير محدد",
-                RequestStatusName =
-                    x.RequestStatus?.Name ?? "غير محدد",
-                EmployeeName =
-                    x.CreatedBy?.Name ?? "غير محدد",
-                PermitNumber = x.PermitNumber
-            }))
-            .ToList();
+                var ticket = x.QueueTickets?.OrderByDescending(q => q.CreatedAT).FirstOrDefault();
+                var dockName = ticket?.DockAssignments?
+                    .OrderByDescending(da => da.AssignedAt)
+                    .Select(da => da.Dock?.DockName)
+                    .FirstOrDefault() ?? "A1";
+
+                var empName = !string.IsNullOrWhiteSpace(x.CreatedBy?.Name) ? x.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(ticket?.CreatedBy?.Name) ? ticket.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(x.CreatedBy?.UserName) ? x.CreatedBy.UserName
+                    : (!string.IsNullOrWhiteSpace(ticket?.CreatedBy?.UserName) ? ticket.CreatedBy.UserName
+                    : "المسؤول")));
+
+                return new SupplierRequestListVM
+                {
+                    Id = x.Id,
+                    RequestType = "توريد",
+                    TicketNumber = ticket?.TicketNumber ?? "A1",
+                    TicketStatusName = ticket?.TicketStatus?.Name ?? "إنتظار",
+                    QueueTime = ticket?.QueueTime ?? x.CreatedAT,
+                    DockName = dockName,
+                    SupplierName = x.Supplier?.Name ?? "غير محدد",
+                    TruckPlateNumber = x.Truck != null ? $"{x.Truck.PlateLetter} {x.Truck.PlateNumber}" : "غير محدد",
+                    DriverName = x.Driver?.FullName ?? "غير محدد",
+                    DriverPhone = x.DriverPhone ?? x.Driver?.Phone ?? "",
+                    DepartmentName = x.Department?.Name ?? "غير محدد",
+                    RequestStatusName = x.RequestStatus?.Name ?? "قيد الانتظار",
+                    EmployeeName = empName,
+                    PermitNumber = x.PermitNumber ?? ""
+                };
+            }).ToList();
 
             return View(requests);
         }

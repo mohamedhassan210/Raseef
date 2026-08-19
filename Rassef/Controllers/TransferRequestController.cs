@@ -137,7 +137,7 @@ namespace Rassef.Controllers
                 DepartmentId = model.DepartmentId,
                 PermitTypeId = model.PermitTypeId,
                 RequestStatusId = defaultStatusId,
-                CreatedById = userId
+                CreatedById = int.TryParse(userId, out var parsedId) ? parsedId : 1
             };
 
             await _repository.AddAsync(request);

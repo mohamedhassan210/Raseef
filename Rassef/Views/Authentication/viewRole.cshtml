@@ -121,7 +121,7 @@
 
                         <div class="role-card"
                              data-status="@statusDisplay"
-                             data-search="@ticket.TicketNumber @ticket.DriverName @ticket.TruckNumber @ticket.DepartmentName @ticket.DockName">
+                             data-search="@ticket.TicketNumber @ticket.DriverName @ticket.TruckNumber @ticket.DepartmentName @ticket.DockName @ticket.RequestType @ticket.CompanyName">
 
                             <!-- 1. رقم الدور -->
                             <div class="role-number-group">
@@ -129,10 +129,25 @@
                                 <span class="role-number-label">رقم الدور</span>
                             </div>
 
+                            <!-- نوع الطلب (توريد / تحويل) -->
+                            <div class="request-type-badge" style="background: @(ticket.RequestType == "توريد" ? "#fff3e0" : "#e3f2fd"); color: @(ticket.RequestType == "توريد" ? "#e47925" : "#1976d2"); font-weight: 700; padding: 5px 12px; border-radius: 8px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; border: 1px solid @(ticket.RequestType == "توريد" ? "#ffe0b2" : "#bbdefb");">
+                                <i class="fas @(ticket.RequestType == "توريد" ? "fa-dolly" : "fa-truck-moving")"></i>
+                                <span>@(string.IsNullOrWhiteSpace(ticket.RequestType) ? "توريد" : ticket.RequestType)</span>
+                            </div>
+
                             <!-- 2. حالة الدور (Badge) -->
                             <div class="status-badge @badgeClass">
                                 <span class="status-dot-small"></span>
                                 <span>@statusDisplay</span>
+                            </div>
+
+                            <!-- الشركة / المورد -->
+                            <div class="info-group">
+                                <i class="fas fa-building info-icon"></i>
+                                <div class="info-text">
+                                    <span class="info-value" title="@ticket.CompanyName">@ticket.CompanyName</span>
+                                    <span class="info-label">@(ticket.RequestType == "توريد" ? "المورد" : "جهة التحويل")</span>
+                                </div>
                             </div>
 
                             <!-- 3. بيانات السائق -->

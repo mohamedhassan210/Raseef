@@ -70,8 +70,8 @@
                         <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                     </div>
                     <div class="user-details">
-                        <span class="user-name">إدارة الأرصفة</span>
-                        <span class="user-role">طلبات التوريد</span>
+                        <span class="user-name">@(User.Identity?.Name ?? "المسؤول")</span>
+                        <span class="user-role">لوحة الإدارة</span>
                     </div>
                 </div>
             </div>
@@ -98,6 +98,7 @@
                     <thead>
                         <tr>
                             <th>رقم التذكرة</th>
+                            <th>نوع الطلب</th>
                             <th>المورد</th>
                             <th>السائق</th>
                             <th>الشاحنة</th>
@@ -114,6 +115,9 @@
                             {
                                 <tr class="table-row">
                                     <td>@item.TicketNumber</td>
+                                    <td>
+                                        <span class="badge-type-supply" style="background: #fff3e0; color: #e47925; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; border: 1px solid #ffe0b2;">توريد</span>
+                                    </td>
                                     <td>@item.SupplierName</td>
                                     <td>@item.DriverName</td>
                                     <td>@item.TruckPlateNumber</td>
@@ -127,7 +131,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="8" class="empty-state">لا يوجد أي طلبات توريد حالياً</td>
+                                <td colspan="9" class="empty-state">لا يوجد أي طلبات توريد حالياً</td>
                             </tr>
                         }
                     </tbody>

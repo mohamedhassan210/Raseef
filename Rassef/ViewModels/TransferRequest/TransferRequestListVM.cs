@@ -1,6 +1,7 @@
-﻿public class TransferRequestListVM
+public class TransferRequestListVM
 {
     public int Id { get; set; }
+    public string RequestType { get; set; } = "تحويل";
     public string AvizNumber { get; set; } = string.Empty;
     public string TicketNumber { get; set; } = string.Empty;
     public string DriverName { get; set; } = string.Empty;

@@ -1,6 +1,19 @@
-﻿@{
+@model Rassef.ViewModels.QueueTicket.ReceiptVM
+@{
     ViewData["Title"] = "إيصال الدخول";
     Layout = null; // صفحة الطباعة مش محتاجة Layout عشان تطلع مظبوطة في الورقة
+
+    var employeeNameDisplay = !string.IsNullOrWhiteSpace(Model?.EmployeeName)
+        ? Model.EmployeeName
+        : (!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "المسؤول");
+
+    var ticketNumDisplay = !string.IsNullOrWhiteSpace(Model?.TicketNumber) ? Model.TicketNumber : "--";
+    var requestTypeDisplay = !string.IsNullOrWhiteSpace(Model?.RequestType) ? Model.RequestType : "توريد";
+    var deptDisplay = !string.IsNullOrWhiteSpace(Model?.DepartmentName) ? Model.DepartmentName : "--";
+    var dockDisplay = !string.IsNullOrWhiteSpace(Model?.DockName) ? Model.DockName : "--";
+    var waitDisplay = !string.IsNullOrWhiteSpace(Model?.WaitingCount) ? Model.WaitingCount : "0";
+    var dateDisplay = Model != null ? $"{Model.CreatedAt.Day} / {Model.CreatedAt.Month} / {Model.CreatedAt.Year}" : "--";
+    var timeDisplay = Model != null ? Model.CreatedAt.ToString("hh:mm tt") : "--";
 }
 
 <!DOCTYPE html>
@@ -20,13 +33,13 @@
 <body>
 
     <!-- حالة عدم وجود بيانات -->
-    <div id="empty-state" class="empty-state d-none">
+    <div id="empty-state" class="empty-state @(Model != null ? "d-none" : "")">
         <h2>لا توجد بيانات إيصال متاحة حالياً</h2>
         <button class="btn-action" id="btn-back-empty">العودة للسائقين</button>
     </div>
 
     <!-- حاوية الإيصال الرئيسية -->
-    <main id="receipt-main" class="receipt-container d-none">
+    <main id="receipt-main" class="receipt-container @(Model != null ? "" : "d-none")">
 
         <!-- أزرار التحكم (تختفي عند الطباعة) -->
         <div class="receipt-actions no-print">
@@ -62,24 +75,30 @@
             <!-- رقم الدور -->
             <div class="badge-section text-center">
                 <h3 class="section-title">رقم الدور</h3>
-                <div class="ticket-number" id="rec-ticket-num">--</div>
+                <div class="ticket-number" id="rec-ticket-num">@ticketNumDisplay</div>
+            </div>
+
+            <!-- نوع الطلب -->
+            <div class="badge-section text-center" style="margin-top: 5px;">
+                <h3 class="section-title">نوع الطلب</h3>
+                <div class="waiting-number" id="rec-request-type" style="font-size: 1.25rem; font-weight: 700; color: #e47925;">@requestTypeDisplay</div>
             </div>
 
             <!-- الانتظار -->
             <div class="badge-section text-center">
                 <h3 class="section-title">الإنتظار</h3>
-                <div class="waiting-number" id="rec-waiting">--</div>
+                <div class="waiting-number" id="rec-waiting">@waitDisplay</div>
             </div>
 
             <!-- القسم و الرصيف -->
             <div class="badge-grid">
                 <div class="grid-item">
                     <h3 class="section-title">القسم</h3>
-                    <div class="grid-value" id="rec-department">--</div>
+                    <div class="grid-value" id="rec-department">@deptDisplay</div>
                 </div>
                 <div class="grid-item">
                     <h3 class="section-title">رقم الرصيف</h3>
-                    <div class="grid-value" id="rec-dock">--</div>
+                    <div class="grid-value" id="rec-dock">@dockDisplay</div>
                 </div>
             </div>
 
@@ -97,13 +116,13 @@
                     </div>
                     <div class="emp-text">
                         <span class="info-label">اسم الموظف</span>
-                        <span class="info-value" id="rec-employee">--</span>
+                        <span class="info-value" id="rec-employee">@employeeNameDisplay</span>
                     </div>
                 </div>
 
                 <div class="datetime-info">
                     <div class="dt-row">
-                        <span class="dt-value" id="rec-date">--</span>
+                        <span class="dt-value" id="rec-date">@dateDisplay</span>
                         <svg viewBox="0 0 24 24" fill="none" stroke="#EB842D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                             <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -112,7 +131,7 @@
                         </svg>
                     </div>
                     <div class="dt-row mt-1">
-                        <span class="dt-value" id="rec-time" dir="ltr">--</span>
+                        <span class="dt-value" id="rec-time" dir="ltr">@timeDisplay</span>
                         <svg viewBox="0 0 24 24" fill="none" stroke="#EB842D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10"></circle>
                             <polyline points="12 6 12 12 16 14"></polyline>
@@ -134,10 +153,12 @@
     </main>
 
     <script>
-        // نمرر مسار زر الرجوع للـ JS
+        window.serverReceipt = @Html.Raw(Json.Serialize(Model));
+        window.currentUserName = '@Html.Raw(!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "المسؤول")';
         window.routes = {
-            // التعديل هنا: التوجيه لـ Index داخل كنترولر Driver
-            driversPage: '@Url.Action("Index", "Driver")'
+            driversPage: '@Url.Action("Index", "Driver")',
+            viewRole: '@Url.Action("ViewRole", "Authentication")',
+            backRoute: '@Url.Action("SupOrTra", "Authentication")'
         };
     </script>
     <script src="~/js/receipt.js" asp-append-version="true"></script>

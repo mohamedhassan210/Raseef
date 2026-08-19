@@ -1,4 +1,4 @@
-﻿namespace Rassef.ViewModels.Authentication.JWT
+namespace Rassef.ViewModels.Authentication.JWT
 {
     public class JwtService : IJwtService
     {
@@ -7,12 +7,17 @@
         public JwtService(IOptions<JwtSettings> options)
         => _jwtSettings = options.Value;
 
-        public string GenerateToken(int UserId, Email Email)
+        public string GenerateToken(int UserId, Email Email, string? name = null)
         {
+            var userNameValue = !string.IsNullOrWhiteSpace(name) ? name : (Email?.ToString() ?? "المستخدم");
             var cliams = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier,UserId.ToString()),
-                new Claim(ClaimTypes.Email,Email.ToString())
+                new Claim(ClaimTypes.NameIdentifier, UserId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, UserId.ToString()),
+                new Claim(ClaimTypes.Email, Email?.ToString() ?? ""),
+                new Claim(ClaimTypes.Name, userNameValue),
+                new Claim("name", userNameValue),
+                new Claim(JwtRegisteredClaimNames.Name, userNameValue)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));

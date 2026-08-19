@@ -88,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', (e) => {
                 const card = e.target.closest('.truck-card');
                 const plateData = card ? card.getAttribute('data-plate') : "";
+                const truckId = card ? card.getAttribute('data-truck-id') : "";
 
                 selectedDepartmentValue = null;
                 if (deptSelectedValue) {
@@ -100,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (deptDropdownContainer) deptDropdownContainer.classList.remove('open');
 
                 localStorage.setItem('pendingTruck', JSON.stringify({
+                    truckId: truckId,
                     plate: plateData
                 }));
 
@@ -199,30 +201,17 @@ document.addEventListener('DOMContentLoaded', () => {
             btnPrint.disabled = true;
         }
 
-        const ticketNum = ticketNumberDisplay ? ticketNumberDisplay.textContent : 'TR-0001';
-        const deptName = selectedDepartmentValue ? selectedDepartmentValue.name : 'قسم التحويل';
-        const empName = window.pageData?.employeeName || 'موظف النظام';
-        const dock = window.pageData?.dockName || 'A1';
-        const waitCount = '0';
-
-        const receiptData = {
-            ticketNumber: ticketNum,
-            waitingCount: waitCount,
-            department: deptName,
-            dockNumber: dock,
-            employeeName: empName,
-            createdAt: new Date().toISOString()
-        };
-
-        localStorage.setItem('receiptData', JSON.stringify(receiptData));
+        const raw = localStorage.getItem('receiptData');
+        const receiptData = raw ? JSON.parse(raw) : {};
+        const ticketIdParam = receiptData.ticketId ? `?ticketId=${receiptData.ticketId}` : '';
 
         setTimeout(() => {
             if (window.routes && window.routes.receiptPage) {
-                window.location.href = window.routes.receiptPage;
+                window.location.href = window.routes.receiptPage + ticketIdParam;
             } else {
-                window.location.href = "/Driver/Recript";
+                window.location.href = "/Driver/Recript" + ticketIdParam;
             }
-        }, 600);
+        }, 500);
     };
 
     // 6. Initialize App
@@ -240,9 +229,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (btnConfirm) {
-            btnConfirm.addEventListener('click', () => {
-                const ticketNum = generateTicketNumber();
+            btnConfirm.addEventListener('click', async () => {
+                btnConfirm.disabled = true;
+                btnConfirm.innerHTML = 'جاري الحفظ وإصدار الدور... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+                const pendingData = JSON.parse(localStorage.getItem('pendingTruck')) || {};
+                const payload = {
+                    truckId: parseInt(pendingData.truckId) || 0,
+                    departmentId: selectedDepartmentValue ? selectedDepartmentValue.id : 0
+                };
+
+                let ticketInfo = null;
+                try {
+                    const endpoint = window.routes?.createTransferTicket || '/Truck/CreateTransferTicket';
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        ticketInfo = await response.json();
+                    }
+                } catch (err) {
+                    console.error('Error creating transfer ticket:', err);
+                }
+
+                btnConfirm.disabled = false;
+                btnConfirm.innerHTML = 'تأكيد';
+
+                const ticketNum = ticketInfo?.ticketNumber || generateTicketNumber();
                 if (ticketNumberDisplay) ticketNumberDisplay.textContent = ticketNum;
+
+                const deptName = ticketInfo?.departmentName || (selectedDepartmentValue ? selectedDepartmentValue.name : 'قسم التحويل');
+                const empName = ticketInfo?.employeeName || window.pageData?.employeeName || 'المسؤول';
+                const dock = ticketInfo?.dockName || window.pageData?.dockName || 'A1';
+                const waitCount = ticketInfo?.waitingCount !== undefined ? String(ticketInfo.waitingCount) : '0';
+
+                const receiptData = {
+                    ticketId: ticketInfo?.ticketId || null,
+                    ticketNumber: ticketNum,
+                    requestType: 'تحويل',
+                    waitingCount: waitCount,
+                    department: deptName,
+                    dockNumber: dock,
+                    employeeName: empName,
+                    createdAt: new Date().toISOString()
+                };
+
+                localStorage.setItem('receiptData', JSON.stringify(receiptData));
+
                 if (successModal) showConfirmationModal(successModal);
             });
         }

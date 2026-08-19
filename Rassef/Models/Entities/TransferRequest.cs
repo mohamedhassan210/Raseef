@@ -1,4 +1,4 @@
-﻿namespace Rassef.Models.Entities
+namespace Rassef.Models.Entities
 {
     public class TransferRequest : BaseEntity
     {
@@ -19,7 +19,7 @@
         public int RequestStatusId { get; set; }
         public RequestStatuses RequestStatus { get; set; }
 
-        public string CreatedById { get; set; } = string.Empty;
+        public int CreatedById { get; set; }
         public User CreatedBy { get; set; }
 
         public ICollection<QueueTicket> QueueTickets { get; set; } = new HashSet<QueueTicket>();

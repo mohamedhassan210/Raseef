@@ -205,7 +205,7 @@
         window.departmentsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Departments ?? new List<object>()));
         window.pageData = {
             dockName: 'A',
-            employeeName: 'محمد حسين'
+            employeeName: '@Html.Raw(!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "المسؤول")'
         };
         window.appRoutes = {
             companyDrivers: '@Url.Action("Index", "Driver")',

@@ -1,4 +1,4 @@
-﻿namespace Rassef.Common.Repository.EntitiesRepository
+namespace Rassef.Common.Repository.EntitiesRepository
 {
     public class SupplierRequestRepository : Repository<SupplierRequest>, ISupplierRequestRepository
     {
@@ -21,6 +21,8 @@
                 .Include(x => x.CreatedBy)
                 .Include(x => x.QueueTickets)
                     .ThenInclude(q => q.TicketStatus)
+                .Include(x => x.QueueTickets)
+                    .ThenInclude(q => q.CreatedBy)
                 .Include(x => x.QueueTickets)
                     .ThenInclude(q => q.DockAssignments)
                         .ThenInclude(da => da.Dock)

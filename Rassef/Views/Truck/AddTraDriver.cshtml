@@ -1,4 +1,4 @@
-@model CreateDriverVM
+@model Rassef.ViewModels.Truck.AddTraTruckVM
 @{
     ViewData["Title"] = "إضافة شاحنة";
     Layout = "_SupOrTra";
@@ -53,11 +53,11 @@
                     <label class="form-label fw-bold">رقم الشاحنة</label>
                     <div class="d-flex gap-3 responsive-gap">
                         <div class="position-relative flex-grow-1">
-                            <input type="text" class="form-control custom-input" id="plateNumbers" placeholder="ادخل الأرقام" pattern="^[0-9\s]+$" required>
+                            <input type="text" name="PlateNumber" class="form-control custom-input" id="plateNumbers" placeholder="ادخل الأرقام" pattern="^[0-9\s]+$" required>
                             <div class="invalid-feedback text-center mt-2">يرجى إدخال أرقام فقط.</div>
                         </div>
                         <div class="position-relative flex-grow-1">
-                            <input type="text" class="form-control custom-input" id="plateLetters" placeholder="ادخل الحروف" pattern="^[\u0600-\u06FF\s]+$" required>
+                            <input type="text" name="PlateLetter" class="form-control custom-input" id="plateLetters" placeholder="ادخل الحروف" pattern="^[\u0600-\u06FF\s]+$" required>
                             <div class="invalid-feedback text-center mt-2">يرجى إدخال حروف عربية.</div>
                         </div>
                     </div>
@@ -66,7 +66,7 @@
                 <div class="col-md-6 order-md-2">
                     <label class="form-label fw-bold">سعة التخزين</label>
                     <div class="input-group has-validation">
-                        <input type="number" class="form-control custom-input input-kg" id="storageCapacity" placeholder="ادخل سعة التخزين" min="1" required>
+                        <input type="number" name="StorageCapacity" class="form-control custom-input input-kg" id="storageCapacity" placeholder="ادخل سعة التخزين" min="1" required>
                         <span class="input-group-text fw-bold">kg</span>
                         <div class="invalid-feedback mt-2">يجب أن تكون سعة التخزين رقماً أكبر من صفر.</div>
                     </div>
@@ -139,19 +139,21 @@
                     </div>
                 </div>
 
-                @*   <div class="col-md-6 order-md-5">
+                <div class="col-md-6 order-md-5">
                     <label class="form-label fw-bold">سائق الشاحنة</label>
                     <div class="d-flex gap-3 align-items-stretch">
 
                         <!-- القائمة المنسدلة المخصصة -->
                         <div class="position-relative flex-grow-1" id="driverSelectView">
-                            <select class="d-none" id="driverSelect" required>
+                            <select class="d-none" id="driverSelect" name="DriverId">
                                 <option value="" disabled selected>اختر السائق</option>
-                                <option value="محمد أحمد">محمد أحمد</option>
-                                <option value="محمود علي">محمود علي</option>
-                                <option value="عبدالله حسن">عبدالله حسن</option>
-                                <option value="أحمد سمير">أحمد سمير</option>
-                                <option value="يوسف خالد">يوسف خالد</option>
+                                @if (Model?.Drivers != null)
+                                {
+                                    foreach (var driver in Model.Drivers)
+                                    {
+                                        <option value="@driver.Value">@driver.Text</option>
+                                    }
+                                }
                             </select>
 
                             <div class="custom-dropdown" id="customDriverDropdown">
@@ -162,26 +164,28 @@
                                     </svg>
                                 </div>
                                 <div class="dropdown-list">
-                                    <div class="dropdown-item" data-value="محمد أحمد">محمد أحمد</div>
-                                    <div class="dropdown-item" data-value="محمود علي">محمود علي</div>
-                                    <div class="dropdown-item" data-value="عبدالله حسن">عبدالله حسن</div>
-                                    <div class="dropdown-item" data-value="أحمد سمير">أحمد سمير</div>
-                                    <div class="dropdown-item" data-value="يوسف خالد">يوسف خالد</div>
+                                    @if (Model?.Drivers != null && Model.Drivers.Any())
+                                    {
+                                        foreach (var driver in Model.Drivers)
+                                        {
+                                            <div class="dropdown-item" data-value="@driver.Value">@driver.Text</div>
+                                        }
+                                    }
                                 </div>
                             </div>
-                            <div class="invalid-feedback mt-2">يرجى اختيار سائق الشاحنة.</div>
+                            <div class="invalid-feedback mt-2" style="display: none;">يرجى اختيار سائق الشاحنة.</div>
                         </div>
 
-                        <!-- تعديل رابط زر إضافة سائق ليستخدم MVC Routing -->
-                        <a href="@Url.Action("Create", "Driver")" class="add-driver-btn" aria-label="إضافة سائق جديد">
+                        <!-- فتح مودال إضافة سائق السريع -->
+                        <button type="button" class="add-driver-btn" id="btn-open-inline-driver-modal" aria-label="إضافة سائق جديد">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
                             </svg>
-                        </a>
+                        </button>
 
                     </div>
-                </div> *@
+                </div>
 
             </div>
 

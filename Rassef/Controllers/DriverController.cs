@@ -6,21 +6,24 @@ namespace Rassef.Controllers
         private readonly IDriverRepository _driverRepository;
         private readonly ISupplierRepository _supplierRepository;
         private readonly ITruckRepository _truckRepository;
-        private readonly IRepository<Department> _departmentRepository;
+        private readonly IDepartmentRepository _departmentRepository;
         private readonly IRepository<DriverTypes> _driverTypeRepository;
+        private readonly IRepository<QueueTicket> _ticketRepository;
 
         public DriverController(
             IDriverRepository repository,
             ISupplierRepository supplierRepository,
             ITruckRepository truckRepository,
-            IRepository<Department> departmentRepository,
-            IRepository<DriverTypes> driverTypeRepository)
+            IDepartmentRepository departmentRepository,
+            IRepository<DriverTypes> driverTypeRepository,
+            IRepository<QueueTicket> ticketRepository)
         {
             _driverRepository = repository;
             _supplierRepository = supplierRepository;
             _truckRepository = truckRepository;
             _departmentRepository = departmentRepository;
             _driverTypeRepository = driverTypeRepository;
+            _ticketRepository = ticketRepository;
         }
 
         // Get All Drivers
@@ -59,9 +62,55 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
-        public IActionResult Recript()
+        public async Task<IActionResult> Recript(int? ticketId)
         {
-            return View();
+            ReceiptVM? model = null;
+            QueueTicket? ticket = null;
+
+            var allTickets = await _ticketRepository.GetAllAsync(
+                query => query
+                    .Include(t => t.Department)
+                    .Include(t => t.TicketStatus)
+                    .Include(t => t.CreatedBy)
+                    .Include(t => t.SupplierRequest).ThenInclude(sr => sr.Supplier)
+                    .Include(t => t.SupplierRequest).ThenInclude(sr => sr.CreatedBy)
+                    .Include(t => t.TransferRequest).ThenInclude(tr => tr.CreatedBy)
+                    .Include(t => t.DockAssignments).ThenInclude(da => da.Dock)
+            );
+
+            if (ticketId.HasValue && ticketId.Value > 0)
+            {
+                ticket = allTickets.FirstOrDefault(t => t.Id == ticketId.Value);
+            }
+            else
+            {
+                ticket = allTickets.OrderByDescending(t => t.CreatedAT).FirstOrDefault();
+            }
+
+            if (ticket != null)
+            {
+                var isSupplier = ticket.SupplierRequestId != null || ticket.SupplierRequest != null;
+                var dockName = ticket.DockAssignments?.OrderByDescending(da => da.AssignedAt).Select(da => da.Dock?.DockName).FirstOrDefault() ?? "A1";
+
+                var empName = ticket.CreatedBy?.Name
+                    ?? ticket.SupplierRequest?.CreatedBy?.Name
+                    ?? ticket.TransferRequest?.CreatedBy?.Name
+                    ?? (!string.IsNullOrWhiteSpace(ticket.CreatedBy?.UserName) ? ticket.CreatedBy.UserName
+                    : (User.Identity?.Name ?? "المسؤول"));
+
+                model = new ReceiptVM
+                {
+                    TicketNumber = ticket.TicketNumber ?? "A1",
+                    RequestType = isSupplier ? "توريد" : "تحويل",
+                    DepartmentName = ticket.Department?.Name ?? "غير محدد",
+                    DockName = dockName,
+                    EmployeeName = empName,
+                    WaitingCount = "0",
+                    CreatedAt = ticket.CreatedAT
+                };
+            }
+
+            return View(model);
         }
 
         // Get Driver By Id

@@ -17,17 +17,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const elDate = document.getElementById('rec-date');
     const elTime = document.getElementById('rec-time');
 
-    // جلب البيانات من LocalStorage
+    const serverData = window.serverReceipt;
     const rawData = localStorage.getItem('receiptData');
 
-    if (!rawData) {
+    if (!serverData && !rawData) {
         // حالة عدم وجود بيانات
         emptyState.classList.remove('d-none');
 
         // تفعيل زر الرجوع في حالة الـ Empty State
         if (btnBackEmpty) {
             btnBackEmpty.addEventListener('click', () => {
-                window.location.href = window.routes?.driversPage || '/Driver/Index';
+                window.location.href = window.routes?.viewRole || window.routes?.backRoute || '/Authentication/viewRole';
             });
         }
         return;
@@ -35,8 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // إظهار حاوية الإيصال
     receiptMain.classList.remove('d-none');
+    emptyState.classList.add('d-none');
 
-    const receiptData = JSON.parse(rawData);
+    const receiptData = serverData || JSON.parse(rawData);
 
     // دالة لتهيئة التاريخ والوقت
     const formatDateTime = (isoString) => {
@@ -55,12 +56,35 @@ document.addEventListener('DOMContentLoaded', () => {
         return { dateFormatted, timeFormatted };
     };
 
+    // دالة لفك تشفير الرموز الخاصة بـ HTML إن وُجدت
+    const decodeHtmlEntities = (text) => {
+        if (!text) return '';
+        const parser = new DOMParser();
+        const dom = parser.parseFromString(
+            '<!doctype html><body>' + text,
+            'text/html'
+        );
+        return dom.body.textContent || text;
+    };
+
+    const elRequestType = document.getElementById('rec-request-type');
+
     // تطبيق البيانات على الـ UI
-    elTicketNum.textContent = receiptData.ticketNumber || '--';
-    elWaiting.textContent = receiptData.waitingCount || '--';
-    elDepartment.textContent = receiptData.department || '--';
-    elDock.textContent = receiptData.dockNumber || '--';
-    elEmployee.textContent = receiptData.employeeName || '--';
+    if (receiptData.ticketNumber) elTicketNum.textContent = receiptData.ticketNumber;
+    if (elRequestType && receiptData.requestType) {
+        elRequestType.textContent = receiptData.requestType;
+    }
+    if (receiptData.waitingCount !== undefined) elWaiting.textContent = receiptData.waitingCount;
+    if (receiptData.departmentName || receiptData.department) {
+        elDepartment.textContent = decodeHtmlEntities(receiptData.departmentName || receiptData.department);
+    }
+    if (receiptData.dockName || receiptData.dockNumber) {
+        elDock.textContent = receiptData.dockName || receiptData.dockNumber;
+    }
+
+    const empName = decodeHtmlEntities(receiptData.employeeName);
+    const loggedInName = window.currentUserName || 'المسؤول';
+    elEmployee.textContent = (empName && empName !== '--' && empName !== 'موظف الاستقبال') ? empName : loggedInName;
 
     // تطبيق الوقت
     if (receiptData.createdAt) {
@@ -70,34 +94,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // إعداد أزرار الأكشن
-    btnBack.addEventListener('click', () => {
-        // هنا بيقرأ المسار الديناميكي اللي جياله من الـ CSHTML
-        window.location.href = window.routes?.driversPage || '/Driver/Index';
-    });
-
-    btnPrint.addEventListener('click', () => {
-        window.print();
-    });
-
-
-    // تطبيق الوقت
-    if (receiptData.createdAt) {
-        const { dateFormatted, timeFormatted } = formatDateTime(receiptData.createdAt);
-        elDate.textContent = dateFormatted;
-        elTime.textContent = timeFormatted;
+    if (btnBack) {
+        btnBack.addEventListener('click', () => {
+            if (window.routes && window.routes.viewRole) {
+                window.location.href = window.routes.viewRole;
+            } else if (window.routes && window.routes.backRoute) {
+                window.location.href = window.routes.backRoute;
+            } else {
+                window.location.href = window.routes?.driversPage || '/Driver/Index';
+            }
+        });
     }
 
-    // إعداد أزرار الأكشن
-    btnBack.addEventListener('click', () => {
-        window.location.href = window.routes?.driversPage || '/Driver/Index';
-    });
+    if (btnPrint) {
+        btnPrint.addEventListener('click', () => {
+            window.print();
+        });
+    }
 
-    btnPrint.addEventListener('click', () => {
-        window.print();
-    });
-
-    // 👇 الإضافة الجديدة: أول ما صفحة الريسيبت تفتح وتظهر، تطبع نفسها تلقائياً
+    // أول ما صفحة الريسيبت تفتح، تطبع نفسها تلقائياً
     setTimeout(() => {
         window.print();
-    }, 500); // تأخير نص ثانية عشان نضمن إن الصفحة رسمت نفسها والبيانات ظهرت قبل ما نافذة الطباعة تفتح
+    }, 500);
 });

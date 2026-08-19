@@ -1,4 +1,4 @@
-﻿namespace Rassef.ViewModels.QueueTicket
+namespace Rassef.ViewModels.QueueTicket
 {
     public class QueueTicketListVM
     {
@@ -27,6 +27,12 @@
 
         [Display(Name = "وقت الدخول")]
         public DateTimeOffset EntryTime { get; set; }
+
+        [Display(Name = "نوع الطلب")]
+        public string RequestType { get; set; } = "توريد";
+
+        [Display(Name = "الشركة / المورد")]
+        public string CompanyName { get; set; } = string.Empty;
 
         [Display(Name = "وقت الخروج")]
         public DateTimeOffset ExitTime { get; set; }
