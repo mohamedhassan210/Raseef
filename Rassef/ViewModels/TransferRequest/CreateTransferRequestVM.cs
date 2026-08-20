@@ -1,4 +1,4 @@
-﻿
+
 
 namespace Rassef.ViewModels.TransferRequest
 {
@@ -27,5 +27,14 @@ namespace Rassef.ViewModels.TransferRequest
         [Display(Name = "رقم الأفيز")]
         public string AvizNumber { get; set; } = string.Empty;
 
+        // 5. الشاحنة (Dropdown)
+        [Display(Name = "الشاحنة")]
+        public int TruckId { get; set; }
+        public IEnumerable<SelectListItem> Trucks { get; set; } = Enumerable.Empty<SelectListItem>();
+
+        // 6. السائق (Dropdown)
+        [Display(Name = "السائق")]
+        public int DriverId { get; set; }
+        public IEnumerable<SelectListItem> Drivers { get; set; } = Enumerable.Empty<SelectListItem>();
     }
 }

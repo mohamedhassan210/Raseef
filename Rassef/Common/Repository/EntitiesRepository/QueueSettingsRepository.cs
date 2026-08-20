@@ -1,6 +1,6 @@
-﻿namespace Rassef.Common.Repository.EntitiesRepository
+namespace Rassef.Common.Repository.EntitiesRepository
 {
-    public class QueueSettingsRepository : Repository<QueueSettings>, IRepository<QueueSettings>
+    public class QueueSettingsRepository : Repository<QueueSettings>, IQueueSettingsRepository
     {
         public QueueSettingsRepository(ApplicationDbContext db) : base(db)
         {

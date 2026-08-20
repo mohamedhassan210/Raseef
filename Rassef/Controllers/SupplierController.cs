@@ -12,6 +12,10 @@ namespace Rassef.Controllers
             _supplierRepository = supplierRepository;
             _fileService = fileService;
         }
+        /// <summary>
+        /// عرض قائمة الموردين المسجلين في النظام
+        /// Displays list of all registered suppliers
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -32,8 +36,11 @@ namespace Rassef.Controllers
             return View(model);
         }
 
+        /// <summary>
+        /// عرض تفاصيل المورد والطلبات المرتبطة به
+        /// Displays supplier details and associated request statistics
+        /// </summary>
         [HttpGet]
-        // Display details
         public async Task<IActionResult> Details(int id)
         {
             var supplier = await _supplierRepository.GetSupplierWithDetailsAsync(id);
@@ -41,9 +48,8 @@ namespace Rassef.Controllers
             if (supplier == null)
             {
                 ModelState.AddModelError("", "هذا المورد غير موجود");
-                return View(supplier);
+                return View(new SupplierDetailsVM());
             }
-
 
             var detailsVM = new SupplierDetailsVM
             {
@@ -59,16 +65,22 @@ namespace Rassef.Controllers
             return View(detailsVM);
         }
 
+        /// <summary>
+        /// صفحة إضافة مورد جديد (GET)
+        /// Displays supplier creation form
+        /// </summary>
         [HttpGet]
-        // Display create page
         public IActionResult Create()
         {
             return View(new CreateSupplierVM());
         }
 
+        /// <summary>
+        /// معالجة إضافة مورد جديد ورفع الشعار (POST)
+        /// Handles supplier creation with optional logo upload
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Create new item
         public async Task<IActionResult> Create(CreateSupplierVM model)
         {
             if (!ModelState.IsValid)
@@ -102,15 +114,18 @@ namespace Rassef.Controllers
                 TempData["SuccessMessage"] = "تم إضافة المورد بنجاح!";
                 return RedirectToAction(nameof(Index));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 ModelState.AddModelError("", "حدث خطأ أثناء حفظ بيانات المورد، يرجى المحاولة لاحقاً.");
                 return View(model);
             }
         }
 
+        /// <summary>
+        /// صفحة تعديل بيانات المورد (GET)
+        /// Displays edit supplier view
+        /// </summary>
         [HttpGet]
-        // Action Edit
         public async Task<IActionResult> Edit(int id)
         {
             var supplier = await _supplierRepository.GetByIdAsync(id);
@@ -118,33 +133,34 @@ namespace Rassef.Controllers
             if (supplier == null)
             {
                 ModelState.AddModelError("", "هذا المورد غير موجود");
-                return View(supplier);
+                return View(new UpdateSupplierVM());
             }
-
 
             var updateVM = new UpdateSupplierVM
             {
                 Id = supplier.Id,
                 Name = supplier.Name,
                 Phone = supplier.Phone,
-                SupCode = supplier.SupCode, // <-- ربط كود المورد
+                SupCode = supplier.SupCode,
                 ExistingLogoURL = supplier.LogoURL
             };
 
             return View(updateVM);
         }
 
+        /// <summary>
+        /// حفظ تعديلات بيانات المورد وتحديث الشعار إن وجد (POST)
+        /// Updates supplier details and logo
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(UpdateSupplierVM model)
         {
-            // 1. التحقق من صحة المدخلات
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // 2. جلب المورد من قاعدة البيانات
             var supplier = await _supplierRepository.GetByIdAsync(model.Id);
 
             if (supplier == null)
@@ -155,12 +171,10 @@ namespace Rassef.Controllers
 
             try
             {
-                // 3. تحديث الخصائص
                 supplier.Name = model.Name;
                 supplier.Phone = model.Phone;
                 supplier.SupCode = model.SupCode;
 
-                // 4. معالجة الصورة
                 if (model.LogoFile != null)
                 {
                     if (!string.IsNullOrEmpty(supplier.LogoURL))
@@ -171,7 +185,6 @@ namespace Rassef.Controllers
                     supplier.LogoURL = await _fileService.UploadImageAsync(model.LogoFile);
                 }
 
-                // 5. حفظ التعديلات
                 _supplierRepository.Update(supplier);
                 await _supplierRepository.SaveChangesAsync();
 
@@ -186,9 +199,12 @@ namespace Rassef.Controllers
             }
         }
 
+        /// <summary>
+        /// حذف المورد وحذف الشعار المرتبط به (POST)
+        /// Deletes supplier and associated logo file
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Delete item
         public async Task<IActionResult> Delete(int id)
         {
             var supplier = await _supplierRepository.GetByIdAsync(id);
@@ -196,10 +212,13 @@ namespace Rassef.Controllers
             if (supplier == null)
             {
                 ModelState.AddModelError("", "هذا المورد غير موجود");
-                return View(supplier);
+                return RedirectToAction(nameof(Index));
             }
 
-            _fileService.DeleteImage(supplier.LogoURL);
+            if (!string.IsNullOrEmpty(supplier.LogoURL))
+            {
+                _fileService.DeleteImage(supplier.LogoURL);
+            }
 
             _supplierRepository.Remove(supplier);
             await _supplierRepository.SaveChangesAsync();

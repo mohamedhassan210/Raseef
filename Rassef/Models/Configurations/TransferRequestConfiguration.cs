@@ -1,4 +1,4 @@
-﻿namespace Rassef.Configurations
+namespace Rassef.Configurations
 {
     public class TransferRequestConfiguration : IEntityTypeConfiguration<TransferRequest>
     {
@@ -13,6 +13,12 @@
             builder.Property(tr => tr.PermitNumber)
                    .IsRequired()
                    .HasMaxLength(100);
+
+            builder.HasIndex(tr => tr.PermitNumber);
+            builder.HasIndex(tr => tr.AvizNumber);
+            builder.HasIndex(tr => new { tr.RequestStatusId, tr.DepartmentId, tr.CreatedAT });
+            builder.HasIndex(tr => tr.DriverId);
+            builder.HasIndex(tr => tr.TruckId);
 
             builder.HasOne(tr => tr.Truck)
                    .WithMany(t => t.TransferRequests)

@@ -1,4 +1,4 @@
-﻿namespace Rassef.Controllers
+namespace Rassef.Controllers
 {
     public class SupplyOrderController : Controller
     {
@@ -11,6 +11,10 @@
             _excelService = excelService;
         }
 
+        /// <summary>
+        /// تقرير أوامر وطلبات التوريد والبحث المتقدم بالتواريخ والأقسام والحالات
+        /// Supply orders report page with date, department, and status filters
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index(DateTime? fromTime, DateTime? toTime, string? statusFilter, string? search)
         {
@@ -28,48 +32,46 @@
                         .ThenInclude(da => da.Dock)
                 .AsQueryable();
 
-            // الفلترة بالتاريخ والوقت اعتماداً على تاريخ إنشاء الطلب أو التذكرة
             if (fromTime.HasValue)
                 query = query.Where(x => x.CreatedAT >= fromTime.Value);
 
             if (toTime.HasValue)
                 query = query.Where(x => x.CreatedAT <= toTime.Value);
 
-            // الفلترة بحالة الطلب (انتظار / جاري / تم)
             if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "الكل")
-                query = query.Where(x => x.RequestStatus.Name == statusFilter);
+                query = query.Where(x => x.RequestStatus != null && x.RequestStatus.Name == statusFilter);
 
-            // البحث برقم الدور أو اسم السائق أو رقم اللوحة
             if (!string.IsNullOrEmpty(search))
             {
-                query = query.Where(x => x.Driver.FullName.Contains(search)
-                                      || x.Truck.PlateNumber.Contains(search)
-                                      || x.QueueTickets.Any(q => q.TicketNumber.Contains(search)));
+                query = query.Where(x => (x.Driver != null && x.Driver.FullName.Contains(search))
+                                      || (x.Truck != null && x.Truck.PlateNumber.Contains(search))
+                                      || x.QueueTickets.Any(q => q.TicketNumber != null && q.TicketNumber.Contains(search)));
             }
 
             var result = await query.Select(x => new SupplyOrderReportViewModel
             {
                 RequestId = x.Id,
-                // أخذ التذكرة المتصلة بالطلب
                 QueueNumber = x.QueueTickets.Select(q => q.TicketNumber).FirstOrDefault() ?? "N/A",
-                DriverName = x.Driver != null ? x.Driver.FullName : x.DriverPhone,
-                TruckPlate = x.Truck != null ? $"{x.Truck.PlateLetter} {x.Truck.PlateNumber}" : "",
-                DepartmentName = x.Department != null ? x.Department.Name : "",
-                StatusName = x.RequestStatus != null ? x.RequestStatus.Name : "",
-                // أخذ وقت الدخول من التذكرة أو وقت إنشاء الطلب
+                DriverName = x.Driver != null ? x.Driver.FullName : (x.DriverPhone ?? "غير محدد"),
+                TruckPlate = x.Truck != null ? $"{x.Truck.PlateLetter} {x.Truck.PlateNumber}" : "غير محدد",
+                DepartmentName = x.Department != null ? x.Department.Name : "غير محدد",
+                StatusName = x.RequestStatus != null ? x.RequestStatus.Name : "غير محدد",
                 EntryTime = x.QueueTickets.Select(q => q.EntryTime).FirstOrDefault() != default
                             ? x.QueueTickets.Select(q => q.EntryTime).FirstOrDefault()
                             : x.CreatedAT,
-                // أخذ اسم الرصيف المعين للطلب
                 DockName = x.QueueTickets
                             .SelectMany(q => q.DockAssignments)
-                            .Select(da => da.Dock.DockName)
-                            .FirstOrDefault() ?? "رصيف 5"
+                            .Select(da => da.Dock != null ? da.Dock.DockName : "A1")
+                            .FirstOrDefault() ?? "A1"
             }).ToListAsync();
 
             return View(result);
         }
 
+        /// <summary>
+        /// تصدير تقرير أوامر التوريد إلى ملف Excel
+        /// Exports supply orders report to Excel (.xlsx) file
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> ExportToExcel(DateTime? fromTime, DateTime? toTime)
         {

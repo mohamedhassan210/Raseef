@@ -1,4 +1,4 @@
-﻿
+
 
 namespace Rassef.ViewModels.QueueTicket
 {

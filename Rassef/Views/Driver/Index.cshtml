@@ -69,7 +69,7 @@
         {
             foreach (var driver in Model)
             {
-                <article class="driver-card" data-name="@driver.FullName" data-id="@driver.NationalId">
+                <article class="driver-card" data-name="@driver.FullName" data-id="@driver.Id" data-national-id="@driver.NationalId">
                     <div class="btnAndArticle">
                         <div class="driver-avatar" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -206,16 +206,21 @@
 
 @section Scripts {
     <script>
+        window.departmentsData = @Html.Raw(Json.Serialize(ViewBag.Departments ?? new List<object>()));
+
         window.pageData = {
-            companyName: '@Html.Raw(ViewBag.SupplierName)',
-            truckName: '@Html.Raw(ViewBag.TruckName)',
+            supplierId: @(ViewBag.SupplierId ?? 0),
+            truckId: @(ViewContext.RouteData.Values["id"] ?? (Context.Request.Query["id"].FirstOrDefault() ?? "0")),
+            companyName: '@Html.Raw(ViewBag.SupplierName ?? "")',
+            truckName: '@Html.Raw(ViewBag.TruckName ?? "")',
             dockName: 'A',
             employeeName: '@Html.Raw(!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "المسؤول")'
         };
 
         window.routes = {
             supplierIndex: '@Url.Action("Index", "Supplier")',
-            receiptPage: '@Url.Action("Recript", "Driver")'
+            receiptPage: '@Url.Action("Recript", "Driver")',
+            createSupplierTicket: '@Url.Action("CreateSupplierTicket", "Driver")'
         };
     </script>
 

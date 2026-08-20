@@ -12,6 +12,7 @@ namespace Rassef.Controllers
         private readonly IDepartmentRepository _departmentRepository;
         private readonly IRepository<TicketStatuses> _ticketStatusRepository;
         private readonly IRepository<QueueTicket> _ticketRepository;
+        private readonly ITicketEngineService _ticketEngineService;
 
         public AuthenticationController(
             IUserRepository userRepository,
@@ -21,7 +22,8 @@ namespace Rassef.Controllers
             IRepository<SupplierRequest> transferRequestRepository,
             IDepartmentRepository departmentRepository,
             IRepository<TicketStatuses> ticketStatusesRepository,
-            IRepository<QueueTicket> ticketRepository)
+            IRepository<QueueTicket> ticketRepository,
+            ITicketEngineService ticketEngineService)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
@@ -30,16 +32,24 @@ namespace Rassef.Controllers
             _departmentRepository = departmentRepository;
             _ticketStatusRepository = ticketStatusesRepository;
             _ticketRepository = ticketRepository;
+            _ticketEngineService = ticketEngineService;
         }
 
+        /// <summary>
+        /// صفحة البداية والمقدمة للتعريف بالنظام
+        /// Introduction and landing page for the application
+        /// </summary>
         [HttpGet]
-
-        // Action Intro
         public IActionResult Intro()
         {
             return View();
         }
-        // every employee 
+
+        /// <summary>
+        /// عرض قائمة الموظفين والمستخدمين المسجلين في النظام
+        /// Lists all registered employees and users
+        /// </summary>
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var users = await _userRepository.GetAllAsync();
@@ -48,7 +58,7 @@ namespace Rassef.Controllers
             {
                 Name = u.Name,
                 Phone = u.Phone,
-                Email = u.Email.ToString(),
+                Email = u.Email != null ? u.Email.ToString() : string.Empty,
                 NationalId = u.NationalId,
                 UserCode = u.UserCode
             }).ToList();
@@ -64,7 +74,10 @@ namespace Rassef.Controllers
             return View(allUsers);
         }
 
-
+        /// <summary>
+        /// عرض الملف الشخصي وسجل زيارات السائق
+        /// Displays driver profile and historical visit count
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Details(int? id)
         {
@@ -74,7 +87,6 @@ namespace Rassef.Controllers
                 return View(new DriverProfileVM());
             }
 
-            // هنا هننادي الدالة اللي بتجيب السائق بالطلبات والموردين اللي جواه
             var driver = await _driverRepository.GetByIdWithDetailsAsync(id.Value);
 
             if (driver == null)
@@ -83,28 +95,21 @@ namespace Rassef.Controllers
                 return View(new DriverProfileVM());
             }
 
-            // 1. حساب عدد الزيارات من الـ ICollection مباشرة
             int visitsCount = driver.SupplierRequests?.Count ?? 0;
-
-            // 2. استنتاج اسم الشركة من "أحدث طلب" في الـ ICollection
             string companyName = "غير محدد";
 
-            if (visitsCount > 0)
+            if (visitsCount > 0 && driver.SupplierRequests != null)
             {
-                // رتبناهم تنازلي وجبنا أول واحد (أحدث طلب)، وبعدين دخلنا على المورد جبنا اسمه
-                companyName = driver.SupplierRequests
-                    .OrderByDescending(r => r.Id)
-                    .First()
-                    .Supplier?.Name ?? "غير محدد";
+                var latestRequest = driver.SupplierRequests.OrderByDescending(r => r.Id).FirstOrDefault();
+                companyName = latestRequest?.Supplier?.Name ?? "غير محدد";
             }
 
-            // 3. بناء الـ ViewModel
             var driverProfile = new DriverProfileVM
             {
                 Id = driver.Id,
                 Name = driver.FullName,
-                NationalId = driver.NationalId, // تأكد من اسم الخاصية عندك في الموديل
-                Phone = driver.Phone, // تأكد من اسم الخاصية
+                NationalId = driver.NationalId,
+                Phone = driver.Phone,
                 CompanyName = companyName,
                 VisitsCount = visitsCount
             };
@@ -112,18 +117,26 @@ namespace Rassef.Controllers
             return View(driverProfile);
         }
 
+        /// <summary>
+        /// صفحة تسجيل الدخول (GET)
+        /// Displays the login page or redirects if already authenticated
+        /// </summary>
         [HttpGet]
-        // Action Login
-        public async Task<IActionResult> Login()
+        public IActionResult Login()
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("SupOrTra", "Authentication");
+                return RedirectToAction("AddRoleOrView", "Authentication");
             }
             return View();
         }
+
+        /// <summary>
+        /// معالجة تسجيل الدخول والتحقق من كلمة المرور وإنشاء رمز JWT (POST)
+        /// Authenticates user credentials, sets HTTP-only JWT cookie, and redirects
+        /// </summary>
         [HttpPost]
-        // Action Login
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel login)
         {
             if (!ModelState.IsValid)
@@ -132,7 +145,7 @@ namespace Rassef.Controllers
             }
             var user = await _userRepository.FindAsync(x =>
                 x.UserName == login.UserNameOrEmail ||
-                x.Email!.Value == login.UserNameOrEmail);
+                (x.Email != null && x.Email.Value == login.UserNameOrEmail));
 
             if (user is null)
             {
@@ -152,13 +165,12 @@ namespace Rassef.Controllers
             }
             catch (BCrypt.Net.SaltParseException)
             {
-                // في حال كانت كلمة المرور في قاعدة البيانات غير مشفرة بشكل صحيح
                 ModelState.AddModelError(nameof(login.Password), "يوجد مشكلة في حسابك، يرجى التواصل مع الإدارة.");
                 return View(login);
             }
 
             var userNameToPass = !string.IsNullOrWhiteSpace(user.Name) ? user.Name : (!string.IsNullOrWhiteSpace(user.UserName) ? user.UserName : user.Email?.ToString());
-            var token = _jwtService.GenerateToken(user.Id, user.Email, userNameToPass);
+            var token = _jwtService.GenerateToken(user.Id, user.Email!, userNameToPass);
 
             Response.Cookies.Append("AccessToken", token, new CookieOptions
             {
@@ -170,61 +182,88 @@ namespace Rassef.Controllers
             });
             return RedirectToAction("AddRoleOrView", "Authentication");
         }
-        
-    
-        [HttpGet]
-        // Action ForgetPassword
-        public async Task<IActionResult> ForgetPassword()
-        => View();
 
-        [HttpPost]
-        // Action ForgetPassword
-        public async Task<IActionResult> ForgetPassword(ForgetPasswordViewModel register)
+        /// <summary>
+        /// تسجيل الخروج وحذف الكوكيز
+        /// Logs out the user and clears authentication cookie
+        /// </summary>
+        [HttpGet]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("AccessToken");
+            return RedirectToAction("Login", "Authentication");
+        }
+
+        /// <summary>
+        /// صفحة استرجاع كلمة المرور (GET)
+        /// Displays password recovery page
+        /// </summary>
+        [HttpGet]
+        public IActionResult ForgetPassword()
         {
             return View();
         }
+
+        /// <summary>
+        /// معالجة استرجاع كلمة المرور (POST)
+        /// Handles forgot password request
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ForgetPassword(ForgetPasswordViewModel register)
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// عرض الملف الشخصي للمستخدم الحالي
+        /// Displays detailed profile for specified user
+        /// </summary>
         [HttpGet]
-        // Action UserProfile
         public async Task<IActionResult> UserProfile(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
-                ModelState.AddModelError(nameof(user.UserName), "هذا الملف المستخدم غير موجود .");
-                return View(user);
+                ModelState.AddModelError(string.Empty, "هذا الملف المستخدم غير موجود.");
+                return View(new UserProfileViewModel());
             }
             var profile = new UserProfileViewModel
             {
-                Email = Email.Create(user.Email.Value),
+                Email = user.Email,
                 UserName = user.UserName,
                 Name = user.Name,
                 Phone = user.Phone,
                 NationalId = user.NationalId
             };
-            if (profile == null)
-            {
-                ModelState.AddModelError(nameof(profile.Name), "هذا الملف الشخصى غير موجود .");
-                return View(profile);
-            }
 
             return View(profile);
-
         }
-        // add role action 
+
+        /// <summary>
+        /// شاشة التوجيه الرئيسية لاختيار: إضافة دور / متابعة الأدوار / لوحة الإدارة
+        /// Gateway selection screen between registering, viewing queue, and dashboard
+        /// </summary>
         [HttpGet]
-        public async Task<IActionResult> AddRoleOrView()
+        public IActionResult AddRoleOrView()
         {
             return View();
         }
 
-        // Supplier of Transfer 
+        /// <summary>
+        /// شاشة الاختيار بين خدمات التوريد (الموردين) والتحويل (الفروع)
+        /// Selection screen between Supplier flow and Internal Transfer flow
+        /// </summary>
         [HttpGet]
-        public async Task<IActionResult> SupOrTra()
+        public IActionResult SupOrTra()
         {
             return View();
         }
 
-        // Supplier of Transfer 
+        /// <summary>
+        /// شاشة عرض الأدوار الحية المباشرة (شاحنات جارية / انتظار / منتهية)
+        /// Displays live queue status board with current active and waiting trucks
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> ViewRole()
         {
@@ -232,15 +271,15 @@ namespace Rassef.Controllers
                 .Include(t => t.Department)
                 .Include(t => t.TicketStatus)
                 .Include(t => t.SupplierRequest)
-                    .ThenInclude(sr => sr.Supplier)
+                    .ThenInclude(sr => sr!.Supplier)
                 .Include(t => t.SupplierRequest)
-                    .ThenInclude(sr => sr.Driver)
+                    .ThenInclude(sr => sr!.Driver)
                 .Include(t => t.SupplierRequest)
-                    .ThenInclude(sr => sr.Truck)
+                    .ThenInclude(sr => sr!.Truck)
                 .Include(t => t.TransferRequest)
-                    .ThenInclude(tr => tr.Driver)
+                    .ThenInclude(tr => tr!.Driver)
                 .Include(t => t.TransferRequest)
-                    .ThenInclude(tr => tr.Truck)
+                    .ThenInclude(tr => tr!.Truck)
                 .Include(t => t.DockAssignments)
                     .ThenInclude(da => da.Dock)
             );
@@ -266,7 +305,6 @@ namespace Rassef.Controllers
                 };
             }).ToList();
 
-            // حساب الإحصائيات في مرور واحد
             int waitingCount = 0, inProgressCount = 0, completedCount = 0;
             foreach (var t in ticketViewModels)
             {
@@ -279,7 +317,6 @@ namespace Rassef.Controllers
                     completedCount++;
             }
 
-            // ترتيب الأدوار منطقياً: الجارية أولاً ثم بالانتظار ثم المنتهية
             int GetStatusPriority(string statusName)
             {
                 var s = statusName.Replace("إ", "ا").Trim();
@@ -305,11 +342,45 @@ namespace Rassef.Controllers
             return View("viewRole", viewModel);
         }
 
+        /// <summary>
+        /// استدعاء الدور القادم من قائمة الانتظار وتحويله إلى جاري التنفيذ
+        /// Calls next waiting truck in queue and marks it as In-Progress
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> CallNext(int? departmentId)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int currentUserId = int.TryParse(userIdClaim, out var uId) ? uId : 1;
 
+            var result = await _ticketEngineService.CallNextTicketAsync(departmentId, currentUserId);
+            return Json(result);
+        }
 
-        //Helpers
+        /// <summary>
+        /// تحديث حالة الدور (إنتظار / جاري التنفيذ / مكتمل)
+        /// Updates status of a queue ticket with audit tracking
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> UpdateStatus([FromBody] UpdateTicketStatusDTO dto)
+        {
+            if (dto == null || dto.TicketId <= 0 || string.IsNullOrWhiteSpace(dto.Status))
+            {
+                return Json(new { success = false, message = "بيانات غير صالحة." });
+            }
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int currentUserId = int.TryParse(userIdClaim, out var uId) ? uId : 1;
+
+            var result = await _ticketEngineService.UpdateTicketStatusAsync(dto.TicketId, dto.Status, currentUserId);
+            return Json(result);
+        }
+
+        /// <summary>
+        /// صفحة رفض الوصول عند عدم وجود الصلاحيات الكافية
+        /// Access Denied page when user role is unauthorized
+        /// </summary>
         [HttpGet]
-        public async Task<IActionResult> AccessDenied()
+        public IActionResult AccessDenied()
         {
             return View();
         }

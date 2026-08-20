@@ -29,9 +29,10 @@ public class SupplierRequestListVM
     [Display(Name = "رقم التصريح")]
     public string PermitNumber { get; set; } = string.Empty;
     public string TicketStatusName { get; set; } = string.Empty;
+    public int? TicketId { get; set; }
+    public int DepartmentId { get; set; }
     public int DockNumber { get; set; }
     [Display(Name = "الرصيف")]
     public string DockName { get; set; } = string.Empty;
     public DateTimeOffset QueueTime { get; set; }
-
 }

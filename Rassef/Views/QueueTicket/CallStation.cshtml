@@ -1,0 +1,193 @@
+﻿@model Rassef.ViewModels.QueueTicket.CallStationVM
+@{
+    ViewData["Title"] = "شاشة استدعاء الأدوار المتتالية — Next Station";
+    Layout = null;
+    var departments = ViewBag.Departments as IEnumerable<Rassef.Models.Entities.Department>;
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/callStation.css" asp-append-version="true">
+</head>
+<body>
+
+    <div class="station-container">
+        <!-- Header -->
+        <header class="station-header">
+            <div class="header-right" style="display: flex; align-items: center; gap: 16px;">
+                <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-fathalla" onerror="this.src='https://via.placeholder.com/120x60?text=Fathalla'">
+                <div class="station-title-box">
+                    <h1>محطة استدعاء الأدوار (Next Calling)</h1>
+                    <p>استدعاء فوري متتابع — تحويل الشاحنات من الانتظار إلى جاري التفريغ</p>
+                </div>
+            </div>
+
+            <div class="header-left">
+                <img src="~/img/logo.svg" alt="رصيفي" class="brand-raseefy" onerror="this.src='https://via.placeholder.com/120x60?text=Raseefy'">
+            </div>
+        </header>
+
+        <!-- Top Bar -->
+        <section class="station-top-bar">
+            <div class="dept-select-group">
+                <label for="stationDeptSelect"><i class="fas fa-filter"></i> القسم المستهدف:</label>
+                <select id="stationDeptSelect" class="dept-select">
+                    <option value="">كل الأقسام</option>
+                    @if (departments != null)
+                    {
+                        foreach (var d in departments)
+                        {
+                            <option value="@d.Id">@d.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <a asp-controller="QueueTicket" asp-action="ExitGate" class="btn-secondary-action" style="background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; text-decoration: none; padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-door-open"></i> بوابة الخروج والإنهاء 🏁
+                </a>
+                <a asp-controller="Authentication" asp-action="AddRoleOrView" style="color: var(--text-muted); font-weight: 700; text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-home"></i> الرئيسية
+                </a>
+            </div>
+        </section>
+
+        <!-- Toast Alert Container -->
+        <div id="stationToast" class="station-toast" style="display: none;"></div>
+
+        <!-- Big Hero Super Next Button Section -->
+        <section class="hero-next-section">
+            <button id="btnSuperNext" class="btn-super-next" type="button">
+                <i class="fas fa-step-forward"></i>
+                <span>Next — استدعاء الدور التالي ⏭️</span>
+            </button>
+            <div class="next-hint">
+                <span>المتبقي في قائمة الانتظار: <strong id="stationWaitCount" style="color: var(--primary-orange); font-size: 1.2rem;">@(Model?.WaitingCount ?? 0)</strong> شاحنة</span>
+            </div>
+        </section>
+
+        <!-- 2 Side-by-Side Cards: Current vs Next -->
+        <section class="hero-duo-grid">
+            <!-- 1. الدور الحالي بالرصيف (In Progress) -->
+            <div class="station-hero-card current-card" id="currentSlotContainer">
+                @if (Model?.CurrentTicket != null)
+                {
+                    <div class="card-top-tag">
+                        <span class="tag-title"><i class="fas fa-truck-loading"></i> الدور الحالي بالرصيف</span>
+                        <span class="tag-badge">جاري التنفيذ</span>
+                    </div>
+                    <div class="hero-ticket-number">@Model.CurrentTicket.TicketNumber</div>
+                    <div class="hero-details-list">
+                        <div class="hero-detail-row">
+                            <span class="label">الشاحنة</span>
+                            <span class="val" style="direction: ltr; text-align: right;">@Model.CurrentTicket.TruckNumber</span>
+                        </div>
+                        <div class="hero-detail-row">
+                            <span class="label">السائق</span>
+                            <span class="val">@Model.CurrentTicket.DriverName</span>
+                        </div>
+                        <div class="hero-detail-row">
+                            <span class="label">الرصيف</span>
+                            <span class="val" style="color: var(--primary-orange);">@Model.CurrentTicket.DockName</span>
+                        </div>
+                        <div class="hero-detail-row">
+                            <span class="label">القسم</span>
+                            <span class="val">@Model.CurrentTicket.DepartmentName</span>
+                        </div>
+                        <div class="hero-detail-row" style="grid-column: span 2;">
+                            <span class="label">الجهة / المورد</span>
+                            <span class="val">@Model.CurrentTicket.CompanyName (@Model.CurrentTicket.RequestType)</span>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="card-top-tag">
+                        <span class="tag-title"><i class="fas fa-truck-loading"></i> الدور الحالي</span>
+                    </div>
+                    <div class="empty-slot-msg">لا يوجد دور قيد التفريغ حالياً</div>
+                }
+            </div>
+
+            <!-- 2. الدور القادم للاستدعاء (Next in Queue) -->
+            <div class="station-hero-card next-card" id="nextSlotContainer">
+                @if (Model?.NextUpcomingTicket != null)
+                {
+                    <div class="card-top-tag">
+                        <span class="tag-title"><i class="fas fa-clock"></i> الدور القادم للاستدعاء</span>
+                        <span class="tag-badge">في الانتظار ⏳</span>
+                    </div>
+                    <div class="hero-ticket-number">@Model.NextUpcomingTicket.TicketNumber</div>
+                    <div class="hero-details-list">
+                        <div class="hero-detail-row">
+                            <span class="label">الشاحنة</span>
+                            <span class="val" style="direction: ltr; text-align: right;">@Model.NextUpcomingTicket.TruckNumber</span>
+                        </div>
+                        <div class="hero-detail-row">
+                            <span class="label">السائق</span>
+                            <span class="val">@Model.NextUpcomingTicket.DriverName</span>
+                        </div>
+                        <div class="hero-detail-row">
+                            <span class="label">الرصيف المقترح</span>
+                            <span class="val" style="color: var(--primary-orange);">@Model.NextUpcomingTicket.DockName</span>
+                        </div>
+                        <div class="hero-detail-row">
+                            <span class="label">القسم</span>
+                            <span class="val">@Model.NextUpcomingTicket.DepartmentName</span>
+                        </div>
+                        <div class="hero-detail-row" style="grid-column: span 2;">
+                            <span class="label">الجهة / المورد</span>
+                            <span class="val">@Model.NextUpcomingTicket.CompanyName (@Model.NextUpcomingTicket.RequestType)</span>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="card-top-tag">
+                        <span class="tag-title"><i class="fas fa-clock"></i> الدور القادم</span>
+                    </div>
+                    <div class="empty-slot-msg">قائمة الانتظار فارغة حالياً 🥳</div>
+                }
+            </div>
+        </section>
+
+        <!-- Upcoming Queue Preview -->
+        <section class="upcoming-section">
+            <div class="upcoming-header">
+                <h3><i class="fas fa-list-ol"></i> الشاحنات التالية في طابور الانتظار</h3>
+            </div>
+            <div class="queue-chips-container" id="upcomingChipsContainer">
+                @if (Model?.WaitingQueue != null && Model.WaitingQueue.Any())
+                {
+                    foreach (var item in Model.WaitingQueue.Take(6))
+                    {
+                        <div class="queue-chip">
+                            <span class="chip-num">@item.TicketNumber</span>
+                            <div class="chip-text">
+                                <span class="driver">@item.DriverName</span>
+                                <span class="truck">@item.TruckNumber • @item.DockName</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <span style="color: var(--text-muted); font-size: 0.9rem;">لا توجد أدوار أخرى في الانتظار.</span>
+                }
+            </div>
+        </section>
+    </div>
+
+    <script src="~/js/callStation.js" asp-append-version="true"></script>
+</body>
+</html>

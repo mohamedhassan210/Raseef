@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Rassef.Common.Interfaces;
+using Rassef.Common.Services;
 
 namespace Rassef.Dependencyinjection
 {
@@ -6,23 +8,40 @@ namespace Rassef.Dependencyinjection
     {
         public static IServiceCollection AddDependcyInjection(this IServiceCollection services, IConfiguration configuration)
         {
-            // 1. Add SqlServer
+            // 1. Add SqlServer with Connection Resiliency (Retry on Failure)
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), sqlOptions =>
+                {
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorNumbersToAdd: null);
+                }));
 
             services.AddLogging();
+            services.AddMemoryCache();
+            services.AddResponseCompression();
 
-            // 2. Add Controllers & Filters
+            // 2. Health Checks for Production Readiness
+            services.AddHealthChecks()
+                .AddCheck("system_health", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("System is fully operational"));
+
+            // 3. Add Controllers, Filters & Antiforgery
             services.AddControllersWithViews(options =>
             {
-                options.Filters.Add<Rassef.Filters.FluentValidationActionFilter>();
+                options.Filters.Add<Filters.FluentValidationActionFilter>();
+            });
+
+            services.AddAntiforgery(options =>
+            {
+                options.HeaderName = "X-CSRF-TOKEN";
             });
 
             services.AddExceptionHandler<GlobalExceptionHandling>();
             services.AddProblemDetails();
             services.AddValidatorsFromAssemblyContaining<Program>();
 
-            // 3. Add Repositories & Services
+            // 4. Add Repositories & Services
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICheckOutRepository, CheckOutRepository>();
@@ -41,9 +60,12 @@ namespace Rassef.Dependencyinjection
             services.AddScoped<IRequestStatusRepository, RequestStatusRepository>();
             services.AddScoped<ExcelExportService>();
             services.AddScoped<IWarehouseRepository, WarehouseRepository>();
+            services.AddScoped<IShiftRepository, ShiftRepository>();
+            services.AddScoped<IQueueSettingsRepository, QueueSettingsRepository>();
+            services.AddScoped<ITicketEngineService, TicketEngineService>();
             services.AddScoped<IJwtService, JwtService>();
 
-            // 4. JWT Settings Configuration
+            // 5. JWT Settings Configuration
             var jwtSettingsSection = configuration.GetSection("Jwt");
             services.Configure<JwtSettings>(jwtSettingsSection);
             var jwtSettings = jwtSettingsSection.Get<JwtSettings>();
@@ -68,7 +90,6 @@ namespace Rassef.Dependencyinjection
                     RoleClaimType = ClaimTypes.Role
                 };
 
-                // 💡 قراءة التوكين تلقائياً من الـ Cookie المسماة "AccessToken"
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
@@ -106,6 +127,17 @@ namespace Rassef.Dependencyinjection
                 });
             });
 
+            // Production Security Headers
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+                context.Response.Headers["X-Frame-Options"] = "SAMEORIGIN";
+                context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
+                context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+                await next();
+            });
+
+            app.UseResponseCompression();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
@@ -116,6 +148,9 @@ namespace Rassef.Dependencyinjection
             // 🛑 الترتيب مهم جداً هنا:
             app.UseAuthentication(); // 1. التعرف على هُوية المستخدم من الـ Cookie/JWT أولاً
             app.UseAuthorization();  // 2. ثم فحص صلاحياته
+
+            // Health check endpoint for container / load balancer monitoring
+            app.MapHealthChecks("/healthz");
 
             app.MapControllerRoute(
                 name: "default",

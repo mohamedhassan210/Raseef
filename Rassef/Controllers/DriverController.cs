@@ -9,6 +9,12 @@ namespace Rassef.Controllers
         private readonly IDepartmentRepository _departmentRepository;
         private readonly IRepository<DriverTypes> _driverTypeRepository;
         private readonly IRepository<QueueTicket> _ticketRepository;
+        private readonly ISupplierRequestRepository _supplierRequestRepository;
+        private readonly IRepository<PermitTypes> _permitTypeRepository;
+        private readonly IRepository<CommodityTypes> _commodityTypeRepository;
+        private readonly IRepository<RequestStatuses> _requestStatusRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly ITicketEngineService _ticketEngineService;
 
         public DriverController(
             IDriverRepository repository,
@@ -16,7 +22,13 @@ namespace Rassef.Controllers
             ITruckRepository truckRepository,
             IDepartmentRepository departmentRepository,
             IRepository<DriverTypes> driverTypeRepository,
-            IRepository<QueueTicket> ticketRepository)
+            IRepository<QueueTicket> ticketRepository,
+            ISupplierRequestRepository supplierRequestRepository,
+            IRepository<PermitTypes> permitTypeRepository,
+            IRepository<CommodityTypes> commodityTypeRepository,
+            IRepository<RequestStatuses> requestStatusRepository,
+            IUserRepository userRepository,
+            ITicketEngineService ticketEngineService)
         {
             _driverRepository = repository;
             _supplierRepository = supplierRepository;
@@ -24,6 +36,12 @@ namespace Rassef.Controllers
             _departmentRepository = departmentRepository;
             _driverTypeRepository = driverTypeRepository;
             _ticketRepository = ticketRepository;
+            _supplierRequestRepository = supplierRequestRepository;
+            _permitTypeRepository = permitTypeRepository;
+            _commodityTypeRepository = commodityTypeRepository;
+            _requestStatusRepository = requestStatusRepository;
+            _userRepository = userRepository;
+            _ticketEngineService = ticketEngineService;
         }
 
         // Get All Drivers
@@ -47,6 +65,7 @@ namespace Rassef.Controllers
                 FullName = d.FullName,
                 NationalId = d.NationalId,
                 Phone = d.Phone
+
             }).ToList();
 
             ViewBag.SupplierName = supplier.Name;
@@ -57,10 +76,16 @@ namespace Rassef.Controllers
                     : "سيارة غير محددة";
 
             ViewBag.SupplierId = supplierId;
+            var depts = await _departmentRepository.GetAllAsync();
+            ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
 
             return View(driverList);
         }
 
+        /// <summary>
+        /// عرض وطباعة إيصال الدور (البون)
+        /// Displays printable entry receipt for driver ticket
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Recript(int? ticketId)
         {
@@ -72,10 +97,10 @@ namespace Rassef.Controllers
                     .Include(t => t.Department)
                     .Include(t => t.TicketStatus)
                     .Include(t => t.CreatedBy)
-                    .Include(t => t.SupplierRequest).ThenInclude(sr => sr.Supplier)
-                    .Include(t => t.SupplierRequest).ThenInclude(sr => sr.CreatedBy)
-                    .Include(t => t.TransferRequest).ThenInclude(tr => tr.CreatedBy)
-                    .Include(t => t.DockAssignments).ThenInclude(da => da.Dock)
+                    .Include(t => t.SupplierRequest!).ThenInclude(sr => sr!.Supplier)
+                    .Include(t => t.SupplierRequest!).ThenInclude(sr => sr!.CreatedBy)
+                    .Include(t => t.TransferRequest!).ThenInclude(tr => tr!.CreatedBy)
+                    .Include(t => t.DockAssignments!).ThenInclude(da => da.Dock)
             );
 
             if (ticketId.HasValue && ticketId.Value > 0)
@@ -113,7 +138,11 @@ namespace Rassef.Controllers
             return View(model);
         }
 
-        // Get Driver By Id
+        /// <summary>
+        /// عرض تفاصيل السائق (GET)
+        /// Displays driver details by Id
+        /// </summary>
+        [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
             var drv = await _driverRepository.GetByIdAsync(id);
@@ -478,6 +507,97 @@ namespace Rassef.Controllers
 
             // يمكنك التوجيه لصفحة الشاحنات مع إرجاع الـ truckId و supplierId إذا أردت متابعة الشاحنة
             return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId, id = create.TruckId });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateSupplierTicket([FromBody] CreateSupplierTicketDto dto)
+        {
+            if (dto == null || dto.DepartmentId <= 0)
+            {
+                return BadRequest(new { success = false, message = "بيانات غير مكتملة." });
+            }
+
+            var supplier = await _supplierRepository.GetByIdAsync(dto.SupplierId);
+            if (supplier == null)
+            {
+                var allSups = await _supplierRepository.GetAllAsync();
+                supplier = allSups.FirstOrDefault();
+                if (supplier != null) dto.SupplierId = supplier.Id;
+            }
+
+            var truck = await _truckRepository.GetByIdAsync(dto.TruckId);
+            if (truck == null)
+            {
+                var allTrucks = await _truckRepository.GetAllAsync();
+                truck = allTrucks.FirstOrDefault();
+                if (truck != null) dto.TruckId = truck.Id;
+            }
+
+            var driver = await _driverRepository.GetByIdAsync(dto.DriverId);
+            if (driver == null)
+            {
+                var allDrivers = await _driverRepository.GetAllAsync();
+                driver = allDrivers.FirstOrDefault(d => d.NationalId == dto.DriverId.ToString() || d.Id == dto.DriverId)
+                    ?? allDrivers.FirstOrDefault();
+                if (driver != null) dto.DriverId = driver.Id;
+            }
+
+            var department = await _departmentRepository.GetByIdAsync(dto.DepartmentId);
+            if (department == null)
+            {
+                var allDepts = await _departmentRepository.GetAllAsync();
+                department = allDepts.FirstOrDefault();
+                if (department != null) dto.DepartmentId = department.Id;
+            }
+
+            if (department == null || supplier == null || truck == null || driver == null)
+            {
+                return BadRequest(new { success = false, message = "تعذر إكمال الطلب، يرجى التأكد من اختيار القسم والمورد والسيارة والسائق." });
+            }
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int currentUserId = 1;
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var uId))
+            {
+                currentUserId = uId;
+            }
+            var currentUser = await _userRepository.GetByIdAsync(currentUserId);
+
+            var defaultPermit = (await _permitTypeRepository.GetAllAsync()).FirstOrDefault();
+            var defaultCommodity = (await _commodityTypeRepository.GetAllAsync()).FirstOrDefault();
+            var defaultStatus = (await _requestStatusRepository.GetAllAsync()).FirstOrDefault();
+
+            var supplierRequest = new SupplierRequest
+            {
+                SupplierId = dto.SupplierId,
+                TruckId = dto.TruckId,
+                DriverId = dto.DriverId,
+                DepartmentId = dto.DepartmentId,
+                PermitTypeId = defaultPermit?.Id ?? 1,
+                CommodityTypeId = defaultCommodity?.Id ?? 1,
+                RequestStatusId = defaultStatus?.Id ?? 1,
+                CreatedBy = currentUser!
+            };
+
+            await _supplierRequestRepository.AddAsync(supplierRequest);
+            await _supplierRequestRepository.SaveChangesAsync();
+
+            var ticketResult = await _ticketEngineService.IssueSupplierTicketAsync(dto.DepartmentId, supplierRequest.Id, currentUserId);
+
+            return Json(new
+            {
+                success = true,
+                ticketId = ticketResult.TicketId,
+                ticketNumber = ticketResult.TicketNumber,
+                requestType = "توريد",
+                waitingCount = ticketResult.WaitingCount,
+                departmentName = ticketResult.DepartmentName,
+                dockName = ticketResult.DockName,
+                employeeName = ticketResult.EmployeeName,
+                companyName = supplier?.Name ?? "غير محدد",
+                truckPlate = truck != null ? $"{truck.PlateLetter} {truck.PlateNumber}" : "غير محدد",
+                driverName = driver?.FullName ?? "غير محدد"
+            });
         }
     }
 }

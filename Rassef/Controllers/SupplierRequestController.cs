@@ -16,6 +16,7 @@ namespace Rassef.Controllers
         private readonly IRepository<TicketStatuses> _ticketStatusRepository;
         private readonly IRepository<QueueSettings> _queueSettingsRepository;
         private readonly IRepository<Shift> _shiftRepository;
+        private readonly ITicketEngineService _ticketEngineService;
 
         public SupplierRequestController(
             ISupplierRequestRepository supplierRequestRepository,
@@ -31,7 +32,8 @@ namespace Rassef.Controllers
             IRepository<QueueTicket> ticketRepository,
             IRepository<TicketStatuses> ticketStatusRepository,
             IRepository<QueueSettings> queueSettingsRepository,
-            IRepository<Shift> shiftRepository)
+            IRepository<Shift> shiftRepository,
+            ITicketEngineService ticketEngineService)
         {
             _supplierRequestRepository = supplierRequestRepository;
             _supplierRepository = supplierRepository;
@@ -47,6 +49,7 @@ namespace Rassef.Controllers
             _ticketStatusRepository = ticketStatusRepository;
             _queueSettingsRepository = queueSettingsRepository;
             _shiftRepository = shiftRepository;
+            _ticketEngineService = ticketEngineService;
         }
         [HttpGet]
         public async Task<IActionResult> Index()
@@ -507,85 +510,11 @@ namespace Rassef.Controllers
             await _supplierRequestRepository.AddAsync(supplierRequest);
             await _supplierRequestRepository.SaveChangesAsync();
 
-            // 3. إنشاء دور / تذكرة دور (QueueTicket) مع مراعاة إعدادات الـ Reset
-            var department = await _departmentRepository.GetByIdAsync(targetDepartmentId);
-            var prefix = department?.Prefix ?? "A";
-
-            var settings = await _queueSettingsRepository.FindAsync(x => true);
-            DateTimeOffset resetDate = DateTimeOffset.MinValue;
-
-            if (settings != null)
-            {
-                switch (settings.ResetType)
-                {
-                    case ResetType.Daily:
-                        resetDate = DateTimeOffset.Now.Date;
-                        break;
-                    case ResetType.ByShift:
-                        if (settings.ShiftId.HasValue)
-                        {
-                            var shift = await _shiftRepository.GetByIdAsync(settings.ShiftId.Value);
-                            if (shift != null)
-                            {
-                                resetDate = DateTime.Today.Add(shift.StartTime);
-                                if (shift.LastResetAt.HasValue && shift.LastResetAt > resetDate)
-                                    resetDate = shift.LastResetAt.Value;
-                            }
-                        }
-                        break;
-                    case ResetType.Manual:
-                        resetDate = settings.LastGlobalResetAt ?? DateTimeOffset.MinValue;
-                        break;
-                }
-
-                if (settings.LastGlobalResetAt.HasValue && settings.LastGlobalResetAt > resetDate)
-                    resetDate = settings.LastGlobalResetAt.Value;
-            }
-
-            if (department?.LastResetAt.HasValue == true && department.LastResetAt.Value > resetDate)
-                resetDate = department.LastResetAt.Value;
-
-            var allTickets = await _ticketRepository.GetAllAsync();
-            var lastTicket = allTickets
-                .Where(x => x.DepartmentId == targetDepartmentId && x.CreatedAT >= resetDate)
-                .OrderByDescending(x => x.CreatedAT)
-                .FirstOrDefault();
-
-            int counter = 1;
-            if (lastTicket != null)
-            {
-                var digits = new string(lastTicket.TicketNumber
-                    .Where(char.IsDigit)
-                    .ToArray());
-
-                if (!string.IsNullOrWhiteSpace(digits) && int.TryParse(digits, out var parsedCounter))
-                    counter = parsedCounter + 1;
-            }
-
-            var ticketNumber = $"{prefix}{counter}";
-
-            var allTicketStatuses = await _ticketStatusRepository.GetAllAsync();
-            var status = allTicketStatuses.FirstOrDefault(s => s.Name.Contains("انتظار") || s.Name.Contains("إنتظار")) ?? allTicketStatuses.FirstOrDefault();
-            int statusId = status?.Id ?? 1;
-
-            var queueTicket = new QueueTicket
-            {
-                TicketNumber = ticketNumber,
-                DepartmentId = targetDepartmentId,
-                TicketStatusId = statusId,
-                SupplierRequestId = supplierRequest.Id,
-                QueueTime = DateTimeOffset.Now,
-                EntryTime = DateTimeOffset.Now,
-                ExitTime = DateTimeOffset.MinValue,
-                ShiftId = settings?.ResetType == ResetType.ByShift ? settings.ShiftId : null,
-                CreatedBy = currentUser
-            };
-
-            await _ticketRepository.AddAsync(queueTicket);
-            await _ticketRepository.SaveChangesAsync();
+            // 3. إنشاء دور / تذكرة دور (QueueTicket) عبر محرك التذاكر
+            var ticketResult = await _ticketEngineService.IssueSupplierTicketAsync(targetDepartmentId, supplierRequest.Id, currentUser?.Id ?? 1);
 
             // 4. التوجيه لـ Recript مع تمرير رقم التذكرة
-            return RedirectToAction("Recript", "Driver", new { ticketId = queueTicket.Id });
+            return RedirectToAction("Recript", "Driver", new { ticketId = ticketResult.TicketId });
         }
 
         #region Helpers

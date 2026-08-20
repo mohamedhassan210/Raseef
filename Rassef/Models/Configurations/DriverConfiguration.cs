@@ -1,4 +1,4 @@
-﻿namespace Rassef.Configurations
+namespace Rassef.Configurations
 {
     public class DriverConfiguration : IEntityTypeConfiguration<Driver>
     {
@@ -17,6 +17,9 @@
             builder.Property(d => d.Phone)
                    .IsRequired()
                    .HasMaxLength(20);
+
+            builder.HasIndex(d => d.NationalId);
+            builder.HasIndex(d => d.Phone);
 
             builder.HasOne(d => d.CreatedBy)
                    .WithMany()

@@ -1,0 +1,74 @@
+﻿@{
+    ViewData["Title"] = "بوابة الخروج — إنهاء التذكرة وإتمام الدور";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/exitGate.css" asp-append-version="true">
+</head>
+<body>
+
+    <div class="exit-container">
+        <!-- Header -->
+        <header class="exit-header">
+            <div class="header-right" style="display: flex; align-items: center; gap: 16px;">
+                <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-fathalla" onerror="this.src='https://via.placeholder.com/120x60?text=Fathalla'">
+                <div class="exit-title-box">
+                    <h1>بوابة الخروج (Exit Gate & Checkout)</h1>
+                    <p>إدخال كود التذكرة لتسجيل الخروج وإنهاء الدور وتحويله إلى مكتمل</p>
+                </div>
+            </div>
+
+            <div class="header-left">
+                <img src="~/img/logo.svg" alt="رصيفي" class="brand-raseefy" onerror="this.src='https://via.placeholder.com/120x60?text=Raseefy'">
+            </div>
+        </header>
+
+        <!-- Navigation Bar -->
+        <div class="exit-nav-bar">
+            <a asp-controller="QueueTicket" asp-action="CallStation" class="btn-nav-link" style="color: var(--primary-orange); border-color: var(--primary-border);">
+                <i class="fas fa-step-forward"></i> محطة استدعاء الأدوار (Next ⏭️)
+            </a>
+            <a asp-controller="Authentication" asp-action="AddRoleOrView" class="btn-nav-link">
+                <i class="fas fa-home"></i> القائمة الرئيسية
+            </a>
+        </div>
+
+        <!-- Toast Alert Container -->
+        <div id="exitToastAlert" class="exit-toast" style="display: none;"></div>
+
+        <!-- Input Code Card -->
+        <section class="input-card">
+            <label class="input-label" for="txtTicketCode">
+                <i class="fas fa-barcode" style="color: var(--status-done); font-size: 1.3rem;"></i>
+                أدخل أو امسح كود / رقم التذكرة للشاحنة المغادرة:
+            </label>
+            <div class="code-input-group">
+                <input type="text" id="txtTicketCode" class="code-input" placeholder="مثال: A1 أو 15" autocomplete="off" autofocus>
+                <button type="button" id="btnSearchCode" class="btn-search-code">
+                    <i class="fas fa-search"></i>
+                    <span>فحص</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Ticket Preview Container -->
+        <section id="previewContainer" class="ticket-preview-card" style="display: none;"></section>
+
+        <!-- Success Receipt Container -->
+        <section id="receiptContainer" class="success-receipt" style="display: none;"></section>
+    </div>
+
+    <script src="~/js/exitGate.js" asp-append-version="true"></script>
+</body>
+</html>

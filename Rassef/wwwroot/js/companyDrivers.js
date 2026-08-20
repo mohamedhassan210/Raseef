@@ -86,9 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     };
 
-    // تعبئة البيانات في مودال التأكيد مع تثبيت الشركة لـ "غير محدد" في النقل الداخلي
     const populateConfirmationData = (driverName, departmentName = "غير متوفر") => {
-        const company = "غير محدد"; // No supplier in Transfer context
+        const company = window.pageData?.companyName || "غير محدد";
         const truck = window.pageData?.truckName || "غير محدد";
 
         confirmCompany.textContent = company;
@@ -104,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const card = e.target.closest('.driver-card');
                 const driverName = card.getAttribute('data-name');
                 const driverId = card.getAttribute('data-id');
+                const driverNationalId = card.getAttribute('data-national-id');
 
                 selectedDepartmentValue = null;
                 deptSelectedValue.textContent = 'اختار القسم';
@@ -116,7 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 localStorage.setItem('pendingDriver', JSON.stringify({
                     name: driverName,
-                    nationalId: driverId
+                    driverId: driverId,
+                    id: driverId,
+                    nationalId: driverNationalId || driverId
                 }));
 
                 showConfirmationModal(deptModal);
@@ -129,12 +131,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. Department Custom Dropdown Logic
     // ==========================================
     const initDepartmentDropdown = () => {
-        const departmentsData = [
-            { id: 101, name: "قسم الاستلام" },
-            { id: 102, name: "قسم المخازن" },
-            { id: 103, name: "قسم التوزيع" },
-            { id: 104, name: "قسم المبيعات" }
-        ];
+        const departmentsData = (window.departmentsData && window.departmentsData.length > 0)
+            ? window.departmentsData
+            : [
+                { id: 101, name: "قسم الاستلام" },
+                { id: 102, name: "قسم المخازن" },
+                { id: 103, name: "قسم التوزيع" },
+                { id: 104, name: "قسم المبيعات" }
+            ];
 
         deptDropdownList.innerHTML = departmentsData.map(dept =>
             `<div class="dropdown-item" data-id="${dept.id}" data-value="${dept.name}">${dept.name}</div>`
@@ -174,8 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!selectedDepartmentValue) {
                 deptDropdownHeader.classList.add('error');
                 deptErrorMsg.style.display = 'block';
-                deptDropdownHeader.style.animation = 'shake 0.4s';
-                setTimeout(() => deptDropdownHeader.style.animation = '', 400);
                 return;
             }
 
@@ -189,15 +191,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 5. Ticket Badge Visual Counter Logic
+    // 5. Ticket Generation
     // ==========================================
     let shiftTicketCounter = 0;
-
     const generateTicketNumber = () => {
         shiftTicketCounter++;
         let rawDockName = window.pageData?.dockName;
-        let dockInitial = rawDockName && rawDockName.length > 0
-            ? rawDockName.charAt(0).toUpperCase()
+        let dockInitial = rawDockName && rawDockName.length > 0 
+            ? rawDockName.charAt(0).toUpperCase() 
             : 'A';
 
         return `${dockInitial}${shiftTicketCounter}`;
@@ -207,31 +208,17 @@ document.addEventListener('DOMContentLoaded', () => {
         btnPrint.innerHTML = 'جاري الانتقال للإيصال... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 8px;"></span>';
         btnPrint.disabled = true;
 
-        const ticketNum = ticketNumberDisplay.textContent;
-        const deptName = selectedDepartmentValue ? selectedDepartmentValue.name : 'غير محدد';
-        const empName = window.pageData?.employeeName || 'محمد حسين';
-        const dock = window.pageData?.dockName || 'A';
-        const waitCount = '0';
-
-        const receiptData = {
-            ticketNumber: ticketNum,
-            requestType: 'توريد',
-            waitingCount: waitCount,
-            department: deptName,
-            dockNumber: dock,
-            employeeName: empName,
-            createdAt: new Date().toISOString()
-        };
-
-        localStorage.setItem('receiptData', JSON.stringify(receiptData));
+        const raw = localStorage.getItem('receiptData');
+        const receiptData = raw ? JSON.parse(raw) : {};
+        const ticketIdParam = receiptData.ticketId ? `?ticketId=${receiptData.ticketId}` : '';
 
         setTimeout(() => {
             if (window.routes && window.routes.receiptPage) {
-                window.location.href = window.routes.receiptPage;
+                window.location.href = window.routes.receiptPage + ticketIdParam;
             } else {
-                window.location.href = "/Driver/Recript";
+                window.location.href = "/Driver/Recript" + ticketIdParam;
             }
-        }, 800);
+        }, 500);
     };
 
     // ==========================================
@@ -244,12 +231,64 @@ document.addEventListener('DOMContentLoaded', () => {
         btnEdit.addEventListener('click', () => {
             if (window.routes && window.routes.backRoute) {
                 window.location.href = window.routes.backRoute;
+            } else {
+                closeModal();
             }
         });
 
-        btnConfirm.addEventListener('click', () => {
-            const ticketNum = generateTicketNumber();
+        btnConfirm.addEventListener('click', async () => {
+            btnConfirm.disabled = true;
+            btnConfirm.innerHTML = 'جاري الحفظ وإصدار الدور... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+            const pendingData = JSON.parse(localStorage.getItem('pendingDriver')) || {};
+            const payload = {
+                supplierId: parseInt(window.pageData?.supplierId) || 0,
+                truckId: parseInt(window.pageData?.truckId) || 0,
+                driverId: parseInt(pendingData.driverId || pendingData.id || pendingData.nationalId) || 0,
+                departmentId: selectedDepartmentValue ? selectedDepartmentValue.id : 0
+            };
+
+            let ticketInfo = null;
+            try {
+                const endpoint = window.routes?.createSupplierTicket || '/Driver/CreateSupplierTicket';
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    ticketInfo = await response.json();
+                }
+            } catch (err) {
+                console.error('Error creating supplier ticket:', err);
+            }
+
+            btnConfirm.disabled = false;
+            btnConfirm.innerHTML = 'تأكيد';
+
+            const ticketNum = ticketInfo?.ticketNumber || generateTicketNumber();
             ticketNumberDisplay.textContent = ticketNum;
+
+            const deptName = ticketInfo?.departmentName || (selectedDepartmentValue ? selectedDepartmentValue.name : 'غير محدد');
+            const empName = ticketInfo?.employeeName || window.pageData?.employeeName || 'المسؤول';
+            const dock = ticketInfo?.dockName || window.pageData?.dockName || 'A';
+            const waitCount = ticketInfo?.waitingCount !== undefined ? String(ticketInfo.waitingCount) : '0';
+
+            const receiptData = {
+                ticketId: ticketInfo?.ticketId || null,
+                ticketNumber: ticketNum,
+                requestType: 'توريد',
+                waitingCount: waitCount,
+                department: deptName,
+                dockNumber: dock,
+                employeeName: empName,
+                createdAt: new Date().toISOString()
+            };
+
+            localStorage.setItem('receiptData', JSON.stringify(receiptData));
             showConfirmationModal(successModal);
         });
 
@@ -257,6 +296,10 @@ document.addEventListener('DOMContentLoaded', () => {
         btnBack.addEventListener('click', () => {
             if (window.routes && window.routes.backRoute) {
                 window.location.href = window.routes.backRoute;
+            } else if (window.routes && window.routes.supplierIndex) {
+                window.location.href = window.routes.supplierIndex;
+            } else {
+                window.location.href = "/Supplier/Index";
             }
         });
 

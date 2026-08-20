@@ -14,6 +14,7 @@ namespace Rassef.Controllers
         private readonly IRepository<Driver> _driverRepository;
         private readonly IRepository<DriverTypes> _driverTypeRepository;
         private readonly IRepository<Supplier> _supplierRepository;
+        private readonly ITicketEngineService _ticketEngineService;
 
         public AdministrationController(
             IUserRepository userRepository,
@@ -21,7 +22,11 @@ namespace Rassef.Controllers
             IRepository<Truck> truckRepository,
             IRepository<TruckTypes> truckTypeRepository,
             IRepository<Driver> driverRepository,
-            IRepository<DriverTypes> driverTypeRepository , ITransferRequestRepository transferRequestRepository, ISupplierRequestRepository supplierRequestRepository, IRepository<Supplier> supplierRepository)
+            IRepository<DriverTypes> driverTypeRepository,
+            ITransferRequestRepository transferRequestRepository,
+            ISupplierRequestRepository supplierRequestRepository,
+            IRepository<Supplier> supplierRepository,
+            ITicketEngineService ticketEngineService)
         {
             _userRepository = userRepository;
             _positionRepository = positionRepository;
@@ -32,6 +37,7 @@ namespace Rassef.Controllers
             _Transferrepository = transferRequestRepository;
             _supplierRequestRepository = supplierRequestRepository;
             _supplierRepository = supplierRepository;
+            _ticketEngineService = ticketEngineService;
         }
 
         //Employee Administration
@@ -881,6 +887,7 @@ namespace Rassef.Controllers
                 {
                     Id = x.Id,
                     RequestType = "توريد",
+                    TicketId = ticket?.Id,
                     TicketNumber = ticket?.TicketNumber ?? "A1",
                     TicketStatusName = ticket?.TicketStatus?.Name ?? "إنتظار",
                     QueueTime = ticket?.QueueTime ?? x.CreatedAT,
@@ -889,6 +896,7 @@ namespace Rassef.Controllers
                     TruckPlateNumber = x.Truck != null ? $"{x.Truck.PlateLetter} {x.Truck.PlateNumber}" : "غير محدد",
                     DriverName = x.Driver?.FullName ?? "غير محدد",
                     DriverPhone = x.DriverPhone ?? x.Driver?.Phone ?? "",
+                    DepartmentId = x.DepartmentId,
                     DepartmentName = x.Department?.Name ?? "غير محدد",
                     RequestStatusName = x.RequestStatus?.Name ?? "قيد الانتظار",
                     EmployeeName = empName,
@@ -898,6 +906,50 @@ namespace Rassef.Controllers
 
             return View(requests);
         }
+
+        // استدعاء الدور القادم (Next)
+        [HttpPost]
+        public async Task<IActionResult> CallNextSupplierRequest(int? departmentId)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int currentUserId = int.TryParse(userIdClaim, out var uId) ? uId : 1;
+
+            var result = await _ticketEngineService.CallNextTicketAsync(departmentId, currentUserId);
+            return Json(result);
+        }
+
+        // تحديث حالة تذكرة / دور معين (انتظار / جاري / مكتمل)
+        [HttpPost]
+        public async Task<IActionResult> UpdateTicketStatus([FromBody] UpdateTicketStatusDTO dto)
+        {
+            if (dto == null || dto.TicketId <= 0 || string.IsNullOrWhiteSpace(dto.Status))
+            {
+                return Json(new { success = false, message = "بيانات غير صالحة." });
+            }
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int currentUserId = int.TryParse(userIdClaim, out var uId) ? uId : 1;
+
+            var result = await _ticketEngineService.UpdateTicketStatusAsync(dto.TicketId, dto.Status, currentUserId);
+            return Json(result);
+        }
+
+        // إنهاء الدور (Completed)
+        [HttpPost]
+        public async Task<IActionResult> CompleteTicket([FromBody] UpdateTicketStatusDTO dto)
+        {
+            if (dto == null || dto.TicketId <= 0)
+            {
+                return Json(new { success = false, message = "رقم التذكرة غير صالح." });
+            }
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int currentUserId = int.TryParse(userIdClaim, out var uId) ? uId : 1;
+
+            var result = await _ticketEngineService.UpdateTicketStatusAsync(dto.TicketId, "مكتمل", currentUserId);
+            return Json(result);
+        }
+
         // الموردين 
         [HttpGet]
         public async Task<IActionResult> Suppliers()

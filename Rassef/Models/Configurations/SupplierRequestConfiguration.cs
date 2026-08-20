@@ -1,4 +1,4 @@
-﻿namespace Rassef.Configurations
+namespace Rassef.Configurations
 {
     public class SupplierRequestConfiguration : IEntityTypeConfiguration<SupplierRequest>
     {
@@ -18,6 +18,12 @@
             builder.Property(sr => sr.PermitNumber)
                    .IsRequired()
                    .HasMaxLength(100);
+
+            builder.HasIndex(sr => sr.PermitNumber);
+            builder.HasIndex(sr => new { sr.RequestStatusId, sr.DepartmentId, sr.CreatedAT });
+            builder.HasIndex(sr => sr.SupplierId);
+            builder.HasIndex(sr => sr.DriverId);
+            builder.HasIndex(sr => sr.TruckId);
 
             builder.HasOne(sr => sr.Supplier)
                    .WithMany(s => s.SupplierRequests)

@@ -18,6 +18,7 @@ namespace Rassef.Controllers
         private readonly IRepository<PermitTypes> _permitTypeRepository;
         private readonly IRepository<Dock> _dockRepository;
         private readonly IRepository<DockAssignment> _dockAssignmentRepository;
+        private readonly ITicketEngineService _ticketEngineService;
 
         public TruckController(
             ITruckRepository truckRepository,
@@ -33,7 +34,8 @@ namespace Rassef.Controllers
             IRepository<RequestStatuses> requestStatusRepository,
             IRepository<PermitTypes> permitTypeRepository,
             IRepository<Dock> dockRepository,
-            IRepository<DockAssignment> dockAssignmentRepository)
+            IRepository<DockAssignment> dockAssignmentRepository,
+            ITicketEngineService ticketEngineService)
         {
             _truckRepository = truckRepository;
             _truckTypeRepository = truckTypeRepository;
@@ -49,6 +51,7 @@ namespace Rassef.Controllers
             _permitTypeRepository = permitTypeRepository;
             _dockRepository = dockRepository;
             _dockAssignmentRepository = dockAssignmentRepository;
+            _ticketEngineService = ticketEngineService;
         }
 
         [HttpGet]
@@ -437,7 +440,8 @@ namespace Rassef.Controllers
             Driver? driver = null;
             if (!string.IsNullOrWhiteSpace(create.NewDriverName) && !string.IsNullOrWhiteSpace(create.NewDriverNationalId) && !string.IsNullOrWhiteSpace(create.NewDriverPhone))
             {
-                if (!await _driverRepository.ExistsAsync(x => x.NationalId == create.NewDriverNationalId || x.Phone == create.NewDriverPhone))
+                driver = (await _driverRepository.GetAllAsync()).FirstOrDefault(x => x.NationalId == create.NewDriverNationalId || x.Phone == create.NewDriverPhone);
+                if (driver == null)
                 {
                     driver = new Driver
                     {
@@ -451,39 +455,38 @@ namespace Rassef.Controllers
                 }
             }
 
+            int finalDriverId = driver?.Id ?? (create.DriverId.HasValue && create.DriverId.Value > 0 ? create.DriverId.Value : 0);
+            if (finalDriverId <= 0)
+            {
+                var fallbackDriver = (await _driverRepository.GetAllAsync()).FirstOrDefault();
+                finalDriverId = fallbackDriver?.Id ?? 1;
+            }
+
             if (create.DepartmentId.HasValue && create.DepartmentId.Value > 0)
             {
-                var finalDriverId = driver?.Id ?? create.DriverId ?? 1; // Fallback to 1 if not provided
-                
+                var allTransfers = await _transferRequestRepository.GetAllAsync();
+                int nextAviz = allTransfers.Count() + 1;
+                string avizNumber = $"AVIZ-{nextAviz:D4}";
+
                 var req = new TransferRequest
                 {
                     DepartmentId = create.DepartmentId.Value,
                     TruckId = truck.Id,
                     DriverId = finalDriverId,
                     PermitTypeId = 1,
-                    PermitNumber = "N/A",
-                    AvizNumber = "N/A",
+                    PermitNumber = $"PER-TR-{DateTime.Now.Ticks % 100000}",
+                    AvizNumber = avizNumber,
                     RequestStatusId = 1,
-                    CreatedById = currentUserId
+                    CreatedById = currentUserId.ToString(),
+                    CreatedBy = currentUser!
                 };
                 await _transferRequestRepository.AddAsync(req);
                 await _transferRequestRepository.SaveChangesAsync();
 
-                var ticket = new QueueTicket
-                {
-                    TicketNumber = $"T-{req.Id}",
-                    DepartmentId = create.DepartmentId.Value,
-                    TicketStatusId = 1,
-                    TransferRequestId = req.Id,
-                    QueueTime = DateTimeOffset.Now,
-                    EntryTime = DateTimeOffset.Now,
-                    ExitTime = DateTimeOffset.MinValue,
-                    CreatedBy = currentUser
-                };
-                await _ticketRepository.AddAsync(ticket);
-                await _ticketRepository.SaveChangesAsync();
+                var ticketResult = await _ticketEngineService.IssueTransferTicketAsync(create.DepartmentId.Value, req.Id, currentUserId);
                 
-                TempData["Success"] = $"تم إضافة الشاحنة وإصدار الدور رقم {ticket.TicketNumber} بنجاح.";
+                TempData["Success"] = $"تم إضافة الشاحنة وإصدار الدور رقم {ticketResult.TicketNumber} بنجاح.";
+                return RedirectToAction("Recript", "Driver", new { ticketId = ticketResult.TicketId });
             }
             else 
             {
@@ -571,81 +574,25 @@ namespace Rassef.Controllers
                 PermitNumber = $"PER-TR-{DateTime.Now.Ticks % 100000}",
                 AvizNumber = avizNumber,
                 RequestStatusId = defaultStatus?.Id ?? 1,
-                CreatedById = currentUser?.Id ?? 1,
+                CreatedById = (currentUser?.Id ?? 1).ToString(),
                 CreatedBy = currentUser!
             };
 
             await _transferRequestRepository.AddAsync(transferRequest);
             await _transferRequestRepository.SaveChangesAsync();
 
-            // Generate QueueTicket
-            string prefix = !string.IsNullOrWhiteSpace(department.Prefix) ? department.Prefix.Trim() : "TR";
-            if (string.IsNullOrWhiteSpace(prefix)) prefix = "A";
-
-            var allTickets = await _ticketRepository.GetAllAsync();
-            var lastTicket = allTickets
-                .Where(x => x.DepartmentId == department.Id)
-                .OrderByDescending(x => x.CreatedAT)
-                .FirstOrDefault();
-
-            int counter = 1;
-            if (lastTicket != null && !string.IsNullOrWhiteSpace(lastTicket.TicketNumber))
-            {
-                var digits = new string(lastTicket.TicketNumber.Where(char.IsDigit).ToArray());
-                if (!string.IsNullOrWhiteSpace(digits) && int.TryParse(digits, out var parsedCounter))
-                    counter = parsedCounter + 1;
-            }
-
-            string ticketNumber = $"{prefix}{counter}";
-
-            var allTicketStatuses = await _ticketStatusRepository.GetAllAsync();
-            var ticketStatus = allTicketStatuses.FirstOrDefault(s => s.Name.Contains("انتظار") || s.Name.Contains("إنتظار")) ?? allTicketStatuses.FirstOrDefault();
-
-            var queueTicket = new QueueTicket
-            {
-                TicketNumber = ticketNumber,
-                DepartmentId = department.Id,
-                TicketStatusId = ticketStatus?.Id ?? 1,
-                TransferRequestId = transferRequest.Id,
-                QueueTime = DateTimeOffset.Now,
-                EntryTime = DateTimeOffset.Now,
-                ExitTime = DateTimeOffset.MinValue,
-                CreatedBy = currentUser
-            };
-
-            await _ticketRepository.AddAsync(queueTicket);
-            await _ticketRepository.SaveChangesAsync();
-
-            // Assign to dock if available
-            var allDocks = await _dockRepository.GetAllAsync();
-            var availableDock = allDocks.FirstOrDefault(d => d.DepartmentId == department.Id);
-            string dockName = availableDock?.DockName ?? $"{prefix}1";
-
-            if (availableDock != null)
-            {
-                var dockAssignment = new DockAssignment
-                {
-                    DockId = availableDock.Id,
-                    TicketId = queueTicket.Id,
-                    AssignedAt = DateTimeOffset.Now,
-                    CreatedBy = currentUser!
-                };
-                await _dockAssignmentRepository.AddAsync(dockAssignment);
-                await _dockAssignmentRepository.SaveChangesAsync();
-            }
-
-            string employeeName = currentUser?.Name ?? (!string.IsNullOrWhiteSpace(currentUser?.UserName) ? currentUser.UserName : (User.Identity?.Name ?? "المسؤول"));
+            var ticketResult = await _ticketEngineService.IssueTransferTicketAsync(department.Id, transferRequest.Id, currentUser?.Id ?? 1);
 
             return Json(new
             {
                 success = true,
-                ticketId = queueTicket.Id,
-                ticketNumber = ticketNumber,
+                ticketId = ticketResult.TicketId,
+                ticketNumber = ticketResult.TicketNumber,
                 requestType = "تحويل",
-                waitingCount = allTickets.Count(t => t.DepartmentId == department.Id && t.TicketStatusId == (ticketStatus?.Id ?? 1)),
-                departmentName = department.Name,
-                dockName = dockName,
-                employeeName = employeeName,
+                waitingCount = ticketResult.WaitingCount,
+                departmentName = ticketResult.DepartmentName,
+                dockName = ticketResult.DockName,
+                employeeName = ticketResult.EmployeeName,
                 truckPlate = $"{truck.PlateLetter} {truck.PlateNumber}",
                 driverName = driver.FullName
             });
@@ -661,12 +608,5 @@ namespace Rassef.Controllers
                 selectedTruckTypeId);
         }
         #endregion
-    }
-
-    public class CreateTransferTicketDto
-    {
-        public int TruckId { get; set; }
-        public int DepartmentId { get; set; }
-        public int? DriverId { get; set; }
     }
 }

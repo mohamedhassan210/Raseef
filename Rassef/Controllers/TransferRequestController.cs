@@ -8,6 +8,8 @@ namespace Rassef.Controllers
         private readonly IDepartmentRepository _departmentRepository;
         private readonly IPermitTypeRepository _permitTypeRepository;
         private readonly IRequestStatusRepository _requestStatusRepository;
+        private readonly ITicketEngineService _ticketEngineService;
+        private readonly IUserRepository _userRepository;
 
         public TransferRequestController(
             ITransferRequestRepository repository,
@@ -15,7 +17,9 @@ namespace Rassef.Controllers
             IDriverRepository driverRepository,
             IDepartmentRepository departmentRepository,
             IPermitTypeRepository permitTypeRepository,
-            IRequestStatusRepository requestStatusRepository)
+            IRequestStatusRepository requestStatusRepository,
+            ITicketEngineService ticketEngineService,
+            IUserRepository userRepository)
         {
             _repository = repository;
             _truckRepository = truckRepository;
@@ -23,12 +27,16 @@ namespace Rassef.Controllers
             _departmentRepository = departmentRepository;
             _permitTypeRepository = permitTypeRepository;
             _requestStatusRepository = requestStatusRepository;
+            _ticketEngineService = ticketEngineService;
+            _userRepository = userRepository;
         }
 
         private async Task LoadSelectListsAsync(CreateTransferRequestVM model)
         {
             var departments = await _departmentRepository.GetAllAsync();
             var permitTypes = await _permitTypeRepository.GetAllAsync();
+            var trucks = await _truckRepository.GetAllAsync();
+            var drivers = await _driverRepository.GetAllAsync();
 
             model.Departments = departments.Select(d => new SelectListItem
             {
@@ -40,6 +48,18 @@ namespace Rassef.Controllers
             {
                 Value = p.Id.ToString(),
                 Text = p.Name
+            });
+
+            model.Trucks = trucks.Select(t => new SelectListItem
+            {
+                Value = t.Id.ToString(),
+                Text = $"{t.PlateLetter} {t.PlateNumber} ({(t.IsRefrigerated ? "تبريد" : "غير تبريد")})"
+            });
+
+            model.Drivers = drivers.Select(d => new SelectListItem
+            {
+                Value = d.Id.ToString(),
+                Text = d.FullName
             });
         }
 
@@ -125,25 +145,48 @@ namespace Rassef.Controllers
             }
 
             // استخراج معرف المستخدم الحالي
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int currentUserId = 1;
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
+            {
+                currentUserId = parsedId;
+            }
+            var currentUser = await _userRepository.GetByIdAsync(currentUserId);
 
-            // تحديد الحالة الافتراضية للطلب (مثلاً 1 لـ Pending/New حسب قاعدة البيانات لديك)
-            int defaultStatusId = 1;
+            int finalTruckId = model.TruckId;
+            if (finalTruckId <= 0)
+            {
+                var firstTruck = (await _truckRepository.GetAllAsync()).FirstOrDefault();
+                finalTruckId = firstTruck?.Id ?? 1;
+            }
+
+            int finalDriverId = model.DriverId;
+            if (finalDriverId <= 0)
+            {
+                var firstDriver = (await _driverRepository.GetAllAsync()).FirstOrDefault();
+                finalDriverId = firstDriver?.Id ?? 1;
+            }
 
             var request = new TransferRequest
             {
-                AvizNumber = model.AvizNumber,
-                PermitNumber = model.PermitNumber,
+                AvizNumber = !string.IsNullOrWhiteSpace(model.AvizNumber) ? model.AvizNumber : $"AVIZ-{DateTime.Now.Ticks % 10000:D4}",
+                PermitNumber = !string.IsNullOrWhiteSpace(model.PermitNumber) ? model.PermitNumber : $"PER-TR-{DateTime.Now.Ticks % 100000}",
+                TruckId = finalTruckId,
+                DriverId = finalDriverId,
                 DepartmentId = model.DepartmentId,
-                PermitTypeId = model.PermitTypeId,
-                RequestStatusId = defaultStatusId,
-                CreatedById = int.TryParse(userId, out var parsedId) ? parsedId : 1
+                PermitTypeId = model.PermitTypeId > 0 ? model.PermitTypeId : 1,
+                RequestStatusId = 1,
+                CreatedById = currentUserId.ToString(),
+                CreatedBy = currentUser!
             };
 
             await _repository.AddAsync(request);
             await _repository.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index));
+            var ticketResult = await _ticketEngineService.IssueTransferTicketAsync(model.DepartmentId, request.Id, currentUserId);
+
+            TempData["Success"] = $"تم حفظ طلب التحويل وإصدار الدور رقم {ticketResult.TicketNumber} بنجاح.";
+            return RedirectToAction("Recript", "Driver", new { ticketId = ticketResult.TicketId });
         }
 
         // Update (GET)
