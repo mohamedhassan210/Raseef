@@ -385,15 +385,31 @@ body {
     transition: all 0.2s ease;
     white-space: nowrap;
   }
-  
-  .dropdown-pill {
+
+.btn-action-green {
+    background-color: var(--primary-color);
+    color: #FFFFFF;
+    padding: 10px 20px;
+    border-radius: 8px; /* حواف دائرية بسيطة بدل الـ Pill */
+    font-size: 15px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.dropdown-pill {
     background-color: var(--primary-color);
     color: #FFFFFF;
     border: none;
     padding: 10px 18px;
     border-radius: 8px;
     font-size: 14px;
-    font-weight: 600; 
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -402,7 +418,7 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
-  }
+}
   
   .dropdown-icon {
     color: #FFFFFF; /* سهم الدروب داون باللون الأبيض */
@@ -489,14 +505,16 @@ body {
   border-bottom: 2px solid rgba(235, 132, 45, 0.2);
 }
 
-.dashboard-table td {
-  padding: 14px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-dark);
-  background: transparent;
-  vertical-align: middle;
-}
+    .dashboard-table td {
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-dark);
+        background: #eb842d2b;
+        vertical-align: middle;
+        padding: 30px;
+        flex-grow: 1;
+    }
 
 .table-row {
   transition: all 0.2s ease;

@@ -133,6 +133,11 @@
                     <input type="search" id="employeeSearch" placeholder="ادخل اسم الموظف أو الكود" autocomplete="off">
                 </div>
 
+                <button class="btn-action-green" id="exportBtn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>تصدير</span>
+                </button>
+
                 <!-- Add Employee Button -->
                 <a href="@Url.Action("Create", "Administration")" class="btn-action-orange" id="addEmployeeBtn" style="text-decoration: none;">
                     <span>إضافة موظف</span>
@@ -192,6 +197,15 @@
         </main>
     </div>
 
+    <!-- Modal مفيش بيانات -->
+    <div id="noDataModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
+        <div style="background: white; padding: 25px; border-radius: 12px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+            <h3 style="color: #e74c3c; margin-bottom: 10px; font-size: 20px;">تنبيه</h3>
+            <p style="color: #333; margin-bottom: 20px; font-size: 16px;">مفيش بيانات في الجدول عشان تتصدر!</p>
+            <button id="closeModalBtn" style="background-color: var(--primary-color, #f39c12); color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-family: inherit;">حسناً</button>
+        </div>
+    </div>
+
     <script>
         window.initialEmployeesData = @Html.Raw(Json.Serialize(Model != null ? Model.Select(e => new {
             id = e.Id,
@@ -209,6 +223,7 @@
         };
     </script>
 
-    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>د
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>

@@ -7,8 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterDropdownBtn = document.getElementById('filterDropdown');
     const sortBtnText = document.getElementById('sortBtnText');
     const sortMenu = document.getElementById('sortMenu');
-    const exportBtn = document.getElementById('exportBtn');
     const addEmployeeBtn = document.getElementById('addEmployeeBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const noDataModal = document.getElementById('noDataModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
 
     // Global State with Real Database Employees Data passed from MVC
     const state = {
@@ -201,40 +203,35 @@ document.addEventListener('DOMContentLoaded', () => {
     if (exportBtn) {
         exportBtn.addEventListener('click', () => {
             const filteredData = filterEmployees();
+
+            // لو مفيش بيانات، نظهر المودال
             if (filteredData.length === 0) {
-                alert('لا توجد بيانات للتصدير');
+                noDataModal.style.display = 'flex';
                 return;
             }
 
-            let csvContent = "الاسم,رقم الهاتف,البريد الإلكتروني,الدور,الرقم القومي,الكود\n";
-            filteredData.forEach(row => {
-                csvContent += `${row.name || ''},${row.phone || ''},${row.email || ''},${row.role || ''},${row.nationalId || ''},${row.code || ''}\n`;
-            });
+            // تجهيز البيانات للإكسل
+            const excelData = filteredData.map(emp => ({
+                "الإسم": emp.name || '--',
+                "رقم الهاتف": emp.phone || '--',
+                "البريد الإلكتروني": emp.email || '--',
+                "الدور": emp.role || '--',
+                "الرقم القومي": emp.nationalId || '--',
+                "الكود": emp.code || '--'
+            }));
 
-            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-
-            link.setAttribute("href", url);
-            link.setAttribute("download", "employees_export.csv");
-            link.style.visibility = 'hidden';
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // إنشاء وتنزيل ملف الإكسل
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "الموظفين");
+            XLSX.writeFile(workbook, "Employees_Export.xlsx");
         });
     }
 
-    const mobileToggle = document.getElementById('mobileToggle');
-    const sidebar = document.querySelector('.dashboard-sidebar');
-    if (mobileToggle && sidebar) {
-        mobileToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('active');
-        });
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth <= 992 && !sidebar.contains(e.target) && !mobileToggle.contains(e.target)) {
-                sidebar.classList.remove('active');
-            }
+    // قفل المودال
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            noDataModal.style.display = 'none';
         });
     }
 
