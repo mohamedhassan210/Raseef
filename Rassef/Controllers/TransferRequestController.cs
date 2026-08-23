@@ -358,6 +358,10 @@ namespace Rassef.Controllers
                     if (n.Contains("مكتمل") || n.Contains("تم") || n.Contains("خروج") || n.Contains("منتهي") || n.Contains("complete") || n.Contains("done"))
                         return false;
                 }
+                else if (t.TicketStatusId == 3)
+                {
+                    return false;
+                }
                 return true;
             }).ToList();
 
