@@ -68,7 +68,8 @@ namespace Rassef.Controllers
                     .ThenInclude(da => da.Dock)
             );
 
-            var ticketViewModels = ticketsList.Select(t => {
+            var ticketViewModels = ticketsList.Select(t =>
+            {
                 var dockAssignment = t.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
                 bool isSupplier = t.SupplierRequestId != null || t.SupplierRequest != null;
                 string reqType = isSupplier ? "توريد" : "تحويل";
@@ -408,7 +409,8 @@ namespace Rassef.Controllers
 
             var mappedTickets = ticketsList
                 .Where(t => !departmentId.HasValue || departmentId.Value <= 0 || t.DepartmentId == departmentId.Value)
-                .Select(t => {
+                .Select(t =>
+                {
                     var dockAssignment = t.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
                     bool isSupplier = t.SupplierRequestId != null || t.SupplierRequest != null;
                     string reqType = isSupplier ? "توريد" : "تحويل";
@@ -432,7 +434,8 @@ namespace Rassef.Controllers
                 }).ToList();
 
             var inProgressTickets = mappedTickets
-                .Where(t => {
+                .Where(t =>
+                {
                     var n = (t.TicketStatusName ?? "").Replace("إ", "ا").Trim();
                     return n.Contains("جاري") || n.Contains("تنفيذ") || n.Contains("تشغيل");
                 })
@@ -440,7 +443,8 @@ namespace Rassef.Controllers
                 .ToList();
 
             var waitingTickets = mappedTickets
-                .Where(t => {
+                .Where(t =>
+                {
                     var n = (t.TicketStatusName ?? "").Replace("إ", "ا").Trim();
                     bool isDone = n.Contains("تم") || n.Contains("مكتمل") || n.Contains("خروج");
                     bool isActive = n.Contains("جاري") || n.Contains("تنفيذ");
@@ -450,7 +454,8 @@ namespace Rassef.Controllers
                 .ThenBy(t => t.Id)
                 .ToList();
 
-            int completedCount = mappedTickets.Count(t => {
+            int completedCount = mappedTickets.Count(t =>
+            {
                 var n = (t.TicketStatusName ?? "").Replace("إ", "ا").Trim();
                 return n.Contains("تم") || n.Contains("مكتمل") || n.Contains("خروج");
             });

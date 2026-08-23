@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Rassef.ViewModels.Group
+﻿namespace Rassef.ViewModels.Group
 {
     public class RolesManagementVM
     {

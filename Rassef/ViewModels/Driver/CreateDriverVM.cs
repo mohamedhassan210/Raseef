@@ -13,7 +13,7 @@
 
         [Display(Name = "المورد")]
         public int? SupplierId { get; set; }
-      
+
 
         [Display(Name = "اسم الشركة")]
         public string? SupplierName { get; set; }

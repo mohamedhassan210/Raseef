@@ -1,6 +1,4 @@
-﻿using Rassef.Models.Entities;
-
-namespace Rassef.Common.Interfaces
+﻿namespace Rassef.Common.Interfaces
 {
     public class TicketIssueResult
     {

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Rassef.ViewModels.Truck
+﻿namespace Rassef.ViewModels.Truck
 {
     public class CreateTruckVM
     {

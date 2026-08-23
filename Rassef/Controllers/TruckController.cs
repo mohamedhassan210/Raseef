@@ -1,5 +1,3 @@
-using AspNetCoreGeneratedDocument;
-
 namespace Rassef.Controllers
 {
     public class TruckController : Controller
@@ -376,7 +374,7 @@ namespace Rassef.Controllers
             var suppliers = await GetSuppliersAsync();
             var allDrivers = await _driverRepository.GetAllAsync();
             var driversList = allDrivers.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.FullName }).ToList();
-            
+
             string? supplierName = null;
 
             if (supplierId.HasValue && supplierId.Value > 0)
@@ -484,11 +482,11 @@ namespace Rassef.Controllers
                 await _transferRequestRepository.SaveChangesAsync();
 
                 var ticketResult = await _ticketEngineService.IssueTransferTicketAsync(create.DepartmentId.Value, req.Id, currentUserId);
-                
+
                 TempData["Success"] = $"تم إضافة الشاحنة وإصدار الدور رقم {ticketResult.TicketNumber} بنجاح.";
                 return RedirectToAction("Recript", "Driver", new { ticketId = ticketResult.TicketId });
             }
-            else 
+            else
             {
                 TempData["Success"] = "تم إضافة الشاحنة بنجاح.";
             }

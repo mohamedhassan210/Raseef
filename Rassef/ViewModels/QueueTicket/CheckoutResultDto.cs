@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Rassef.ViewModels.QueueTicket
+﻿namespace Rassef.ViewModels.QueueTicket
 {
     public class CheckoutResultDto
     {

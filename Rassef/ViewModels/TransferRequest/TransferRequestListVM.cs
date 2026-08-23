@@ -8,7 +8,7 @@ public class TransferRequestListVM
     public string EmployeeName { get; set; } = string.Empty;
     public string TruckPlateNumber { get; set; } = string.Empty;
     public string DepartmentName { get; set; } = string.Empty;
-    public string DockName{ get; set; }
+    public string DockName { get; set; }
     public DateTimeOffset DateTime { get; set; }
     public string RequestStatus { get; set; } = string.Empty;
 }

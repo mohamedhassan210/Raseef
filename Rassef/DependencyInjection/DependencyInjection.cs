@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Rassef.Common.Interfaces;
 using Rassef.Common.Services;
 
 namespace Rassef.Dependencyinjection

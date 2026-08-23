@@ -1,12 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Rassef.Common.Interfaces;
-using Rassef.Models.Entities;
-using Rassef.Models.Enums;
-using Rassef.Models.Identity;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Rassef.Common.Services
 {
     public class TicketEngineService : ITicketEngineService
@@ -263,17 +254,20 @@ namespace Rassef.Common.Services
             try
             {
                 var allStatuses = await _ticketStatusRepository.GetAllAsync();
-                var inProgressStatus = allStatuses.FirstOrDefault(s => {
+                var inProgressStatus = allStatuses.FirstOrDefault(s =>
+                {
                     var n = s.Name.Replace("إ", "ا").ToLower();
                     return n.Contains("جاري") || n.Contains("تشغيل") || n.Contains("تنفيذ") || n.Contains("progress") || n.Contains("active");
                 }) ?? allStatuses.FirstOrDefault(s => s.Id == 2);
 
-                var completedStatus = allStatuses.FirstOrDefault(s => {
+                var completedStatus = allStatuses.FirstOrDefault(s =>
+                {
                     var n = s.Name.Replace("إ", "ا").ToLower();
                     return n.Contains("مكتمل") || n.Contains("تم") || n.Contains("خروج") || n.Contains("منتهي") || n.Contains("complete") || n.Contains("done");
                 }) ?? allStatuses.FirstOrDefault(s => s.Id == 3);
 
-                var waitingStatus = allStatuses.FirstOrDefault(s => {
+                var waitingStatus = allStatuses.FirstOrDefault(s =>
+                {
                     var n = s.Name.Replace("إ", "ا").ToLower();
                     return n.Contains("انتظار") || n.Contains("طابور") || n.Contains("معلق") || n.Contains("wait") || n.Contains("pending");
                 }) ?? allStatuses.FirstOrDefault(s => s.Id == 1);
@@ -296,7 +290,8 @@ namespace Rassef.Common.Services
                 );
 
                 var waitingTickets = tickets
-                    .Where(t => {
+                    .Where(t =>
+                    {
                         if (completedStatus != null && t.TicketStatusId == completedStatus.Id) return false;
                         if (inProgressStatus != null && t.TicketStatusId == inProgressStatus.Id) return false;
                         if (t.ExitTime != DateTimeOffset.MinValue && t.ExitTime > t.QueueTime) return false;

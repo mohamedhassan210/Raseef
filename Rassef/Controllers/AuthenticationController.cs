@@ -390,7 +390,8 @@ namespace Rassef.Controllers
                     .ThenInclude(da => da.Dock)
             );
 
-            var ticketViewModels = ticketsList.Select(t => {
+            var ticketViewModels = ticketsList.Select(t =>
+            {
                 var dockAssignment = t.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
                 bool isSupplier = t.SupplierRequestId != null || t.SupplierRequest != null;
                 string reqType = isSupplier ? "توريد" : "تحويل";

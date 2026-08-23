@@ -1,6 +1,3 @@
-using Rassef.Models.Entities;
-using System.Threading.Tasks;
-
 namespace Rassef.Common.Interfaces
 {
     public interface ITicketEngineService

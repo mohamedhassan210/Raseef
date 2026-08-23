@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Rassef.ViewModels.Authentication
+﻿namespace Rassef.ViewModels.Authentication
 {
     public class ChangeInitialPasswordVM
     {

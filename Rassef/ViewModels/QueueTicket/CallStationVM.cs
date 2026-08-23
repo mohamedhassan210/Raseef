@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Rassef.ViewModels.QueueTicket
+﻿namespace Rassef.ViewModels.QueueTicket
 {
     public class CallStationVM
     {

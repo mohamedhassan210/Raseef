@@ -1,4 +1,3 @@
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using Rassef.ViewModels.Administration;
 using Rassef.ViewModels.Administration.Employee;
 namespace Rassef.Controllers
@@ -312,22 +311,33 @@ namespace Rassef.Controllers
                      .Include(t => t.TransferRequests)
             );
 
-            var truckList = trucks.Select(t => {
+            var truckList = trucks.Select(t =>
+            {
                 string companyName = "غير محدد";
                 var latestSupplier = t.SupplierRequests?.OrderByDescending(r => r.CreatedAT).FirstOrDefault();
                 var latestTransfer = t.TransferRequests?.OrderByDescending(r => r.CreatedAT).FirstOrDefault();
-                
-                if (latestSupplier != null && latestTransfer != null) {
-                    if (latestSupplier.CreatedAT > latestTransfer.CreatedAT) {
+
+                if (latestSupplier != null && latestTransfer != null)
+                {
+                    if (latestSupplier.CreatedAT > latestTransfer.CreatedAT)
+                    {
                         companyName = latestSupplier.Supplier?.Name ?? "غير محدد";
-                    } else {
+                    }
+                    else
+                    {
                         companyName = "تحويل داخلي";
                     }
-                } else if (latestSupplier != null) {
+                }
+                else if (latestSupplier != null)
+                {
                     companyName = latestSupplier.Supplier?.Name ?? "غير محدد";
-                } else if (latestTransfer != null) {
+                }
+                else if (latestTransfer != null)
+                {
                     companyName = "تحويل داخلي";
-                } else if (t.TruckType != null) {
+                }
+                else if (t.TruckType != null)
+                {
                     companyName = t.TruckType.Name;
                 }
 

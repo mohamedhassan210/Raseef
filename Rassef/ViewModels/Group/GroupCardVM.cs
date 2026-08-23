@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Rassef.ViewModels.Group
+﻿namespace Rassef.ViewModels.Group
 {
     public class GroupCardVM
     {

@@ -1,14 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Rassef.Common.Interfaces;
-using Rassef.Models.Entities;
-using Rassef.Models.Identity;
-using Rassef.Models.StatusesAndActions;
-using Rassef.ViewModels.Authentication.Identity;
 using Rassef.ViewModels.Group;
 
 namespace Rassef.Controllers
