@@ -328,7 +328,10 @@ namespace Rassef.Controllers
                 return NotFound("المورد غير موجود");
             }
 
-            // 2. جلب السائقين التابعين لهذا المورد تحديداً
+            // 2. جلب السائقين والشاحنات المشغولة حالياً بأدوار نشطة (انتظار أو جاري)
+            var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
+
+            // 3. جلب السائقين التابعين لهذا المورد تحديداً واستبعاد من لديه دور نشط
             var supplierDriversEntities = (await _driverRepository.GetDriversBySupplierIdAsync(supplierId)).ToList();
             if (selectedDriverId.HasValue && !supplierDriversEntities.Any(d => d.Id == selectedDriverId.Value))
             {
@@ -338,6 +341,11 @@ namespace Rassef.Controllers
                     supplierDriversEntities.Add(selDriver);
                 }
             }
+
+            // استبعاد السائقين الذين لديهم أدوار نشطة لم تكتمل بعد
+            supplierDriversEntities = supplierDriversEntities
+                .Where(d => !activeDriverIds.Contains(d.Id) || (selectedDriverId.HasValue && d.Id == selectedDriverId.Value))
+                .ToList();
 
             var supplierDrivers = supplierDriversEntities
                 .Select(d => new SelectListItem
@@ -372,7 +380,7 @@ namespace Rassef.Controllers
                 Text = d.Name
             }).ToList();
 
-            // 3. إرسال اسم المورد الحالي وقائمة الموردين/الشركات للـ View
+            // 4. إرسال اسم المورد الحالي وقائمة الموردين/الشركات للـ View
             ViewBag.SupplierName = supplier.Name;
             ViewBag.Companies = allSuppliers.Select(s => new SelectListItem
             {
@@ -424,6 +432,9 @@ namespace Rassef.Controllers
                 return View(create);
             }
 
+            // جلب السائقين والشاحنات المشغولة حالياً بأدوار نشطة
+            var (activeDriverIds, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
+
             // 0. إنشاء أو ربط السائق إذا تم إدخاله من خلال المودال المباشر (+)
             if (!string.IsNullOrWhiteSpace(create.NewDriverName))
             {
@@ -454,6 +465,12 @@ namespace Rassef.Controllers
 
                 if (existingDriver != null)
                 {
+                    if (activeDriverIds.Contains(existingDriver.Id))
+                    {
+                        ModelState.AddModelError(nameof(create.NewDriverNationalId), $"السائق ({existingDriver.FullName}) لديه دور حالي في الانتظار أو قيد التنفيذ. يجب اكتمال الدور السابق أولاً.");
+                        await ReloadTruckWithDriverDataAsync(create);
+                        return View(create);
+                    }
                     create.DriverId = existingDriver.Id;
                 }
                 else
@@ -478,10 +495,28 @@ namespace Rassef.Controllers
                 }
             }
 
+            // التحقق من أن السائق المختار ليس لديه دور نشط
+            if (create.DriverId > 0 && activeDriverIds.Contains(create.DriverId))
+            {
+                var busyDriver = await _driverRepository.GetByIdAsync(create.DriverId);
+                ModelState.AddModelError(nameof(create.DriverId), $"السائق ({busyDriver?.FullName ?? "المحدد"}) لديه دور حالي في الانتظار أو قيد التنفيذ. يجب اكتمال الدور السابق أولاً.");
+                await ReloadTruckWithDriverDataAsync(create);
+                return View(create);
+            }
+
             var plateNum = create.PlateNumber?.Trim() ?? "";
             var plateLet = create.PlateLetter?.Trim() ?? "";
 
             var existingTruck = await _truckRepository.FindAsync(t => t.PlateNumber == plateNum && t.PlateLetter == plateLet && !t.IsDeleted);
+
+            // التحقق من أن الشاحنة ليس لديها دور نشط
+            if (existingTruck != null && activeTruckIds.Contains(existingTruck.Id))
+            {
+                ModelState.AddModelError(nameof(create.PlateNumber), $"الشاحنة ({existingTruck.PlateLetter} {existingTruck.PlateNumber}) لديها دور حالي في الانتظار أو قيد التنفيذ. يجب اكتمال الدور السابق وتسجيل الخروج أولاً.");
+                await ReloadTruckWithDriverDataAsync(create);
+                return View(create);
+            }
+
             Truck truck;
 
             if (existingTruck != null)
@@ -630,6 +665,8 @@ namespace Rassef.Controllers
                 Text = s.Name
             }).ToList();
 
+            var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
+
             var supplierDriversEntities = (await _driverRepository.GetDriversBySupplierIdAsync(create.SupId)).ToList();
             if (create.DriverId > 0 && !supplierDriversEntities.Any(d => d.Id == create.DriverId))
             {
@@ -639,6 +676,11 @@ namespace Rassef.Controllers
                     supplierDriversEntities.Add(selDriver);
                 }
             }
+
+            // استبعاد السائقين الذين لديهم أدوار نشطة
+            supplierDriversEntities = supplierDriversEntities
+                .Where(d => !activeDriverIds.Contains(d.Id) || d.Id == create.DriverId)
+                .ToList();
 
             create.Drivers = supplierDriversEntities
                 .Select(d => new SelectListItem
@@ -655,6 +697,42 @@ namespace Rassef.Controllers
                     Value = t.Id.ToString(),
                     Text = t.Name
                 }).ToList();
+        }
+
+        private async Task<(HashSet<int> ActiveDriverIds, HashSet<int> ActiveTruckIds)> GetActiveDriverAndTruckIdsAsync()
+        {
+            var allTickets = await _ticketRepository.GetAllAsync(q => q
+                .Include(t => t.TicketStatus)
+                .Include(t => t.SupplierRequest)
+                .Include(t => t.TransferRequest)
+            );
+
+            var activeTickets = allTickets.Where(t =>
+            {
+                if (t.IsDeleted) return false;
+                if (t.ExitTime != DateTimeOffset.MinValue && t.ExitTime > t.QueueTime) return false;
+                if (t.TicketStatus != null)
+                {
+                    var n = t.TicketStatus.Name.Replace("إ", "ا").Trim().ToLower();
+                    if (n.Contains("مكتمل") || n.Contains("تم") || n.Contains("خروج") || n.Contains("منتهي") || n.Contains("complete") || n.Contains("done"))
+                        return false;
+                }
+                return true;
+            }).ToList();
+
+            var driverIds = activeTickets
+                .Select(t => t.SupplierRequest?.DriverId ?? t.TransferRequest?.DriverId)
+                .Where(id => id.HasValue && id.Value > 0)
+                .Select(id => id.Value)
+                .ToHashSet();
+
+            var truckIds = activeTickets
+                .Select(t => t.SupplierRequest?.TruckId ?? t.TransferRequest?.TruckId)
+                .Where(id => id.HasValue && id.Value > 0)
+                .Select(id => id.Value)
+                .ToHashSet();
+
+            return (driverIds, truckIds);
         }
         #endregion
     }

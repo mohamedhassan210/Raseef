@@ -371,8 +371,11 @@ namespace Rassef.Controllers
         public async Task<IActionResult> AddTraDriver(int? supplierId)
         {
             var suppliers = await GetSuppliersAsync();
+            var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
+
             var allDrivers = await _driverRepository.GetAllAsync();
-            var driversList = allDrivers.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.FullName }).ToList();
+            var availableDrivers = allDrivers.Where(d => !activeDriverIds.Contains(d.Id)).ToList();
+            var driversList = availableDrivers.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.FullName }).ToList();
 
             string? supplierName = null;
 
@@ -409,35 +412,70 @@ namespace Rassef.Controllers
             }
             var currentUser = await _userRepository.GetByIdAsync(currentUserId);
 
+            var (activeDriverIds, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
+
             var plateNum = create.PlateNumber?.Trim() ?? "";
             var plateLet = create.PlateLetter?.Trim() ?? "";
 
-            if (await _truckRepository.ExistsAsync(x => x.PlateNumber == plateNum && x.PlateLetter == plateLet && !x.IsDeleted))
+            var existingTruck = await _truckRepository.FindAsync(x => x.PlateNumber == plateNum && x.PlateLetter == plateLet && !x.IsDeleted);
+
+            if (existingTruck != null)
             {
-                ModelState.AddModelError("PlateNumber", "رقم وحروف اللوحة مسجلة بالفعل لشاحنة أخرى.");
+                if (activeTruckIds.Contains(existingTruck.Id))
+                {
+                    ModelState.AddModelError("PlateNumber", "الشاحنة لديها دور نشط حالياً (في الانتظار أو قيد التفريغ). يجب إنهاء الدور السابق أولاً.");
+                    create.Suppliers = await GetSuppliersAsync();
+                    ViewBag.Suppliers = create.Suppliers;
+                    ViewBag.SupplierName = create.SupplierName;
+                    return View(create);
+                }
+            }
+
+            if (create.DriverId.HasValue && create.DriverId.Value > 0 && activeDriverIds.Contains(create.DriverId.Value))
+            {
+                ModelState.AddModelError("DriverId", "السائق المختار لديه دور نشط حالياً. يجب اكتمال الدور السابق أولاً.");
                 create.Suppliers = await GetSuppliersAsync();
                 ViewBag.Suppliers = create.Suppliers;
                 ViewBag.SupplierName = create.SupplierName;
                 return View(create);
             }
 
-            var truck = new Truck
+            Truck truck;
+            if (existingTruck != null)
             {
-                PlateNumber = plateNum,
-                PlateLetter = plateLet,
-                StorageCapacity = create.StorageCapacity ?? 0,
-                IsRefrigerated = create.TruckType == "تبريد",
-                TruckTypeId = 1, // Default or parsed if available
-                CreatedBy = currentUser
-            };
-
-            await _truckRepository.AddAsync(truck);
-            await _truckRepository.SaveChangesAsync();
+                truck = existingTruck;
+                truck.StorageCapacity = create.StorageCapacity ?? 0;
+                truck.IsRefrigerated = create.TruckType == "تبريد";
+                _truckRepository.Update(truck);
+                await _truckRepository.SaveChangesAsync();
+            }
+            else
+            {
+                truck = new Truck
+                {
+                    PlateNumber = plateNum,
+                    PlateLetter = plateLet,
+                    StorageCapacity = create.StorageCapacity ?? 0,
+                    IsRefrigerated = create.TruckType == "تبريد",
+                    TruckTypeId = 1,
+                    CreatedBy = currentUser
+                };
+                await _truckRepository.AddAsync(truck);
+                await _truckRepository.SaveChangesAsync();
+            }
 
             Driver? driver = null;
             if (!string.IsNullOrWhiteSpace(create.NewDriverName) && !string.IsNullOrWhiteSpace(create.NewDriverNationalId) && !string.IsNullOrWhiteSpace(create.NewDriverPhone))
             {
                 driver = (await _driverRepository.GetAllAsync()).FirstOrDefault(x => x.NationalId == create.NewDriverNationalId || x.Phone == create.NewDriverPhone);
+                if (driver != null && activeDriverIds.Contains(driver.Id))
+                {
+                    ModelState.AddModelError("NewDriverNationalId", "السائق لديه دور نشط حالياً. يجب اكتمال الدور السابق أولاً.");
+                    create.Suppliers = await GetSuppliersAsync();
+                    ViewBag.Suppliers = create.Suppliers;
+                    ViewBag.SupplierName = create.SupplierName;
+                    return View(create);
+                }
                 if (driver == null)
                 {
                     driver = new Driver
@@ -512,6 +550,18 @@ namespace Rassef.Controllers
                 return NotFound(new { success = false, message = "القسم غير موجود." });
             }
 
+            var (activeDriverIds, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
+
+            if (activeTruckIds.Contains(dto.TruckId))
+            {
+                return BadRequest(new { success = false, message = "الشاحنة لديها دور نشط حالياً (في الانتظار أو قيد التنفيذ). يجب اكتمال الدور السابق أولاً." });
+            }
+
+            if (dto.DriverId.HasValue && dto.DriverId.Value > 0 && activeDriverIds.Contains(dto.DriverId.Value))
+            {
+                return BadRequest(new { success = false, message = "السائق المختار لديه دور نشط حالياً. يجب اكتمال الدور السابق أولاً." });
+            }
+
             // Get or fallback driver
             Driver? driver = null;
             if (dto.DriverId.HasValue && dto.DriverId.Value > 0)
@@ -520,7 +570,8 @@ namespace Rassef.Controllers
             }
             if (driver == null)
             {
-                driver = (await _driverRepository.GetAllAsync()).FirstOrDefault();
+                var allDrivers = await _driverRepository.GetAllAsync();
+                driver = allDrivers.FirstOrDefault(d => !activeDriverIds.Contains(d.Id));
             }
             if (driver == null)
             {
@@ -596,6 +647,42 @@ namespace Rassef.Controllers
         }
 
         #region Helpers
+        private async Task<(HashSet<int> ActiveDriverIds, HashSet<int> ActiveTruckIds)> GetActiveDriverAndTruckIdsAsync()
+        {
+            var allTickets = await _ticketRepository.GetAllAsync(q => q
+                .Include(t => t.TicketStatus)
+                .Include(t => t.SupplierRequest)
+                .Include(t => t.TransferRequest)
+            );
+
+            var activeTickets = allTickets.Where(t =>
+            {
+                if (t.IsDeleted) return false;
+                if (t.ExitTime != DateTimeOffset.MinValue && t.ExitTime > t.QueueTime) return false;
+                if (t.TicketStatus != null)
+                {
+                    var n = t.TicketStatus.Name.Replace("إ", "ا").Trim().ToLower();
+                    if (n.Contains("مكتمل") || n.Contains("تم") || n.Contains("خروج") || n.Contains("منتهي") || n.Contains("complete") || n.Contains("done"))
+                        return false;
+                }
+                return true;
+            }).ToList();
+
+            var driverIds = activeTickets
+                .Select(t => t.SupplierRequest?.DriverId ?? t.TransferRequest?.DriverId)
+                .Where(id => id.HasValue && id.Value > 0)
+                .Select(id => id.Value)
+                .ToHashSet();
+
+            var truckIds = activeTickets
+                .Select(t => t.SupplierRequest?.TruckId ?? t.TransferRequest?.TruckId)
+                .Where(id => id.HasValue && id.Value > 0)
+                .Select(id => id.Value)
+                .ToHashSet();
+
+            return (driverIds, truckIds);
+        }
+
         private async Task LoadTruckTypesAsync(int? selectedTruckTypeId = null)
         {
             ViewBag.TruckTypes = new SelectList(
