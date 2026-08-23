@@ -104,5 +104,29 @@ namespace Rassef.Controllers
                 $"SupplyOrders_{DateTime.Now:yyyyMMdd_HHmm}.xlsx"
             );
         }
+
+        /// <summary>
+        /// حذف أو إلغاء أمر توريد (Soft Delete)
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var request = await _context.SupplierRequests.FindAsync(id);
+            if (request != null)
+            {
+                request.IsDeleted = true;
+                request.MarkAsUpdated();
+                _context.SupplierRequests.Update(request);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "تم حذف أمر التوريد بنجاح!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "أمر التوريد غير موجود.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

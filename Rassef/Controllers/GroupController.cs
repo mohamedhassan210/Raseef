@@ -105,6 +105,28 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(GroupManagment));
         }
 
+        /// <summary>
+        /// حذف مجموعة (Soft Delete)
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteGroup(int id)
+        {
+            var group = await _groupRepo.GetByIdAsync(id);
+            if (group != null)
+            {
+                _groupRepo.Remove(group);
+                await _groupRepo.SaveChangesAsync();
+                TempData["SuccessMessage"] = "تم حذف المجموعة بنجاح!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "المجموعة غير موجودة.";
+            }
+
+            return RedirectToAction(nameof(GroupManagment));
+        }
+
         // ==============================================================
         // 3. شاشة إدارة الأدوار (Image 3 - Manage Roles & Permissions Overview)
         // ==============================================================

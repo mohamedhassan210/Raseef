@@ -107,7 +107,7 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var positions = await _positionRepository.GetAllAsync();
+            var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
 
             ViewBag.Positions = positions;
 
@@ -127,7 +127,7 @@ namespace Rassef.Controllers
 
             if (!ModelState.IsValid)
             {
-                var positions = await _positionRepository.GetAllAsync();
+                var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
                 ViewBag.Positions = positions;
 
                 return View(model);
@@ -171,7 +171,7 @@ namespace Rassef.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var positions = await _positionRepository.GetAllAsync();
+            var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
 
             ViewBag.Positions = positions;
 
@@ -202,7 +202,7 @@ namespace Rassef.Controllers
 
             if (!ModelState.IsValid)
             {
-                var positions = await _positionRepository.GetAllAsync();
+                var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
                 ViewBag.Positions = positions;
 
                 return View(model);
@@ -983,5 +983,52 @@ namespace Rassef.Controllers
             return View(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SupplierDeleteConfirmed(int id)
+        {
+            var supplier = await _supplierRepository.GetByIdAsync(id);
+            if (supplier != null)
+            {
+                supplier.IsDeleted = true;
+                supplier.MarkAsUpdated();
+                _supplierRepository.Update(supplier);
+                await _supplierRepository.SaveChangesAsync();
+                TempData["Success"] = "تم حذف المورد بنجاح.";
+            }
+            return RedirectToAction(nameof(Suppliers));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SupplierRequestDeleteConfirmed(int id)
+        {
+            var req = await _supplierRequestRepository.GetByIdAsync(id);
+            if (req != null)
+            {
+                req.IsDeleted = true;
+                req.MarkAsUpdated();
+                _supplierRequestRepository.Update(req);
+                await _supplierRequestRepository.SaveChangesAsync();
+                TempData["Success"] = "تم حذف طلب التوريد بنجاح.";
+            }
+            return RedirectToAction(nameof(SupplierRequests));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TransferRequestDeleteConfirmed(int id)
+        {
+            var req = await _Transferrepository.GetByIdAsync(id);
+            if (req != null)
+            {
+                req.IsDeleted = true;
+                req.MarkAsUpdated();
+                _Transferrepository.Update(req);
+                await _Transferrepository.SaveChangesAsync();
+                TempData["Success"] = "تم حذف طلب التحويل بنجاح.";
+            }
+            return RedirectToAction(nameof(TransferRequests));
+        }
     }
 }

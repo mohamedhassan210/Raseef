@@ -1,4 +1,10 @@
-﻿namespace Rassef.Common.Repository
+﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using Rassef.Common.Interfaces.Services;
+using Rassef.Data;
+using Rassef.Models.Common;
+
+namespace Rassef.Common.Repository
 {
     public class Repository<T> : IRepository<T> where T : BaseEntity
     {
@@ -36,7 +42,18 @@
             => await _dbSet.AddAsync(entity);
 
         public void Remove(T entity)
-            => _dbSet.Remove(entity);
+        {
+            entity.IsDeleted = true;
+            entity.MarkAsUpdated();
+            _dbSet.Update(entity);
+        }
+
+        public void SoftDelete(T entity)
+        {
+            entity.IsDeleted = true;
+            entity.MarkAsUpdated();
+            _dbSet.Update(entity);
+        }
 
         public void Update(T entity)
             => _dbSet.Update(entity);
