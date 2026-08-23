@@ -342,7 +342,83 @@ namespace Rassef.Common.Services
                     .ThenBy(t => t.Id)
                     .ToList();
 
-                if (!waitingTickets.Any())
+                // 1. فحص وإنهاء أي دور كان قيد التنفيذ حالياً (تحويله إلى مكتمل وإطلاق سراح السائق والشاحنة)
+                var currentInProgressTickets = tickets
+                    .Where(t =>
+                    {
+                        if (departmentId.HasValue && departmentId.Value > 0 && t.DepartmentId != departmentId.Value)
+                            return false;
+                        if (t.ExitTime != DateTimeOffset.MinValue && t.ExitTime > t.QueueTime) return false;
+                        if (t.TicketStatus != null)
+                        {
+                            var stName = t.TicketStatus.Name.Replace("إ", "ا").ToLower();
+                            return stName.Contains("جاري") || stName.Contains("تنفيذ") || stName.Contains("تشغيل");
+                        }
+                        return t.TicketStatusId == (inProgressStatus?.Id ?? 2);
+                    })
+                    .ToList();
+
+                foreach (var cur in currentInProgressTickets)
+                {
+                    var dbCur = await _ticketRepository.GetByIdAsync(cur.Id);
+                    if (dbCur != null)
+                    {
+                        dbCur.TicketStatusId = completedStatus?.Id ?? 3;
+                        dbCur.ExitTime = DateTimeOffset.Now;
+                        dbCur.MarkAsUpdated();
+                        _ticketRepository.Update(dbCur);
+                    }
+                }
+                if (currentInProgressTickets.Any())
+                {
+                    await _ticketRepository.SaveChangesAsync();
+                }
+
+                // 2. فحص استدعاء الدور التالي من قائمة الانتظار
+                if (waitingTickets.Any())
+                {
+                    var nextTicket = waitingTickets.First();
+                    var ticketToUpdate = await _ticketRepository.GetByIdAsync(nextTicket.Id);
+                    if (ticketToUpdate != null)
+                    {
+                        ticketToUpdate.TicketStatusId = inProgressStatus?.Id ?? 2;
+                        ticketToUpdate.EntryTime = DateTimeOffset.Now;
+                        ticketToUpdate.MarkAsUpdated();
+                        _ticketRepository.Update(ticketToUpdate);
+                        await _ticketRepository.SaveChangesAsync();
+                    }
+
+                    var dockAssignment = nextTicket.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
+                    string truckPlate = nextTicket.SupplierRequest?.Truck != null
+                        ? $"{nextTicket.SupplierRequest.Truck.PlateLetter} {nextTicket.SupplierRequest.Truck.PlateNumber}"
+                        : (nextTicket.TransferRequest?.Truck != null ? $"{nextTicket.TransferRequest.Truck.PlateLetter} {nextTicket.TransferRequest.Truck.PlateNumber}" : "غير محدد");
+
+                    string driverName = nextTicket.SupplierRequest?.Driver?.FullName
+                        ?? nextTicket.TransferRequest?.Driver?.FullName ?? "غير محدد";
+
+                    return new TicketStatusUpdateResult
+                    {
+                        Success = true,
+                        Message = $"تم اكتمال الدور السابق واستدعاء الدور التالي {nextTicket.TicketNumber} للشاحنة {truckPlate} بنجاح.",
+                        TicketId = nextTicket.Id,
+                        TicketNumber = nextTicket.TicketNumber,
+                        NewStatus = inProgressStatus?.Name ?? "جاري التنفيذ",
+                        TruckPlate = truckPlate,
+                        DriverName = driverName,
+                        DepartmentName = nextTicket.Department?.Name ?? "غير محدد",
+                        DockName = dockAssignment?.Dock?.DockName ?? "A1"
+                    };
+                }
+                else if (currentInProgressTickets.Any())
+                {
+                    return new TicketStatusUpdateResult
+                    {
+                        Success = true,
+                        Message = "تم اكتمال وإنهاء الدور السابق بنجاح. لا توجد أدوار متبقية في قائمة الانتظار.",
+                        NewStatus = completedStatus?.Name ?? "مكتمل"
+                    };
+                }
+                else
                 {
                     return new TicketStatusUpdateResult
                     {
@@ -350,42 +426,6 @@ namespace Rassef.Common.Services
                         Message = "لا يوجد أي أدوار في قائمة الانتظار حالياً."
                     };
                 }
-
-                var nextTicket = waitingTickets.First();
-                var ticketToUpdate = await _ticketRepository.GetByIdAsync(nextTicket.Id);
-                if (ticketToUpdate != null)
-                {
-                    ticketToUpdate.TicketStatusId = completedStatus?.Id ?? 3;
-                    ticketToUpdate.ExitTime = DateTimeOffset.Now;
-                    if (ticketToUpdate.EntryTime == default || ticketToUpdate.EntryTime == DateTimeOffset.MinValue)
-                    {
-                        ticketToUpdate.EntryTime = DateTimeOffset.Now;
-                    }
-                    ticketToUpdate.MarkAsUpdated();
-                    _ticketRepository.Update(ticketToUpdate);
-                    await _ticketRepository.SaveChangesAsync();
-                }
-
-                var dockAssignment = nextTicket.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
-                string truckPlate = nextTicket.SupplierRequest?.Truck != null
-                    ? $"{nextTicket.SupplierRequest.Truck.PlateLetter} {nextTicket.SupplierRequest.Truck.PlateNumber}"
-                    : (nextTicket.TransferRequest?.Truck != null ? $"{nextTicket.TransferRequest.Truck.PlateLetter} {nextTicket.TransferRequest.Truck.PlateNumber}" : "غير محدد");
-
-                string driverName = nextTicket.SupplierRequest?.Driver?.FullName
-                    ?? nextTicket.TransferRequest?.Driver?.FullName ?? "غير محدد";
-
-                return new TicketStatusUpdateResult
-                {
-                    Success = true,
-                    Message = $"تم إنهاء واكتمال الدور رقم {nextTicket.TicketNumber} بنجاح.",
-                    TicketId = nextTicket.Id,
-                    TicketNumber = nextTicket.TicketNumber,
-                    NewStatus = completedStatus?.Name ?? "مكتمل",
-                    TruckPlate = truckPlate,
-                    DriverName = driverName,
-                    DepartmentName = nextTicket.Department?.Name ?? "غير محدد",
-                    DockName = dockAssignment?.Dock?.DockName ?? "A1"
-                };
             }
             finally
             {

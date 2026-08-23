@@ -472,7 +472,7 @@ namespace Rassef.Controllers
 
             return new CallStationVM
             {
-                CurrentTicket = inProgressTickets.FirstOrDefault() ?? recentlyCompletedTickets.FirstOrDefault(),
+                CurrentTicket = inProgressTickets.FirstOrDefault(),
                 NextUpcomingTicket = waitingTickets.FirstOrDefault(),
                 WaitingQueue = waitingTickets,
                 WaitingCount = waitingTickets.Count,
