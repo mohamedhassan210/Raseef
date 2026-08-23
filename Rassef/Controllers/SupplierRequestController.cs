@@ -578,13 +578,18 @@ namespace Rassef.Controllers
 
         private async Task<T> PopulateDropdownsAsync<T>(T vm) where T : class
         {
+            var (activeDriverIds, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
+
             var suppliers = await _supplierRepository.GetAllAsync();
-            var trucks = await _truckRepository.GetAllAsync();
-            var drivers = await _driverRepository.GetAllAsync();
+            var allTrucks = await _truckRepository.GetAllAsync();
+            var allDrivers = await _driverRepository.GetAllAsync();
             var departments = await _departmentRepository.GetAllAsync();
             var permitTypes = await _permitTypeRepository.GetAllAsync();
             var commodityTypes = await _commodityTypeRepository.GetAllAsync();
             var requestStatuses = await _requestStatusRepository.GetAllAsync();
+
+            var trucks = allTrucks.Where(t => !activeTruckIds.Contains(t.Id)).ToList();
+            var drivers = allDrivers.Where(d => !activeDriverIds.Contains(d.Id)).ToList();
 
             if (vm is CreateSupplierRequestVM createVm)
             {
@@ -599,8 +604,8 @@ namespace Rassef.Controllers
             else if (vm is UpdateSupplierRequestVM updateVm)
             {
                 updateVm.Suppliers = suppliers.Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name });
-                updateVm.Trucks = trucks.Select(t => new SelectListItem { Value = t.Id.ToString(), Text = $"{t.PlateLetter} {t.PlateNumber}" });
-                updateVm.Drivers = drivers.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.FullName });
+                updateVm.Trucks = allTrucks.Select(t => new SelectListItem { Value = t.Id.ToString(), Text = $"{t.PlateLetter} {t.PlateNumber}" });
+                updateVm.Drivers = allDrivers.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.FullName });
                 updateVm.Departments = departments.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name });
                 updateVm.PermitTypes = permitTypes.Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name });
                 updateVm.CommodityTypes = commodityTypes.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });

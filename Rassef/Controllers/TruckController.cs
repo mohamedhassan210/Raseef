@@ -61,10 +61,12 @@ namespace Rassef.Controllers
                 return RedirectToAction("Index", "Supplier");
             }
 
+            var (_, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
+
             var trucksrepo = await _truckRepository.GetTruckWithTypeName();
 
             var supplierTrucks = trucksrepo
-                .Where(x => x.SupplierRequests.Any(sr => sr.SupplierId == supplierid))
+                .Where(x => x.SupplierRequests.Any(sr => sr.SupplierId == supplierid) && !activeTruckIds.Contains(x.Id))
                 .Select(x => new TruckListVM
                 {
                     Id = x.Id,
@@ -76,7 +78,7 @@ namespace Rassef.Controllers
                     supplierId = supplierid
                 });
 
-            // 👇 فلترة البيانات لو المستخدم كتاب حاجة في خانة البحث
+            // 👇 فلترة البيانات لو المستخدم كتب حاجة في خانة البحث
             if (!string.IsNullOrEmpty(searchString))
             {
                 searchString = searchString.Trim().ToLower();
@@ -349,16 +351,19 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> MainTraDrivers()
         {
+            var (_, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
             var allTrucks = await _truckRepository.GetAllAsync();
 
-            var truckList = allTrucks.Select(d => new TruckListVM
-            {
-                Id = d.Id,
-                PlateNumber = d.PlateNumber,
-                PlateLetter = d.PlateLetter,
-                StorageCapacity = d.StorageCapacity,
-                IsRefrigerated = d.IsRefrigerated
-            }).ToList();
+            var truckList = allTrucks
+                .Where(d => !activeTruckIds.Contains(d.Id))
+                .Select(d => new TruckListVM
+                {
+                    Id = d.Id,
+                    PlateNumber = d.PlateNumber,
+                    PlateLetter = d.PlateLetter,
+                    StorageCapacity = d.StorageCapacity,
+                    IsRefrigerated = d.IsRefrigerated
+                }).ToList();
 
             var depts = await _departmentRepository.GetAllAsync();
             ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
