@@ -159,6 +159,7 @@ namespace Rassef.Controllers
             {
                 currentUserId = parsedId;
             }
+            var currentUser = await _userRepository.GetByIdAsync(currentUserId);
             var (activeDriverIds, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
 
             int finalTruckId = model.TruckId;
