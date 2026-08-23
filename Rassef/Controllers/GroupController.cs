@@ -97,7 +97,106 @@
 
             return RedirectToAction(nameof(Index));
         }
+        // Manage Groups 
+        [HttpGet]
+        public async Task<IActionResult> GroupManagment()
+        {
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> GroupManagment(GroupPermission ge)
+        {
+            return View();
+        }
+        // Add Group    
+        [HttpGet]
+        public IActionResult AddGroup()
+        {
+            return View();
+        }
+        [HttpPost]
+        public IActionResult AddGroup(GroupPermission f)
+        {
+            return View();
+        }
+        // Details Group    
+        [HttpGet]
+        public IActionResult GroupDetails()
+        {
+            return View();
+        }
+        [HttpPost]
+        public IActionResult GroupDetails(GroupPermission f)
+        {
+            return View();
+        }
+        // Edit Group    
+        [HttpGet]
+        public IActionResult EditGroup()
+        {
+            return View();
+        }
+        [HttpPost]
+        public IActionResult EditGroup(GroupPermission f)
+        {
+            return View();
+        }
+        // Transfer User
+        [HttpGet]
+        public IActionResult TransferEmp()
+        {
+            return View();
+        }
+        [HttpPost]
+        public IActionResult TransferEmp(GroupPermission f)
+        {
+            return View();
+        }
+        // Mange Roles
+        [HttpGet]
+        public IActionResult MangeRolesIndex()
+        {
+            return View();
+        }
+        //Manages Types
+        [HttpGet]
+        public IActionResult MangeTypesIndex()
+        {
+            return View();
 
+        }
+        //Manages Types
+        [HttpGet]
+        public IActionResult MangeTypes()
+        {
+            return View();
 
+        }
+        //Eidt Types
+        [HttpGet]
+        public IActionResult EditTypes()
+        {
+            return View();
+
+        }
+        [HttpPost]
+        public IActionResult EditTypes(GroupPermission f )
+        {
+            return View();
+
+        }
+        //Add Types
+        [HttpGet]
+        public IActionResult AddTypes()
+        {
+            return View();
+
+        }
+        [HttpPost]
+        public IActionResult AddTypes(GroupPermission f )
+        {
+            return View();
+
+        }
     }
 }

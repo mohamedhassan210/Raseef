@@ -505,16 +505,15 @@ body {
   border-bottom: 2px solid rgba(235, 132, 45, 0.2);
 }
 
-    .dashboard-table td {
-        padding: 14px;
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--text-dark);
-        background: #eb842d2b;
-        vertical-align: middle;
-        padding: 30px;
-        flex-grow: 1;
-    }
+.dashboard-table td {
+    font-size: x-large;
+    font-weight: 800;
+    color: var(--text-dark);
+    background: #eb842d0a;
+    vertical-align: middle;
+    padding: 30px;
+    text-align: center;
+}
 
 .table-row {
   transition: all 0.2s ease;
