@@ -50,8 +50,8 @@ namespace Rassef.Common.Services
             var resetType = settings?.ResetType ?? ResetType.ByShift;
 
             Shift? activeShift = null;
-            DateTimeOffset resetDate = DateTimeOffset.MinValue;
             var now = DateTimeOffset.Now;
+            DateTimeOffset resetDate = new DateTimeOffset(DateTime.Today, now.Offset);
 
             if (resetType == ResetType.ByShift)
             {
@@ -81,22 +81,17 @@ namespace Rassef.Common.Services
 
                 if (activeShift != null)
                 {
-                    var today = DateTime.Today;
-                    var shiftStartDateTime = today.Add(activeShift.StartTime);
-                    if (now.TimeOfDay < activeShift.StartTime && activeShift.Duration.TotalHours > 12)
+                    var shiftStart = DateTime.Today.Add(activeShift.StartTime);
+                    if (now.DateTime < shiftStart)
                     {
-                        shiftStartDateTime = shiftStartDateTime.AddDays(-1);
+                        shiftStart = shiftStart.AddDays(-1);
                     }
-                    resetDate = new DateTimeOffset(shiftStartDateTime, now.Offset);
+                    resetDate = new DateTimeOffset(shiftStart, now.Offset);
 
-                    if (activeShift.LastResetAt.HasValue && activeShift.LastResetAt.Value > resetDate)
+                    if (activeShift.LastResetAt.HasValue && activeShift.LastResetAt.Value <= now && activeShift.LastResetAt.Value > resetDate)
                     {
                         resetDate = activeShift.LastResetAt.Value;
                     }
-                }
-                else
-                {
-                    resetDate = new DateTimeOffset(DateTime.Today, now.Offset);
                 }
             }
             else if (resetType == ResetType.Daily)
@@ -105,23 +100,37 @@ namespace Rassef.Common.Services
             }
             else // Manual
             {
-                resetDate = settings?.LastGlobalResetAt ?? DateTimeOffset.MinValue;
+                if (settings?.LastGlobalResetAt.HasValue == true && settings.LastGlobalResetAt.Value <= now)
+                {
+                    resetDate = settings.LastGlobalResetAt.Value;
+                }
             }
 
-            if (department.LastResetAt.HasValue && department.LastResetAt.Value > resetDate)
+            if (department.LastResetAt.HasValue && department.LastResetAt.Value <= now && department.LastResetAt.Value > resetDate)
             {
                 resetDate = department.LastResetAt.Value;
             }
 
-            if (settings?.LastGlobalResetAt.HasValue == true && settings.LastGlobalResetAt.Value > resetDate)
+            if (settings?.LastGlobalResetAt.HasValue == true && settings.LastGlobalResetAt.Value <= now && settings.LastGlobalResetAt.Value > resetDate)
             {
                 resetDate = settings.LastGlobalResetAt.Value;
             }
 
             var allTickets = await _ticketRepository.GetAllAsync();
             var departmentTickets = allTickets
-                .Where(x => x.DepartmentId == departmentId && x.CreatedAT >= resetDate)
+                .Where(x => (x.DepartmentId == departmentId || (x.TicketNumber != null && x.TicketNumber.Trim().StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+                            && x.CreatedAT >= resetDate)
                 .ToList();
+
+            // إذا لم توجد تذاكر مسجلة بعد وقت الـ reset، نفحص تذاكر اليوم بالكامل كـ fallback
+            if (!departmentTickets.Any())
+            {
+                var todayStart = new DateTimeOffset(DateTime.Today, now.Offset);
+                departmentTickets = allTickets
+                    .Where(x => (x.DepartmentId == departmentId || (x.TicketNumber != null && x.TicketNumber.Trim().StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+                                && x.CreatedAT >= todayStart)
+                    .ToList();
+            }
 
             int maxCounter = 0;
             foreach (var t in departmentTickets)
@@ -140,7 +149,7 @@ namespace Rassef.Common.Services
                     else
                     {
                         var digits = new string(trimmed.Where(char.IsDigit).ToArray());
-                        if (int.TryParse(digits, out var val) && val > maxCounter && val < 1000)
+                        if (int.TryParse(digits, out var val) && val > maxCounter && val < 100000)
                         {
                             maxCounter = val;
                         }
