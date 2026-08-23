@@ -180,6 +180,92 @@ namespace Rassef.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(7),
                 IsEssential = true
             });
+
+            // إذا كان المستخدم يسجل الدخول لأول مرة ولم يغير كلمة المرور من كوده بعد
+            if (!user.IsChanged)
+            {
+                return RedirectToAction(nameof(ChangeInitialPassword));
+            }
+
+            return RedirectToAction("AddRoleOrView", "Authentication");
+        }
+
+        /// <summary>
+        /// صفحة إجبار تغيير كلمة المرور الافتراضية لأول مرة (GET)
+        /// Displays view forcing user to change their initial employee code password
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> ChangeInitialPassword()
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            // لو كان غيرها بالفعل، يوجهه مباشرة للصفحة الرئيسية
+            if (user.IsChanged)
+            {
+                return RedirectToAction("AddRoleOrView", "Authentication");
+            }
+
+            return View(new Rassef.ViewModels.Authentication.ChangeInitialPasswordVM());
+        }
+
+        /// <summary>
+        /// معالجة وحفظ كلمة المرور الجديدة للمستخدم لأول مرة (POST)
+        /// Validates current code and sets permanent password on first login
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeInitialPassword(Rassef.ViewModels.Authentication.ChangeInitialPasswordVM model)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // التحقق من صحة كلمة المرور الحالية (كود الموظف)
+            if (!BCrypt.Net.BCrypt.Verify(model.CurrentPassword, user.HashPassword))
+            {
+                ModelState.AddModelError(nameof(model.CurrentPassword), "كلمة المرور الحالية (كود الموظف) غير صحيحة.");
+                return View(model);
+            }
+
+            // التحقق من أن كلمة المرور الجديدة تختلف عن القديمة
+            if (model.NewPassword.Trim() == model.CurrentPassword.Trim())
+            {
+                ModelState.AddModelError(nameof(model.NewPassword), "يجب اختيار كلمة مرور جديدة مختلفة عن كود الموظف القديم.");
+                return View(model);
+            }
+
+            // حفظ كلمة المرور الجديدة وتحديث حالة التغيير
+            user.HashPassword = BCrypt.Net.BCrypt.HashPassword(model.NewPassword.Trim());
+            user.IsChanged = true;
+            user.MarkAsUpdated();
+
+            _userRepository.Update(user);
+            await _userRepository.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "تم تعيين كلمة المرور الجديدة بنجاح!";
             return RedirectToAction("AddRoleOrView", "Authentication");
         }
 
@@ -245,8 +331,18 @@ namespace Rassef.Controllers
         /// Gateway selection screen between registering, viewing queue, and dashboard
         /// </summary>
         [HttpGet]
-        public IActionResult AddRoleOrView()
+        public async Task<IActionResult> AddRoleOrView()
         {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
+            {
+                var user = await _userRepository.GetByIdAsync(parsedId);
+                if (user != null && !user.IsChanged)
+                {
+                    return RedirectToAction(nameof(ChangeInitialPassword));
+                }
+            }
+
             return View();
         }
 
@@ -255,8 +351,18 @@ namespace Rassef.Controllers
         /// Selection screen between Supplier flow and Internal Transfer flow
         /// </summary>
         [HttpGet]
-        public IActionResult SupOrTra()
+        public async Task<IActionResult> SupOrTra()
         {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
+            {
+                var user = await _userRepository.GetByIdAsync(parsedId);
+                if (user != null && !user.IsChanged)
+                {
+                    return RedirectToAction(nameof(ChangeInitialPassword));
+                }
+            }
+
             return View();
         }
 
