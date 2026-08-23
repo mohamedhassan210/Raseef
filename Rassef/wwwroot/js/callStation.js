@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    callStation.js - Next Next Next Live Calling Station Client
    ========================================================================== */
 
@@ -36,10 +36,11 @@ document.addEventListener("DOMContentLoaded", function () {
         if (currentContainer) {
             if (data.currentTicket) {
                 const t = data.currentTicket;
+                const isCompleted = (t.ticketStatusName || "").includes("مكتمل") || (t.ticketStatusName || "").includes("تم");
                 currentContainer.innerHTML = `
                     <div class="card-top-tag">
                         <span class="tag-title"><i class="fas fa-truck-loading"></i> الدور الحالي بالرصيف</span>
-                        <span class="tag-badge">جاري التنفيذ</span>
+                        <span class="tag-badge" style="${isCompleted ? 'background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7;' : ''}">${isCompleted ? 'مكتمل ✅' : 'جاري التنفيذ'}</span>
                     </div>
                     <div class="hero-ticket-number">${t.ticketNumber}</div>
                     <div class="hero-details-list">

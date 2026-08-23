@@ -355,8 +355,12 @@ namespace Rassef.Common.Services
                 var ticketToUpdate = await _ticketRepository.GetByIdAsync(nextTicket.Id);
                 if (ticketToUpdate != null)
                 {
-                    ticketToUpdate.TicketStatusId = inProgressStatus?.Id ?? 2;
-                    ticketToUpdate.EntryTime = DateTimeOffset.Now;
+                    ticketToUpdate.TicketStatusId = completedStatus?.Id ?? 3;
+                    ticketToUpdate.ExitTime = DateTimeOffset.Now;
+                    if (ticketToUpdate.EntryTime == default || ticketToUpdate.EntryTime == DateTimeOffset.MinValue)
+                    {
+                        ticketToUpdate.EntryTime = DateTimeOffset.Now;
+                    }
                     ticketToUpdate.MarkAsUpdated();
                     _ticketRepository.Update(ticketToUpdate);
                     await _ticketRepository.SaveChangesAsync();
@@ -373,10 +377,10 @@ namespace Rassef.Common.Services
                 return new TicketStatusUpdateResult
                 {
                     Success = true,
-                    Message = $"تم استدعاء الدور رقم {nextTicket.TicketNumber} بنجاح.",
+                    Message = $"تم إنهاء واكتمال الدور رقم {nextTicket.TicketNumber} بنجاح.",
                     TicketId = nextTicket.Id,
                     TicketNumber = nextTicket.TicketNumber,
-                    NewStatus = inProgressStatus?.Name ?? "جاري التنفيذ",
+                    NewStatus = completedStatus?.Name ?? "مكتمل",
                     TruckPlate = truckPlate,
                     DriverName = driverName,
                     DepartmentName = nextTicket.Department?.Name ?? "غير محدد",

@@ -1,4 +1,4 @@
-﻿@model Rassef.ViewModels.QueueTicket.CallStationVM
+@model Rassef.ViewModels.QueueTicket.CallStationVM
 @{
     ViewData["Title"] = "شاشة استدعاء الأدوار المتتالية — Next Station";
     Layout = null;
@@ -82,9 +82,10 @@
             <div class="station-hero-card current-card" id="currentSlotContainer">
                 @if (Model?.CurrentTicket != null)
                 {
+                    var isCompleted = (Model.CurrentTicket.TicketStatusName ?? "").Contains("مكتمل") || (Model.CurrentTicket.TicketStatusName ?? "").Contains("تم");
                     <div class="card-top-tag">
                         <span class="tag-title"><i class="fas fa-truck-loading"></i> الدور الحالي بالرصيف</span>
-                        <span class="tag-badge">جاري التنفيذ</span>
+                        <span class="tag-badge" style="@(isCompleted ? "background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7;" : "")">@(isCompleted ? "مكتمل ✅" : "جاري التنفيذ")</span>
                     </div>
                     <div class="hero-ticket-number">@Model.CurrentTicket.TicketNumber</div>
                     <div class="hero-details-list">

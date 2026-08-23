@@ -460,9 +460,19 @@ namespace Rassef.Controllers
                 return n.Contains("تم") || n.Contains("مكتمل") || n.Contains("خروج");
             });
 
+            var recentlyCompletedTickets = mappedTickets
+                .Where(t =>
+                {
+                    var n = (t.TicketStatusName ?? "").Replace("إ", "ا").Trim();
+                    return n.Contains("تم") || n.Contains("مكتمل") || n.Contains("خروج");
+                })
+                .OrderByDescending(t => t.ExitTime)
+                .ThenByDescending(t => t.Id)
+                .ToList();
+
             return new CallStationVM
             {
-                CurrentTicket = inProgressTickets.FirstOrDefault(),
+                CurrentTicket = inProgressTickets.FirstOrDefault() ?? recentlyCompletedTickets.FirstOrDefault(),
                 NextUpcomingTicket = waitingTickets.FirstOrDefault(),
                 WaitingQueue = waitingTickets,
                 WaitingCount = waitingTickets.Count,
