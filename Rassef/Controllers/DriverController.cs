@@ -115,23 +115,38 @@ namespace Rassef.Controllers
             if (ticket != null)
             {
                 var isSupplier = ticket.SupplierRequestId != null || ticket.SupplierRequest != null;
-                var dockName = ticket.DockAssignments?.OrderByDescending(da => da.AssignedAt).Select(da => da.Dock?.DockName).FirstOrDefault() ?? "A1";
 
-                var empName = ticket.CreatedBy?.Name
-                    ?? ticket.SupplierRequest?.CreatedBy?.Name
-                    ?? ticket.TransferRequest?.CreatedBy?.Name
-                    ?? (!string.IsNullOrWhiteSpace(ticket.CreatedBy?.UserName) ? ticket.CreatedBy.UserName
-                    : (User.Identity?.Name ?? "المسؤول"));
+                var dockName = ticket.DockAssignments?.OrderByDescending(da => da.AssignedAt).Select(da => da.Dock?.DockName).FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(dockName) && ticket.Department != null)
+                {
+                    dockName = $"{ticket.Department.Prefix}1";
+                }
+                if (string.IsNullOrWhiteSpace(dockName))
+                {
+                    dockName = "A1";
+                }
+
+                var empName = !string.IsNullOrWhiteSpace(ticket.CreatedBy?.Name) ? ticket.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(ticket.SupplierRequest?.CreatedBy?.Name) ? ticket.SupplierRequest.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(ticket.TransferRequest?.CreatedBy?.Name) ? ticket.TransferRequest.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(ticket.CreatedBy?.UserName) ? ticket.CreatedBy.UserName
+                    : (!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "المسؤول"))));
+
+                // حساب عدد الأدوار المنتظرة قبل هذا الدور في نفس القسم
+                int waitingCount = allTickets.Count(t =>
+                    t.DepartmentId == ticket.DepartmentId &&
+                    t.Id < ticket.Id &&
+                    (t.TicketStatus == null || t.TicketStatus.Name.Contains("انتظار") || t.TicketStatus.Name.Contains("إنتظار")));
 
                 model = new ReceiptVM
                 {
-                    TicketNumber = ticket.TicketNumber ?? "A1",
+                    TicketNumber = !string.IsNullOrWhiteSpace(ticket.TicketNumber) ? ticket.TicketNumber : "A1",
                     RequestType = isSupplier ? "توريد" : "تحويل",
                     DepartmentName = ticket.Department?.Name ?? "غير محدد",
                     DockName = dockName,
                     EmployeeName = empName,
-                    WaitingCount = "0",
-                    CreatedAt = ticket.CreatedAT
+                    WaitingCount = waitingCount.ToString(),
+                    CreatedAt = ticket.CreatedAT != default ? ticket.CreatedAT : DateTimeOffset.Now
                 };
             }
 

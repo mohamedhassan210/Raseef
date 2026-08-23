@@ -16,6 +16,7 @@ namespace Rassef.Controllers
         private readonly IRepository<TicketStatuses> _ticketStatusRepository;
         private readonly IRepository<QueueSettings> _queueSettingsRepository;
         private readonly IRepository<Shift> _shiftRepository;
+        private readonly IRepository<DriverTypes> _driverTypeRepository;
         private readonly ITicketEngineService _ticketEngineService;
 
         public SupplierRequestController(
@@ -29,6 +30,7 @@ namespace Rassef.Controllers
             IRepository<RequestStatuses> requestStatusRepository,
             IRepository<User> userRepository,
             IRepository<TruckTypes> truckTypeRepository,
+            IRepository<DriverTypes> driverTypeRepository,
             IRepository<QueueTicket> ticketRepository,
             IRepository<TicketStatuses> ticketStatusRepository,
             IRepository<QueueSettings> queueSettingsRepository,
@@ -45,6 +47,7 @@ namespace Rassef.Controllers
             _requestStatusRepository = requestStatusRepository;
             _userRepository = userRepository;
             _truckTypeRepository = truckTypeRepository;
+            _driverTypeRepository = driverTypeRepository;
             _ticketRepository = ticketRepository;
             _ticketStatusRepository = ticketStatusRepository;
             _queueSettingsRepository = queueSettingsRepository;
@@ -421,39 +424,58 @@ namespace Rassef.Controllers
                 return View(create);
             }
 
-            // 0. إنشاء السائق إذا تم إدخاله من خلال المودال المباشر (+)
+            // 0. إنشاء أو ربط السائق إذا تم إدخاله من خلال المودال المباشر (+)
             if (!string.IsNullOrWhiteSpace(create.NewDriverName))
             {
-                Driver? targetDriver = null;
-                if (!string.IsNullOrWhiteSpace(create.NewDriverNationalId))
+                var newName = create.NewDriverName.Trim();
+                var newNatId = create.NewDriverNationalId?.Trim() ?? "";
+                var newPhone = create.NewDriverPhone?.Trim() ?? "";
+
+                // 1. التحقق من صحة الرقم القومي (14 رقم)
+                if (string.IsNullOrWhiteSpace(newNatId) || newNatId.Length != 14 || !newNatId.All(char.IsDigit))
                 {
-                    targetDriver = await _driverRepository.FindAsync(d => d.NationalId == create.NewDriverNationalId);
+                    ModelState.AddModelError(nameof(create.NewDriverNationalId), "الرقم القومي يجب أن يتكون من 14 رقماً.");
                 }
 
-                if (targetDriver == null)
+                // 2. التحقق من صحة رقم الهاتف المصري (11 رقم يبدأ بـ 010 أو 011 أو 012 أو 015)
+                if (string.IsNullOrWhiteSpace(newPhone) || !System.Text.RegularExpressions.Regex.IsMatch(newPhone, @"^01[0125][0-9]{8}$"))
                 {
-                    int driverTypeId = 1;
+                    ModelState.AddModelError(nameof(create.NewDriverPhone), "يرجى إدخال رقم هاتف مصري صحيح (11 رقماً يبدأ بـ 010 أو 011 أو 012 أو 015).");
+                }
 
-                    // SEC-5: استخدام GUID فريد بدلاً من قيم ثابتة تسبب Unique Constraint Violation
-                    var uniqueSuffix = Guid.NewGuid().ToString("N")[..6];
-                    targetDriver = new Driver
+                if (!ModelState.IsValid)
+                {
+                    await ReloadTruckWithDriverDataAsync(create);
+                    return View(create);
+                }
+
+                // 3. التحقق إذا كان السائق مسجلاً مسبقاً بنفس الرقم القومي أو الهاتف
+                var existingDriver = await _driverRepository.FindAsync(d => (d.NationalId == newNatId || d.Phone == newPhone) && !d.IsDeleted);
+
+                if (existingDriver != null)
+                {
+                    create.DriverId = existingDriver.Id;
+                }
+                else
+                {
+                    var allDriverTypes = await _driverTypeRepository.GetAllAsync();
+                    var defaultType = allDriverTypes.FirstOrDefault();
+                    int driverTypeId = defaultType?.Id ?? 1;
+
+                    var newDriver = new Driver
                     {
-                        FullName = create.NewDriverName,
-                        NationalId = !string.IsNullOrWhiteSpace(create.NewDriverNationalId)
-                            ? create.NewDriverNationalId
-                            : $"TEMP{uniqueSuffix}",
-                        Phone = !string.IsNullOrWhiteSpace(create.NewDriverPhone)
-                            ? create.NewDriverPhone
-                            : $"0100{uniqueSuffix}",
+                        FullName = newName,
+                        NationalId = newNatId,
+                        Phone = newPhone,
                         DeiverTypeId = driverTypeId,
                         CreatedBy = currentUser
                     };
 
-                    await _driverRepository.AddAsync(targetDriver);
+                    await _driverRepository.AddAsync(newDriver);
                     await _driverRepository.SaveChangesAsync();
-                }
 
-                create.DriverId = targetDriver.Id;
+                    create.DriverId = newDriver.Id;
+                }
             }
 
             var plateNum = create.PlateNumber?.Trim() ?? "";

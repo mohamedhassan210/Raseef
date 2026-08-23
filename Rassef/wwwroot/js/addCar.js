@@ -330,25 +330,38 @@ document.addEventListener('DOMContentLoaded', () => {
             const phoneErr = document.getElementById('inlineDriverPhoneErr');
 
             let isValid = true;
-            if (!nameInput || !nameInput.value.trim()) {
+
+            // 1. فحص الاسم
+            const nameVal = nameInput ? nameInput.value.trim() : '';
+            if (!nameVal) {
                 if (nameErr) nameErr.style.display = 'block';
+                nameInput?.classList.add('is-invalid');
                 isValid = false;
             } else {
                 if (nameErr) nameErr.style.display = 'none';
+                nameInput?.classList.remove('is-invalid');
             }
 
-            if (!natIdInput || natIdInput.value.trim().length !== 14 || !/^\d{14}$/.test(natIdInput.value.trim())) {
-                if (natIdErr) nameErr ? natIdErr.style.display = 'block' : null;
+            // 2. فحص الرقم القومي (14 رقماً بالضبط)
+            const natIdVal = natIdInput ? natIdInput.value.trim() : '';
+            if (!natIdVal || natIdVal.length !== 14 || !/^\d{14}$/.test(natIdVal)) {
+                if (natIdErr) natIdErr.style.display = 'block';
+                natIdInput?.classList.add('is-invalid');
                 isValid = false;
             } else {
                 if (natIdErr) natIdErr.style.display = 'none';
+                natIdInput?.classList.remove('is-invalid');
             }
 
-            if (!phoneInput || !phoneInput.value.trim() || phoneInput.value.trim().length < 10) {
+            // 3. فحص رقم الهاتف المصري (11 رقماً يبدأ بـ 010 أو 011 أو 012 أو 015)
+            const phoneVal = phoneInput ? phoneInput.value.trim() : '';
+            if (!phoneVal || !/^01[0125][0-9]{8}$/.test(phoneVal)) {
                 if (phoneErr) phoneErr.style.display = 'block';
+                phoneInput?.classList.add('is-invalid');
                 isValid = false;
             } else {
                 if (phoneErr) phoneErr.style.display = 'none';
+                phoneInput?.classList.remove('is-invalid');
             }
 
             if (!isValid) return;
