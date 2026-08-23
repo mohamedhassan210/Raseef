@@ -1,0 +1,572 @@
+@model Rassef.ViewModels.Group.TypeDetailsVM
+@{
+    Layout = null;
+    ViewData["Title"] = "اختيارات " + Model.Title;
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - رصيف</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+        }
+
+        body {
+            background-color: #fdf6f0;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .dashboard-page {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: row;
+        }
+
+        /* ── SIDEBAR ── */
+        .dashboard-sidebar {
+            width: 260px;
+            background-color: #E87A1E;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 30px 16px 20px;
+            flex-shrink: 0;
+            min-height: 100vh;
+        }
+
+        .sidebar-top {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .sidebar-title {
+            font-size: 26px;
+            font-weight: 700;
+            text-align: center;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .sidebar-item.active {
+            background-color: #fdf6f0;
+            color: #E87A1E;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .sidebar-item svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            flex-shrink: 0;
+        }
+
+        .sidebar-user {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 16px;
+        }
+
+        .user-info-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar-box {
+            width: 44px;
+            height: 44px;
+            background: #fff;
+            color: #E87A1E;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .user-avatar-box svg {
+            width: 26px;
+            height: 26px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* ── MAIN CONTENT ── */
+        .dashboard-main {
+            flex: 1;
+            padding: 30px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Top Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-main-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #E87A1E;
+            margin-bottom: 2px;
+        }
+
+        .page-subtitle {
+            font-size: 13px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .page-subtitle::before {
+            content: "•";
+            color: #E87A1E;
+            font-size: 16px;
+        }
+
+        .header-logos {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-logos img {
+            height: 44px;
+            object-fit: contain;
+        }
+
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+        }
+
+        .section-tab-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #333;
+            position: relative;
+            padding-bottom: 6px;
+        }
+
+        .section-tab-title::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #E87A1E;
+            border-radius: 2px;
+        }
+
+        .btn-return {
+            background-color: #E87A1E;
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(232, 122, 30, 0.25);
+            transition: background 0.2s;
+        }
+
+        .btn-return:hover {
+            background-color: #d16b15;
+            color: #fff;
+        }
+
+        /* ── TABLE CONTAINER ── */
+        .table-outer-card {
+            background: #fff;
+            border: 2px solid #eecfb7;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+            margin-top: 10px;
+        }
+
+        .types-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .types-table tr {
+            border-bottom: 1.5px solid #faede2;
+        }
+
+        .types-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .types-table td {
+            padding: 16px 24px;
+            vertical-align: middle;
+        }
+
+        .cell-name {
+            width: 60%;
+            font-size: 18px;
+            font-weight: 800;
+            color: #333;
+            text-align: right;
+            border-left: 1.5px solid #faede2;
+        }
+
+        .cell-actions {
+            width: 40%;
+            display: flex;
+            gap: 16px;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .btn-action-custom {
+            border: none;
+            padding: 10px 28px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            min-width: 110px;
+        }
+
+        .btn-edit-custom {
+            background-color: #E87A1E;
+            color: #fff;
+            box-shadow: 0 3px 8px rgba(232, 122, 30, 0.2);
+        }
+
+        .btn-edit-custom:hover {
+            background-color: #d16b15;
+        }
+
+        .btn-delete-custom {
+            background-color: #e03838;
+            color: #fff;
+            box-shadow: 0 3px 8px rgba(224, 56, 56, 0.2);
+        }
+
+        .btn-delete-custom:hover {
+            background-color: #c92a2a;
+        }
+
+        /* Bottom Big Button */
+        .btn-add-big {
+            width: 100%;
+            background-color: #E87A1E;
+            color: #fff;
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 20px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 16px;
+            box-shadow: 0 6px 16px rgba(232, 122, 30, 0.3);
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .btn-add-big:hover {
+            background-color: #d16b15;
+            transform: translateY(-2px);
+        }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 460px;
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #222;
+            text-align: center;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 1.5px solid #d9b89e;
+            font-size: 15px;
+            outline: none;
+            text-align: right;
+        }
+
+        .modal-input:focus {
+            border-color: #E87A1E;
+            box-shadow: 0 0 0 3px rgba(232, 122, 30, 0.15);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-modal-save {
+            flex: 1;
+            background-color: #E87A1E;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .btn-modal-cancel {
+            flex: 1;
+            background-color: #f1f1f1;
+            color: #555;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-page">
+        <!-- ── SIDEBAR ── -->
+        <partial name="_AdminSidebar" model='"Options"' />
+
+        <!-- ── MAIN CONTENT ── -->
+        <main class="dashboard-main">
+
+            <!-- 1. Header -->
+            <header class="page-header">
+                <div class="header-title-box">
+                    <h1 class="page-main-title">إدارة الإختيارات</h1>
+                    <span class="page-subtitle">آخر تحديث منذ 10 ثواني</span>
+                </div>
+                <div class="header-logos">
+                    <img src="~/images/Fathalla.png" alt="فتح الله" onerror="this.style.display='none'" />
+                    <img src="~/images/logo.png" alt="رصيف" onerror="this.style.display='none'" />
+                </div>
+            </header>
+
+            <!-- 2. Section Title and Back Button -->
+            <div class="controls-row">
+                <span class="section-tab-title">اختيارات @Model.Title</span>
+                <a href="@Url.Action("MangeTypesIndex", "Group")" class="btn-return">
+                    <span>&larr;</span>
+                    <span>رجوع</span>
+                </a>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div style="background-color: #e8f7ee; color: #1e7e34; padding: 12px 20px; border-radius: 10px; font-weight: 700;">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div style="background-color: #fde8e8; color: #dc3545; padding: 12px 20px; border-radius: 10px; font-weight: 700;">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+
+            <!-- 3. Table of Items -->
+            <div class="table-outer-card">
+                <table class="types-table">
+                    <tbody>
+                        @if (Model.Items != null && Model.Items.Any())
+                        {
+                            foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td class="cell-name">@item.Name</td>
+                                    <td>
+                                        <div class="cell-actions">
+                                            <button type="button" class="btn-action-custom btn-edit-custom" onclick="openEditModal(@item.Id, '@item.Name')">تعديل</button>
+                                            <form asp-action="DeleteTypeItem" asp-controller="Group" method="post" onsubmit="return confirm('هل أنت متأكد من حذف هذا الاختيار؟');" style="margin: 0;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="typeKey" value="@Model.TypeKey" />
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn-action-custom btn-delete-custom">حذف</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="2" style="text-align: center; padding: 36px; color: #888; font-size: 16px; font-weight: 600;">
+                                    لا توجد اختيارات مسجلة حالياً في هذه الفئة. يمكنك الضغط على "إضافة إختيار" بالأسفل للإضافة.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 4. Big Add Button -->
+            <button type="button" class="btn-add-big" onclick="openAddModal()">إضافة إختيار</button>
+
+        </main>
+    </div>
+
+    <!-- ADD MODAL -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal-box">
+            <h3 class="modal-title">إضافة إختيار جديد</h3>
+            <form asp-action="CreateTypeItem" asp-controller="Group" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="typeKey" value="@Model.TypeKey" />
+                <div style="margin-bottom: 20px;">
+                    <input type="text" name="name" class="modal-input" placeholder="ادخل الاسم" required />
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-modal-save">إضافة</button>
+                    <button type="button" class="btn-modal-cancel" onclick="closeAddModal()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <h3 class="modal-title">تعديل الإختيار</h3>
+            <form asp-action="EditTypeItem" asp-controller="Group" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="typeKey" value="@Model.TypeKey" />
+                <input type="hidden" name="id" id="editItemId" />
+                <div style="margin-bottom: 20px;">
+                    <input type="text" name="name" id="editItemName" class="modal-input" required />
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-modal-save">حفظ التعديل</button>
+                    <button type="button" class="btn-modal-cancel" onclick="closeEditModal()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('active');
+        }
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('active');
+        }
+        function openEditModal(id, name) {
+            document.getElementById('editItemId').value = id;
+            document.getElementById('editItemName').value = name;
+            document.getElementById('editModal').classList.add('active');
+        }
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "اضافة مجموعة";
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - رصيف</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+        }
+
+        body {
+            background-color: #fcf4ec;
+            background-image: 
+                radial-gradient(#eed5be 1px, transparent 1px),
+                linear-gradient(to right, rgba(232, 122, 30, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px, 40px 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ── TOP HEADER ── */
+        .top-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 60px;
+            width: 100%;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn-back-step {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 20px;
+            border: 1.5px solid #E87A1E;
+            border-radius: 20px;
+            background-color: #fff;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-back-step:hover {
+            background-color: #E87A1E;
+            color: #fff;
+        }
+
+        .logo-img {
+            height: 48px;
+            object-fit: contain;
+        }
+
+        .page-center-title {
+            font-size: 38px;
+            font-weight: 800;
+            color: #222;
+            text-align: center;
+        }
+
+        /* ── CENTER CONTAINER ── */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-card {
+            background-color: #faede2;
+            border: 2px solid #eecfb7;
+            border-radius: 28px;
+            width: 100%;
+            max-width: 520px;
+            padding: 44px 36px 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(232, 122, 30, 0.08);
+            margin-top: 40px;
+        }
+
+        /* Top Orange Badge */
+        .card-top-icon {
+            position: absolute;
+            top: -55px;
+            width: 110px;
+            height: 110px;
+            background-color: #E87A1E;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 10px rgba(232, 122, 30, 0.12), 0 0 0 20px rgba(232, 122, 30, 0.06);
+        }
+
+        .card-top-icon svg {
+            width: 50px;
+            height: 50px;
+            stroke: #fff;
+            fill: none;
+            stroke-width: 2.2;
+        }
+
+        .card-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #222;
+            margin-top: 30px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .group-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group-custom {
+            width: 100%;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 20px;
+            border: 1.5px solid #d9b89e;
+            border-radius: 12px;
+            background-color: #fff;
+            font-size: 15px;
+            outline: none;
+            color: #333;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            text-align: right;
+        }
+
+        .input-field:focus {
+            border-color: #E87A1E;
+            box-shadow: 0 0 0 4px rgba(232, 122, 30, 0.15);
+        }
+
+        .input-field::placeholder {
+            color: #aaa;
+        }
+
+        .buttons-row {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-submit {
+            flex: 1;
+            background-color: #E87A1E;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(232, 122, 30, 0.25);
+            text-align: center;
+        }
+
+        .btn-submit:hover {
+            background-color: #d16b15;
+            transform: translateY(-1px);
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background-color: transparent;
+            color: #E87A1E;
+            border: 2px solid #E87A1E;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background-color: rgba(232, 122, 30, 0.08);
+        }
+
+        .alert-message {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .alert-danger {
+            background-color: #fde8e8;
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── TOP NAVBAR ── -->
+    <header class="top-navbar">
+        <div class="nav-left">
+            <img src="~/images/logo.png" alt="رصيف" class="logo-img" onerror="this.style.display='none'" />
+            <a href="@Url.Action("GroupManagment", "Group")" class="btn-back-step">
+                <span>خطوة للخلف</span>
+                <span>&larr;</span>
+            </a>
+        </div>
+
+        <h1 class="page-center-title">اضافة مجموعة</h1>
+
+        <div class="nav-right">
+            <img src="~/images/Fathalla.png" alt="فتح الله" class="logo-img" onerror="this.style.display='none'" />
+        </div>
+    </header>
+
+    <!-- ── MAIN CONTENT ── -->
+    <main class="main-wrapper">
+        <div class="form-card">
+
+            <!-- Top Hierarchy Icon Badge -->
+            <div class="card-top-icon">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="5" r="3" fill="#fff"></circle>
+                    <circle cx="6" cy="19" r="3" fill="#fff"></circle>
+                    <circle cx="18" cy="19" r="3" fill="#fff"></circle>
+                    <path d="M12 8v4m0 0l-6 4m6-4l6 4"></path>
+                </svg>
+            </div>
+
+            <h2 class="card-title">أدخل اسم المجموعة</h2>
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert-message alert-danger">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+
+            <form asp-action="AddGroup" asp-controller="Group" method="post" class="group-form">
+                @Html.AntiForgeryToken()
+
+                <div class="input-group-custom">
+                    <input type="text" name="name" class="input-field" placeholder="ادخل الأسم" required autofocus />
+                </div>
+
+                <div class="buttons-row">
+                    <button type="submit" class="btn-submit">إضافة</button>
+                    <a href="@Url.Action("GroupManagment", "Group")" class="btn-cancel">رجوع</a>
+                </div>
+            </form>
+
+        </div>
+    </main>
+
+</body>
+</html>

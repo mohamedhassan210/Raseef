@@ -1,82 +1,530 @@
-﻿
-@{
-    ViewData["Title"] = "إدارة الصلاحيات";
-}
 @model Rassef.ViewModels.Authentication.Identity.GroupPermissionsViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "إدارة صلاحيات";
+}
 
-<div class="card shadow-sm mt-4">
-    <div class="card-header bg-primary text-white">
-        <h3 class="mb-0">
-            <i class="fas fa-user-shield me-2"></i> إدارة صلاحيات مجموعة: @Model.GroupName
-        </h3>
-    </div>
-    <div class="card-body bg-light">
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - رصيف</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+        }
 
-        <form asp-action="ManagePermissions" method="post">
-            @Html.AntiForgeryToken()
+        body {
+            background-color: #fdf6f0;
+            color: #333;
+            overflow-x: hidden;
+        }
 
-            <!-- الحقول المخفية الأساسية الخاصة بالمجموعة -->
-            <input type="hidden" asp-for="GroupId" />
-            <input type="hidden" asp-for="GroupName" />
+        .dashboard-page {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: row;
+        }
 
-            <div class="row">
-                @for (int i = 0; i < Model.Controllers.Count; i++)
-                {
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card border-info h-100 shadow-sm">
-                            <div class="card-header bg-info text-white font-weight-bold d-flex justify-content-between align-items-center">
-                                <span>
-                                    <i class="fas fa-folder-open me-2"></i> @Model.Controllers[i].ControllerName
-                                </span>
-                                <!-- حقل مخفي لاسم الكنترولر -->
-                                <input type="hidden" asp-for="Controllers[i].ControllerName" />
-                            </div>
-                            <div class="card-body p-0">
-                                <ul class="list-group list-group-flush">
+        /* ── SIDEBAR ── */
+        .dashboard-sidebar {
+            width: 260px;
+            background-color: #E87A1E;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 30px 16px 20px;
+            flex-shrink: 0;
+            min-height: 100vh;
+        }
 
-                                    @for (int j = 0; j < Model.Controllers[i].Actions.Count; j++)
-                                    {
-                                        <li class="list-group-item list-group-item-action">
-                                            <div class="form-check form-switch d-flex align-items-center">
+        .sidebar-top {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
 
-                                                <!-- البيانات المخفية اللي محتاجينها ترجع للـ Controller وقت الحفظ -->
-                                                <input type="hidden" asp-for="Controllers[i].Actions[j].PermissionId" />
-                                                <input type="hidden" asp-for="Controllers[i].Actions[j].ActionName" />
-                                                <input type="hidden" asp-for="Controllers[i].Actions[j].Description" />
+        .sidebar-title {
+            font-size: 26px;
+            font-weight: 700;
+            text-align: center;
+            color: #fff;
+            margin-bottom: 8px;
+        }
 
-                                                <!-- الـ Checkbox الفعلي -->
-                                                <input class="form-check-input me-3" type="checkbox" role="switch" asp-for="Controllers[i].Actions[j].IsSelected" style="cursor: pointer;" />
-                                                <label class="form-check-label user-select-none mb-0 w-100" asp-for="Controllers[i].Actions[j].IsSelected" style="cursor: pointer;">
-                                                    @Model.Controllers[i].Actions[j].Description
-                                                </label>
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-                                            </div>
-                                        </li>
-                                    }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
 
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
 
-            <hr class="my-4" />
+        .sidebar-item.active {
+            background-color: #fdf6f0;
+            color: #E87A1E;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
 
-            <div class="form-group text-center">
-                <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm">
-                    <i class="fas fa-save me-2"></i> حفظ التعديلات
-                </button>
-                <a asp-action="Index" class="btn btn-secondary btn-lg px-5 shadow-sm ms-2">
-                    <i class="fas fa-times me-2"></i> إلغاء وعودة
+        .sidebar-item svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            flex-shrink: 0;
+        }
+
+        .sidebar-user {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 16px;
+        }
+
+        .user-info-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar-box {
+            width: 44px;
+            height: 44px;
+            background: #fff;
+            color: #E87A1E;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .user-avatar-box svg {
+            width: 26px;
+            height: 26px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* ── MAIN CONTENT ── */
+        .dashboard-main {
+            flex: 1;
+            padding: 30px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Top Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-main-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #E87A1E;
+            margin-bottom: 2px;
+        }
+
+        .page-subtitle {
+            font-size: 13px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .page-subtitle::before {
+            content: "•";
+            color: #E87A1E;
+            font-size: 16px;
+        }
+
+        .header-logos {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-logos img {
+            height: 44px;
+            object-fit: contain;
+        }
+
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+        }
+
+        .group-title-heading {
+            font-size: 24px;
+            font-weight: 800;
+            color: #333;
+            position: relative;
+            padding-bottom: 6px;
+        }
+
+        .group-title-heading::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #E87A1E;
+            border-radius: 2px;
+        }
+
+        .btn-return {
+            background-color: #E87A1E;
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(232, 122, 30, 0.25);
+            transition: background 0.2s;
+        }
+
+        .btn-return:hover {
+            background-color: #d16b15;
+            color: #fff;
+        }
+
+        /* ── ACCORDION LIST ── */
+        .accordions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        .accordion-item-custom {
+            border: 1.5px solid #E87A1E;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .accordion-header-custom {
+            padding: 16px 20px;
+            background-color: #fdfaf7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .accordion-header-custom:hover {
+            background-color: #faede2;
+        }
+
+        .header-left-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .controller-icon-box {
+            width: 32px;
+            height: 32px;
+            background-color: #faede2;
+            color: #E87A1E;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .controller-icon-box svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .controller-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #222;
+        }
+
+        .chevron-icon {
+            width: 20px;
+            height: 20px;
+            stroke: #333;
+            fill: none;
+            stroke-width: 2.5;
+            transition: transform 0.2s;
+        }
+
+        .accordion-item-custom.open .chevron-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-body-custom {
+            padding: 20px;
+            display: none;
+            background-color: #fff;
+            border-top: 1.5px solid #faede2;
+        }
+
+        .accordion-item-custom.open .accordion-body-custom {
+            display: block;
+        }
+
+        /* 3-Column Actions Grid */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        @@media (max-width: 1100px) {
+            .actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .action-checkbox-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .action-checkbox-card:hover {
+            background-color: #faede2;
+        }
+
+        .custom-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #E87A1E;
+            border-radius: 4px;
+            background-color: #fff;
+            cursor: pointer;
+            display: grid;
+            place-content: center;
+            transition: all 0.15s ease-in-out;
+            flex-shrink: 0;
+        }
+
+        .custom-checkbox::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em #E87A1E;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+
+        .custom-checkbox:checked::before {
+            transform: scale(1);
+        }
+
+        .action-label {
+            font-size: 15px;
+            font-weight: 700;
+            color: #333;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Save Button Row */
+        .save-bar {
+            margin-top: 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-save-perms {
+            background-color: #E87A1E;
+            color: #fff;
+            border: none;
+            padding: 12px 48px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(232, 122, 30, 0.25);
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .btn-save-perms:hover {
+            background-color: #d16b15;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-page">
+        <!-- ── SIDEBAR ── -->
+        <partial name="_AdminSidebar" model='"Roles"' />
+
+        <!-- ── MAIN CONTENT ── -->
+        <main class="dashboard-main">
+
+            <!-- 1. Header -->
+            <header class="page-header">
+                <div class="header-title-box">
+                    <h1 class="page-main-title">إدارة صلاحيات</h1>
+                    <span class="page-subtitle">آخر تحديث منذ 10 ثواني</span>
+                </div>
+                <div class="header-logos">
+                    <img src="~/images/Fathalla.png" alt="فتح الله" onerror="this.style.display='none'" />
+                    <img src="~/images/logo.png" alt="رصيف" onerror="this.style.display='none'" />
+                </div>
+            </header>
+
+            <!-- 2. Group Subheader & Back Button -->
+            <div class="controls-row">
+                <span class="group-title-heading">صلاحيات فريق الـ @Model.GroupName</span>
+                <a href="@Url.Action("MangeRolesIndex", "Group")" class="btn-return">
+                    <span>&larr;</span>
+                    <span>رجوع</span>
                 </a>
             </div>
-        </form>
 
+            <!-- 3. Form with Accordion Controllers -->
+            <form asp-action="ManagePermissions" asp-controller="Group" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="GroupId" />
+                <input type="hidden" asp-for="GroupName" />
+
+                <div class="accordions-container">
+                    @for (int i = 0; i < Model.Controllers.Count; i++)
+                    {
+                        var isFirst = (i == 0);
+                        <div class="accordion-item-custom @(isFirst ? "open" : "")">
+                            <div class="accordion-header-custom" onclick="toggleAccordion(this)">
+                                <div class="header-left-info">
+                                    <div class="controller-icon-box">
+                                        @if (Model.Controllers[i].ControllerName.ToLower().Contains("account") || Model.Controllers[i].ControllerName.ToLower().Contains("user"))
+                                        {
+                                            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                        }
+                                        else if (Model.Controllers[i].ControllerName.ToLower().Contains("system") || Model.Controllers[i].ControllerName.ToLower().Contains("admin"))
+                                        {
+                                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                        }
+                                        else
+                                        {
+                                            <svg viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+                                        }
+                                    </div>
+                                    <span class="controller-title">@Model.Controllers[i].ControllerName</span>
+                                    <input type="hidden" asp-for="Controllers[i].ControllerName" />
+                                </div>
+                                <svg class="chevron-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+
+                            <div class="accordion-body-custom">
+                                <div class="actions-grid">
+                                    @for (int j = 0; j < Model.Controllers[i].Actions.Count; j++)
+                                    {
+                                        <label class="action-checkbox-card">
+                                            <input type="hidden" asp-for="Controllers[i].Actions[j].PermissionId" />
+                                            <input type="hidden" asp-for="Controllers[i].Actions[j].ActionName" />
+                                            <input type="hidden" asp-for="Controllers[i].Actions[j].Description" />
+
+                                            <input type="checkbox" class="custom-checkbox" asp-for="Controllers[i].Actions[j].IsSelected" />
+                                            <span class="action-label">@Model.Controllers[i].Actions[j].ActionName</span>
+                                        </label>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="save-bar">
+                    <button type="submit" class="btn-save-perms">حفظ التعديلات</button>
+                </div>
+            </form>
+
+        </main>
     </div>
-</div>
 
-@section Scripts {
-    <!-- هنا ممكن نضيف أي سكريبتات إضافية لو احتجنا (زي مثلاً زرار يعلم على كل الصلاحيات مرة واحدة) -->
-    <partial name="_ValidationScriptsPartial" />
-}
+    <script>
+        function toggleAccordion(header) {
+            const item = header.parentElement;
+            item.classList.toggle('open');
+        }
+    </script>
+</body>
+</html>
