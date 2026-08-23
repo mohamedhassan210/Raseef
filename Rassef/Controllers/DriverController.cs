@@ -132,11 +132,37 @@ namespace Rassef.Controllers
                     : (!string.IsNullOrWhiteSpace(ticket.CreatedBy?.UserName) ? ticket.CreatedBy.UserName
                     : (!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "المسؤول"))));
 
-                // حساب عدد الأدوار المنتظرة قبل هذا الدور في نفس القسم
+                // حساب عدد الأدوار المنتظرة فعلياً قبل هذا الدور
                 int waitingCount = allTickets.Count(t =>
-                    t.DepartmentId == ticket.DepartmentId &&
-                    t.Id < ticket.Id &&
-                    (t.TicketStatus == null || t.TicketStatus.Name.Contains("انتظار") || t.TicketStatus.Name.Contains("إنتظار")));
+                {
+                    if (t.Id >= ticket.Id) return false;
+
+                    bool matchesDept = t.DepartmentId == ticket.DepartmentId ||
+                        (!string.IsNullOrWhiteSpace(t.TicketNumber) && !string.IsNullOrWhiteSpace(ticket.TicketNumber) &&
+                         char.ToUpper(t.TicketNumber.Trim()[0]) == char.ToUpper(ticket.TicketNumber.Trim()[0]));
+
+                    if (!matchesDept && ticket.DepartmentId > 0) return false;
+
+                    if (t.ExitTime != DateTimeOffset.MinValue && t.ExitTime > t.QueueTime) return false;
+
+                    if (t.TicketStatus != null)
+                    {
+                        var st = t.TicketStatus.Name.Replace("إ", "ا").Trim().ToLower();
+                        if (st.Contains("مكتمل") || st.Contains("تم") || st.Contains("خروج") || st.Contains("منتهي"))
+                            return false;
+                    }
+
+                    return true;
+                });
+
+                if (waitingCount == 0 && ticket.Id > 1)
+                {
+                    waitingCount = allTickets.Count(t =>
+                        t.Id < ticket.Id &&
+                        (t.ExitTime == DateTimeOffset.MinValue || t.ExitTime <= t.QueueTime) &&
+                        (t.TicketStatus == null || (!t.TicketStatus.Name.Contains("مكتمل") && !t.TicketStatus.Name.Contains("تم") && !t.TicketStatus.Name.Contains("خروج")))
+                    );
+                }
 
                 model = new ReceiptVM
                 {

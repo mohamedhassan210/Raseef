@@ -226,7 +226,36 @@ namespace Rassef.Common.Services
                 }
 
                 var allTickets = await _ticketRepository.GetAllAsync();
-                int waitingCount = allTickets.Count(t => t.DepartmentId == departmentId && t.TicketStatus != null && t.TicketStatus.Name.Contains("انتظار"));
+                int waitingCount = allTickets.Count(t =>
+                {
+                    if (t.Id >= queueTicket.Id) return false;
+
+                    bool matchesDept = t.DepartmentId == departmentId ||
+                        (!string.IsNullOrWhiteSpace(t.TicketNumber) && !string.IsNullOrWhiteSpace(ticketNumber) &&
+                         char.ToUpper(t.TicketNumber.Trim()[0]) == char.ToUpper(ticketNumber.Trim()[0]));
+
+                    if (!matchesDept && departmentId > 0) return false;
+
+                    if (t.ExitTime != DateTimeOffset.MinValue && t.ExitTime > t.QueueTime) return false;
+
+                    if (t.TicketStatus != null)
+                    {
+                        var st = t.TicketStatus.Name.Replace("إ", "ا").Trim().ToLower();
+                        if (st.Contains("مكتمل") || st.Contains("تم") || st.Contains("خروج") || st.Contains("منتهي"))
+                            return false;
+                    }
+
+                    return true;
+                });
+
+                if (waitingCount == 0 && queueTicket.Id > 1)
+                {
+                    waitingCount = allTickets.Count(t =>
+                        t.Id < queueTicket.Id &&
+                        (t.ExitTime == DateTimeOffset.MinValue || t.ExitTime <= t.QueueTime) &&
+                        (t.TicketStatus == null || (!t.TicketStatus.Name.Contains("مكتمل") && !t.TicketStatus.Name.Contains("تم") && !t.TicketStatus.Name.Contains("خروج")))
+                    );
+                }
 
                 string employeeName = currentUser?.Name
                     ?? (!string.IsNullOrWhiteSpace(currentUser?.UserName) ? currentUser.UserName : "المسؤول");
