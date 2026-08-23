@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Rassef.Models.Common;
@@ -79,7 +79,18 @@ namespace Rassef.Data
         {
             foreach (var entry in ChangeTracker.Entries<BaseEntity>())
             {
-                if (entry.State == EntityState.Deleted)
+                if (entry.State == EntityState.Added)
+                {
+                    if (entry.Entity.CreatedAT == default)
+                    {
+                        entry.Entity.CreatedAT = DateTimeOffset.Now;
+                    }
+                    if (entry.Entity.UpdatedAT == default)
+                    {
+                        entry.Entity.UpdatedAT = DateTimeOffset.Now;
+                    }
+                }
+                else if (entry.State == EntityState.Deleted)
                 {
                     entry.State = EntityState.Modified;
                     entry.Entity.IsDeleted = true;

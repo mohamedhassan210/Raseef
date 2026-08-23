@@ -29,6 +29,13 @@
                     <span class="status-dot"></span>
                     آخر تحديث منذ 10 ثواني
                 </div>
+                <!-- روابط سريعة للنداء وبوابة الخروج -->
+                <a asp-controller="QueueTicket" asp-action="CallStation" class="back-btn" style="background: #e47925; color: #fff; border-color: #e47925; margin-right: 8px;">
+                    <i class="fas fa-step-forward"></i> استدعاء الدور (Next)
+                </a>
+                <a asp-controller="QueueTicket" asp-action="ExitGate" class="back-btn" style="background: #2E7D32; color: #fff; border-color: #2E7D32; margin-right: 4px;">
+                    <i class="fas fa-door-open"></i> بوابة الخروج
+                </a>
                 <!-- زر الرجوع موجه لكونترولر Authentication -->
                 <a asp-controller="Authentication" asp-action="AddRoleOrView" class="back-btn">
                     <i class="fas fa-home"></i> الرجوع

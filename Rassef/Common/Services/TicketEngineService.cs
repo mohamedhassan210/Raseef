@@ -117,41 +117,33 @@ namespace Rassef.Common.Services
             }
 
             var allTickets = await _ticketRepository.GetAllAsync();
-            var departmentTickets = allTickets
-                .Where(x => (x.DepartmentId == departmentId || (x.TicketNumber != null && x.TicketNumber.Trim().StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
-                            && x.CreatedAT >= resetDate)
-                .ToList();
-
-            // إذا لم توجد تذاكر مسجلة بعد وقت الـ reset، نفحص تذاكر اليوم بالكامل كـ fallback
-            if (!departmentTickets.Any())
-            {
-                var todayStart = new DateTimeOffset(DateTime.Today, now.Offset);
-                departmentTickets = allTickets
-                    .Where(x => (x.DepartmentId == departmentId || (x.TicketNumber != null && x.TicketNumber.Trim().StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
-                                && x.CreatedAT >= todayStart)
-                    .ToList();
-            }
 
             int maxCounter = 0;
-            foreach (var t in departmentTickets)
+            foreach (var t in allTickets)
             {
-                if (!string.IsNullOrWhiteSpace(t.TicketNumber))
+                if (t.DepartmentId == departmentId || (!string.IsNullOrWhiteSpace(t.TicketNumber) && t.TicketNumber.Trim().StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
                 {
-                    string trimmed = t.TicketNumber.Trim();
-                    if (trimmed.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    if (t.CreatedAT >= resetDate || t.QueueTime >= resetDate || t.CreatedAT >= new DateTimeOffset(DateTime.Today, now.Offset))
                     {
-                        var numPart = trimmed.Substring(prefix.Length).Trim();
-                        if (int.TryParse(numPart, out var val) && val > maxCounter)
+                        if (!string.IsNullOrWhiteSpace(t.TicketNumber))
                         {
-                            maxCounter = val;
-                        }
-                    }
-                    else
-                    {
-                        var digits = new string(trimmed.Where(char.IsDigit).ToArray());
-                        if (int.TryParse(digits, out var val) && val > maxCounter && val < 100000)
-                        {
-                            maxCounter = val;
+                            string trimmed = t.TicketNumber.Trim();
+                            if (trimmed.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                            {
+                                var numPart = trimmed.Substring(prefix.Length).Trim();
+                                if (int.TryParse(numPart, out var val) && val > maxCounter)
+                                {
+                                    maxCounter = val;
+                                }
+                            }
+                            else
+                            {
+                                var digits = new string(trimmed.Where(char.IsDigit).ToArray());
+                                if (int.TryParse(digits, out var val) && val > maxCounter && val < 100000)
+                                {
+                                    maxCounter = val;
+                                }
+                            }
                         }
                     }
                 }
