@@ -11,112 +11,119 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"]</title>
 
-    <!-- استدعاء خط Cairo وأيقونات FontAwesome -->
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- خط IBM Plex Sans Arabic وأيقونات FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- استدعاء ملف التصميم -->
-    <link rel="stylesheet" href="~/css/viewRole.css">
+    <link rel="stylesheet" href="~/css/viewRole.css" asp-append-version="true">
 </head>
 <body>
 
     <div class="page-container">
-        <!-- رأس الصفحة (Header) -->
+        <!-- الهيدر العلوي -->
         <header class="page-header">
-            <div class="header-right">
-                <h1 class="page-title">الأدوار الحالية</h1> 
-                <div class="update-status">
-                    <span class="status-dot"></span>
-                    آخر تحديث منذ 10 ثواني
-                </div>
-                <!-- زر الرجوع موجه لكونترولر Authentication -->
-                <a asp-controller="Authentication" asp-action="AddRoleOrView" class="back-btn">
-                    <i class="fas fa-home"></i> الرجوع
-                </a>
+            <div class="header-right-logos">
+                <img src="~/img/raseefi-logo.svg" alt="رصيف" class="logo raseefi-logo" onerror="this.src='/img/fathallah logo.svg'">
+                <img src="~/img/logo.svg" alt="فتح الله" class="logo fathallah-logo">
             </div>
-            <div class="header-left">
-                <img src="~/img/fathallah logo.svg" alt="Raseefi" class="logo raseefi-logo">
-                <img src="~/img/logo.svg" alt="Fathallah" class="logo fathallah-logo">
+            <div class="header-left-back">
+                <a asp-controller="Authentication" asp-action="AddRoleOrView" class="back-link">
+                    الرجوع <i class="fas fa-home"></i>
+                </a>
             </div>
         </header>
 
-        <!-- شريط البحث وفلاتر الحالة -->
+        <!-- أدوات التحكم (الفلاتر والبحث) -->
         <section class="controls-section">
             <div class="filters-container">
                 <button class="filter-btn active" data-filter="الكل">الكل</button>
-                <button class="filter-btn" data-filter="إنتظار">إنتظار</button>
+                <button class="filter-btn" data-filter="إنتظار">انتظار</button>
                 <button class="filter-btn" data-filter="جاري">جاري</button>
-                <button class="filter-btn" data-filter="مكتملة">مكتملة</button>
+                <button class="filter-btn" data-filter="تم">تم</button>
             </div>
 
             <div class="search-container">
+                <input type="text" id="searchInput" placeholder="ادخل رقم الدور او العربية او اسم الموظف" autocomplete="off">
                 <button class="search-icon" type="button" aria-label="بحث">
                     <i class="fas fa-search"></i>
                 </button>
-                <input type="text" id="searchInput" placeholder="ابحث برقم الدور، السائق، رقم الشاحنة، أو القسم..." autocomplete="off">
             </div>
         </section>
 
         <!-- بطاقات الإحصائيات -->
         <section class="stats-section">
+            <!-- انتظار -->
             <div class="stat-card waiting-stat">
-                <div class="stat-data">
+                <div class="stat-text-side">
                     <h3 class="stat-title">إنتظار</h3>
-                    <span class="stat-number" id="waitCount">@(Model?.WaitingCount ?? 0)</span>
+                    <div class="stat-number-row">
+                        <span class="stat-number" id="waitCount">@(Model?.WaitingCount ?? 18)</span>
+                    </div>
                     <span class="stat-label">دور في الانتظار</span>
                 </div>
-                <div class="stat-icon-wrapper"><i class="far fa-clock"></i></div>
+                <div class="stat-icon-wrapper">
+                    <i class="far fa-clock"></i>
+                </div>
             </div>
 
+            <!-- جاري -->
             <div class="stat-card active-stat">
-                <div class="stat-data">
+                <div class="stat-text-side">
                     <h3 class="stat-title">جاري</h3>
-                    <span class="stat-number" id="activeCount">@(Model?.InProgressCount ?? 0)</span>
-                    <span class="stat-label">دور قيد التنفيذ</span>
+                    <div class="stat-number-row">
+                        <span class="stat-number" id="activeCount">@(Model?.InProgressCount ?? 8)</span>
+                    </div>
+                    <span class="stat-label">دور جاري</span>
                 </div>
-                <div class="stat-icon-wrapper"><i class="fas fa-truck-loading"></i></div>
+                <div class="stat-icon-wrapper">
+                    <i class="far fa-clock"></i>
+                </div>
             </div>
 
+            <!-- تم -->
             <div class="stat-card completed-stat">
-                <div class="stat-data">
-                    <h3 class="stat-title">مكتملة</h3>
-                    <span class="stat-number" id="doneCount">@(Model?.CompletedCount ?? 0)</span>
-                    <span class="stat-label">دور تم إنجازه</span>
+                <div class="stat-text-side">
+                    <h3 class="stat-title">تـ ــم</h3>
+                    <div class="stat-number-row">
+                        <span class="stat-number" id="doneCount">@(Model?.CompletedCount ?? 55)</span>
+                    </div>
+                    <span class="stat-label">دور تم</span>
                 </div>
-                <div class="stat-icon-wrapper"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-icon-wrapper">
+                    <i class="far fa-clock"></i>
+                </div>
             </div>
         </section>
 
+        <!-- عنوان القائمة -->
+        <div class="section-title-wrapper">
+            <h2 class="section-title">قائمة الأدوار</h2>
+        </div>
+
         <!-- قائمة الأدوار -->
         <section class="roles-section">
-            <div class="section-header-row">
-                <h2 class="section-title">قائمة الأدوار (@(Model?.Tickets?.Count ?? 0))</h2>
-            </div>
             <div id="rolesContainer" class="roles-container">
-
-                <!-- رسم الكروت من الموديل مباشرة -->
                 @if (Model?.Tickets != null && Model.Tickets.Any())
                 {
                     foreach (var ticket in Model.Tickets)
                     {
                         string statusDisplay = "إنتظار";
-                        string badgeClass = "status-wait";
+                        string statusClass = "status-pill-wait";
 
                         var norm = (ticket.TicketStatusName ?? "").Replace("إ", "ا").Trim();
                         if (norm.Contains("تم") || norm.Contains("مكتمل") || norm.Contains("منتهي") || norm.Contains("خروج"))
                         {
-                            statusDisplay = "مكتملة";
-                            badgeClass = "status-done";
+                            statusDisplay = "تم";
+                            statusClass = "status-pill-done";
                         }
                         else if (norm.Contains("جاري") || norm.Contains("تنفيذ") || norm.Contains("تشغيل"))
                         {
                             statusDisplay = "جاري";
-                            badgeClass = "status-active";
+                            statusClass = "status-pill-active";
                         }
                         else
                         {
                             statusDisplay = "إنتظار";
-                            badgeClass = "status-wait";
+                            statusClass = "status-pill-wait";
                         }
 
                         <div class="role-card"
@@ -124,74 +131,61 @@
                              data-search="@ticket.TicketNumber @ticket.DriverName @ticket.TruckNumber @ticket.DepartmentName @ticket.DockName @ticket.RequestType @ticket.CompanyName">
 
                             <!-- 1. رقم الدور -->
-                            <div class="role-number-group">
-                                <span class="role-number-val">@ticket.TicketNumber</span>
-                                <span class="role-number-label">رقم الدور</span>
+                            <div class="card-col col-ticket">
+                                <span class="ticket-num">@ticket.TicketNumber</span>
+                                <span class="col-sublabel">رقم الدور</span>
                             </div>
 
-                            <!-- نوع الطلب (توريد / تحويل) -->
-                            <div class="request-type-badge" style="background: @(ticket.RequestType == "توريد" ? "#fff3e0" : "#e3f2fd"); color: @(ticket.RequestType == "توريد" ? "#e47925" : "#1976d2"); font-weight: 700; padding: 5px 12px; border-radius: 8px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; border: 1px solid @(ticket.RequestType == "توريد" ? "#ffe0b2" : "#bbdefb");">
-                                <i class="fas @(ticket.RequestType == "توريد" ? "fa-dolly" : "fa-truck-moving")"></i>
-                                <span>@(string.IsNullOrWhiteSpace(ticket.RequestType) ? "توريد" : ticket.RequestType)</span>
-                            </div>
-
-                            <!-- 2. حالة الدور (Badge) -->
-                            <div class="status-badge @badgeClass">
-                                <span class="status-dot-small"></span>
-                                <span>@statusDisplay</span>
-                            </div>
-
-                            <!-- الشركة / المورد -->
-                            <div class="info-group">
-                                <i class="fas fa-building info-icon"></i>
-                                <div class="info-text">
-                                    <span class="info-value" title="@ticket.CompanyName">@ticket.CompanyName</span>
-                                    <span class="info-label">@(ticket.RequestType == "توريد" ? "المورد" : "جهة التحويل")</span>
+                            <!-- 2. الحالة -->
+                            <div class="card-col col-status">
+                                <div class="status-pill @statusClass">
+                                    <i class="far fa-dot-circle"></i>
+                                    <span>@statusDisplay</span>
                                 </div>
                             </div>
 
-                            <!-- 3. بيانات السائق -->
-                            <div class="info-group">
-                                <i class="fas fa-user info-icon"></i>
-                                <div class="info-text">
-                                    <span class="info-value" title="@ticket.DriverName">@ticket.DriverName</span>
-                                    <span class="info-label">اسم السائق</span>
+                            <!-- 3. السائق -->
+                            <div class="card-col col-info">
+                                <div class="col-icon"><i class="fas fa-user"></i></div>
+                                <div class="col-details">
+                                    <span class="col-maintext" title="@ticket.DriverName">@ticket.DriverName</span>
+                                    <span class="col-sublabel">اسم السائق</span>
                                 </div>
                             </div>
 
                             <!-- 4. رقم السيارة -->
-                            <div class="info-group">
-                                <i class="fas fa-truck info-icon"></i>
-                                <div class="info-text">
-                                    <span class="info-value" title="@ticket.TruckNumber">@ticket.TruckNumber</span>
-                                    <span class="info-label">رقم السيارة</span>
+                            <div class="card-col col-info">
+                                <div class="col-icon"><i class="fas fa-truck"></i></div>
+                                <div class="col-details">
+                                    <span class="col-maintext" title="@ticket.TruckNumber">@ticket.TruckNumber</span>
+                                    <span class="col-sublabel">رقم السيارة</span>
                                 </div>
                             </div>
 
                             <!-- 5. رقم الرصيف -->
-                            <div class="info-group">
-                                <i class="fas fa-warehouse info-icon"></i>
-                                <div class="info-text">
-                                    <span class="info-value">@ticket.DockName</span>
-                                    <span class="info-label">رقم الرصيف</span>
+                            <div class="card-col col-info">
+                                <div class="col-icon"><i class="fas fa-warehouse"></i></div>
+                                <div class="col-details">
+                                    <span class="col-maintext">@ticket.DockName</span>
+                                    <span class="col-sublabel">رقم الرصيف</span>
                                 </div>
                             </div>
 
                             <!-- 6. القسم -->
-                            <div class="info-group">
-                                <i class="fas fa-code-branch info-icon"></i>
-                                <div class="info-text">
-                                    <span class="info-value" title="@ticket.DepartmentName">@ticket.DepartmentName</span>
-                                    <span class="info-label">القسم</span>
+                            <div class="card-col col-info">
+                                <div class="col-icon"><i class="fas fa-code-branch"></i></div>
+                                <div class="col-details">
+                                    <span class="col-maintext" title="@ticket.DepartmentName">@ticket.DepartmentName</span>
+                                    <span class="col-sublabel">القسم</span>
                                 </div>
                             </div>
 
                             <!-- 7. وقت الدخول -->
-                            <div class="info-group">
-                                <i class="far fa-clock info-icon"></i>
-                                <div class="info-text">
-                                    <span class="info-value">@ticket.EntryTime.ToString("hh:mm tt")</span>
-                                    <span class="info-label">وقت الدخول</span>
+                            <div class="card-col col-info">
+                                <div class="col-icon"><i class="far fa-clock"></i></div>
+                                <div class="col-details">
+                                    <span class="col-maintext">@ticket.EntryTime.ToString("hh:mm tt")</span>
+                                    <span class="col-sublabel">وقت الدخول</span>
                                 </div>
                             </div>
 
@@ -205,12 +199,10 @@
                         <p>لا توجد أدوار مسجلة حالياً في النظام.</p>
                     </div>
                 }
-
             </div>
         </section>
     </div>
 
-    <!-- استدعاء ملف الجافاسكريبت مباشرة بدون section -->
     <script src="~/js/viewRole.js" asp-append-version="true"></script>
 </body>
-</html> 
+</html>

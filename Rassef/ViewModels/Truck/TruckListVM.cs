@@ -14,6 +14,8 @@
 
         public int supplierId { get; set; }
 
+        public int AddedBy { get; set; }
+
         public string TruckTypeName { get; set; } = string.Empty;
     }
 }

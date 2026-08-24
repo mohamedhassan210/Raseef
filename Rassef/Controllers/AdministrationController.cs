@@ -19,7 +19,7 @@ namespace Rassef.Controllers
             IUserRepository userRepository,
             IRepository<Position> positionRepository,
             IRepository<Truck> truckRepository,
-            IRepository<TruckTypes> truckTypeRepository,
+            IRepository<TruckTypes> truckTypeRepository, 
             IRepository<Driver> driverRepository,
             IRepository<DriverTypes> driverTypeRepository,
             ITransferRequestRepository transferRequestRepository,

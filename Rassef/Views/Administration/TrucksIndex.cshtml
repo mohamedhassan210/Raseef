@@ -7,60 +7,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رصيف — لوحة التحكم (السيارات المسجلة)</title>
+    <title>رصيف — لوحة التحكم (كل الشاحنات)</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/dashboard.css">
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true">
 </head>
-<body>
+<body> 
+     
     <div class="dashboard-page">
-        <!-- SIDEBAR -->
+
+        <!-- Sidebar -->
         <partial name="_AdminSidebar" model='"Trucks"' />
 
-        <!-- MAIN CONTENT -->
         <main class="dashboard-main">
+
+            <!-- Header -->
             <header class="dashboard-header">
+                <button class="mobile-toggle" id="mobileToggle" aria-label="القائمة">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
                 <div class="header-right">
-                    <h2 class="header-title">السيارات المسجلة</h2>
+                    <h2 class="header-title">كل الشاحنات</h2>
                     <div class="header-subtitle">
                         <span class="update-dot"></span>
-                        <span>إجمالي السيارات: @(Model?.Count() ?? 0)</span>
+                        <span>آخر تحديث منذ 10 ثواني</span>
                     </div>
                 </div>
+
                 <div class="header-left-logos">
                     <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
                     <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
                 </div>
             </header>
 
+            <!-- Actions Bar -->
+            <div class="dashboard-actions-bar">
+                <!-- Dropdown -->
+                <div class="dropdown-container">
+                    <button class="dropdown-pill" id="filterDropdown">
+                        <span id="sortBtnText">تصنيف عبر : الرقم</span>
+                        <svg class="dropdown-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9" /></svg>
+                    </button>
+                    <ul class="dropdown-menu" id="sortMenu">
+                        <li data-sort="number">الرقم</li>
+                        <li data-sort="type">النوع</li>
+                        <li data-sort="company">الشركة</li>
+                        <li data-sort="capacity">سعة التخزين</li>
+                        <li data-sort="host">الموظف المضيف</li>
+                    </ul>
+                </div>
+
+                <!-- Search -->
+                <div class="dashboard-search-bar">
+                    <input type="search" id="truckSearch" placeholder="ادخل رقم الشاحنة" autocomplete="off">
+                    <button class="dashboard-search-btn" aria-label="بحث">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="white" stroke-width="2.2" stroke-linecap="round" /></svg>
+                    </button>
+                </div>
+
+                <!-- Export -->
+                <button class="btn-action-export" id="exportBtn">
+                    <span>تصدير</span>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+
+                <!-- Add Truck -->
+                <a href="@Url.Action("CreateTruckWithDriver", "SupplierRequest", new { supplierId = 1 })" class="btn-action-add" id="addTruckBtn" style="text-decoration: none;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                    <span>إضافة شاحنة</span>
+                </a>
+            </div>
+
+            <!-- Table -->
             <div class="table-container">
                 <table class="dashboard-table">
                     <thead>
                         <tr>
-                            <th>رقم اللوحة</th>
-                            <th>نوع التبريد</th>
-                            <th>الشركة / النوع</th>
-                            <th>السعة التخزينية</th>
-                            <th>الموظف المضيف</th>
-                            <th>الإجراءات</th>
+                            <th class="col-number">الرقم</th>
+                            <th class="col-type">النوع</th>
+                            <th class="col-company">الشركة</th>  
+                            <th class="col-capacity">سعة التخزين</th>
+                            <th class="col-host">الموظف المضيف</th>
+                            <th class="col-action"></th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="truckTableBody">
                         @if (Model != null && Model.Any())
                         {
-                            foreach (var item in Model)
+                            foreach (var truck in Model)
                             {
                                 <tr class="table-row">
-                                    <td>@item.PlateNumber</td>
-                                    <td>@item.IsRefrigerated</td>
-                                    <td>@item.Company</td>
-                                    <td>@item.StorageCapacity طن</td>
-                                    <td>@item.HostEmployeeName</td>
-                                    <td>
-                                        <a href="@Url.Action("TruckDetails", "Administration", new { id = item.Id })" class="btn-table-details">
+                                    <td class="col-number">@truck.PlateNumber</td>
+                                    <td class="col-type">@truck.IsRefrigerated</td>
+                                    <td class="col-company">@truck.Company</td>
+                                    <td class="col-capacity">@truck.StorageCapacity kg</td>
+                                    <td class="col-host">@truck.HostEmployeeName</td>
+                                    <td class="col-action">
+                                        <a href="@Url.Action("Details", "SupplierRequest", new { id = truck.Id })" class="btn-table-details" style="text-decoration: none;">
                                             <span>تفاصيل</span>
-                                            <span>&larr;</span>
+                                            <span class="arrow">&larr;</span>
                                         </a>
                                     </td>
                                 </tr>
@@ -69,13 +116,38 @@
                         else
                         {
                             <tr>
-                                <td colspan="6" class="empty-state">لا يوجد أي شاحنات مسجلة حتى الآن</td>
+                                <td colspan="6" class="empty-state">لا توجد أي شاحنات مسجلة حتى الآن</td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination -->
+            <div class="pagination-container" id="paginationContainer"></div>
+
         </main>
     </div>
+
+
+
+    <script>
+        // نقل بيانات الشاحنات للـ JS مع استخدام الخصائص الصحيحة
+        window.initialTrucksData = @Html.Raw(Json.Serialize(Model != null ? Model.Select(t => new {
+            id = t.Id,
+            number = t.PlateNumber, 
+            type = t.IsRefrigerated, 
+            company = t.Company,
+            capacity = t.StorageCapacity,
+            host = t.HostEmployeeName
+        }).ToList() : new List<object>()));
+
+        window.mvcRoutes = {
+            detailsUrl: '@Url.Action("Details", "SupplierRequest")'
+        };
+    </script>
+
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>
