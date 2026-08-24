@@ -1,0 +1,465 @@
+@model Rassef.ViewModels.Group.GroupDetailsVM
+@{
+    Layout = null;
+    ViewData["Title"] = "تفاصيل المجموعة";
+    var allUsers = ViewBag.AllUsers as List<Rassef.Models.Identity.User> ?? new();
+    var allGroups = ViewBag.AllGroups as List<Rassef.Models.Identity.UserGroup> ?? new();
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - رصيف</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/groupRolePages.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/detailsPages.css" asp-append-version="true">
+    <style>
+        .group-details-card {
+            background-color: var(--card-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .group-card-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .group-brand-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .group-icon-circle {
+            width: 56px;
+            height: 56px;
+            background-color: var(--primary-soft);
+            border: 1.5px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 24px;
+        }
+
+        .group-title-texts {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .group-main-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .group-sub-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .group-actions-btns {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-edit-grp {
+            background-color: var(--primary-color);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+
+        .btn-delete-grp {
+            background-color: #D32F2F;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+
+        .group-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            border-top: 1px solid #F0DFD0;
+            padding-top: 18px;
+            align-items: center;
+        }
+
+        .group-meta-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-align: center;
+        }
+
+        .group-meta-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .group-meta-val {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .employees-table-container {
+            background-color: var(--card-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .employees-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+        }
+
+        .employees-table th {
+            background-color: #FFF3E6;
+            color: var(--text-dark);
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 800;
+            border-bottom: 1.5px solid var(--border-color);
+        }
+
+        .employees-table td {
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            border-bottom: 1px solid #F5E6D8;
+        }
+
+        .employees-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .emp-user-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .emp-avatar-icon {
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+
+        .emp-name-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .emp-name-txt {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-dark);
+        }
+
+        .emp-code-txt {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-page">
+        <!-- SIDEBAR -->
+        <partial name="_AdminSidebar" model='"Groups"' />
+
+        <!-- MAIN CONTENT -->
+        <main class="dashboard-main">
+            <!-- HEADER -->
+            <header class="dashboard-header">
+                <div class="header-right">
+                    <h2 class="header-title">تفاصيل المجموعة</h2>
+                    <div class="header-subtitle">
+                        <span class="update-dot"></span>
+                        <span>آخر تحديث منذ 10 ثواني</span>
+                    </div>
+                </div>
+                <div class="header-left-logos">
+                    <a href="@Url.Action("GroupManagment", "Group")" class="btn-back-action">
+                        <span>رجوع</span>
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
+                    <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
+                </div>
+            </header>
+
+            <!-- Alerts -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div style="background: #E8F5E9; color: #2E7D32; border: 1.5px solid #A5D6A7; padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-check-circle"></i>
+                    <span>@TempData["SuccessMessage"]</span>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div style="background: #FFEBEE; color: #C62828; border: 1.5px solid #FFCDD2; padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>@TempData["ErrorMessage"]</span>
+                </div>
+            }
+
+            <!-- 1. GROUP TOP INFO CARD -->
+            <div class="group-details-card">
+                <div class="group-card-top-row">
+                    <!-- Right: Icon and Title -->
+                    <div class="group-brand-box">
+                        <div class="group-icon-circle">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="group-title-texts">
+                            <h3 class="group-main-title">فريق الـ @Model.Name</h3>
+                            <span class="group-sub-desc">@Model.Description</span>
+                        </div>
+                    </div>
+
+                    <!-- Left: Action Buttons -->
+                    <div class="group-actions-btns">
+                        <form asp-action="DeleteGroup" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-delete-grp" onclick="return confirm('هل أنت متأكد من @(Model.IsActive ? "تعطيل" : "تفعيل") هذه المجموعة؟');">
+                                <i class="fas fa-trash-alt"></i>
+                                <span>@(Model.IsActive ? "حذف (تعطيل)" : "تفعيل")</span>
+                            </button>
+                        </form>
+                        <button type="button" class="btn-edit-grp" onclick="openEditModal()">
+                            <i class="fas fa-edit"></i>
+                            <span>تعديل</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Meta Grid (3 items) -->
+                <div class="group-meta-grid">
+                    <div class="group-meta-item">
+                        <span class="group-meta-label">تاريخ الإنشاء</span>
+                        <span class="group-meta-val">
+                            <i class="far fa-calendar-alt" style="color: var(--primary-color);"></i>
+                            @Model.CreatedAt.ToString("d / M / yyyy")
+                        </span>
+                    </div>
+                    <div class="group-meta-item">
+                        <span class="group-meta-label">الحالة</span>
+                        <span class="group-status-pill @(Model.IsActive ? "active" : "inactive")">
+                            <i class="fas fa-circle" style="font-size: 8px;"></i>
+                            <span>@(Model.IsActive ? "مفعل" : "معطل")</span>
+                        </span>
+                    </div>
+                    <div class="group-meta-item">
+                        <span class="group-meta-label">عدد الموظفين</span>
+                        <span class="group-meta-val" style="color: var(--primary-color); font-size: 22px;">
+                            @Model.UsersCount <span style="font-size: 14px; font-weight: 700; color: var(--text-dark);">موظف</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. BOTTOM SECTION: ALL EMPLOYEES -->
+            <div class="groups-toolbar">
+                <div class="section-underlined-title">
+                    كل الموظفين
+                </div>
+
+                <div class="toolbar-controls" style="justify-content: flex-end;">
+                    <!-- Search Input -->
+                    <div class="search-box-groups">
+                        <input type="text" id="empSearchInput" class="search-input-groups" placeholder="ادخل اسم الموظف" />
+                        <span class="search-icon-pos"><i class="fas fa-search"></i></span>
+                    </div>
+
+                    <!-- Transfer Employee Button -->
+                    <button type="button" class="btn-add-group" onclick="openTransferModal()">
+                        <i class="fas fa-plus"></i>
+                        <span>نقل موظف</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- EMPLOYEES TABLE -->
+            <div class="employees-table-container">
+                <table class="employees-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 35%;">الإسم</th>
+                            <th style="width: 30%;">البريد الإلكتروني</th>
+                            <th style="width: 20%;">رقم الهاتف</th>
+                            <th style="width: 15%; text-align: center;">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeesTableBody">
+                        @if (Model.Employees.Any())
+                        {
+                            foreach (var emp in Model.Employees)
+                            {
+                                <tr class="emp-table-row" data-name="@emp.Name" data-code="@emp.Code" data-email="@emp.Email" data-phone="@emp.Phone">
+                                    <td>
+                                        <div class="emp-user-cell">
+                                            <i class="fas fa-user-circle emp-avatar-icon"></i>
+                                            <div class="emp-name-stack">
+                                                <span class="emp-name-txt">@emp.Name</span>
+                                                <span class="emp-code-txt">@emp.Code</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="direction: ltr; text-align: right;">@emp.Email</td>
+                                    <td style="direction: ltr; text-align: right;">@emp.Phone</td>
+                                    <td style="text-align: center;">
+                                        <span class="group-status-pill @(emp.IsActive ? "active" : "inactive")">
+                                            <i class="fas fa-circle" style="font-size: 8px;"></i>
+                                            <span>@(emp.IsActive ? "مفعل" : "معطل")</span>
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 30px; color: var(--text-muted); font-weight: 700;">
+                                    لا يوجد أي موظفين منتمين لهذه المجموعة حالياً
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- 1. EDIT GROUP MODAL -->
+    <div class="modal-overlay" id="editGroupModal">
+        <div class="modal-box">
+            <h3 class="modal-title">تعديل اسم المجموعة</h3>
+            <form asp-action="EditGroup" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <div class="form-group-modal">
+                    <label style="font-weight: 700; font-size: 14px;">اسم المجموعة</label>
+                    <input type="text" name="name" value="@Model.Name" class="modal-input" required />
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal-cancel" onclick="closeEditModal()">إلغاء</button>
+                    <button type="submit" class="btn-modal-submit">حفظ التعديل</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. TRANSFER EMPLOYEE MODAL -->
+    <div class="modal-overlay" id="transferModal">
+        <div class="modal-box">
+            <h3 class="modal-title">نقل موظف إلى هذه المجموعة</h3>
+            <form asp-action="TransferUser" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="targetGroupId" value="@Model.Id" />
+                <div class="form-group-modal">
+                    <label style="font-weight: 700; font-size: 14px;">اختر الموظف لنقله إلى فريق الـ @Model.Name</label>
+                    <select name="userId" class="modal-select" required>
+                        <option value="">-- اختر الموظف --</option>
+                        @foreach (var u in allUsers)
+                        {
+                            <option value="@u.Id">@u.Name (@(u.UserName ?? u.Phone))</option>
+                        }
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal-cancel" onclick="closeTransferModal()">إلغاء</button>
+                    <button type="submit" class="btn-modal-submit">نقل الموظف</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT FOR SEARCH & MODALS -->
+    <script>
+        function openEditModal() {
+            document.getElementById("editGroupModal").style.display = "flex";
+        }
+        function closeEditModal() {
+            document.getElementById("editGroupModal").style.display = "none";
+        }
+        function openTransferModal() {
+            document.getElementById("transferModal").style.display = "flex";
+        }
+        function closeTransferModal() {
+            document.getElementById("transferModal").style.display = "none";
+        }
+
+        window.onclick = function (e) {
+            const m1 = document.getElementById("editGroupModal");
+            const m2 = document.getElementById("transferModal");
+            if (e.target === m1) m1.style.display = "none";
+            if (e.target === m2) m2.style.display = "none";
+        };
+
+        // Instant employee filter
+        document.addEventListener("DOMContentLoaded", () => {
+            const empSearch = document.getElementById("empSearchInput");
+            const rows = document.querySelectorAll(".emp-table-row");
+
+            if (empSearch) {
+                empSearch.addEventListener("input", () => {
+                    const query = empSearch.value.trim().toLowerCase();
+                    rows.forEach(r => {
+                        const name = (r.dataset.name || "").toLowerCase();
+                        const code = (r.dataset.code || "").toLowerCase();
+                        const email = (r.dataset.email || "").toLowerCase();
+                        const phone = (r.dataset.phone || "").toLowerCase();
+
+                        if (!query || name.includes(query) || code.includes(query) || email.includes(query) || phone.includes(query)) {
+                            r.style.display = "";
+                        } else {
+                            r.style.display = "none";
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

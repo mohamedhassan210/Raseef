@@ -158,6 +158,67 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(GroupManagment));
         }
 
+        /// <summary>
+        /// صفحة تفاصيل المجموعة واستعراض الموظفين المنتمين إليها
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GroupDetails(int id)
+        {
+            var group = await _groupRepo.GetByIdAsync(id);
+            if (group == null)
+            {
+                TempData["ErrorMessage"] = "هذه المجموعة غير موجودة.";
+                return RedirectToAction(nameof(GroupManagment));
+            }
+
+            var groupUsers = await _userRepo.GetAllAsync(q => q.Where(u => u.GroupId == id));
+            var allUsers = await _userRepo.GetAllAsync();
+            var allGroups = await _groupRepo.GetAllAsync();
+
+            ViewBag.AllUsers = allUsers.ToList();
+            ViewBag.AllGroups = allGroups.ToList();
+
+            var model = new GroupDetailsVM
+            {
+                Id = group.Id,
+                Name = group.Name,
+                Description = "إدارة تكنولوجيا المعلومات",
+                CreatedAt = group.CreatedAT != default ? group.CreatedAT.DateTime : DateTime.Now,
+                IsActive = !group.IsDeleted,
+                Employees = groupUsers.Select(u => new GroupEmployeeVM
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    Code = !string.IsNullOrWhiteSpace(u.UserCode) ? u.UserCode : (!string.IsNullOrWhiteSpace(u.NationalId) ? u.NationalId : $"{u.Id:D6}"),
+                    Email = u.Email?.Value ?? (u.UserName != null && u.UserName.Contains("@") ? u.UserName : $"{u.Name.Replace(" ", "").ToLower()}@microsoft.com"),
+                    Phone = !string.IsNullOrWhiteSpace(u.Phone) ? u.Phone : "01002670738",
+                    IsActive = !u.IsDeleted
+                }).ToList()
+            };
+
+            return View(model);
+        }
+
+        /// <summary>
+        /// تعديل اسم المجموعة
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditGroup(int id, string name)
+        {
+            var group = await _groupRepo.GetByIdAsync(id);
+            if (group != null && !string.IsNullOrWhiteSpace(name))
+            {
+                group.Name = name.Trim();
+                await _groupRepo.SaveChangesAsync();
+                TempData["SuccessMessage"] = "تم تعديل اسم المجموعة بنجاح!";
+                return RedirectToAction(nameof(GroupDetails), new { id });
+            }
+
+            TempData["ErrorMessage"] = "تعذر تعديل المجموعة.";
+            return RedirectToAction(nameof(GroupDetails), new { id });
+        }
+
         // ==============================================================
         // 3. شاشة إدارة الأدوار (Image 3 - Manage Roles & Permissions Overview)
         // ==============================================================
@@ -167,66 +228,11 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> MangeRolesIndex()
         {
+            // Sync all controllers and actions from Reflection into Permission database table
+            await SyncPermissionsFromReflectionAsync();
+
             var groups = await _groupRepo.GetAllAsync(q => q.Include(g => g.Users));
             var permissions = await _permissionRepo.GetAllAsync();
-
-            if (!permissions.Any())
-            {
-                var defaultPerms = new List<Permission>
-                {
-                    new() { ControllerName = "Account", ActionName = "ActivateUser", Description = "AccountActivateUser" },
-                    new() { ControllerName = "Account", ActionName = "Register", Description = "AccountRegister" },
-                    new() { ControllerName = "Account", ActionName = "Login", Description = "AccountLogin" },
-                    new() { ControllerName = "Account", ActionName = "ResetPassword", Description = "AccountResetPassword" },
-                    new() { ControllerName = "Account", ActionName = "Profile", Description = "AccountProfile" },
-                    new() { ControllerName = "Account", ActionName = "ChangePassword", Description = "AccountChangePassword" },
-
-                    new() { ControllerName = "System", ActionName = "ActivateUser", Description = "SystemActivateUser" },
-                    new() { ControllerName = "System", ActionName = "Settings", Description = "SystemSettings" },
-                    new() { ControllerName = "System", ActionName = "Logs", Description = "SystemLogs" },
-                    new() { ControllerName = "System", ActionName = "Audit", Description = "SystemAudit" },
-
-                    new() { ControllerName = "Branch", ActionName = "Index", Description = "BranchIndex" },
-                    new() { ControllerName = "Branch", ActionName = "Create", Description = "BranchCreate" },
-                    new() { ControllerName = "Branch", ActionName = "Edit", Description = "BranchEdit" },
-                    new() { ControllerName = "Branch", ActionName = "Delete", Description = "BranchDelete" },
-
-                    new() { ControllerName = "Administration", ActionName = "Index", Description = "AdministrationIndex" },
-                    new() { ControllerName = "Administration", ActionName = "TrucksIndex", Description = "AdministrationTrucksIndex" },
-                    new() { ControllerName = "Administration", ActionName = "DriversIndex", Description = "AdministrationDriversIndex" },
-                    new() { ControllerName = "Administration", ActionName = "Suppliers", Description = "AdministrationSuppliers" },
-                    new() { ControllerName = "Administration", ActionName = "SupplierRequests", Description = "AdministrationSupplierRequests" },
-                    new() { ControllerName = "Administration", ActionName = "TransferRequests", Description = "AdministrationTransferRequests" },
-
-                    new() { ControllerName = "SupplierRequest", ActionName = "Create", Description = "SupplierRequestCreate" },
-                    new() { ControllerName = "SupplierRequest", ActionName = "Edit", Description = "SupplierRequestEdit" },
-                    new() { ControllerName = "SupplierRequest", ActionName = "Delete", Description = "SupplierRequestDelete" },
-                    new() { ControllerName = "SupplierRequest", ActionName = "Index", Description = "SupplierRequestIndex" },
-
-                    new() { ControllerName = "TransferRequest", ActionName = "Create", Description = "TransferRequestCreate" },
-                    new() { ControllerName = "TransferRequest", ActionName = "Edit", Description = "TransferRequestEdit" },
-                    new() { ControllerName = "TransferRequest", ActionName = "Delete", Description = "TransferRequestDelete" },
-                    new() { ControllerName = "TransferRequest", ActionName = "Index", Description = "TransferRequestIndex" },
-
-                    new() { ControllerName = "QueueTicket", ActionName = "LiveQueue", Description = "QueueTicketLiveQueue" },
-                    new() { ControllerName = "QueueTicket", ActionName = "CallStation", Description = "QueueTicketCallStation" },
-                    new() { ControllerName = "QueueTicket", ActionName = "CallNext", Description = "QueueTicketCallNext" },
-
-                    new() { ControllerName = "Group", ActionName = "GroupManagment", Description = "GroupGroupManagment" },
-                    new() { ControllerName = "Group", ActionName = "AddGroup", Description = "GroupAddGroup" },
-                    new() { ControllerName = "Group", ActionName = "DeleteGroup", Description = "GroupDeleteGroup" },
-                    new() { ControllerName = "Group", ActionName = "MangeRolesIndex", Description = "GroupMangeRolesIndex" },
-                    new() { ControllerName = "Group", ActionName = "ManagePermissions", Description = "GroupManagePermissions" },
-                    new() { ControllerName = "Group", ActionName = "MangeTypesIndex", Description = "GroupMangeTypesIndex" }
-                };
-
-                foreach (var p in defaultPerms)
-                {
-                    await _permissionRepo.AddAsync(p);
-                }
-                await _permissionRepo.SaveChangesAsync();
-                permissions = await _permissionRepo.GetAllAsync();
-            }
 
             var model = new RolesManagementVM
             {
@@ -251,6 +257,70 @@ namespace Rassef.Controllers
             return View(model);
         }
 
+        private async Task SyncPermissionsFromReflectionAsync()
+        {
+            try
+            {
+                var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+                var controllerTypes = assembly.GetTypes()
+                    .Where(type => typeof(Controller).IsAssignableFrom(type) && !type.IsAbstract)
+                    .ToList();
+
+                var existingPermissions = await _permissionRepo.GetAllAsync();
+                var existingSet = existingPermissions
+                    .Select(p => $"{p.ControllerName}_{p.ActionName}".ToLowerInvariant())
+                    .ToHashSet();
+
+                var newPermissions = new List<Permission>();
+
+                foreach (var controllerType in controllerTypes)
+                {
+                    string controllerName = controllerType.Name;
+                    if (controllerName.EndsWith("Controller", StringComparison.OrdinalIgnoreCase))
+                    {
+                        controllerName = controllerName.Substring(0, controllerName.Length - "Controller".Length);
+                    }
+
+                    var actionMethods = controllerType.GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.DeclaredOnly)
+                        .Where(m => !m.IsSpecialName &&
+                                    (typeof(IActionResult).IsAssignableFrom(m.ReturnType) ||
+                                     typeof(Task<IActionResult>).IsAssignableFrom(m.ReturnType) ||
+                                     typeof(ActionResult).IsAssignableFrom(m.ReturnType) ||
+                                     typeof(Task<ActionResult>).IsAssignableFrom(m.ReturnType)))
+                        .Select(m => m.Name)
+                        .Distinct();
+
+                    foreach (var actionName in actionMethods)
+                    {
+                        string key = $"{controllerName}_{actionName}".ToLowerInvariant();
+                        if (!existingSet.Contains(key))
+                        {
+                            newPermissions.Add(new Permission
+                            {
+                                ControllerName = controllerName,
+                                ActionName = actionName,
+                                Description = $"{controllerName}{actionName}"
+                            });
+                            existingSet.Add(key);
+                        }
+                    }
+                }
+
+                if (newPermissions.Any())
+                {
+                    foreach (var perm in newPermissions)
+                    {
+                        await _permissionRepo.AddAsync(perm);
+                    }
+                    await _permissionRepo.SaveChangesAsync();
+                }
+            }
+            catch
+            {
+                // Fallback gracefully if reflection encountered any restriction
+            }
+        }
+
         // ==============================================================
         // 4. شاشة إدارة صلاحيات المجموعة (Image 4 - Manage Group Permissions)
         // ==============================================================
@@ -266,6 +336,9 @@ namespace Rassef.Controllers
                 TempData["ErrorMessage"] = "هذه المجموعة غير موجودة";
                 return RedirectToAction(nameof(MangeRolesIndex));
             }
+
+            // Sync all controllers and actions from Reflection into Permission database table
+            await SyncPermissionsFromReflectionAsync();
 
             var allPermissions = await _permissionRepo.GetAllAsync();
             var allGroupPermissions = await _groupPermissionRepo.GetAllAsync();

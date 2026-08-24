@@ -2,8 +2,6 @@
 @{
     Layout = null;
     ViewData["Title"] = "إدارة المجموعات";
-    var users = ViewBag.AllUsers as List<Rassef.Models.Identity.User> ?? new();
-    var groups = ViewBag.AllGroups as List<Rassef.Models.Identity.UserGroup> ?? new();
 }
 
 <!DOCTYPE html>
@@ -18,6 +16,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="~/css/groupRolePages.css" asp-append-version="true">
     <link rel="stylesheet" href="~/css/detailsPages.css" asp-append-version="true">
+    <style>
+        .group-card-link {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard-page">
@@ -79,12 +86,6 @@
                         <span class="search-icon-pos"><i class="fas fa-search"></i></span>
                     </div>
 
-                    <!-- Transfer Employee Button -->
-                    <button type="button" class="btn-add-group" onclick="openTransferModal()" style="background-color: #455A64;">
-                        <i class="fas fa-user-friends"></i>
-                        <span>نقل موظف</span>
-                    </button>
-
                     <!-- Add Group Button -->
                     <button type="button" class="btn-add-group" onclick="openAddGroupModal()">
                         <i class="fas fa-plus"></i>
@@ -93,7 +94,7 @@
                 </div>
             </div>
 
-            <!-- GROUPS CARDS GRID (4 COLUMNS) -->
+            <!-- GROUPS CARDS GRID (4 COLUMNS - EXACT TO IMAGE 1) -->
             <div class="groups-cards-grid" id="groupsContainer">
                 @if (Model != null && Model.Any())
                 {
@@ -102,7 +103,7 @@
                         string statusClass = group.IsActive ? "active" : "inactive";
                         string statusText = group.IsActive ? "مفعل" : "معطل";
 
-                        <div class="group-card-item" data-name="@group.Name" data-status="@statusClass">
+                        <a href="@Url.Action("GroupDetails", "Group", new { id = group.Id })" class="group-card-item group-card-link" data-name="@group.Name" data-status="@statusClass">
                             <!-- Card Header -->
                             <div class="group-card-header">
                                 <h3 class="group-card-title">@group.Name</h3>
@@ -120,21 +121,12 @@
                                     <span>@group.CreatedAt.ToString("d / M / yyyy")</span>
                                 </div>
 
-                                <div class="group-status-pill @statusClass">
+                                <div class="group-status-pill @statusClass" style="margin-top: 4px;">
                                     <i class="fas fa-circle" style="font-size: 8px;"></i>
                                     <span>@statusText</span>
                                 </div>
-
-                                <!-- Soft Delete / Toggle Action -->
-                                <form asp-action="DeleteGroup" asp-route-id="@group.Id" method="post" style="width: 100%; margin-top: 8px;">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn-card-action" style="background: @(group.IsActive ? "#E53935" : "#43A047");" onclick="return confirm('هل أنت متأكد من @(group.IsActive ? "تعطيل" : "تفعيل") هذه المجموعة؟');">
-                                        <i class="fas @(group.IsActive ? "fa-ban" : "fa-check")"></i>
-                                        <span>@(group.IsActive ? "تعطيل المجموعة" : "تفعيل المجموعة")</span>
-                                    </button>
-                                </form>
                             </div>
-                        </div>
+                        </a>
                     }
                 }
                 else
@@ -147,7 +139,7 @@
         </main>
     </div>
 
-    <!-- 1. ADD GROUP MODAL -->
+    <!-- ADD GROUP MODAL -->
     <div class="modal-overlay" id="addGroupModal">
         <div class="modal-box">
             <h3 class="modal-title">إضافة مجموعة جديدة</h3>
@@ -165,40 +157,6 @@
         </div>
     </div>
 
-    <!-- 2. TRANSFER EMPLOYEE MODAL -->
-    <div class="modal-overlay" id="transferModal">
-        <div class="modal-box">
-            <h3 class="modal-title">نقل موظف إلى مجموعة</h3>
-            <form asp-action="TransferUser" method="post">
-                @Html.AntiForgeryToken()
-                <div class="form-group-modal">
-                    <label style="font-weight: 700; font-size: 14px;">اختر الموظف</label>
-                    <select name="userId" class="modal-select" required>
-                        <option value="">-- اختر الموظف --</option>
-                        @foreach (var u in users)
-                        {
-                            <option value="@u.Id">@u.Name (@(u.UserName ?? u.Phone))</option>
-                        }
-                    </select>
-                </div>
-                <div class="form-group-modal">
-                    <label style="font-weight: 700; font-size: 14px;">اختر المجموعة المستهدفة</label>
-                    <select name="targetGroupId" class="modal-select" required>
-                        <option value="">-- اختر المجموعة --</option>
-                        @foreach (var g in groups)
-                        {
-                            <option value="@g.Id">@g.Name</option>
-                        }
-                    </select>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn-modal-cancel" onclick="closeTransferModal()">إلغاء</button>
-                    <button type="submit" class="btn-modal-submit">نقل الموظف</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- SCRIPT FOR FILTERING & MODALS -->
     <script>
         function openAddGroupModal() {
@@ -207,19 +165,10 @@
         function closeAddGroupModal() {
             document.getElementById("addGroupModal").style.display = "none";
         }
-        function openTransferModal() {
-            document.getElementById("transferModal").style.display = "flex";
-        }
-        function closeTransferModal() {
-            document.getElementById("transferModal").style.display = "none";
-        }
 
-        // Close modal on clicking outside
         window.onclick = function (e) {
             const m1 = document.getElementById("addGroupModal");
-            const m2 = document.getElementById("transferModal");
             if (e.target === m1) m1.style.display = "none";
-            if (e.target === m2) m2.style.display = "none";
         };
 
         // Client-side instant search & filter
