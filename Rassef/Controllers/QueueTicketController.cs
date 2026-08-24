@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
+using Rassef.Filters;
+
 namespace Rassef.Controllers
 {
     public class QueueTicketController : Controller
@@ -38,6 +41,7 @@ namespace Rassef.Controllers
         /// Live Queue dashboard for gate operations
         /// </summary>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             return await LiveQueue();
@@ -48,6 +52,7 @@ namespace Rassef.Controllers
         /// Displays live queue status board with current active and waiting trucks
         /// </summary>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> LiveQueue()
         {
             var ticketsList = await _ticketRepository.GetAllAsync(query => query
@@ -170,6 +175,7 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetLiveDisplayData()
         {
             var ticketsList = await _ticketRepository.GetAllAsync(query => query

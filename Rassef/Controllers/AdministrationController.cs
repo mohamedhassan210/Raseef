@@ -1,7 +1,9 @@
+using Rassef.Filters;
 using Rassef.ViewModels.Administration;
 using Rassef.ViewModels.Administration.Employee;
 namespace Rassef.Controllers
 {
+    [PermissionAuthorize]
     public class AdministrationController : Controller
     {
         private readonly ISupplierRequestRepository _supplierRequestRepository;

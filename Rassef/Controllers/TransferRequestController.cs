@@ -1,5 +1,8 @@
+using Rassef.Filters;
+
 namespace Rassef.Controllers
 {
+    [PermissionAuthorize]
     public class TransferRequestController : Controller
     {
         private readonly ITransferRequestRepository _repository;

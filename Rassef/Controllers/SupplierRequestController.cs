@@ -1,5 +1,8 @@
+using Rassef.Filters;
+
 namespace Rassef.Controllers
 {
+    [PermissionAuthorize]
     public class SupplierRequestController : Controller
     {
         private readonly ISupplierRequestRepository _supplierRequestRepository;

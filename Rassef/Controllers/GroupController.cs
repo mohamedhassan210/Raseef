@@ -1,9 +1,11 @@
 using Rassef.Common.Interfaces.Services.AuthenticationServices;
 using Rassef.ViewModels.Group;
 using Rassef.ViewModels.Authentication.Identity;
+using Rassef.Filters;
 
 namespace Rassef.Controllers
 {
+    [PermissionAuthorize]
     public class GroupController : Controller
     {
         private readonly IRepository<UserGroup> _groupRepo;
