@@ -1,0 +1,187 @@
+================================================================================
+          قائمة الكنترولرات والأكشنز التي ليس لها ملفات Views (.cshtml)
+================================================================================
+
+أولاً: كنترولرات فرعية / تعريفات (Lookups & Settings) - لا يوجد لها مجلد Views إطلاقاً:
+--------------------------------------------------------------------------------
+1. ActionTypesController:
+   - Index
+   - Details
+   - Create
+   - Update
+   - Delete
+
+2. CheckOutController:
+   - Index
+   - Details
+   - Create
+   - Update
+   - Delete
+
+3. CommodityTypesController:
+   - Index
+   - Details
+   - Create
+   - Update
+   - Delete
+
+4. DepartmentController:
+   - Index
+   - Details
+   - Create
+   - Update
+   - Delete
+
+5. DepartmentTypeController:
+   - Index
+   - Details
+   - Create
+   - Update
+   - Delete
+
+6. DockAssignmentController:
+   - Index
+   - Details
+   - Create
+   - Update
+   - Delete
+
+7. DockController:
+   - Index
+   - Details
+   - Create
+   - Update
+   - Delete
+
+8. DockStatusesController:
+   - Index
+   - Details
+   - Create
+   - Update
+   - Delete
+
+9. DriverTypeController:
+   - Index
+   - Details
+   - Create
+   - Update
+   - Delete
+
+10. ExitTypesController:
+    - Index
+    - Details
+    - Create
+    - Update
+    - Delete
+
+11. PermitTypesController:
+    - Index
+    - Details
+    - Create
+    - Update
+    - Delete
+
+12. PositionController:
+    - Index
+    - Details
+    - Create
+    - Update
+    - Delete
+
+13. QueueActionController:
+    - Index
+    - Details
+    - Create
+    - Update
+    - Delete
+
+14. QueueSettingsController:
+    - Index
+    - Details
+    - Create
+    - Update
+    - Delete
+
+15. RequestStatusesController:
+    - Index
+    - Details
+    - Create
+    - Update
+    - Delete
+
+16. ShiftController:
+    - Index
+    - Details
+    - Create
+    - Update
+    - Delete
+
+17. TicketStatusesController:
+    - Index
+    - Details
+    - Create
+    - Update
+    - Delete
+
+18. TruckTypesController:
+    - Index
+    - Details
+    - Create
+    - Update
+    - Delete
+
+19. WarehouseController:
+    - Index
+    - Details
+    - Create
+    - Edit / Update
+    - Delete
+
+--------------------------------------------------------------------------------
+ثانياً: كنترولرات رئيسية لها بعض الـ Views وينقصها ملفات Views لـ Actions أخرى:
+--------------------------------------------------------------------------------
+1. SupplierRequestController:
+   - الـ Views الموجودة: CreateTruckWithDriver.cshtml
+   - الـ Actions التي ليس لها Views:
+     * Index  (تُعرض حالياً في: Administration/SupplierRequests)
+     * Details
+     * Create
+     * Update
+     * Delete
+
+2. TransferRequestController:
+   - الـ Views الموجودة: Create.cshtml, Index.cshtml
+   - الـ Actions التي ليس لها Views:
+     * Details (تُعرض حالياً في: Administration/TransferRequests)
+     * Update
+     * Delete
+
+3. TruckController:
+   - الـ Views الموجودة: Index.cshtml, Create.cshtml, AddTraDriver.cshtml, MainTraDrivers.cshtml
+   - الـ Actions التي ليس لها Views:
+     * Details (تُعرض حالياً في: Administration/TruckDetails)
+     * Update
+     * Delete
+
+4. SupplierController:
+   - الـ Views الموجودة: Index.cshtml, Create.cshtml, Edit.cshtml
+   - الـ Actions التي ليس لها Views:
+     * Details (تُعرض حالياً في: Administration/SupplierDetails)
+     * Delete
+
+5. QueueTicketController:
+   - الـ Views الموجودة: LiveQueue.cshtml, CallStation.cshtml, ExitGate.cshtml
+   - الـ Actions التي ليس لها Views:
+     * Index
+     * Details
+     * Create
+     * Edit
+
+--------------------------------------------------------------------------------
+ثالثاً: كنترولرات مكتملة بنسبة 100% ولها كافة ملفات الـ Views:
+--------------------------------------------------------------------------------
+1. AdministrationController (11 Views مكتملة)
+2. AuthenticationController (6 Views مكتملة)
+3. GroupController (6 Views مكتملة)
+
+================================================================================
