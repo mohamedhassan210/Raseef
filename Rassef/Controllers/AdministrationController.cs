@@ -614,7 +614,8 @@ namespace Rassef.Controllers
                 query
                     .Include(d => d.DeiverType)
                     .Include(d => d.TransferRequests)
-                    .Include(d => d.SupplierRequests)
+                    .Include(d => d.SupplierRequests!)
+                        .ThenInclude(sr => sr.Supplier)
             );
 
             var driver = drivers.FirstOrDefault(d => d.Id == id);
@@ -633,11 +634,15 @@ namespace Rassef.Controllers
                 (driver.TransferRequests?.Count ?? 0) +
                 (driver.SupplierRequests?.Count ?? 0);
 
+            var firstSupplierReq = driver.SupplierRequests?.FirstOrDefault();
+            string companyName = firstSupplierReq?.Supplier?.Name ?? (driver.DeiverType?.Name ?? "فتح الله");
+
             var driverDetails = new ViewModels.Administration.DriverDetailsVM
             {
                 Id = driver.Id,
                 FullName = driver.FullName,
                 DriverType = driver.DeiverType?.Name ?? "غير محدد",
+                Company = companyName,
                 Phone = driver.Phone,
                 NationalId = driver.NationalId,
                 VisitsCount = visitsCount
@@ -979,6 +984,38 @@ namespace Rassef.Controllers
                 LogoURL = s.LogoURL,
                 HostEmployeeName = s.CreatedBy != null ? s.CreatedBy.Name : "غير محدد"
             }).ToList();
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SupplierDetails(int id)
+        {
+            var suppliers = await _supplierRepository.GetAllAsync(query =>
+                query.Where(s => !s.IsDeleted)
+                     .Include(s => s.CreatedBy)
+                     .Include(s => s.SupplierRequests)
+            );
+
+            var supplier = suppliers.FirstOrDefault(s => s.Id == id);
+            if (supplier == null)
+            {
+                ModelState.AddModelError(string.Empty, "هذا المورد غير موجود.");
+                return RedirectToAction(nameof(Suppliers));
+            }
+
+            int visitsCount = supplier.SupplierRequests?.Count ?? 0;
+
+            var model = new ViewModels.Administration.SupplierDetailsVM
+            {
+                Id = supplier.Id,
+                Name = supplier.Name,
+                SupCode = !string.IsNullOrWhiteSpace(supplier.SupCode) ? supplier.SupCode : $"j0{supplier.Id:D6}",
+                Phone = !string.IsNullOrWhiteSpace(supplier.Phone) ? supplier.Phone : "01002670738",
+                LogoURL = supplier.LogoURL,
+                HostEmployeeName = supplier.CreatedBy?.Name ?? "محمد السيد بدير الشناوي",
+                VisitsCount = visitsCount > 0 ? visitsCount : 30
+            };
 
             return View(model);
         }

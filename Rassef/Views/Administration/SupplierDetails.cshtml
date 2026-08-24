@@ -1,4 +1,4 @@
-@model Rassef.ViewModels.Administration.DriverDetailsVM
+@model Rassef.ViewModels.Administration.SupplierDetailsVM
 @{
     Layout = null;
 }
@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رصيف — تفاصيل السائق</title>
+    <title>رصيف — تفاصيل الشركة</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,14 +17,14 @@
 <body>
     <div class="dashboard-page">
         <!-- SIDEBAR -->
-        <partial name="_AdminSidebar" model='"Drivers"' />
+        <partial name="_AdminSidebar" model='"Suppliers"' />
 
         <!-- MAIN CONTENT -->
         <main class="dashboard-main">
             <!-- HEADER -->
             <header class="dashboard-header">
                 <div class="header-right">
-                    <h2 class="header-title">تفاصيل السائق</h2>
+                    <h2 class="header-title">تفاصيل الشركة</h2>
                     <div class="header-subtitle">
                         <span class="update-dot"></span>
                         <span>آخر تحديث منذ 10 ثواني</span>
@@ -38,7 +38,7 @@
 
             <!-- BACK BUTTON -->
             <div class="back-row">
-                <a href="@Url.Action("DriversIndex", "Administration")" class="btn-back-orange">
+                <a href="@Url.Action("Suppliers", "Administration")" class="btn-back-orange">
                     <span>رجوع</span>
                     <i class="fas fa-arrow-left"></i>
                 </a>
@@ -47,13 +47,9 @@
             <!-- HERO CARD -->
             <div class="details-hero-card">
                 <div class="hero-right-content">
-                    <h1 class="hero-entity-title">@Model.FullName</h1>
+                    <h1 class="hero-entity-title">@Model.Name</h1>
                     <div class="hero-meta-row">
-                        <span class="hero-badge-tag">
-                            <i class="fas fa-id-badge"></i>
-                            <span>@(string.IsNullOrWhiteSpace(Model.Company) ? "فتح الله" : Model.Company)</span>
-                        </span>
-                        <span class="hero-code-text">الرقم : @Model.Phone</span>
+                        <span class="hero-code-text">كود الشركة : @Model.SupCode</span>
                         <div class="hero-visits-group">
                             <span class="hero-visits-label">عدد الزيارات:</span>
                             <span class="hero-visits-num">@(Model.VisitsCount > 0 ? Model.VisitsCount : 30)</span>
@@ -66,7 +62,14 @@
                 </div>
 
                 <div class="hero-avatar-circle">
-                    <span>@(!string.IsNullOrWhiteSpace(Model.FullName) ? Model.FullName.Trim().Substring(0, 1) : "م")</span>
+                    @if (!string.IsNullOrWhiteSpace(Model.LogoURL))
+                    {
+                        <img src="@Model.LogoURL" alt="@Model.Name">
+                    }
+                    else
+                    {
+                        <span>@(!string.IsNullOrWhiteSpace(Model.Name) ? Model.Name.Trim().Substring(0, 1) : "ج")</span>
+                    }
                 </div>
             </div>
 
@@ -86,18 +89,18 @@
                     </div>
                     <div class="detail-card-body">
                         <span class="detail-card-label">الإسم</span>
-                        <span class="detail-card-value">@Model.FullName</span>
+                        <span class="detail-card-value">@Model.Name</span>
                     </div>
                 </div>
 
-                <!-- الشركة -->
+                <!-- كود الشركة -->
                 <div class="detail-card">
                     <div class="detail-card-icon">
                         <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" /></svg>
                     </div>
                     <div class="detail-card-body">
-                        <span class="detail-card-label">الشركة</span>
-                        <span class="detail-card-value">@(string.IsNullOrWhiteSpace(Model.Company) ? "فتح الله" : Model.Company)</span>
+                        <span class="detail-card-label">كود الشركة</span>
+                        <span class="detail-card-value" style="direction: ltr; text-align: right;">@Model.SupCode</span>
                     </div>
                 </div>
 
@@ -112,28 +115,31 @@
                     </div>
                 </div>
 
-                <!-- الرقم القومي -->
+                <!-- الموظف المضيف -->
                 <div class="detail-card">
                     <div class="detail-card-icon">
                         <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" /></svg>
                     </div>
                     <div class="detail-card-body">
-                        <span class="detail-card-label">الرقم القومي</span>
-                        <span class="detail-card-value" style="direction: ltr; text-align: right;">@Model.NationalId</span>
+                        <span class="detail-card-label">الموظف المضيف</span>
+                        <span class="detail-card-value">@Model.HostEmployeeName</span>
                     </div>
                 </div>
             </div>
 
             <!-- ACTIONS FOOTER -->
             <div class="details-actions-footer">
-                <a href="@Url.Action("DriverEdit", "Administration", new { id = Model.Id })" class="btn-action-edit">
+                <a href="@Url.Action("Suppliers", "Administration")" class="btn-action-edit">
                     <i class="fas fa-edit"></i>
                     <span>تعديل البيانات</span>
                 </a>
-                <a href="@Url.Action("DriverDelete", "Administration", new { id = Model.Id })" class="btn-action-delete">
-                    <i class="fas fa-trash-alt"></i>
-                    <span>حذف البيانات</span>
-                </a>
+                <form asp-action="SupplierDeleteConfirmed" asp-controller="Administration" asp-route-id="@Model.Id" method="post" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا المورد؟');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-action-delete">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>حذف البيانات</span>
+                    </button>
+                </form>
             </div>
         </main>
     </div>

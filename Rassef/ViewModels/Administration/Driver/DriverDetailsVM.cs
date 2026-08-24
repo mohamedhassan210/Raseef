@@ -1,4 +1,4 @@
-﻿namespace Rassef.ViewModels.Administration
+namespace Rassef.ViewModels.Administration
 {
     public class DriverDetailsVM
     {
@@ -7,6 +7,8 @@
         public string FullName { get; set; } = string.Empty;
 
         public string DriverType { get; set; } = string.Empty;
+
+        public string Company { get; set; } = "فتح الله";
 
         public string Phone { get; set; } = string.Empty;
 
