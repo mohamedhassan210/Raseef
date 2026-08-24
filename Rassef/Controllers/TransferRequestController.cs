@@ -1,5 +1,8 @@
+using Rassef.Filters;
+
 namespace Rassef.Controllers
 {
+    [PermissionAuthorize]
     public class TransferRequestController : Controller
     {
         private readonly ITransferRequestRepository _repository;
@@ -10,6 +13,7 @@ namespace Rassef.Controllers
         private readonly IRequestStatusRepository _requestStatusRepository;
         private readonly ITicketEngineService _ticketEngineService;
         private readonly IUserRepository _userRepository;
+        private readonly IRepository<QueueTicket> _ticketRepository;
 
         public TransferRequestController(
             ITransferRequestRepository repository,
@@ -19,7 +23,8 @@ namespace Rassef.Controllers
             IPermitTypeRepository permitTypeRepository,
             IRequestStatusRepository requestStatusRepository,
             ITicketEngineService ticketEngineService,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            IRepository<QueueTicket> ticketRepository)
         {
             _repository = repository;
             _truckRepository = truckRepository;
@@ -29,14 +34,20 @@ namespace Rassef.Controllers
             _requestStatusRepository = requestStatusRepository;
             _ticketEngineService = ticketEngineService;
             _userRepository = userRepository;
+            _ticketRepository = ticketRepository;
         }
 
         private async Task LoadSelectListsAsync(CreateTransferRequestVM model)
         {
+            var (activeDriverIds, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
+
             var departments = await _departmentRepository.GetAllAsync();
             var permitTypes = await _permitTypeRepository.GetAllAsync();
-            var trucks = await _truckRepository.GetAllAsync();
-            var drivers = await _driverRepository.GetAllAsync();
+            var allTrucks = await _truckRepository.GetAllAsync();
+            var allDrivers = await _driverRepository.GetAllAsync();
+
+            var availableTrucks = allTrucks.Where(t => !activeTruckIds.Contains(t.Id)).ToList();
+            var availableDrivers = allDrivers.Where(d => !activeDriverIds.Contains(d.Id)).ToList();
 
             model.Departments = departments.Select(d => new SelectListItem
             {
@@ -50,13 +61,13 @@ namespace Rassef.Controllers
                 Text = p.Name
             });
 
-            model.Trucks = trucks.Select(t => new SelectListItem
+            model.Trucks = availableTrucks.Select(t => new SelectListItem
             {
                 Value = t.Id.ToString(),
                 Text = $"{t.PlateLetter} {t.PlateNumber} ({(t.IsRefrigerated ? "تبريد" : "غير تبريد")})"
             });
 
-            model.Drivers = drivers.Select(d => new SelectListItem
+            model.Drivers = availableDrivers.Select(d => new SelectListItem
             {
                 Value = d.Id.ToString(),
                 Text = d.FullName
@@ -152,19 +163,34 @@ namespace Rassef.Controllers
                 currentUserId = parsedId;
             }
             var currentUser = await _userRepository.GetByIdAsync(currentUserId);
+            var (activeDriverIds, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
 
             int finalTruckId = model.TruckId;
             if (finalTruckId <= 0)
             {
-                var firstTruck = (await _truckRepository.GetAllAsync()).FirstOrDefault();
+                var firstTruck = (await _truckRepository.GetAllAsync()).FirstOrDefault(t => !activeTruckIds.Contains(t.Id));
                 finalTruckId = firstTruck?.Id ?? 1;
             }
 
             int finalDriverId = model.DriverId;
             if (finalDriverId <= 0)
             {
-                var firstDriver = (await _driverRepository.GetAllAsync()).FirstOrDefault();
+                var firstDriver = (await _driverRepository.GetAllAsync()).FirstOrDefault(d => !activeDriverIds.Contains(d.Id));
                 finalDriverId = firstDriver?.Id ?? 1;
+            }
+
+            if (activeTruckIds.Contains(finalTruckId))
+            {
+                ModelState.AddModelError(nameof(model.TruckId), "الشاحنة المختارة لديها دور نشط حالياً (في الانتظار أو قيد التنفيذ). يجب اكتمال الدور السابق أولاً.");
+                await LoadSelectListsAsync(model);
+                return View(model);
+            }
+
+            if (activeDriverIds.Contains(finalDriverId))
+            {
+                ModelState.AddModelError(nameof(model.DriverId), "السائق المختار لديه دور نشط حالياً (في الانتظار أو قيد التنفيذ). يجب اكتمال الدور السابق أولاً.");
+                await LoadSelectListsAsync(model);
+                return View(model);
             }
 
             var request = new TransferRequest
@@ -315,5 +341,47 @@ namespace Rassef.Controllers
         {
             return RedirectToAction("Recript", "Driver");
         }
+
+        #region Helpers
+        private async Task<(HashSet<int> ActiveDriverIds, HashSet<int> ActiveTruckIds)> GetActiveDriverAndTruckIdsAsync()
+        {
+            var allTickets = await _ticketRepository.GetAllAsync(q => q
+                .Include(t => t.TicketStatus)
+                .Include(t => t.SupplierRequest)
+                .Include(t => t.TransferRequest)
+            );
+
+            var activeTickets = allTickets.Where(t =>
+            {
+                if (t.IsDeleted) return false;
+                if (t.ExitTime != DateTimeOffset.MinValue && t.ExitTime > t.QueueTime) return false;
+                if (t.TicketStatus != null)
+                {
+                    var n = t.TicketStatus.Name.Replace("إ", "ا").Trim().ToLower();
+                    if (n.Contains("مكتمل") || n.Contains("تم") || n.Contains("خروج") || n.Contains("منتهي") || n.Contains("complete") || n.Contains("done"))
+                        return false;
+                }
+                else if (t.TicketStatusId == 3)
+                {
+                    return false;
+                }
+                return true;
+            }).ToList();
+
+            var driverIds = activeTickets
+                .Select(t => t.SupplierRequest?.DriverId ?? t.TransferRequest?.DriverId)
+                .Where(id => id.HasValue && id.Value > 0)
+                .Select(id => id.Value)
+                .ToHashSet();
+
+            var truckIds = activeTickets
+                .Select(t => t.SupplierRequest?.TruckId ?? t.TransferRequest?.TruckId)
+                .Where(id => id.HasValue && id.Value > 0)
+                .Select(id => id.Value)
+                .ToHashSet();
+
+            return (driverIds, truckIds);
+        }
+        #endregion
     }
 }

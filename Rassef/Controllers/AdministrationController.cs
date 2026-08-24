@@ -1,7 +1,9 @@
+using Rassef.Filters;
 using Rassef.ViewModels.Administration;
 using Rassef.ViewModels.Administration.Employee;
 namespace Rassef.Controllers
 {
+    [PermissionAuthorize]
     public class AdministrationController : Controller
     {
         private readonly ISupplierRequestRepository _supplierRequestRepository;
@@ -107,7 +109,7 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var positions = await _positionRepository.GetAllAsync();
+            var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
 
             ViewBag.Positions = positions;
 
@@ -127,7 +129,7 @@ namespace Rassef.Controllers
 
             if (!ModelState.IsValid)
             {
-                var positions = await _positionRepository.GetAllAsync();
+                var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
                 ViewBag.Positions = positions;
 
                 return View(model);
@@ -171,7 +173,7 @@ namespace Rassef.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var positions = await _positionRepository.GetAllAsync();
+            var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
 
             ViewBag.Positions = positions;
 
@@ -202,7 +204,7 @@ namespace Rassef.Controllers
 
             if (!ModelState.IsValid)
             {
-                var positions = await _positionRepository.GetAllAsync();
+                var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
                 ViewBag.Positions = positions;
 
                 return View(model);
@@ -614,7 +616,8 @@ namespace Rassef.Controllers
                 query
                     .Include(d => d.DeiverType)
                     .Include(d => d.TransferRequests)
-                    .Include(d => d.SupplierRequests)
+                    .Include(d => d.SupplierRequests!)
+                        .ThenInclude(sr => sr.Supplier)
             );
 
             var driver = drivers.FirstOrDefault(d => d.Id == id);
@@ -633,11 +636,15 @@ namespace Rassef.Controllers
                 (driver.TransferRequests?.Count ?? 0) +
                 (driver.SupplierRequests?.Count ?? 0);
 
+            var firstSupplierReq = driver.SupplierRequests?.FirstOrDefault();
+            string companyName = firstSupplierReq?.Supplier?.Name ?? (driver.DeiverType?.Name ?? "فتح الله");
+
             var driverDetails = new ViewModels.Administration.DriverDetailsVM
             {
                 Id = driver.Id,
                 FullName = driver.FullName,
                 DriverType = driver.DeiverType?.Name ?? "غير محدد",
+                Company = companyName,
                 Phone = driver.Phone,
                 NationalId = driver.NationalId,
                 VisitsCount = visitsCount
@@ -867,7 +874,7 @@ namespace Rassef.Controllers
                     DriverName = x.Driver?.FullName ?? "غير محدد",
                     EmployeeName = empName,
                     TruckPlateNumber = x.Truck != null ? $"{x.Truck.PlateLetter} {x.Truck.PlateNumber}" : "غير محدد",
-                    RequestStatus = x.RequestStatus?.Name ?? "قيد الانتظار",
+                    RequestStatus = ticket?.TicketStatus?.Name ?? x.RequestStatus?.Name ?? "إنتظار",
                     DockName = dockName
                 };
             }).ToList();
@@ -983,5 +990,84 @@ namespace Rassef.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> SupplierDetails(int id)
+        {
+            var suppliers = await _supplierRepository.GetAllAsync(query =>
+                query.Where(s => !s.IsDeleted)
+                     .Include(s => s.CreatedBy)
+                     .Include(s => s.SupplierRequests)
+            );
+
+            var supplier = suppliers.FirstOrDefault(s => s.Id == id);
+            if (supplier == null)
+            {
+                ModelState.AddModelError(string.Empty, "هذا المورد غير موجود.");
+                return RedirectToAction(nameof(Suppliers));
+            }
+
+            int visitsCount = supplier.SupplierRequests?.Count ?? 0;
+
+            var model = new ViewModels.Administration.SupplierDetailsVM
+            {
+                Id = supplier.Id,
+                Name = supplier.Name,
+                SupCode = !string.IsNullOrWhiteSpace(supplier.SupCode) ? supplier.SupCode : $"j0{supplier.Id:D6}",
+                Phone = !string.IsNullOrWhiteSpace(supplier.Phone) ? supplier.Phone : "01002670738",
+                LogoURL = supplier.LogoURL,
+                HostEmployeeName = supplier.CreatedBy?.Name ?? "محمد السيد بدير الشناوي",
+                VisitsCount = visitsCount > 0 ? visitsCount : 30
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SupplierDeleteConfirmed(int id)
+        {
+            var supplier = await _supplierRepository.GetByIdAsync(id);
+            if (supplier != null)
+            {
+                supplier.IsDeleted = true;
+                supplier.MarkAsUpdated();
+                _supplierRepository.Update(supplier);
+                await _supplierRepository.SaveChangesAsync();
+                TempData["Success"] = "تم حذف المورد بنجاح.";
+            }
+            return RedirectToAction(nameof(Suppliers));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SupplierRequestDeleteConfirmed(int id)
+        {
+            var req = await _supplierRequestRepository.GetByIdAsync(id);
+            if (req != null)
+            {
+                req.IsDeleted = true;
+                req.MarkAsUpdated();
+                _supplierRequestRepository.Update(req);
+                await _supplierRequestRepository.SaveChangesAsync();
+                TempData["Success"] = "تم حذف طلب التوريد بنجاح.";
+            }
+            return RedirectToAction(nameof(SupplierRequests));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TransferRequestDeleteConfirmed(int id)
+        {
+            var req = await _Transferrepository.GetByIdAsync(id);
+            if (req != null)
+            {
+                req.IsDeleted = true;
+                req.MarkAsUpdated();
+                _Transferrepository.Update(req);
+                await _Transferrepository.SaveChangesAsync();
+                TempData["Success"] = "تم حذف طلب التحويل بنجاح.";
+            }
+            return RedirectToAction(nameof(TransferRequests));
+        }
     }
 }

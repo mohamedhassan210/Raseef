@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
+using Rassef.Filters;
+
 namespace Rassef.Controllers
 {
     public class QueueTicketController : Controller
@@ -38,6 +41,7 @@ namespace Rassef.Controllers
         /// Live Queue dashboard for gate operations
         /// </summary>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             return await LiveQueue();
@@ -48,6 +52,7 @@ namespace Rassef.Controllers
         /// Displays live queue status board with current active and waiting trucks
         /// </summary>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> LiveQueue()
         {
             var ticketsList = await _ticketRepository.GetAllAsync(query => query
@@ -118,15 +123,122 @@ namespace Rassef.Controllers
                 .ThenByDescending(t => t.Id)
                 .ToList();
 
+            var dockLetters = new[] { "A", "B", "C", "D", "E", "F" };
+            var dockNames = new[] { "رصيف 1", "رصيف 2", "رصيف 3", "رصيف 4", "رصيف 5", "رصيف 6" };
+
+            var inProgressList = ticketViewModels.Where(t =>
+            {
+                var s = t.TicketStatusName.Replace("إ", "ا").Trim();
+                return s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل");
+            }).OrderByDescending(t => t.EntryTime).ToList();
+
+            var waitingList = ticketViewModels.Where(t =>
+            {
+                var s = t.TicketStatusName.Replace("إ", "ا").Trim();
+                bool isDone = s.Contains("تم") || s.Contains("مكتمل") || s.Contains("خروج") || s.Contains("منتهي");
+                bool isActive = s.Contains("جاري") || s.Contains("تنفيذ");
+                return !isDone && !isActive;
+            }).OrderBy(t => t.QueueTime).ToList();
+
+            var dockCards = new List<LiveDockCardVM>();
+            for (int i = 0; i < 6; i++)
+            {
+                string letter = dockLetters[i];
+                string name = dockNames[i];
+
+                var currentTicket = inProgressList.FirstOrDefault(t => t.DockName.Contains((i + 1).ToString()) || t.DockName.Contains(letter))
+                    ?? (inProgressList.Count > i ? inProgressList[i] : null);
+
+                var nextTicket = waitingList.FirstOrDefault(t => t.DockName.Contains((i + 1).ToString()) || t.DockName.Contains(letter))
+                    ?? (waitingList.Count > i ? waitingList[i] : null);
+
+                dockCards.Add(new LiveDockCardVM
+                {
+                    DockLetter = letter,
+                    DockName = name,
+                    CurrentTicketNumber = currentTicket?.TicketNumber ?? (inProgressList.FirstOrDefault()?.TicketNumber ?? "A265"),
+                    NextTicketNumber = nextTicket?.TicketNumber ?? (waitingList.FirstOrDefault()?.TicketNumber ?? "A266"),
+                    Status = currentTicket != null ? "جاري" : "إنتظار"
+                });
+            }
+
             var viewModel = new QueueTicketIndexVM
             {
                 Tickets = orderedViewModels,
+                DockCards = dockCards,
                 WaitingCount = waitingCount,
                 InProgressCount = inProgressCount,
                 CompletedCount = completedCount
             };
 
             return View("LiveQueue", viewModel);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetLiveDisplayData()
+        {
+            var ticketsList = await _ticketRepository.GetAllAsync(query => query
+                .Include(t => t.Department)
+                .Include(t => t.TicketStatus)
+                .Include(t => t.DockAssignments!)
+                    .ThenInclude(da => da.Dock)
+            );
+
+            var ticketViewModels = ticketsList.Select(t =>
+            {
+                var dockAssignment = t.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
+                return new
+                {
+                    Id = t.Id,
+                    TicketNumber = t.TicketNumber ?? "A1",
+                    TicketStatusName = t.TicketStatus != null ? t.TicketStatus.Name : "إنتظار",
+                    DockName = dockAssignment?.Dock?.DockName ?? "A1",
+                    QueueTime = t.QueueTime,
+                    EntryTime = t.EntryTime
+                };
+            }).ToList();
+
+            var dockLetters = new[] { "A", "B", "C", "D", "E", "F" };
+            var dockNames = new[] { "رصيف 1", "رصيف 2", "رصيف 3", "رصيف 4", "رصيف 5", "رصيف 6" };
+
+            var inProgressList = ticketViewModels.Where(t =>
+            {
+                var s = t.TicketStatusName.Replace("إ", "ا").Trim();
+                return s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل");
+            }).OrderByDescending(t => t.EntryTime).ToList();
+
+            var waitingList = ticketViewModels.Where(t =>
+            {
+                var s = t.TicketStatusName.Replace("إ", "ا").Trim();
+                bool isDone = s.Contains("تم") || s.Contains("مكتمل") || s.Contains("خروج") || s.Contains("منتهي");
+                bool isActive = s.Contains("جاري") || s.Contains("تنفيذ");
+                return !isDone && !isActive;
+            }).OrderBy(t => t.QueueTime).ToList();
+
+            var dockCards = new List<object>();
+            for (int i = 0; i < 6; i++)
+            {
+                string letter = dockLetters[i];
+                string name = dockNames[i];
+
+                var currentTicket = inProgressList.FirstOrDefault(t => t.DockName.Contains((i + 1).ToString()) || t.DockName.Contains(letter))
+                    ?? (inProgressList.Count > i ? inProgressList[i] : null);
+
+                var nextTicket = waitingList.FirstOrDefault(t => t.DockName.Contains((i + 1).ToString()) || t.DockName.Contains(letter))
+                    ?? (waitingList.Count > i ? waitingList[i] : null);
+
+                dockCards.Add(new
+                {
+                    dockLetter = letter,
+                    dockName = name,
+                    currentTicketNumber = currentTicket?.TicketNumber ?? (inProgressList.FirstOrDefault()?.TicketNumber ?? "A265"),
+                    nextTicketNumber = nextTicket?.TicketNumber ?? (waitingList.FirstOrDefault()?.TicketNumber ?? "A266"),
+                    status = currentTicket != null ? "جاري" : "إنتظار"
+                });
+            }
+
+            return Json(new { success = true, dockCards });
         }
 
         [HttpGet]
@@ -459,6 +571,16 @@ namespace Rassef.Controllers
                 var n = (t.TicketStatusName ?? "").Replace("إ", "ا").Trim();
                 return n.Contains("تم") || n.Contains("مكتمل") || n.Contains("خروج");
             });
+
+            var recentlyCompletedTickets = mappedTickets
+                .Where(t =>
+                {
+                    var n = (t.TicketStatusName ?? "").Replace("إ", "ا").Trim();
+                    return n.Contains("تم") || n.Contains("مكتمل") || n.Contains("خروج");
+                })
+                .OrderByDescending(t => t.ExitTime)
+                .ThenByDescending(t => t.Id)
+                .ToList();
 
             return new CallStationVM
             {

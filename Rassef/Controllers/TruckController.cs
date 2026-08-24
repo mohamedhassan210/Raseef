@@ -61,10 +61,12 @@ namespace Rassef.Controllers
                 return RedirectToAction("Index", "Supplier");
             }
 
+            var (_, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
+
             var trucksrepo = await _truckRepository.GetTruckWithTypeName();
 
             var supplierTrucks = trucksrepo
-                .Where(x => x.SupplierRequests.Any(sr => sr.SupplierId == supplierid))
+                .Where(x => x.SupplierRequests.Any(sr => sr.SupplierId == supplierid) && !activeTruckIds.Contains(x.Id))
                 .Select(x => new TruckListVM
                 {
                     Id = x.Id,
@@ -76,7 +78,7 @@ namespace Rassef.Controllers
                     supplierId = supplierid
                 });
 
-            // 👇 فلترة البيانات لو المستخدم كتاب حاجة في خانة البحث
+            // 👇 فلترة البيانات لو المستخدم كتب حاجة في خانة البحث
             if (!string.IsNullOrEmpty(searchString))
             {
                 searchString = searchString.Trim().ToLower();
@@ -204,13 +206,11 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
-        // Display update page
-        public async Task<IActionResult> Update(int? id)
+        public async Task<IActionResult> Edit(int? id, int? supplierId)
         {
             if (id == null)
             {
                 ModelState.AddModelError("الشاحنة", "رقم الشاحنة مفقود.");
-                await LoadTruckTypesAsync();
                 return View(new UpdateTruckVM());
             }
 
@@ -219,20 +219,21 @@ namespace Rassef.Controllers
             if (truck == null)
             {
                 ModelState.AddModelError("الشاحنة", "هذه الشاحنة غير موجودة.");
-                await LoadTruckTypesAsync();
                 return View(new UpdateTruckVM());
             }
 
-            await LoadTruckTypesAsync(truck.TruckTypeId);
+            var supplierRequest = truck.SupplierRequests?.FirstOrDefault();
+            string companyName = supplierRequest?.Supplier?.Name ?? "فتح الله";
 
             var vm = new UpdateTruckVM
             {
                 Id = truck.Id,
-                PlateNumber = truck.PlateNumber,
-                PlateLetter = truck.PlateLetter,
-                StorageCapacity = truck.StorageCapacity,
+                TruckNumber = truck.PlateNumber,
+                TruckLetters = truck.PlateLetter,
+                Capacity = truck.StorageCapacity,
                 IsRefrigerated = truck.IsRefrigerated,
-                TruckTypeId = truck.TruckTypeId
+                CompanyName = companyName,
+                SupplierId = supplierId ?? supplierRequest?.SupplierId
             };
 
             return View(vm);
@@ -240,12 +241,10 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Update item
-        public async Task<IActionResult> Update(UpdateTruckVM update)
+        public async Task<IActionResult> Edit(UpdateTruckVM update)
         {
             if (!ModelState.IsValid)
             {
-                await LoadTruckTypesAsync(update.TruckTypeId);
                 return View(update);
             }
 
@@ -254,33 +253,35 @@ namespace Rassef.Controllers
             if (truck == null)
             {
                 ModelState.AddModelError("الشاحنة", "هذه الشاحنة غير موجودة.");
-                await LoadTruckTypesAsync(update.TruckTypeId);
                 return View(update);
             }
 
-            var plateNum = update.PlateNumber?.Trim() ?? "";
-            var plateLet = update.PlateLetter?.Trim() ?? "";
+            var plateNum = update.TruckNumber?.Trim() ?? "";
+            var plateLet = update.TruckLetters?.Trim() ?? "";
 
             if (await _truckRepository.ExistsAsync(x => x.PlateNumber == plateNum && x.PlateLetter == plateLet && x.Id != update.Id && !x.IsDeleted))
             {
-                ModelState.AddModelError(nameof(update.PlateNumber), "رقم وحروف اللوحة مسجلة بالفعل لشاحنة أخرى.");
-                await LoadTruckTypesAsync(update.TruckTypeId);
+                ModelState.AddModelError(nameof(update.TruckNumber), "رقم وحروف اللوحة مسجلة بالفعل لشاحنة أخرى.");
                 return View(update);
             }
 
             truck.PlateNumber = plateNum;
             truck.PlateLetter = plateLet;
-            truck.StorageCapacity = update.StorageCapacity;
+            truck.StorageCapacity = update.Capacity;
             truck.IsRefrigerated = update.IsRefrigerated;
-            truck.TruckTypeId = update.TruckTypeId;
 
             _truckRepository.Update(truck);
             await _truckRepository.SaveChangesAsync();
 
             TempData["Success"] = "تم تحديث بيانات الشاحنة بنجاح.";
-            return RedirectToAction(nameof(Index));
-        }
 
+            if (update.SupplierId.HasValue && update.SupplierId.Value > 0)
+            {
+                return RedirectToAction(nameof(Index), new { supplierid = update.SupplierId.Value });
+            }
+
+            return RedirectToAction(nameof(MainTraDrivers));
+        }
         [HttpGet]
         // Display delete confirmation
         public async Task<IActionResult> Delete(int? id)
@@ -350,16 +351,19 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> MainTraDrivers()
         {
+            var (_, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
             var allTrucks = await _truckRepository.GetAllAsync();
 
-            var truckList = allTrucks.Select(d => new TruckListVM
-            {
-                Id = d.Id,
-                PlateNumber = d.PlateNumber,
-                PlateLetter = d.PlateLetter,
-                StorageCapacity = d.StorageCapacity,
-                IsRefrigerated = d.IsRefrigerated
-            }).ToList();
+            var truckList = allTrucks
+                .Where(d => !activeTruckIds.Contains(d.Id))
+                .Select(d => new TruckListVM
+                {
+                    Id = d.Id,
+                    PlateNumber = d.PlateNumber,
+                    PlateLetter = d.PlateLetter,
+                    StorageCapacity = d.StorageCapacity,
+                    IsRefrigerated = d.IsRefrigerated
+                }).ToList();
 
             var depts = await _departmentRepository.GetAllAsync();
             ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
@@ -372,8 +376,11 @@ namespace Rassef.Controllers
         public async Task<IActionResult> AddTraDriver(int? supplierId)
         {
             var suppliers = await GetSuppliersAsync();
+            var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
+
             var allDrivers = await _driverRepository.GetAllAsync();
-            var driversList = allDrivers.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.FullName }).ToList();
+            var availableDrivers = allDrivers.Where(d => !activeDriverIds.Contains(d.Id)).ToList();
+            var driversList = availableDrivers.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.FullName }).ToList();
 
             string? supplierName = null;
 
@@ -410,35 +417,70 @@ namespace Rassef.Controllers
             }
             var currentUser = await _userRepository.GetByIdAsync(currentUserId);
 
+            var (activeDriverIds, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
+
             var plateNum = create.PlateNumber?.Trim() ?? "";
             var plateLet = create.PlateLetter?.Trim() ?? "";
 
-            if (await _truckRepository.ExistsAsync(x => x.PlateNumber == plateNum && x.PlateLetter == plateLet && !x.IsDeleted))
+            var existingTruck = await _truckRepository.FindAsync(x => x.PlateNumber == plateNum && x.PlateLetter == plateLet && !x.IsDeleted);
+
+            if (existingTruck != null)
             {
-                ModelState.AddModelError("PlateNumber", "رقم وحروف اللوحة مسجلة بالفعل لشاحنة أخرى.");
+                if (activeTruckIds.Contains(existingTruck.Id))
+                {
+                    ModelState.AddModelError("PlateNumber", "الشاحنة لديها دور نشط حالياً (في الانتظار أو قيد التفريغ). يجب إنهاء الدور السابق أولاً.");
+                    create.Suppliers = await GetSuppliersAsync();
+                    ViewBag.Suppliers = create.Suppliers;
+                    ViewBag.SupplierName = create.SupplierName;
+                    return View(create);
+                }
+            }
+
+            if (create.DriverId.HasValue && create.DriverId.Value > 0 && activeDriverIds.Contains(create.DriverId.Value))
+            {
+                ModelState.AddModelError("DriverId", "السائق المختار لديه دور نشط حالياً. يجب اكتمال الدور السابق أولاً.");
                 create.Suppliers = await GetSuppliersAsync();
                 ViewBag.Suppliers = create.Suppliers;
                 ViewBag.SupplierName = create.SupplierName;
                 return View(create);
             }
 
-            var truck = new Truck
+            Truck truck;
+            if (existingTruck != null)
             {
-                PlateNumber = plateNum,
-                PlateLetter = plateLet,
-                StorageCapacity = create.StorageCapacity ?? 0,
-                IsRefrigerated = create.TruckType == "تبريد",
-                TruckTypeId = 1, // Default or parsed if available
-                CreatedBy = currentUser
-            };
-
-            await _truckRepository.AddAsync(truck);
-            await _truckRepository.SaveChangesAsync();
+                truck = existingTruck;
+                truck.StorageCapacity = create.StorageCapacity ?? 0;
+                truck.IsRefrigerated = create.TruckType == "تبريد";
+                _truckRepository.Update(truck);
+                await _truckRepository.SaveChangesAsync();
+            }
+            else
+            {
+                truck = new Truck
+                {
+                    PlateNumber = plateNum,
+                    PlateLetter = plateLet,
+                    StorageCapacity = create.StorageCapacity ?? 0,
+                    IsRefrigerated = create.TruckType == "تبريد",
+                    TruckTypeId = 1,
+                    CreatedBy = currentUser
+                };
+                await _truckRepository.AddAsync(truck);
+                await _truckRepository.SaveChangesAsync();
+            }
 
             Driver? driver = null;
             if (!string.IsNullOrWhiteSpace(create.NewDriverName) && !string.IsNullOrWhiteSpace(create.NewDriverNationalId) && !string.IsNullOrWhiteSpace(create.NewDriverPhone))
             {
                 driver = (await _driverRepository.GetAllAsync()).FirstOrDefault(x => x.NationalId == create.NewDriverNationalId || x.Phone == create.NewDriverPhone);
+                if (driver != null && activeDriverIds.Contains(driver.Id))
+                {
+                    ModelState.AddModelError("NewDriverNationalId", "السائق لديه دور نشط حالياً. يجب اكتمال الدور السابق أولاً.");
+                    create.Suppliers = await GetSuppliersAsync();
+                    ViewBag.Suppliers = create.Suppliers;
+                    ViewBag.SupplierName = create.SupplierName;
+                    return View(create);
+                }
                 if (driver == null)
                 {
                     driver = new Driver
@@ -513,6 +555,18 @@ namespace Rassef.Controllers
                 return NotFound(new { success = false, message = "القسم غير موجود." });
             }
 
+            var (activeDriverIds, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
+
+            if (activeTruckIds.Contains(dto.TruckId))
+            {
+                return BadRequest(new { success = false, message = "الشاحنة لديها دور نشط حالياً (في الانتظار أو قيد التنفيذ). يجب اكتمال الدور السابق أولاً." });
+            }
+
+            if (dto.DriverId.HasValue && dto.DriverId.Value > 0 && activeDriverIds.Contains(dto.DriverId.Value))
+            {
+                return BadRequest(new { success = false, message = "السائق المختار لديه دور نشط حالياً. يجب اكتمال الدور السابق أولاً." });
+            }
+
             // Get or fallback driver
             Driver? driver = null;
             if (dto.DriverId.HasValue && dto.DriverId.Value > 0)
@@ -521,7 +575,8 @@ namespace Rassef.Controllers
             }
             if (driver == null)
             {
-                driver = (await _driverRepository.GetAllAsync()).FirstOrDefault();
+                var allDrivers = await _driverRepository.GetAllAsync();
+                driver = allDrivers.FirstOrDefault(d => !activeDriverIds.Contains(d.Id));
             }
             if (driver == null)
             {
@@ -597,6 +652,46 @@ namespace Rassef.Controllers
         }
 
         #region Helpers
+        private async Task<(HashSet<int> ActiveDriverIds, HashSet<int> ActiveTruckIds)> GetActiveDriverAndTruckIdsAsync()
+        {
+            var allTickets = await _ticketRepository.GetAllAsync(q => q
+                .Include(t => t.TicketStatus)
+                .Include(t => t.SupplierRequest)
+                .Include(t => t.TransferRequest)
+            );
+
+            var activeTickets = allTickets.Where(t =>
+            {
+                if (t.IsDeleted) return false;
+                if (t.ExitTime != DateTimeOffset.MinValue && t.ExitTime > t.QueueTime) return false;
+                if (t.TicketStatus != null)
+                {
+                    var n = t.TicketStatus.Name.Replace("إ", "ا").Trim().ToLower();
+                    if (n.Contains("مكتمل") || n.Contains("تم") || n.Contains("خروج") || n.Contains("منتهي") || n.Contains("complete") || n.Contains("done"))
+                        return false;
+                }
+                else if (t.TicketStatusId == 3)
+                {
+                    return false;
+                }
+                return true;
+            }).ToList();
+
+            var driverIds = activeTickets
+                .Select(t => t.SupplierRequest?.DriverId ?? t.TransferRequest?.DriverId)
+                .Where(id => id.HasValue && id.Value > 0)
+                .Select(id => id.Value)
+                .ToHashSet();
+
+            var truckIds = activeTickets
+                .Select(t => t.SupplierRequest?.TruckId ?? t.TransferRequest?.TruckId)
+                .Where(id => id.HasValue && id.Value > 0)
+                .Select(id => id.Value)
+                .ToHashSet();
+
+            return (driverIds, truckIds);
+        }
+
         private async Task LoadTruckTypesAsync(int? selectedTruckTypeId = null)
         {
             ViewBag.TruckTypes = new SelectList(

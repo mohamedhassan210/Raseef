@@ -42,6 +42,7 @@
                             <th>رقم الهاتف</th>
                             <th>كود المورد</th>
                             <th>الموظف المضيف</th>
+                            <th>الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -54,13 +55,19 @@
                                     <td>@item.Phone</td>
                                     <td>@item.SupCode</td>
                                     <td>@item.HostEmployeeName</td>
+                                    <td>
+                                        <a href="@Url.Action("SupplierDetails", "Administration", new { id = item.Id })" class="btn-table-details">
+                                            <span>تفاصيل</span>
+                                            <span>&larr;</span>
+                                        </a>
+                                    </td>
                                 </tr>
                             }
                         }
                         else
                         {
                             <tr>
-                                <td colspan="4" class="empty-state">لا يوجد أي موردين مسجلين حتى الآن</td>
+                                <td colspan="5" class="empty-state">لا يوجد أي موردين مسجلين حتى الآن</td>
                             </tr>
                         }
                     </tbody>

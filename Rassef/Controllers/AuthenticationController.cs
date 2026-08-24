@@ -487,8 +487,10 @@ namespace Rassef.Controllers
         /// Access Denied page when user role is unauthorized
         /// </summary>
         [HttpGet]
-        public IActionResult AccessDenied()
+        public IActionResult AccessDenied(string? controllerName = null, string? actionName = null)
         {
+            ViewBag.ControllerName = controllerName;
+            ViewBag.ActionName = actionName;
             return View();
         }
     }

@@ -1,0 +1,172 @@
+@{
+    Layout = null;
+    ViewData["Title"] = "غير مصرح بالدخول — رصيف";
+    var ctrl = ViewBag.ControllerName as string;
+    var act = ViewBag.ActionName as string;
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --font-arabic: 'IBM Plex Sans Arabic', sans-serif;
+            --primary-color: #EA7318;
+            --primary-hover: #D1620E;
+            --bg-page: #FAF0E6;
+            --card-bg: #FFFDFB;
+            --text-dark: #2B241D;
+            --text-muted: #82756A;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-arabic);
+            background-color: var(--bg-page);
+            color: var(--text-dark);
+            direction: rtl;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .denied-card {
+            background-color: var(--card-bg);
+            border: 2px solid #EFA267;
+            border-radius: 24px;
+            padding: 48px 36px;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 12px 32px rgba(234, 115, 24, 0.12);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .denied-icon-circle {
+            width: 88px;
+            height: 88px;
+            background-color: #FFEBEE;
+            border: 2px solid #FFCDD2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #D32F2F;
+            font-size: 38px;
+            margin-bottom: 8px;
+        }
+
+        .denied-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: #D32F2F;
+        }
+
+        .denied-desc {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-weight: 600;
+        }
+
+        .denied-resource-badge {
+            background-color: #FFF3E6;
+            border: 1px solid #EFA267;
+            color: var(--primary-color);
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            direction: ltr;
+        }
+
+        .denied-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-home {
+            background-color: var(--primary-color);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 24px;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .btn-home:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-back {
+            background-color: #ECEFF1;
+            color: #455A64;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <div class="denied-card">
+        <div class="denied-icon-circle">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+
+        <h2 class="denied-title">غير مصرح بالوصول (403)</h2>
+
+        <p class="denied-desc">
+            عذراً، لا تملك الصلاحيات الكافية لتنفيذ هذا الإجراء أو الدخول إلى هذه الصفحة. يرجى مراجعة مسؤول النظام لمنحك الصلاحيات المطلوبة.
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(ctrl) || !string.IsNullOrWhiteSpace(act))
+        {
+            <div class="denied-resource-badge">
+                @(ctrl ?? "") @(!string.IsNullOrWhiteSpace(act) ? $"- {act}" : "")
+            </div>
+        }
+
+        <div class="denied-actions">
+            <a href="@Url.Action("AddRoleOrView", "Authentication")" class="btn-home">
+                <i class="fas fa-home"></i>
+                <span>القائمة الرئيسية</span>
+            </a>
+            <button type="button" class="btn-back" onclick="history.back()">
+                <span>الرجوع للخلف</span>
+            </button>
+        </div>
+    </div>
+</body>
+</html>

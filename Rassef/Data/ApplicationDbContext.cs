@@ -1,11 +1,19 @@
+using System.Linq.Expressions;
+using System.Reflection;
+using Microsoft.EntityFrameworkCore;
+using Rassef.Models.Common;
+using Rassef.Models.Entities;
+using Rassef.Models.Identity;
+using Rassef.Models.StatusesAndActions;
+
 namespace Rassef.Data
 {
     public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
-
         }
+
         public virtual DbSet<User> Users => Set<User>();
         public virtual DbSet<GroupPermission> GroupPermissions => Set<GroupPermission>();
         public virtual DbSet<UserGroup> UserGroups => Set<UserGroup>();
@@ -22,6 +30,7 @@ namespace Rassef.Data
         public virtual DbSet<TransferRequest> TransferRequests => Set<TransferRequest>();
         public virtual DbSet<Truck> Trucks => Set<Truck>();
         public virtual DbSet<Warehouse> Warehouses => Set<Warehouse>();
+        public virtual DbSet<Position> Positions => Set<Position>();
         //action and status 
         public virtual DbSet<DriverTypes> DriverTypes => Set<DriverTypes>();
         public virtual DbSet<CommodityTypes> CommodityTypes => Set<CommodityTypes>();
@@ -33,17 +42,65 @@ namespace Rassef.Data
         public virtual DbSet<RequestStatuses> RequestStatuses => Set<RequestStatuses>();
         public virtual DbSet<TicketStatuses> TicketStatuses => Set<TicketStatuses>();
         public virtual DbSet<TruckTypes> TruckTypes => Set<TruckTypes>();
-        // ARCH-1: إضافة DbSet<Shift> الذي كان مفقوداً رغم استخدامه في Controllers
         public virtual DbSet<Shift> Shifts => Set<Shift>();
 
-
-        // CQ-4: حذف الـ Constructor الزائد بـ DbContextOptions<DbContext> - Anti-Pattern
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            // apply all configuration 
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
+            // Global Query Filter for Soft Delete on all BaseEntity types
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
+                {
+                    var parameter = Expression.Parameter(entityType.ClrType, "e");
+                    var isDeletedProp = Expression.Property(parameter, nameof(BaseEntity.IsDeleted));
+                    var compareExpression = Expression.Equal(isDeletedProp, Expression.Constant(false));
+                    var filter = Expression.Lambda(compareExpression, parameter);
+                    entityType.SetQueryFilter(filter);
+                }
+            }
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            ApplySoftDeleteRules();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        public override int SaveChanges()
+        {
+            ApplySoftDeleteRules();
+            return base.SaveChanges();
+        }
+
+        private void ApplySoftDeleteRules()
+        {
+            foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    if (entry.Entity.CreatedAT == default)
+                    {
+                        entry.Entity.CreatedAT = DateTimeOffset.Now;
+                    }
+                    if (entry.Entity.UpdatedAT == default)
+                    {
+                        entry.Entity.UpdatedAT = DateTimeOffset.Now;
+                    }
+                }
+                else if (entry.State == EntityState.Deleted)
+                {
+                    entry.State = EntityState.Modified;
+                    entry.Entity.IsDeleted = true;
+                    entry.Entity.MarkAsUpdated();
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.MarkAsUpdated();
+                }
+            }
         }
     }
 }

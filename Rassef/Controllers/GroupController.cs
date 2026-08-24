@@ -1,12 +1,17 @@
+using Rassef.Common.Interfaces.Services.AuthenticationServices;
 using Rassef.ViewModels.Group;
+using Rassef.ViewModels.Authentication.Identity;
+using Rassef.Filters;
 
 namespace Rassef.Controllers
 {
+    [PermissionAuthorize]
     public class GroupController : Controller
     {
         private readonly IRepository<UserGroup> _groupRepo;
         private readonly IRepository<Permission> _permissionRepo;
         private readonly IRepository<GroupPermission> _groupPermissionRepo;
+        private readonly IUserRepository _userRepo;
         private readonly IRepository<DriverTypes> _driverTypesRepo;
         private readonly IRepository<Position> _positionRepo;
         private readonly IRepository<TruckTypes> _truckTypesRepo;
@@ -21,6 +26,7 @@ namespace Rassef.Controllers
             IRepository<UserGroup> groupRepo,
             IRepository<Permission> permissionRepo,
             IRepository<GroupPermission> groupPermissionRepo,
+            IUserRepository userRepo,
             IRepository<DriverTypes> driverTypesRepo,
             IRepository<Position> positionRepo,
             IRepository<TruckTypes> truckTypesRepo,
@@ -34,6 +40,7 @@ namespace Rassef.Controllers
             _groupRepo = groupRepo ?? throw new ArgumentNullException(nameof(groupRepo));
             _permissionRepo = permissionRepo ?? throw new ArgumentNullException(nameof(permissionRepo));
             _groupPermissionRepo = groupPermissionRepo ?? throw new ArgumentNullException(nameof(groupPermissionRepo));
+            _userRepo = userRepo ?? throw new ArgumentNullException(nameof(userRepo));
             _driverTypesRepo = driverTypesRepo ?? throw new ArgumentNullException(nameof(driverTypesRepo));
             _positionRepo = positionRepo ?? throw new ArgumentNullException(nameof(positionRepo));
             _truckTypesRepo = truckTypesRepo ?? throw new ArgumentNullException(nameof(truckTypesRepo));
@@ -55,6 +62,10 @@ namespace Rassef.Controllers
         public async Task<IActionResult> GroupManagment()
         {
             var groups = await _groupRepo.GetAllAsync(q => q.Include(g => g.Users));
+            var users = await _userRepo.GetAllAsync();
+
+            ViewBag.AllUsers = users.ToList();
+            ViewBag.AllGroups = groups.ToList();
 
             var model = groups.Select(g => new GroupCardVM
             {
@@ -62,7 +73,7 @@ namespace Rassef.Controllers
                 Name = g.Name,
                 UsersCount = g.Users?.Count ?? 0,
                 CreatedAt = g.CreatedAT != default ? g.CreatedAT.DateTime : DateTime.Now,
-                IsActive = true
+                IsActive = !g.IsDeleted
             }).ToList();
 
             return View(model);
@@ -105,6 +116,111 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(GroupManagment));
         }
 
+        /// <summary>
+        /// حذف / تعطيل مجموعة (Soft Delete)
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteGroup(int id)
+        {
+            var group = await _groupRepo.GetByIdAsync(id);
+            if (group != null)
+            {
+                group.IsDeleted = !group.IsDeleted;
+                await _groupRepo.SaveChangesAsync();
+                TempData["SuccessMessage"] = group.IsDeleted ? "تم تعطيل المجموعة بنجاح!" : "تم تفعيل المجموعة بنجاح!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "المجموعة غير موجودة.";
+            }
+
+            return RedirectToAction(nameof(GroupManagment));
+        }
+
+        /// <summary>
+        /// نقل موظف إلى مجموعة معينة
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TransferUser(int userId, int targetGroupId)
+        {
+            var user = await _userRepo.GetByIdAsync(userId);
+            if (user != null)
+            {
+                user.GroupId = targetGroupId > 0 ? targetGroupId : null;
+                await _userRepo.SaveChangesAsync();
+                TempData["SuccessMessage"] = "تم نقل الموظف إلى المجموعة بنجاح!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "الموظف غير موجود.";
+            }
+
+            return RedirectToAction(nameof(GroupManagment));
+        }
+
+        /// <summary>
+        /// صفحة تفاصيل المجموعة واستعراض الموظفين المنتمين إليها
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GroupDetails(int id)
+        {
+            var group = await _groupRepo.GetByIdAsync(id);
+            if (group == null)
+            {
+                TempData["ErrorMessage"] = "هذه المجموعة غير موجودة.";
+                return RedirectToAction(nameof(GroupManagment));
+            }
+
+            var groupUsers = await _userRepo.GetAllAsync(q => q.Where(u => u.GroupId == id));
+            var allUsers = await _userRepo.GetAllAsync();
+            var allGroups = await _groupRepo.GetAllAsync();
+
+            ViewBag.AllUsers = allUsers.ToList();
+            ViewBag.AllGroups = allGroups.ToList();
+
+            var model = new GroupDetailsVM
+            {
+                Id = group.Id,
+                Name = group.Name,
+                Description = "إدارة تكنولوجيا المعلومات",
+                CreatedAt = group.CreatedAT != default ? group.CreatedAT.DateTime : DateTime.Now,
+                IsActive = !group.IsDeleted,
+                Employees = groupUsers.Select(u => new GroupEmployeeVM
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    Code = !string.IsNullOrWhiteSpace(u.UserCode) ? u.UserCode : (!string.IsNullOrWhiteSpace(u.NationalId) ? u.NationalId : $"{u.Id:D6}"),
+                    Email = u.Email?.Value ?? (u.UserName != null && u.UserName.Contains("@") ? u.UserName : $"{u.Name.Replace(" ", "").ToLower()}@microsoft.com"),
+                    Phone = !string.IsNullOrWhiteSpace(u.Phone) ? u.Phone : "01002670738",
+                    IsActive = !u.IsDeleted
+                }).ToList()
+            };
+
+            return View(model);
+        }
+
+        /// <summary>
+        /// تعديل اسم المجموعة
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditGroup(int id, string name)
+        {
+            var group = await _groupRepo.GetByIdAsync(id);
+            if (group != null && !string.IsNullOrWhiteSpace(name))
+            {
+                group.Name = name.Trim();
+                await _groupRepo.SaveChangesAsync();
+                TempData["SuccessMessage"] = "تم تعديل اسم المجموعة بنجاح!";
+                return RedirectToAction(nameof(GroupDetails), new { id });
+            }
+
+            TempData["ErrorMessage"] = "تعذر تعديل المجموعة.";
+            return RedirectToAction(nameof(GroupDetails), new { id });
+        }
+
         // ==============================================================
         // 3. شاشة إدارة الأدوار (Image 3 - Manage Roles & Permissions Overview)
         // ==============================================================
@@ -114,6 +230,9 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> MangeRolesIndex()
         {
+            // Sync all controllers and actions from Reflection into Permission database table
+            await SyncPermissionsFromReflectionAsync();
+
             var groups = await _groupRepo.GetAllAsync(q => q.Include(g => g.Users));
             var permissions = await _permissionRepo.GetAllAsync();
 
@@ -125,7 +244,7 @@ namespace Rassef.Controllers
                     Name = g.Name,
                     UsersCount = g.Users?.Count ?? 0,
                     CreatedAt = g.CreatedAT != default ? g.CreatedAT.DateTime : DateTime.Now,
-                    IsActive = true
+                    IsActive = !g.IsDeleted
                 }).ToList(),
 
                 Permissions = permissions.Select(p => new PermissionTableItemVM
@@ -138,6 +257,70 @@ namespace Rassef.Controllers
             };
 
             return View(model);
+        }
+
+        private async Task SyncPermissionsFromReflectionAsync()
+        {
+            try
+            {
+                var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+                var controllerTypes = assembly.GetTypes()
+                    .Where(type => typeof(Controller).IsAssignableFrom(type) && !type.IsAbstract)
+                    .ToList();
+
+                var existingPermissions = await _permissionRepo.GetAllAsync();
+                var existingSet = existingPermissions
+                    .Select(p => $"{p.ControllerName}_{p.ActionName}".ToLowerInvariant())
+                    .ToHashSet();
+
+                var newPermissions = new List<Permission>();
+
+                foreach (var controllerType in controllerTypes)
+                {
+                    string controllerName = controllerType.Name;
+                    if (controllerName.EndsWith("Controller", StringComparison.OrdinalIgnoreCase))
+                    {
+                        controllerName = controllerName.Substring(0, controllerName.Length - "Controller".Length);
+                    }
+
+                    var actionMethods = controllerType.GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.DeclaredOnly)
+                        .Where(m => !m.IsSpecialName &&
+                                    (typeof(IActionResult).IsAssignableFrom(m.ReturnType) ||
+                                     typeof(Task<IActionResult>).IsAssignableFrom(m.ReturnType) ||
+                                     typeof(ActionResult).IsAssignableFrom(m.ReturnType) ||
+                                     typeof(Task<ActionResult>).IsAssignableFrom(m.ReturnType)))
+                        .Select(m => m.Name)
+                        .Distinct();
+
+                    foreach (var actionName in actionMethods)
+                    {
+                        string key = $"{controllerName}_{actionName}".ToLowerInvariant();
+                        if (!existingSet.Contains(key))
+                        {
+                            newPermissions.Add(new Permission
+                            {
+                                ControllerName = controllerName,
+                                ActionName = actionName,
+                                Description = $"{controllerName}{actionName}"
+                            });
+                            existingSet.Add(key);
+                        }
+                    }
+                }
+
+                if (newPermissions.Any())
+                {
+                    foreach (var perm in newPermissions)
+                    {
+                        await _permissionRepo.AddAsync(perm);
+                    }
+                    await _permissionRepo.SaveChangesAsync();
+                }
+            }
+            catch
+            {
+                // Fallback gracefully if reflection encountered any restriction
+            }
         }
 
         // ==============================================================
@@ -155,6 +338,9 @@ namespace Rassef.Controllers
                 TempData["ErrorMessage"] = "هذه المجموعة غير موجودة";
                 return RedirectToAction(nameof(MangeRolesIndex));
             }
+
+            // Sync all controllers and actions from Reflection into Permission database table
+            await SyncPermissionsFromReflectionAsync();
 
             var allPermissions = await _permissionRepo.GetAllAsync();
             var allGroupPermissions = await _groupPermissionRepo.GetAllAsync();

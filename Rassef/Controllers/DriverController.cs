@@ -56,17 +56,21 @@ namespace Rassef.Controllers
 
             var truck = await _truckRepository.GetByIdAsync(id);
 
+            var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
+
             var drivers =
                 await _driverRepository.GetDriversBySupplierIdAsync(supplierId);
 
-            var driverList = drivers.Select(d => new DriverListVM
-            {
-                Id = d.Id,
-                FullName = d.FullName,
-                NationalId = d.NationalId,
-                Phone = d.Phone
+            var driverList = drivers
+                .Where(d => !activeDriverIds.Contains(d.Id))
+                .Select(d => new DriverListVM
+                {
+                    Id = d.Id,
+                    FullName = d.FullName,
+                    NationalId = d.NationalId,
+                    Phone = d.Phone
 
-            }).ToList();
+                }).ToList();
 
             ViewBag.SupplierName = supplier.Name;
 
@@ -115,23 +119,64 @@ namespace Rassef.Controllers
             if (ticket != null)
             {
                 var isSupplier = ticket.SupplierRequestId != null || ticket.SupplierRequest != null;
-                var dockName = ticket.DockAssignments?.OrderByDescending(da => da.AssignedAt).Select(da => da.Dock?.DockName).FirstOrDefault() ?? "A1";
 
-                var empName = ticket.CreatedBy?.Name
-                    ?? ticket.SupplierRequest?.CreatedBy?.Name
-                    ?? ticket.TransferRequest?.CreatedBy?.Name
-                    ?? (!string.IsNullOrWhiteSpace(ticket.CreatedBy?.UserName) ? ticket.CreatedBy.UserName
-                    : (User.Identity?.Name ?? "المسؤول"));
+                var dockName = ticket.DockAssignments?.OrderByDescending(da => da.AssignedAt).Select(da => da.Dock?.DockName).FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(dockName) && ticket.Department != null)
+                {
+                    dockName = $"{ticket.Department.Prefix}1";
+                }
+                if (string.IsNullOrWhiteSpace(dockName))
+                {
+                    dockName = "A1";
+                }
+
+                var empName = !string.IsNullOrWhiteSpace(ticket.CreatedBy?.Name) ? ticket.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(ticket.SupplierRequest?.CreatedBy?.Name) ? ticket.SupplierRequest.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(ticket.TransferRequest?.CreatedBy?.Name) ? ticket.TransferRequest.CreatedBy.Name
+                    : (!string.IsNullOrWhiteSpace(ticket.CreatedBy?.UserName) ? ticket.CreatedBy.UserName
+                    : (!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "المسؤول"))));
+
+                // حساب عدد الأدوار المنتظرة فعلياً قبل هذا الدور
+                int waitingCount = allTickets.Count(t =>
+                {
+                    if (t.Id >= ticket.Id) return false;
+
+                    bool matchesDept = t.DepartmentId == ticket.DepartmentId ||
+                        (!string.IsNullOrWhiteSpace(t.TicketNumber) && !string.IsNullOrWhiteSpace(ticket.TicketNumber) &&
+                         char.ToUpper(t.TicketNumber.Trim()[0]) == char.ToUpper(ticket.TicketNumber.Trim()[0]));
+
+                    if (!matchesDept && ticket.DepartmentId > 0) return false;
+
+                    if (t.ExitTime != DateTimeOffset.MinValue && t.ExitTime > t.QueueTime) return false;
+
+                    if (t.TicketStatus != null)
+                    {
+                        var st = t.TicketStatus.Name.Replace("إ", "ا").Trim().ToLower();
+                        if (st.Contains("مكتمل") || st.Contains("تم") || st.Contains("خروج") || st.Contains("منتهي"))
+                            return false;
+                    }
+
+                    return true;
+                });
+
+                if (waitingCount == 0 && ticket.Id > 1)
+                {
+                    waitingCount = allTickets.Count(t =>
+                        t.Id < ticket.Id &&
+                        (t.ExitTime == DateTimeOffset.MinValue || t.ExitTime <= t.QueueTime) &&
+                        (t.TicketStatus == null || (!t.TicketStatus.Name.Contains("مكتمل") && !t.TicketStatus.Name.Contains("تم") && !t.TicketStatus.Name.Contains("خروج")))
+                    );
+                }
 
                 model = new ReceiptVM
                 {
-                    TicketNumber = ticket.TicketNumber ?? "A1",
+                    TicketNumber = !string.IsNullOrWhiteSpace(ticket.TicketNumber) ? ticket.TicketNumber : "A1",
                     RequestType = isSupplier ? "توريد" : "تحويل",
                     DepartmentName = ticket.Department?.Name ?? "غير محدد",
                     DockName = dockName,
                     EmployeeName = empName,
-                    WaitingCount = "0",
-                    CreatedAt = ticket.CreatedAT
+                    WaitingCount = waitingCount.ToString(),
+                    CreatedAt = ticket.CreatedAT != default ? ticket.CreatedAT : DateTimeOffset.Now
                 };
             }
 
@@ -550,6 +595,18 @@ namespace Rassef.Controllers
                 if (department != null) dto.DepartmentId = department.Id;
             }
 
+            var (activeDriverIds, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
+
+            if (truck != null && activeTruckIds.Contains(truck.Id))
+            {
+                return BadRequest(new { success = false, message = "الشاحنة لديها دور نشط حالياً (في الانتظار أو قيد التفريغ). يجب اكتمال الدور السابق أولاً." });
+            }
+
+            if (driver != null && activeDriverIds.Contains(driver.Id))
+            {
+                return BadRequest(new { success = false, message = "السائق لديه دور نشط حالياً (في الانتظار أو قيد التفريغ). يجب اكتمال الدور السابق أولاً." });
+            }
+
             if (department == null || supplier == null || truck == null || driver == null)
             {
                 return BadRequest(new { success = false, message = "تعذر إكمال الطلب، يرجى التأكد من اختيار القسم والمورد والسيارة والسائق." });
@@ -598,6 +655,46 @@ namespace Rassef.Controllers
                 truckPlate = truck != null ? $"{truck.PlateLetter} {truck.PlateNumber}" : "غير محدد",
                 driverName = driver?.FullName ?? "غير محدد"
             });
+        }
+
+        private async Task<(HashSet<int> ActiveDriverIds, HashSet<int> ActiveTruckIds)> GetActiveDriverAndTruckIdsAsync()
+        {
+            var allTickets = await _ticketRepository.GetAllAsync(q => q
+                .Include(t => t.TicketStatus)
+                .Include(t => t.SupplierRequest)
+                .Include(t => t.TransferRequest)
+            );
+
+            var activeTickets = allTickets.Where(t =>
+            {
+                if (t.IsDeleted) return false;
+                if (t.ExitTime != DateTimeOffset.MinValue && t.ExitTime > t.QueueTime) return false;
+                if (t.TicketStatus != null)
+                {
+                    var n = t.TicketStatus.Name.Replace("إ", "ا").Trim().ToLower();
+                    if (n.Contains("مكتمل") || n.Contains("تم") || n.Contains("خروج") || n.Contains("منتهي") || n.Contains("complete") || n.Contains("done"))
+                        return false;
+                }
+                else if (t.TicketStatusId == 3)
+                {
+                    return false;
+                }
+                return true;
+            }).ToList();
+
+            var driverIds = activeTickets
+                .Select(t => t.SupplierRequest?.DriverId ?? t.TransferRequest?.DriverId)
+                .Where(id => id.HasValue && id.Value > 0)
+                .Select(id => id.Value)
+                .ToHashSet();
+
+            var truckIds = activeTickets
+                .Select(t => t.SupplierRequest?.TruckId ?? t.TransferRequest?.TruckId)
+                .Where(id => id.HasValue && id.Value > 0)
+                .Select(id => id.Value)
+                .ToHashSet();
+
+            return (driverIds, truckIds);
         }
     }
 }
