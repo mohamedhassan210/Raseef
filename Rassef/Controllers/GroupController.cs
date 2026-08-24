@@ -272,7 +272,7 @@ namespace Rassef.Controllers
         // 6. شاشة تفاصيل وإدارة عناصر الإختيار (Image 2 - Lookup Type Details)
         // ==============================================================
         /// <summary>
-        /// صفحة استعراض وتعديل وحذف عناصر نوع معين من الاختيارات
+        ///     صفحة استعراض وتعديل وحذف عناصر نوع معين من الاختيارات
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> MangeTypeDetails(string typeKey)
