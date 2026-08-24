@@ -1,0 +1,172 @@
+﻿@model Rassef.ViewModels.Truck.UpdateTruckVM
+
+@{
+    ViewData["Title"] = "تعديل شاحنة";
+    Layout = "_SupOrTra";
+}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="~/css/addSupplier.css" asp-append-version="true">
+
+<style>
+    /* تكبير الحاوية والمربع دون اللمس بالخلفية أو العشاء الخارجي */
+    .main-container {
+        max-width: 900px !important;
+    }
+
+    .truck-input-badge {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .truck-badge-box {
+        position: absolute;
+        left: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: 1px solid #E7C2A6;
+        border-radius: 8px;
+        padding: 2px 14px;
+        font-weight: 700;
+        color: #2b2b2b;
+        background-color: transparent;
+        pointer-events: none;
+    }
+
+    .radio-group-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 30px;
+        height: 48px;
+    }
+
+    .radio-custom-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        color: #333;
+    }
+
+    .radio-custom-input {
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #e88232;
+        border-radius: 50%;
+        outline: none;
+        cursor: pointer;
+    }
+
+        .radio-custom-input:checked {
+            background-color: #e88232;
+        }
+</style>
+
+<div class="bg"></div>
+
+<div class="container main-container">
+
+    <header class="page-header d-flex justify-content-between align-items-center">
+        <div class="logo-wrapper header-right">
+            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-logo" onerror="this.src='https://via.placeholder.com/100x60?text=Fathalla'">
+        </div>
+
+        <div class="title-wrapper text-center">
+            <h1 class="main-title">تعديل شاحنة</h1>
+        </div>
+
+        <div class="logo-wrapper header-left">
+            <img src="~/img/logo.svg" alt="رصيفي" class="brand-logo logo-raseefy" onerror="this.src='https://via.placeholder.com/120x50?text=Raseefy'">
+        </div>
+    </header>
+
+    <div class="nav-actions">
+        <a asp-controller="Truck" asp-action="Index" asp-route-supplierid="@Model.SupplierId" class="go-suppliers-btn">
+            &larr; خطوة للخلف
+        </a>
+    </div>
+
+    <main class="content-wrapper">
+        <form asp-action="Update" asp-controller="Truck" method="post" class="supplier-form-container">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="SupplierId" />
+
+            <div class="supplier-card-main p-4">
+                <div class="row g-4">
+
+                    <!-- الصف الأول: رقم الشاحنة (يمين) وسعة التخزين (شمال) -->
+                    <div class="col-md-6 text-center">
+                        <label class="form-label-custom fw-bold mb-1">رقم الشاحنة</label>
+                        <div class="row g-2">
+                            <div class="col-7">
+                                <input asp-for="TruckNumber" class="form-control form-control-custom text-center" placeholder="1234" autocomplete="off" />
+                            </div>
+                            <div class="col-5">
+                                <input asp-for="TruckLetters" class="form-control form-control-custom text-center" placeholder="ا ب ج" autocomplete="off" />
+                            </div>
+                        </div>
+                        <span asp-validation-for="TruckNumber" class="text-danger small"></span>
+                        <span asp-validation-for="TruckLetters" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6 text-center">
+                        <label asp-for="Capacity" class="form-label-custom fw-bold mb-1">سعة التخزين</label>
+                        <div class="truck-input-badge">
+                            <input asp-for="Capacity" class="form-control form-control-custom text-center" placeholder="5" autocomplete="off" />
+                            <div class="truck-badge-box">kg</div>
+                        </div>
+                        <span asp-validation-for="Capacity" class="text-danger small"></span>
+                    </div>
+
+                    <!-- الصف الثاني: نوع الشاحنة (يمين) وشركة الشاحنة (شمال) -->
+                    <div class="col-md-6 text-center">
+                        <label class="form-label-custom fw-bold mb-1">نوع الشاحنة</label>
+                        <div class="radio-group-container">
+                            <label class="radio-custom-label">
+                                <input type="radio" asp-for="IsRefrigerated" value="true" class="radio-custom-input" />
+                                <span>تبريد</span>
+                            </label>
+                            <label class="radio-custom-label">
+                                <input type="radio" asp-for="IsRefrigerated" value="false" class="radio-custom-input" />
+                                <span>غير تبريد</span>
+                            </label>
+                        </div>
+                        <span asp-validation-for="IsRefrigerated" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6 text-center">
+                        <label asp-for="CompanyName" class="form-label-custom fw-bold mb-1">شركة الشاحنة</label>
+                        <div class="truck-input-badge">
+                            <input asp-for="CompanyName" class="form-control form-control-custom text-center" placeholder="فتح الله" autocomplete="off" />
+                            <div class="truck-badge-box"><i class="fa-regular fa-pen-to-square"></i></div>
+                        </div>
+                        <span asp-validation-for="CompanyName" class="text-danger small"></span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- زر التعديل -->
+            <div class="mt-4">
+                <button type="submit" class="btn-submit-full w-100 py-3 style-btn-orange">
+                    تعديل الشاحنة
+                </button>
+            </div>
+
+        </form>
+    </main>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

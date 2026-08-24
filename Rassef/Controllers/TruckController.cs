@@ -204,13 +204,11 @@ namespace Rassef.Controllers
         }
 
         [HttpGet]
-        // Display update page
-        public async Task<IActionResult> Update(int? id)
+        public async Task<IActionResult> Edit(int? id, int? supplierId)
         {
             if (id == null)
             {
                 ModelState.AddModelError("الشاحنة", "رقم الشاحنة مفقود.");
-                await LoadTruckTypesAsync();
                 return View(new UpdateTruckVM());
             }
 
@@ -219,20 +217,21 @@ namespace Rassef.Controllers
             if (truck == null)
             {
                 ModelState.AddModelError("الشاحنة", "هذه الشاحنة غير موجودة.");
-                await LoadTruckTypesAsync();
                 return View(new UpdateTruckVM());
             }
 
-            await LoadTruckTypesAsync(truck.TruckTypeId);
+            var supplierRequest = truck.SupplierRequests?.FirstOrDefault();
+            string companyName = supplierRequest?.Supplier?.Name ?? "فتح الله";
 
             var vm = new UpdateTruckVM
             {
                 Id = truck.Id,
-                PlateNumber = truck.PlateNumber,
-                PlateLetter = truck.PlateLetter,
-                StorageCapacity = truck.StorageCapacity,
+                TruckNumber = truck.PlateNumber,
+                TruckLetters = truck.PlateLetter,
+                Capacity = truck.StorageCapacity,
                 IsRefrigerated = truck.IsRefrigerated,
-                TruckTypeId = truck.TruckTypeId
+                CompanyName = companyName,
+                SupplierId = supplierId ?? supplierRequest?.SupplierId
             };
 
             return View(vm);
@@ -240,12 +239,10 @@ namespace Rassef.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Update item
-        public async Task<IActionResult> Update(UpdateTruckVM update)
+        public async Task<IActionResult> Edit(UpdateTruckVM update)
         {
             if (!ModelState.IsValid)
             {
-                await LoadTruckTypesAsync(update.TruckTypeId);
                 return View(update);
             }
 
@@ -254,33 +251,35 @@ namespace Rassef.Controllers
             if (truck == null)
             {
                 ModelState.AddModelError("الشاحنة", "هذه الشاحنة غير موجودة.");
-                await LoadTruckTypesAsync(update.TruckTypeId);
                 return View(update);
             }
 
-            var plateNum = update.PlateNumber?.Trim() ?? "";
-            var plateLet = update.PlateLetter?.Trim() ?? "";
+            var plateNum = update.TruckNumber?.Trim() ?? "";
+            var plateLet = update.TruckLetters?.Trim() ?? "";
 
             if (await _truckRepository.ExistsAsync(x => x.PlateNumber == plateNum && x.PlateLetter == plateLet && x.Id != update.Id && !x.IsDeleted))
             {
-                ModelState.AddModelError(nameof(update.PlateNumber), "رقم وحروف اللوحة مسجلة بالفعل لشاحنة أخرى.");
-                await LoadTruckTypesAsync(update.TruckTypeId);
+                ModelState.AddModelError(nameof(update.TruckNumber), "رقم وحروف اللوحة مسجلة بالفعل لشاحنة أخرى.");
                 return View(update);
             }
 
             truck.PlateNumber = plateNum;
             truck.PlateLetter = plateLet;
-            truck.StorageCapacity = update.StorageCapacity;
+            truck.StorageCapacity = update.Capacity;
             truck.IsRefrigerated = update.IsRefrigerated;
-            truck.TruckTypeId = update.TruckTypeId;
 
             _truckRepository.Update(truck);
             await _truckRepository.SaveChangesAsync();
 
             TempData["Success"] = "تم تحديث بيانات الشاحنة بنجاح.";
-            return RedirectToAction(nameof(Index));
-        }
 
+            if (update.SupplierId.HasValue && update.SupplierId.Value > 0)
+            {
+                return RedirectToAction(nameof(Index), new { supplierid = update.SupplierId.Value });
+            }
+
+            return RedirectToAction(nameof(MainTraDrivers));
+        }
         [HttpGet]
         // Display delete confirmation
         public async Task<IActionResult> Delete(int? id)
