@@ -10,479 +10,142 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - رصيف</title>
-    <link rel="stylesheet" href="~/css/site.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'IBM Plex Sans Arabic', sans-serif;
-        }
-
-        body {
-            background-color: #fdf6f0;
-            color: #333;
-            overflow-x: hidden;
-        }
-
-        .dashboard-page {
-            display: flex;
-            min-height: 100vh;
-            flex-direction: row;
-        }
-
-        /* ── SIDEBAR ── */
-        .dashboard-sidebar {
-            width: 260px;
-            background-color: #E87A1E;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 30px 16px 20px;
-            flex-shrink: 0;
-            min-height: 100vh;
-        }
-
-        .sidebar-top {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .sidebar-title {
-            font-size: 26px;
-            font-weight: 700;
-            text-align: center;
-            color: #fff;
-            margin-bottom: 8px;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .sidebar-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 16px;
-            border-radius: 12px;
-            color: #fff;
-            text-decoration: none;
-            font-size: 15px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .sidebar-item:hover {
-            background-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .sidebar-item.active {
-            background-color: #fdf6f0;
-            color: #E87A1E;
-            font-weight: 700;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        .sidebar-item svg {
-            width: 20px;
-            height: 20px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-            flex-shrink: 0;
-        }
-
-        .sidebar-user {
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 16px;
-        }
-
-        .user-info-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-avatar-box {
-            width: 44px;
-            height: 44px;
-            background: #fff;
-            color: #E87A1E;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .user-avatar-box svg {
-            width: 26px;
-            height: 26px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-        }
-
-        .user-details {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name {
-            font-size: 14px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .user-role {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        /* ── MAIN CONTENT ── */
-        .dashboard-main {
-            flex: 1;
-            padding: 30px 40px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        /* Top Header */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header-title-box {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .page-main-title {
-            font-size: 32px;
-            font-weight: 800;
-            color: #E87A1E;
-            margin-bottom: 2px;
-        }
-
-        .page-subtitle {
-            font-size: 13px;
-            color: #888;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .page-subtitle::before {
-            content: "•";
-            color: #E87A1E;
-            font-size: 16px;
-        }
-
-        .header-logos {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .header-logos img {
-            height: 44px;
-            object-fit: contain;
-        }
-
-        .section-heading {
-            font-size: 22px;
-            font-weight: 800;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        /* Horizontal Carousel of Groups */
-        .carousel-wrapper {
-            position: relative;
-            width: 100%;
-        }
-
-        .carousel-track {
-            display: flex;
-            gap: 20px;
-            overflow-x: auto;
-            padding-bottom: 12px;
-            scroll-behavior: smooth;
-        }
-
-        .carousel-track::-webkit-scrollbar {
-            height: 6px;
-        }
-
-        .carousel-track::-webkit-scrollbar-track {
-            background: #edd8c8;
-            border-radius: 4px;
-        }
-
-        .carousel-track::-webkit-scrollbar-thumb {
-            background: #E87A1E;
-            border-radius: 4px;
-        }
-
-        .role-group-card {
-            min-width: 240px;
-            max-width: 260px;
-            background: #fff;
-            border: 1.5px solid #E87A1E;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            transition: transform 0.2s;
-        }
-
-        .role-group-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .role-group-header {
-            background-color: #E87A1E;
-            color: #fff;
-            padding: 10px 16px;
-            text-align: center;
-            font-size: 18px;
-            font-weight: 800;
-        }
-
-        .role-group-body {
-            padding: 14px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background-color: #fdfaf7;
-            flex: 1;
-        }
-
-        .info-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            color: #2b2b2b;
-        }
-
-        .info-row svg {
-            width: 16px;
-            height: 16px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-        }
-
-        .badge-status {
-            align-self: flex-start;
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .badge-active {
-            background-color: #e8f7ee;
-            color: #1e7e34;
-            border: 1px solid #1e7e34;
-        }
-
-        .btn-manage-perms {
-            background-color: #E87A1E;
-            color: #fff;
-            text-decoration: none;
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 6px;
-            transition: background 0.2s;
-            box-shadow: 0 3px 8px rgba(232, 122, 30, 0.2);
-        }
-
-        .btn-manage-perms:hover {
-            background-color: #d16b15;
-            color: #fff;
-        }
-
-        .btn-manage-perms svg {
-            width: 16px;
-            height: 16px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-        }
-
-        /* ── ALL PERMISSIONS TABLE ── */
-        .permissions-section {
-            margin-top: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .table-container {
-            background: #fff;
-            border: 1.5px solid #E87A1E;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .permissions-table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .permissions-table thead {
-            position: sticky;
-            top: 0;
-            background-color: #faede2;
-            z-index: 2;
-        }
-
-        .permissions-table th {
-            padding: 12px 16px;
-            font-weight: 800;
-            color: #333;
-            border-bottom: 1.5px solid #eecfb7;
-        }
-
-        .permissions-table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid #f3e2d5;
-            color: #444;
-            font-weight: 600;
-        }
-
-        .permissions-table tr:hover {
-            background-color: #fff8f2;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/groupRolePages.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/detailsPages.css" asp-append-version="true">
 </head>
 <body>
-
     <div class="dashboard-page">
-        <!-- ── SIDEBAR ── -->
+        <!-- SIDEBAR -->
         <partial name="_AdminSidebar" model='"Roles"' />
 
-        <!-- ── MAIN CONTENT ── -->
+        <!-- MAIN CONTENT -->
         <main class="dashboard-main">
-
-            <!-- 1. Header -->
-            <header class="page-header">
-                <div class="header-title-box">
-                    <h1 class="page-main-title">إدارة الأدوار</h1>
-                    <span class="page-subtitle">آخر تحديث منذ 10 ثواني</span>
+            <!-- HEADER -->
+            <header class="dashboard-header">
+                <div class="header-right">
+                    <h2 class="header-title">إدارة الأدوار</h2>
+                    <div class="header-subtitle">
+                        <span class="update-dot"></span>
+                        <span>آخر تحديث منذ 10 ثواني</span>
+                    </div>
                 </div>
-                <div class="header-logos">
-                    <img src="~/images/Fathalla.png" alt="فتح الله" onerror="this.style.display='none'" />
-                    <img src="~/images/logo.png" alt="رصيف" onerror="this.style.display='none'" />
+                <div class="header-left-logos">
+                    <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
+                    <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
                 </div>
             </header>
 
-            <!-- 2. Section 1: All Groups Carousel -->
-            <div>
-                <h2 class="section-heading">كل المجموعات</h2>
-                <div class="carousel-wrapper">
-                    <div class="carousel-track">
-                        @if (Model.Groups != null && Model.Groups.Any())
-                        {
-                            foreach (var group in Model.Groups)
-                            {
-                                <div class="role-group-card">
-                                    <div class="role-group-header">
-                                        @group.Name
-                                    </div>
-                                    <div class="role-group-body">
-                                        <div class="info-row">
-                                            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                            <span>عدد الموظفين : @group.UsersCount</span>
-                                        </div>
-                                        <div class="info-row">
-                                            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                            <span>@group.CreatedAt.ToString("dd / M / yyyy")</span>
-                                        </div>
-                                        <span class="badge-status badge-active"><span>•</span> مفعل</span>
-
-                                        <a href="@Url.Action("ManagePermissions", "Group", new { groupId = group.Id })" class="btn-manage-perms">
-                                            <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-                                            <span>إدارة الصلاحيات</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            }
-                        }
-                    </div>
+            <!-- Alerts -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div style="background: #E8F5E9; color: #2E7D32; border: 1.5px solid #A5D6A7; padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-check-circle"></i>
+                    <span>@TempData["SuccessMessage"]</span>
                 </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div style="background: #FFEBEE; color: #C62828; border: 1.5px solid #FFCDD2; padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>@TempData["ErrorMessage"]</span>
+                </div>
+            }
+
+            <!-- 1. TOP SECTION: ALL GROUPS (CAROUSEL / HORIZONTAL ROW) -->
+            <div class="section-underlined-title">
+                كل المجموعات
             </div>
 
-            <!-- 3. Section 2: All Permissions Table -->
-            <div class="permissions-section">
-                <h2 class="section-heading">كل الصلاحيات</h2>
-                <div class="table-container">
-                    <table class="permissions-table">
-                        <thead>
-                            <tr>
-                                <th>Controller</th>
-                                <th>Action</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.Permissions != null && Model.Permissions.Any())
-                            {
-                                foreach (var p in Model.Permissions)
-                                {
-                                    <tr>
-                                        <td><strong>@p.Controller</strong></td>
-                                        <td>@p.Action</td>
-                                        <td>@p.Description</td>
-                                    </tr>
-                                }
-                            }
-                            else
+            <div class="horizontal-groups-row">
+                @if (Model?.Groups != null && Model.Groups.Any())
+                {
+                    foreach (var group in Model.Groups)
+                    {
+                        string statusClass = group.IsActive ? "active" : "inactive";
+                        string statusText = group.IsActive ? "مفعل" : "معطل";
+
+                        <div class="group-card-item">
+                            <!-- Card Header -->
+                            <div class="group-card-header">
+                                <h3 class="group-card-title">@group.Name</h3>
+                            </div>
+
+                            <!-- Card Body -->
+                            <div class="group-card-body">
+                                <div class="group-info-row">
+                                    <i class="fas fa-user" style="color: var(--text-dark);"></i>
+                                    <span>عدد الموظفين : @group.UsersCount</span>
+                                </div>
+
+                                <div class="group-info-row">
+                                    <i class="far fa-calendar-alt" style="color: var(--text-dark);"></i>
+                                    <span>@group.CreatedAt.ToString("d / M / yyyy")</span>
+                                </div>
+
+                                <div class="group-status-pill @statusClass">
+                                    <i class="fas fa-circle" style="font-size: 8px;"></i>
+                                    <span>@statusText</span>
+                                </div>
+
+                                <!-- Manage Permissions Button -->
+                                <a href="@Url.Action("ManagePermissions", "Group", new { groupId = group.Id })" class="btn-card-action">
+                                    <i class="fas fa-key"></i>
+                                    <span>إدارة الصلاحيات</span>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div style="padding: 20px; color: var(--text-muted); font-weight: 700;">
+                        لا توجد أي مجموعات حالياً
+                    </div>
+                }
+            </div>
+
+            <!-- 2. BOTTOM SECTION: ALL PERMISSIONS TABLE -->
+            <div class="section-underlined-title">
+                كل الصلاحيات
+            </div>
+
+            <div class="permissions-table-wrapper">
+                <table class="permissions-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">Controller</th>
+                            <th style="width: 30%;">Action</th>
+                            <th style="width: 40%;">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model?.Permissions != null && Model.Permissions.Any())
+                        {
+                            foreach (var p in Model.Permissions)
                             {
                                 <tr>
-                                    <td colspan="3" style="text-align: center; padding: 24px; color: #888; font-weight: 600;">
-                                        لا توجد صلاحيات مسجلة في قاعدة البيانات حالياً.
-                                    </td>
+                                    <td style="font-weight: 700;">@p.Controller</td>
+                                    <td style="font-weight: 600; color: var(--primary-color);">@p.Action</td>
+                                    <td style="color: var(--text-muted);">@p.Description</td>
                                 </tr>
                             }
-                        </tbody>
-                    </table>
-                </div>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="3" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                    لا توجد صلاحيات مسجلة
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-
         </main>
     </div>
-
 </body>
 </html>

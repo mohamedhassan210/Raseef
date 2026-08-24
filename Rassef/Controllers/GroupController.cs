@@ -1,4 +1,6 @@
+using Rassef.Common.Interfaces.Services.AuthenticationServices;
 using Rassef.ViewModels.Group;
+using Rassef.ViewModels.Authentication.Identity;
 
 namespace Rassef.Controllers
 {
@@ -7,6 +9,7 @@ namespace Rassef.Controllers
         private readonly IRepository<UserGroup> _groupRepo;
         private readonly IRepository<Permission> _permissionRepo;
         private readonly IRepository<GroupPermission> _groupPermissionRepo;
+        private readonly IUserRepository _userRepo;
         private readonly IRepository<DriverTypes> _driverTypesRepo;
         private readonly IRepository<Position> _positionRepo;
         private readonly IRepository<TruckTypes> _truckTypesRepo;
@@ -21,6 +24,7 @@ namespace Rassef.Controllers
             IRepository<UserGroup> groupRepo,
             IRepository<Permission> permissionRepo,
             IRepository<GroupPermission> groupPermissionRepo,
+            IUserRepository userRepo,
             IRepository<DriverTypes> driverTypesRepo,
             IRepository<Position> positionRepo,
             IRepository<TruckTypes> truckTypesRepo,
@@ -34,6 +38,7 @@ namespace Rassef.Controllers
             _groupRepo = groupRepo ?? throw new ArgumentNullException(nameof(groupRepo));
             _permissionRepo = permissionRepo ?? throw new ArgumentNullException(nameof(permissionRepo));
             _groupPermissionRepo = groupPermissionRepo ?? throw new ArgumentNullException(nameof(groupPermissionRepo));
+            _userRepo = userRepo ?? throw new ArgumentNullException(nameof(userRepo));
             _driverTypesRepo = driverTypesRepo ?? throw new ArgumentNullException(nameof(driverTypesRepo));
             _positionRepo = positionRepo ?? throw new ArgumentNullException(nameof(positionRepo));
             _truckTypesRepo = truckTypesRepo ?? throw new ArgumentNullException(nameof(truckTypesRepo));
@@ -55,6 +60,10 @@ namespace Rassef.Controllers
         public async Task<IActionResult> GroupManagment()
         {
             var groups = await _groupRepo.GetAllAsync(q => q.Include(g => g.Users));
+            var users = await _userRepo.GetAllAsync();
+
+            ViewBag.AllUsers = users.ToList();
+            ViewBag.AllGroups = groups.ToList();
 
             var model = groups.Select(g => new GroupCardVM
             {
@@ -62,7 +71,7 @@ namespace Rassef.Controllers
                 Name = g.Name,
                 UsersCount = g.Users?.Count ?? 0,
                 CreatedAt = g.CreatedAT != default ? g.CreatedAT.DateTime : DateTime.Now,
-                IsActive = true
+                IsActive = !g.IsDeleted
             }).ToList();
 
             return View(model);
@@ -106,7 +115,7 @@ namespace Rassef.Controllers
         }
 
         /// <summary>
-        /// حذف مجموعة (Soft Delete)
+        /// حذف / تعطيل مجموعة (Soft Delete)
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -115,13 +124,35 @@ namespace Rassef.Controllers
             var group = await _groupRepo.GetByIdAsync(id);
             if (group != null)
             {
-                _groupRepo.Remove(group);
+                group.IsDeleted = !group.IsDeleted;
                 await _groupRepo.SaveChangesAsync();
-                TempData["SuccessMessage"] = "تم حذف المجموعة بنجاح!";
+                TempData["SuccessMessage"] = group.IsDeleted ? "تم تعطيل المجموعة بنجاح!" : "تم تفعيل المجموعة بنجاح!";
             }
             else
             {
                 TempData["ErrorMessage"] = "المجموعة غير موجودة.";
+            }
+
+            return RedirectToAction(nameof(GroupManagment));
+        }
+
+        /// <summary>
+        /// نقل موظف إلى مجموعة معينة
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TransferUser(int userId, int targetGroupId)
+        {
+            var user = await _userRepo.GetByIdAsync(userId);
+            if (user != null)
+            {
+                user.GroupId = targetGroupId > 0 ? targetGroupId : null;
+                await _userRepo.SaveChangesAsync();
+                TempData["SuccessMessage"] = "تم نقل الموظف إلى المجموعة بنجاح!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "الموظف غير موجود.";
             }
 
             return RedirectToAction(nameof(GroupManagment));
@@ -139,6 +170,64 @@ namespace Rassef.Controllers
             var groups = await _groupRepo.GetAllAsync(q => q.Include(g => g.Users));
             var permissions = await _permissionRepo.GetAllAsync();
 
+            if (!permissions.Any())
+            {
+                var defaultPerms = new List<Permission>
+                {
+                    new() { ControllerName = "Account", ActionName = "ActivateUser", Description = "AccountActivateUser" },
+                    new() { ControllerName = "Account", ActionName = "Register", Description = "AccountRegister" },
+                    new() { ControllerName = "Account", ActionName = "Login", Description = "AccountLogin" },
+                    new() { ControllerName = "Account", ActionName = "ResetPassword", Description = "AccountResetPassword" },
+                    new() { ControllerName = "Account", ActionName = "Profile", Description = "AccountProfile" },
+                    new() { ControllerName = "Account", ActionName = "ChangePassword", Description = "AccountChangePassword" },
+
+                    new() { ControllerName = "System", ActionName = "ActivateUser", Description = "SystemActivateUser" },
+                    new() { ControllerName = "System", ActionName = "Settings", Description = "SystemSettings" },
+                    new() { ControllerName = "System", ActionName = "Logs", Description = "SystemLogs" },
+                    new() { ControllerName = "System", ActionName = "Audit", Description = "SystemAudit" },
+
+                    new() { ControllerName = "Branch", ActionName = "Index", Description = "BranchIndex" },
+                    new() { ControllerName = "Branch", ActionName = "Create", Description = "BranchCreate" },
+                    new() { ControllerName = "Branch", ActionName = "Edit", Description = "BranchEdit" },
+                    new() { ControllerName = "Branch", ActionName = "Delete", Description = "BranchDelete" },
+
+                    new() { ControllerName = "Administration", ActionName = "Index", Description = "AdministrationIndex" },
+                    new() { ControllerName = "Administration", ActionName = "TrucksIndex", Description = "AdministrationTrucksIndex" },
+                    new() { ControllerName = "Administration", ActionName = "DriversIndex", Description = "AdministrationDriversIndex" },
+                    new() { ControllerName = "Administration", ActionName = "Suppliers", Description = "AdministrationSuppliers" },
+                    new() { ControllerName = "Administration", ActionName = "SupplierRequests", Description = "AdministrationSupplierRequests" },
+                    new() { ControllerName = "Administration", ActionName = "TransferRequests", Description = "AdministrationTransferRequests" },
+
+                    new() { ControllerName = "SupplierRequest", ActionName = "Create", Description = "SupplierRequestCreate" },
+                    new() { ControllerName = "SupplierRequest", ActionName = "Edit", Description = "SupplierRequestEdit" },
+                    new() { ControllerName = "SupplierRequest", ActionName = "Delete", Description = "SupplierRequestDelete" },
+                    new() { ControllerName = "SupplierRequest", ActionName = "Index", Description = "SupplierRequestIndex" },
+
+                    new() { ControllerName = "TransferRequest", ActionName = "Create", Description = "TransferRequestCreate" },
+                    new() { ControllerName = "TransferRequest", ActionName = "Edit", Description = "TransferRequestEdit" },
+                    new() { ControllerName = "TransferRequest", ActionName = "Delete", Description = "TransferRequestDelete" },
+                    new() { ControllerName = "TransferRequest", ActionName = "Index", Description = "TransferRequestIndex" },
+
+                    new() { ControllerName = "QueueTicket", ActionName = "LiveQueue", Description = "QueueTicketLiveQueue" },
+                    new() { ControllerName = "QueueTicket", ActionName = "CallStation", Description = "QueueTicketCallStation" },
+                    new() { ControllerName = "QueueTicket", ActionName = "CallNext", Description = "QueueTicketCallNext" },
+
+                    new() { ControllerName = "Group", ActionName = "GroupManagment", Description = "GroupGroupManagment" },
+                    new() { ControllerName = "Group", ActionName = "AddGroup", Description = "GroupAddGroup" },
+                    new() { ControllerName = "Group", ActionName = "DeleteGroup", Description = "GroupDeleteGroup" },
+                    new() { ControllerName = "Group", ActionName = "MangeRolesIndex", Description = "GroupMangeRolesIndex" },
+                    new() { ControllerName = "Group", ActionName = "ManagePermissions", Description = "GroupManagePermissions" },
+                    new() { ControllerName = "Group", ActionName = "MangeTypesIndex", Description = "GroupMangeTypesIndex" }
+                };
+
+                foreach (var p in defaultPerms)
+                {
+                    await _permissionRepo.AddAsync(p);
+                }
+                await _permissionRepo.SaveChangesAsync();
+                permissions = await _permissionRepo.GetAllAsync();
+            }
+
             var model = new RolesManagementVM
             {
                 Groups = groups.Select(g => new GroupCardVM
@@ -147,7 +236,7 @@ namespace Rassef.Controllers
                     Name = g.Name,
                     UsersCount = g.Users?.Count ?? 0,
                     CreatedAt = g.CreatedAT != default ? g.CreatedAT.DateTime : DateTime.Now,
-                    IsActive = true
+                    IsActive = !g.IsDeleted
                 }).ToList(),
 
                 Permissions = permissions.Select(p => new PermissionTableItemVM
