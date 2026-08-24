@@ -21,13 +21,15 @@
     <div class="page-container">
         <!-- الهيدر العلوي -->
         <header class="page-header">
-            <div class="header-right-logos">
-                <img src="~/img/raseefi-logo.svg" alt="رصيف" class="logo raseefi-logo" onerror="this.src='/img/fathallah logo.svg'">
-                <img src="~/img/logo.svg" alt="فتح الله" class="logo fathallah-logo">
-            </div>
-            <div class="header-left-back">
-                <a asp-controller="Authentication" asp-action="AddRoleOrView" class="back-link">
-                    الرجوع <i class="fas fa-home"></i>
+            <div class="header-right">
+                <h1 class="page-title">الأدوار الحالية</h1> 
+                <div class="update-status">
+                    <span class="status-dot"></span>
+                    آخر تحديث منذ 10 ثواني
+                </div>
+                <!-- زر الرجوع موجه لكونترولر Authentication -->
+                <a asp-controller="Authentication" asp-action="AddRoleOrView" class="back-btn">
+                    <i class="fas fa-home"></i> الرجوع
                 </a>
             </div>
         </header>
