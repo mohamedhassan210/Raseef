@@ -872,7 +872,7 @@ namespace Rassef.Controllers
                     DriverName = x.Driver?.FullName ?? "غير محدد",
                     EmployeeName = empName,
                     TruckPlateNumber = x.Truck != null ? $"{x.Truck.PlateLetter} {x.Truck.PlateNumber}" : "غير محدد",
-                    RequestStatus = x.RequestStatus?.Name ?? "قيد الانتظار",
+                    RequestStatus = ticket?.TicketStatus?.Name ?? x.RequestStatus?.Name ?? "إنتظار",
                     DockName = dockName
                 };
             }).ToList();

@@ -1,0 +1,539 @@
+:root {
+    --font-arabic: 'IBM Plex Sans Arabic', sans-serif;
+    --primary-color: #EA7318;
+    --primary-hover: #D1620E;
+    --primary-soft: rgba(234, 115, 24, 0.12);
+    --border-color: #EFA267;
+    --bg-page: #FAF0E6;
+    --card-bg: #FFFDFB;
+    --text-dark: #2B241D;
+    --text-muted: #82756A;
+    --color-waiting: #EA7318;
+    --color-in-progress: #1976D2;
+    --color-completed: #2E7D32;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-arabic);
+    background-color: var(--bg-page);
+    color: var(--text-dark);
+    direction: rtl;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+.dashboard-page {
+    display: flex;
+    min-height: 100vh;
+    width: 100vw;
+}
+
+/* ────────────────────────────────────────────────
+   1. MAIN CONTENT
+   ──────────────────────────────────────────────── */
+.dashboard-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 40px 40px;
+    gap: 20px;
+    overflow-y: auto;
+    height: 100vh;
+}
+
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.header-right {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.header-title {
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--primary-color);
+}
+
+.header-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.update-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.header-left-logos {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.header-logo-fathallah {
+    height: 70px;
+    width: auto;
+}
+
+.header-logo-raseef {
+    height: 42px;
+    width: auto;
+}
+
+/* ────────────────────────────────────────────────
+   2. FILTER & TOOLBAR
+   ──────────────────────────────────────────────── */
+.queue-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.toolbar-right-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+}
+
+/* Date Filter Pills */
+.date-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-filter-pill {
+    background-color: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+    color: var(--text-dark);
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.btn-filter-pill:hover {
+    background-color: var(--primary-soft);
+}
+
+.btn-filter-pill.active {
+    background-color: var(--primary-color);
+    color: #FFFFFF;
+    border-color: var(--primary-color);
+}
+
+/* Search Box */
+.search-box-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    max-width: 480px;
+}
+
+.search-input {
+    width: 100%;
+    background-color: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    padding: 9px 44px 9px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    border-color: var(--primary-hover);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.search-icon-btn {
+    position: absolute;
+    right: 14px;
+    color: var(--primary-color);
+    font-size: 16px;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+}
+
+/* Export Button */
+.btn-export {
+    background-color: var(--primary-color);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 24px;
+    font-size: 15px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-export:hover {
+    background-color: var(--primary-hover);
+}
+
+/* ────────────────────────────────────────────────
+   3. SUMMARY STATS (3 CARDS ROW)
+   ──────────────────────────────────────────────── */
+.stats-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 12px;
+}
+
+.stat-card {
+    background-color: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+    border-radius: 14px;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-card-left {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.stat-card-left i,
+.stat-card-left svg {
+    font-size: 28px;
+}
+
+.stat-card.waiting .stat-card-left {
+    background-color: rgba(234, 115, 24, 0.15);
+    color: var(--color-waiting);
+}
+
+.stat-card.in-progress .stat-card-left {
+    background-color: rgba(25, 118, 210, 0.15);
+    color: var(--color-in-progress);
+}
+
+.stat-card.completed .stat-card-left {
+    background-color: rgba(46, 125, 50, 0.15);
+    color: var(--color-completed);
+}
+
+.stat-card-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-card-num {
+    font-size: 38px;
+    font-weight: 800;
+}
+
+.stat-card.waiting .stat-card-num {
+    color: var(--color-waiting);
+}
+
+.stat-card.in-progress .stat-card-num {
+    color: var(--color-in-progress);
+}
+
+.stat-card.completed .stat-card-num {
+    color: var(--color-completed);
+}
+
+.stat-card-labels {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.stat-card-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-dark);
+}
+
+.stat-card-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+/* ────────────────────────────────────────────────
+   4. QUEUE LIST SECTION
+   ──────────────────────────────────────────────── */
+.queue-section-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin: 4px 0 12px;
+}
+
+.queue-cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Queue Card Row */
+.queue-row-card {
+    background-color: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+    border-radius: 14px;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.2s ease;
+}
+
+.queue-row-card:hover {
+    box-shadow: 0 4px 16px rgba(234, 115, 24, 0.12);
+    border-color: var(--primary-color);
+}
+
+/* 1. Ticket Number Block */
+.queue-col-ticket {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 60px;
+}
+
+.queue-ticket-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+.queue-col-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+/* 2. Status Badge Block */
+.queue-col-status {
+    display: flex;
+    align-items: center;
+}
+
+.queue-status-pill {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.queue-status-pill.waiting {
+    background-color: #FFF4EB;
+    border: 1.5px solid var(--border-color);
+    color: var(--color-waiting);
+}
+
+.queue-status-pill.in-progress {
+    background-color: #E3F2FD;
+    border: 1.5px solid #90CAF9;
+    color: var(--color-in-progress);
+}
+
+.queue-status-pill.completed {
+    background-color: #E8F5E9;
+    border: 1.5px solid #A5D6A7;
+    color: var(--color-completed);
+}
+
+/* General Queue Data Columns */
+.queue-col-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.queue-col-icon {
+    font-size: 16px;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.queue-col-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--text-dark);
+    fill: none;
+    stroke-width: 2;
+}
+
+.queue-col-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.queue-col-val {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-dark);
+    white-space: nowrap;
+}
+
+/* 3. Time & Date Column (Leftmost) */
+.queue-col-time {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    direction: ltr;
+}
+
+.queue-time-clock-icon {
+    font-size: 24px;
+    color: var(--text-dark);
+}
+
+.queue-time-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.queue-time-hour {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.queue-time-date {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* Empty State */
+.queue-empty-state {
+    background-color: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+    border-radius: 14px;
+    padding: 60px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.queue-empty-icon {
+    font-size: 48px;
+    color: var(--border-color);
+}
+
+.queue-empty-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+/* ────────────────────────────────────────────────
+   5. RESPONSIVE DESIGN
+   ──────────────────────────────────────────────── */
+@media (max-width: 1400px) {
+    .queue-row-card {
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 18px 20px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .stats-summary-grid {
+        grid-template-columns: 1fr;
+    }
+    .queue-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .toolbar-right-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .search-box-wrapper {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-page {
+        flex-direction: column;
+    }
+    .dashboard-main {
+        padding: 16px;
+    }
+    .dashboard-header {
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    .queue-row-card {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+    .queue-col-ticket,
+    .queue-col-status,
+    .queue-col-time {
+        grid-column: span 2;
+    }
+}

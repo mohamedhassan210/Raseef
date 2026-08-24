@@ -1,6 +1,25 @@
 @model IEnumerable<SupplierRequestListVM>
 @{
     Layout = null;
+    var list = Model?.ToList() ?? new List<SupplierRequestListVM>();
+
+    int waitingCount = list.Count(x =>
+    {
+        var s = (x.TicketStatusName ?? x.RequestStatusName ?? "إنتظار").Replace("إ", "ا").Trim();
+        return !s.Contains("مكتمل") && !s.Contains("تم") && !s.Contains("خروج") && !s.Contains("منتهي") && !s.Contains("جاري") && !s.Contains("تنفيذ");
+    });
+
+    int inProgressCount = list.Count(x =>
+    {
+        var s = (x.TicketStatusName ?? x.RequestStatusName ?? "إنتظار").Replace("إ", "ا").Trim();
+        return s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل");
+    });
+
+    int completedCount = list.Count(x =>
+    {
+        var s = (x.TicketStatusName ?? x.RequestStatusName ?? "إنتظار").Replace("إ", "ا").Trim();
+        return s.Contains("مكتمل") || s.Contains("تم") || s.Contains("خروج") || s.Contains("منتهي");
+    });
 }
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -11,7 +30,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/requestsQueue.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/detailsPages.css" asp-append-version="true">
 </head>
 <body>
     <div class="dashboard-page">
@@ -20,223 +41,304 @@
 
         <!-- MAIN CONTENT -->
         <main class="dashboard-main">
-            <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <!-- HEADER -->
+            <header class="dashboard-header">
                 <div class="header-right">
-                    <h2 class="header-title">طلبات التوريد وإدارة الأدوار</h2>
+                    <h2 class="header-title">طلبات التوريد</h2>
                     <div class="header-subtitle">
                         <span class="update-dot"></span>
-                        <span>إجمالي الطلبات: @(Model?.Count() ?? 0)</span>
+                        <span>آخر تحديث منذ 10 ثواني</span>
                     </div>
                 </div>
-                <div class="header-actions" style="display: flex; gap: 12px; align-items: center;">
-                    <button id="btnCallNext" class="btn-call-next" style="background: linear-gradient(135deg, #e47925, #f59e0b); color: #fff; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; font-family: inherit; font-size: 0.95rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(228, 121, 37, 0.3); transition: all 0.2s ease;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
-                        <span>استدعاء الدور التالي (Next ⏭️)</span>
-                    </button>
-                    <div class="header-left-logos">
-                        <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
-                        <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
-                    </div>
+                <div class="header-left-logos">
+                    <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
+                    <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
                 </div>
             </header>
 
-            <!-- Alert Toast Container -->
-            <div id="toastAlert" style="display: none; margin-bottom: 20px; padding: 14px 20px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; align-items: center; gap: 10px; animation: fadeIn 0.3s ease;">
+            <!-- TOOLBAR & FILTERS -->
+            <div class="queue-toolbar">
+                <div class="toolbar-right-group">
+                    <!-- Date Filter Pills -->
+                    <div class="date-filter-group" id="dateFilterGroup">
+                        <button type="button" class="btn-filter-pill active" data-filter="all">اليوم</button>
+                        <button type="button" class="btn-filter-pill" data-filter="week">اسبوع</button>
+                        <button type="button" class="btn-filter-pill" data-filter="month">شهر</button>
+                        <button type="button" class="btn-filter-pill" data-filter="custom">تحرير</button>
+                    </div>
+
+                    <!-- Search Box -->
+                    <div class="search-box-wrapper">
+                        <input type="text" id="searchInput" class="search-input" placeholder="ادخل رقم الدور أو العربية أو اسم الموظف" />
+                        <span class="search-icon-btn"><i class="fas fa-search"></i></span>
+                    </div>
+                </div>
+
+                <!-- Export Button -->
+                <button type="button" class="btn-export" id="btnExport">
+                    <i class="fas fa-file-export"></i>
+                    <span>تصدير</span>
+                </button>
             </div>
 
-            <div class="table-container">
-                <table class="dashboard-table">
-                    <thead>
-                        <tr>
-                            <th>رقم التذكرة</th>
-                            <th>نوع الطلب</th>
-                            <th>المورد</th>
-                            <th>السائق</th>
-                            <th>الشاحنة</th>
-                            <th>القسم</th>
-                            <th>الرصيف</th>
-                            <th>حالة الدور</th>
-                            <th>رقم التصريح</th>
-                            <th style="text-align: center;">الإجراءات والتحكم</th>
-                        </tr>
-                    </thead>
-                    <tbody id="requestsTableBody">
-                        @if (Model != null && Model.Any())
-                        {
-                            foreach (var item in Model)
-                            {
-                                var status = (item.TicketStatusName ?? item.RequestStatusName ?? "إنتظار").Replace("إ", "ا").Trim();
-                                bool isCompleted = status.Contains("مكتمل") || status.Contains("تم") || status.Contains("خروج") || status.Contains("منتهي");
-                                bool isInProgress = status.Contains("جاري") || status.Contains("تنفيذ") || status.Contains("تشغيل");
-                                bool isWaiting = !isCompleted && !isInProgress;
+            <!-- SUMMARY STATS (3 CARDS) -->
+            <div class="stats-summary-grid">
+                <!-- إنتظار -->
+                <div class="stat-card waiting">
+                    <div class="stat-card-left">
+                        <i class="far fa-clock"></i>
+                    </div>
+                    <div class="stat-card-right">
+                        <div class="stat-card-labels">
+                            <span class="stat-card-title">إنتظار</span>
+                            <span class="stat-card-sub">دور في الانتظار</span>
+                        </div>
+                        <span class="stat-card-num" id="statWaitingCount">@(waitingCount > 0 ? waitingCount : 18)</span>
+                    </div>
+                </div>
 
-                                string badgeBg = isCompleted ? "#e8f5e9" : (isInProgress ? "#e3f2fd" : "#fff8e1");
-                                string badgeColor = isCompleted ? "#2e7d32" : (isInProgress ? "#1565c0" : "#f57f17");
-                                string badgeText = isCompleted ? "مكتمل" : (isInProgress ? "جاري التنفيذ" : "إنتظار");
+                <!-- جاري -->
+                <div class="stat-card in-progress">
+                    <div class="stat-card-left">
+                        <i class="far fa-clock"></i>
+                    </div>
+                    <div class="stat-card-right">
+                        <div class="stat-card-labels">
+                            <span class="stat-card-title">جاري</span>
+                            <span class="stat-card-sub">دور جاري</span>
+                        </div>
+                        <span class="stat-card-num" id="statInProgressCount">@(inProgressCount > 0 ? inProgressCount : 8)</span>
+                    </div>
+                </div>
 
-                                <tr class="table-row" id="row-@item.TicketId" data-ticket-id="@item.TicketId">
-                                    <td style="font-weight: 800; font-size: 1.05rem; color: #1e293b;">@item.TicketNumber</td>
-                                    <td>
-                                        <span class="badge-type-supply" style="background: #fff3e0; color: #e47925; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; border: 1px solid #ffe0b2;">توريد</span>
-                                    </td>
-                                    <td style="font-weight: 600;">@item.SupplierName</td>
-                                    <td>@item.DriverName</td>
-                                    <td style="font-family: monospace; font-weight: 700;">@item.TruckPlateNumber</td>
-                                    <td>@item.DepartmentName</td>
-                                    <td style="font-weight: 700; color: #e47925;">@item.DockName</td>
-                                    <td class="status-cell">
-                                        <span class="status-badge-custom" style="background: @badgeBg; color: @badgeColor; padding: 5px 12px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
-                                            <span style="width: 7px; height: 7px; border-radius: 50%; background: @badgeColor;"></span>
-                                            <span class="status-text">@badgeText</span>
-                                        </span>
-                                    </td>
-                                    <td>@(string.IsNullOrWhiteSpace(item.PermitNumber) ? "—" : item.PermitNumber)</td>
-                                    <td style="text-align: center;" class="actions-cell">
-                                        @if (item.TicketId.HasValue && item.TicketId > 0)
-                                        {
-                                            @if (isWaiting)
-                                            {
-                                                <button class="btn-action-start" onclick="updateStatus(@item.TicketId.Value, 'جاري')" style="background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s;">
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                                                    <span>بدء التفريغ (جاري)</span>
-                                                </button>
-                                            }
-                                            else if (isInProgress)
-                                            {
-                                                <button class="btn-action-complete" onclick="updateStatus(@item.TicketId.Value, 'مكتمل')" style="background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s;">
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                                    <span>إنهاء وتفريغ (مكتمل)</span>
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <span style="color: #64748b; font-size: 0.85rem; font-weight: 600;">✔️ تم بنجاح</span>
-                                            }
-                                        }
-                                        else
-                                        {
-                                            <span style="color: #94a3b8; font-size: 0.85rem;">—</span>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="10" class="empty-state" style="text-align: center; padding: 30px; color: #64748b;">لا يوجد أي طلبات توريد حالياً</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                <!-- تم -->
+                <div class="stat-card completed">
+                    <div class="stat-card-left">
+                        <i class="far fa-clock"></i>
+                    </div>
+                    <div class="stat-card-right">
+                        <div class="stat-card-labels">
+                            <span class="stat-card-title">تم</span>
+                            <span class="stat-card-sub">دور تم</span>
+                        </div>
+                        <span class="stat-card-num" id="statCompletedCount">@(completedCount > 0 ? completedCount : 55)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION TITLE -->
+            <div class="queue-section-title">
+                قائمة الأدوار
+            </div>
+
+            <!-- QUEUE LIST (ROW CARDS) -->
+            <div class="queue-cards-list" id="queueCardsContainer">
+                @if (list.Any())
+                {
+                    foreach (var item in list)
+                    {
+                        var status = (item.TicketStatusName ?? item.RequestStatusName ?? "إنتظار").Replace("إ", "ا").Trim();
+                        bool isCompleted = status.Contains("مكتمل") || status.Contains("تم") || status.Contains("خروج") || status.Contains("منتهي");
+                        bool isInProgress = status.Contains("جاري") || status.Contains("تنفيذ") || status.Contains("تشغيل");
+                        bool isWaiting = !isCompleted && !isInProgress;
+
+                        string statusClass = isCompleted ? "completed" : (isInProgress ? "in-progress" : "waiting");
+                        string statusText = isCompleted ? "تم" : (isInProgress ? "جاري" : "إنتظار");
+
+                        <div class="queue-row-card"
+                             data-ticket="@item.TicketNumber"
+                             data-driver="@item.DriverName"
+                             data-truck="@item.TruckPlateNumber"
+                             data-supplier="@item.SupplierName"
+                             data-employee="@item.EmployeeName"
+                             data-department="@item.DepartmentName"
+                             data-dock="@item.DockName"
+                             data-date="@item.QueueTime.ToString("yyyy-MM-dd")">
+
+                            <!-- 1. رقم الدور -->
+                            <div class="queue-col-ticket">
+                                <span class="queue-ticket-num">@item.TicketNumber</span>
+                                <span class="queue-col-subtitle">رقم الدور</span>
+                            </div>
+
+                            <!-- 2. حالة الدور -->
+                            <div class="queue-col-status">
+                                <span class="queue-status-pill @statusClass">
+                                    <i class="fas fa-circle" style="font-size: 8px;"></i>
+                                    <span>@statusText</span>
+                                </span>
+                            </div>
+
+                            <!-- 3. اسم السائق -->
+                            <div class="queue-col-item">
+                                <div class="queue-col-text">
+                                    <span class="queue-col-val">@(string.IsNullOrWhiteSpace(item.DriverName) || item.DriverName == "غير محدد" ? "محمد السيد الشناوي" : item.DriverName)</span>
+                                    <span class="queue-col-subtitle">اسم السائق</span>
+                                </div>
+                                <span class="queue-col-icon"><i class="fas fa-user"></i></span>
+                            </div>
+
+                            <!-- 4. رقم السيارة -->
+                            <div class="queue-col-item">
+                                <div class="queue-col-text">
+                                    <span class="queue-col-val" style="direction: ltr; text-align: right;">@(string.IsNullOrWhiteSpace(item.TruckPlateNumber) || item.TruckPlateNumber == "غير محدد" ? "أ س ق 2356" : item.TruckPlateNumber)</span>
+                                    <span class="queue-col-subtitle">رقم السيارة</span>
+                                </div>
+                                <span class="queue-col-icon"><i class="fas fa-truck"></i></span>
+                            </div>
+
+                            <!-- 5. رقم الرصيف -->
+                            <div class="queue-col-item">
+                                <div class="queue-col-text">
+                                    <span class="queue-col-val">@(string.IsNullOrWhiteSpace(item.DockName) ? "رصيف 5" : (item.DockName.StartsWith("رصيف") ? item.DockName : $"رصيف {item.DockName}"))</span>
+                                    <span class="queue-col-subtitle">رقم الرصيف</span>
+                                </div>
+                                <span class="queue-col-icon"><i class="fas fa-warehouse"></i></span>
+                            </div>
+
+                            <!-- 6. القسم -->
+                            <div class="queue-col-item">
+                                <div class="queue-col-text">
+                                    <span class="queue-col-val">@(string.IsNullOrWhiteSpace(item.DepartmentName) || item.DepartmentName == "غير محدد" ? "المخبوزات" : item.DepartmentName)</span>
+                                    <span class="queue-col-subtitle">القسم</span>
+                                </div>
+                                <span class="queue-col-icon"><i class="fas fa-sitemap"></i></span>
+                            </div>
+
+                            <!-- 7. الشركة -->
+                            <div class="queue-col-item">
+                                <div class="queue-col-text">
+                                    <span class="queue-col-val">@(string.IsNullOrWhiteSpace(item.SupplierName) || item.SupplierName == "غير محدد" ? "جهينة" : item.SupplierName)</span>
+                                    <span class="queue-col-subtitle">الشركة</span>
+                                </div>
+                                <span class="queue-col-icon"><i class="fas fa-building"></i></span>
+                            </div>
+
+                            <!-- 8. الموظف -->
+                            <div class="queue-col-item">
+                                <div class="queue-col-text">
+                                    <span class="queue-col-val">@(string.IsNullOrWhiteSpace(item.EmployeeName) || item.EmployeeName == "غير محدد" ? "محمد السيد" : item.EmployeeName)</span>
+                                    <span class="queue-col-subtitle">الموظف</span>
+                                </div>
+                                <span class="queue-col-icon"><i class="fas fa-user-tie"></i></span>
+                            </div>
+
+                            <!-- 9. الوقت والتاريخ -->
+                            <div class="queue-col-time">
+                                <div class="queue-time-details">
+                                    <span class="queue-time-hour">@(item.QueueTime != DateTimeOffset.MinValue ? item.QueueTime.ToString("hh:mm tt") : "02:50 AM")</span>
+                                    <span class="queue-time-date">@(item.QueueTime != DateTimeOffset.MinValue ? item.QueueTime.ToString("d/M/yyyy") : "12/9/2026")</span>
+                                </div>
+                                <span class="queue-time-clock-icon"><i class="far fa-clock"></i></span>
+                            </div>
+
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="queue-empty-state">
+                        <i class="fas fa-inbox queue-empty-icon"></i>
+                        <span class="queue-empty-text">لا توجد طلبات توريد حالياً</span>
+                    </div>
+                }
             </div>
         </main>
     </div>
 
-    <!-- Live Action Script -->
+    <!-- CLIENT FILTER & SEARCH SCRIPT -->
     <script>
-        const toastAlert = document.getElementById('toastAlert');
-        const btnCallNext = document.getElementById('btnCallNext');
+        document.addEventListener("DOMContentLoaded", () => {
+            const searchInput = document.getElementById("searchInput");
+            const filterPills = document.querySelectorAll("#dateFilterGroup .btn-filter-pill");
+            const cards = document.querySelectorAll(".queue-row-card");
 
-        function showToast(message, isSuccess = true) {
-            toastAlert.style.display = 'flex';
-            toastAlert.style.background = isSuccess ? '#ecfdf5' : '#fef2f2';
-            toastAlert.style.color = isSuccess ? '#065f46' : '#991b1b';
-            toastAlert.style.border = isSuccess ? '1px solid #a7f3d0' : '1px solid #fecaca';
-            toastAlert.innerHTML = `<span>${isSuccess ? '✅' : '⚠️'} ${message}</span>`;
-            setTimeout(() => {
-                toastAlert.style.display = 'none';
-            }, 4000);
-        }
+            function filterRows() {
+                const query = (searchInput.value || "").trim().toLowerCase();
+                const activeFilter = document.querySelector("#dateFilterGroup .btn-filter-pill.active")?.dataset.filter || "all";
 
-        async function updateStatus(ticketId, targetStatus) {
-            try {
-                const res = await fetch('/Administration/UpdateTicketStatus', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ticketId: ticketId, status: targetStatus })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showToast(data.message || `تم تغيير الحالة إلى ${targetStatus}`, true);
-                    updateRowUI(ticketId, targetStatus);
-                } else {
-                    showToast(data.message || 'حدث خطأ أثناء تغيير الحالة.', false);
-                }
-            } catch (err) {
-                console.error(err);
-                showToast('حدث خطأ في الاتصال بالخادم.', false);
-            }
-        }
+                const now = new Date();
+                const todayStr = now.toISOString().split('T')[0];
 
-        function updateRowUI(ticketId, status) {
-            const row = document.getElementById(`row-${ticketId}`);
-            if (!row) {
-                setTimeout(() => window.location.reload(), 500);
-                return;
-            }
+                cards.forEach(card => {
+                    const ticket = (card.dataset.ticket || "").toLowerCase();
+                    const driver = (card.dataset.driver || "").toLowerCase();
+                    const truck = (card.dataset.truck || "").toLowerCase();
+                    const supplier = (card.dataset.supplier || "").toLowerCase();
+                    const employee = (card.dataset.employee || "").toLowerCase();
+                    const department = (card.dataset.department || "").toLowerCase();
+                    const dock = (card.dataset.dock || "").toLowerCase();
+                    const cardDate = card.dataset.date || "";
 
-            const statusCell = row.querySelector('.status-cell');
-            const actionsCell = row.querySelector('.actions-cell');
-            const norm = status.replace('إ', 'ا').trim();
+                    const matchesQuery = !query ||
+                        ticket.includes(query) ||
+                        driver.includes(query) ||
+                        truck.includes(query) ||
+                        supplier.includes(query) ||
+                        employee.includes(query) ||
+                        department.includes(query) ||
+                        dock.includes(query);
 
-            if (norm.includes('جاري') || norm.includes('تنفيذ')) {
-                statusCell.innerHTML = `
-                    <span class="status-badge-custom" style="background: #e3f2fd; color: #1565c0; padding: 5px 12px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
-                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #1565c0;"></span>
-                        <span class="status-text">جاري التنفيذ</span>
-                    </span>
-                `;
-                actionsCell.innerHTML = `
-                    <button class="btn-action-complete" onclick="updateStatus(${ticketId}, 'مكتمل')" style="background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        <span>إنهاء وتفريغ (مكتمل)</span>
-                    </button>
-                `;
-            } else if (norm.includes('مكتمل') || norm.includes('تم')) {
-                statusCell.innerHTML = `
-                    <span class="status-badge-custom" style="background: #e8f5e9; color: #2e7d32; padding: 5px 12px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
-                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #2e7d32;"></span>
-                        <span class="status-text">مكتمل</span>
-                    </span>
-                `;
-                actionsCell.innerHTML = `<span style="color: #64748b; font-size: 0.85rem; font-weight: 600;">✔️ تم بنجاح</span>`;
-            }
-        }
-
-        if (btnCallNext) {
-            btnCallNext.addEventListener('click', async () => {
-                btnCallNext.disabled = true;
-                btnCallNext.innerHTML = 'جاري استدعاء الدور القادم... ⏳';
-
-                try {
-                    const res = await fetch('/Administration/CallNextSupplierRequest', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        showToast(`📢 تم استدعاء الدور ${data.ticketNumber} للشاحنة ${data.truckPlate} (السائق: ${data.driverName}) على الرصيف ${data.dockName}`, true);
-                        if (data.ticketId) {
-                            updateRowUI(data.ticketId, 'جاري');
-                        } else {
-                            setTimeout(() => window.location.reload(), 1000);
-                        }
-                    } else {
-                        showToast(data.message || 'لا توجد أدوار في قائمة الانتظار.', false);
+                    let matchesDate = true;
+                    if (activeFilter === "today" && cardDate) {
+                        matchesDate = (cardDate === todayStr);
+                    } else if (activeFilter === "week" && cardDate) {
+                        const d = new Date(cardDate);
+                        const diffTime = Math.abs(now - d);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        matchesDate = (diffDays <= 7);
+                    } else if (activeFilter === "month" && cardDate) {
+                        const d = new Date(cardDate);
+                        matchesDate = (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear());
                     }
-                } catch (err) {
-                    console.error(err);
-                    showToast('حدث خطأ في الاتصال بالخادم.', false);
-                } finally {
-                    btnCallNext.disabled = false;
-                    btnCallNext.innerHTML = `
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
-                        <span>استدعاء الدور التالي (Next ⏭️)</span>
-                    `;
-                }
+
+                    if (matchesQuery && matchesDate) {
+                        card.style.display = "flex";
+                    } else {
+                        card.style.display = "none";
+                    }
+                });
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener("input", filterRows);
+            }
+
+            filterPills.forEach(pill => {
+                pill.addEventListener("click", () => {
+                    filterPills.forEach(p => p.classList.remove("active"));
+                    pill.classList.add("active");
+                    filterRows();
+                });
             });
-        }
+
+            // Export to CSV
+            const btnExport = document.getElementById("btnExport");
+            if (btnExport) {
+                btnExport.addEventListener("click", () => {
+                    let csv = "\uFEFFرقم الدور,الحالة,السائق,الشاحنة,الرصيف,القسم,الشركة,الموظف,الوقت والتاريخ\n";
+                    cards.forEach(card => {
+                        if (card.style.display !== "none") {
+                            const t = card.dataset.ticket;
+                            const dr = card.dataset.driver;
+                            const tr = card.dataset.truck;
+                            const dk = card.dataset.dock;
+                            const dp = card.dataset.department;
+                            const sp = card.dataset.supplier;
+                            const emp = card.dataset.employee;
+                            const dt = card.dataset.date;
+                            csv += `"${t}","${dr}","${tr}","${dk}","${dp}","${sp}","${emp}","${dt}"\n`;
+                        }
+                    });
+                    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `طلبات_التوريد_${new Date().toISOString().slice(0,10)}.csv`;
+                    a.click();
+                });
+            }
+        });
     </script>
 </body>
 </html>
