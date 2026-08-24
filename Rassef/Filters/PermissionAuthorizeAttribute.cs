@@ -91,7 +91,7 @@ namespace Rassef.Filters
 
             // 6. Admin Bypass (Full system access)
             bool isAdmin = (user.Group != null && user.Group.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-                || (user.Position != null && user.Position.Name.Contains("Admin", StringComparison.OrdinalIgnoreCase))
+                || (user.Position != null && user.Position.PositionName.Contains("Admin", StringComparison.OrdinalIgnoreCase))
                 || (user.UserName != null && user.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase))
                 || (user.Name != null && user.Name.Contains("Admin", StringComparison.OrdinalIgnoreCase));
 
