@@ -1,0 +1,248 @@
+/* ============================================================
+   editEntity.css — Shared CSS for TruckEdit and DriverEdit views
+   ============================================================ */
+
+:root {
+    --primary-orange: #EA7318;
+    --primary-orange-dark: #D1620E;
+    --border-orange-light: #E7C2A6;
+    --text-dark: #2B241D;
+    --bg-page: #FFF5EE;
+    --card-bg: #FFFFFF;
+    --font-family: 'IBM Plex Sans Arabic', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    direction: rtl;
+    font-family: var(--font-family);
+    background-color: var(--bg-page);
+    color: var(--text-dark);
+    min-height: 100vh;
+}
+
+/* ── Page Background ── */
+.bg {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at top right, #FDE8D0 0%, var(--bg-page) 60%);
+    z-index: -1;
+}
+
+/* ── Container ── */
+.main-container {
+    max-width: 900px !important;
+    padding: 0 16px;
+}
+
+/* ── Header ── */
+.page-header {
+    padding: 24px 0 12px;
+}
+
+.brand-logo {
+    height: 48px;
+    object-fit: contain;
+}
+
+.logo-raseefy {
+    height: 38px;
+}
+
+.main-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary-orange);
+    letter-spacing: -0.3px;
+}
+
+/* ── Nav / Back Button ── */
+.nav-actions {
+    margin-bottom: 20px;
+}
+
+.go-suppliers-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--primary-orange);
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    border: 1.5px solid var(--border-orange-light);
+    border-radius: 10px;
+    padding: 6px 16px;
+    transition: background 0.18s, color 0.18s;
+}
+
+    .go-suppliers-btn:hover {
+        background-color: var(--primary-orange);
+        color: #fff;
+    }
+
+/* ── Form Card ── */
+.supplier-form-container {
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(234, 115, 24, 0.08);
+    overflow: hidden;
+}
+
+.supplier-card-main {
+    background: var(--card-bg);
+}
+
+/* ── Input ── */
+.form-label-custom {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dark);
+    display: block;
+    text-align: right;
+}
+
+.form-control-custom,
+.form-select-custom {
+    border: 1.5px solid var(--border-orange-light);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dark);
+    background-color: #FFFFFF;
+    width: 100%;
+    transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+    .form-control-custom:focus,
+    .form-select-custom:focus {
+        border-color: var(--primary-orange);
+        box-shadow: 0 0 0 3px rgba(234, 115, 24, 0.15);
+        outline: none;
+    }
+
+/* ── Truck Plate Badge ── */
+.truck-input-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.truck-badge-box {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 1px solid var(--border-orange-light);
+    border-radius: 8px;
+    padding: 2px 14px;
+    font-weight: 700;
+    color: var(--text-dark);
+    background-color: transparent;
+    pointer-events: none;
+    font-size: 13px;
+}
+
+/* ── Radio Buttons ── */
+.radio-group-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    height: 48px;
+}
+
+.radio-custom-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #333;
+    user-select: none;
+}
+
+.radio-custom-input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--primary-orange);
+    border-radius: 50%;
+    outline: none;
+    cursor: pointer;
+    transition: background 0.18s;
+}
+
+    .radio-custom-input:checked {
+        background-color: var(--primary-orange);
+        box-shadow: inset 0 0 0 3px #fff;
+    }
+
+/* ── Select Icon Badge ── */
+.select-badge-wrapper {
+    position: relative;
+}
+
+    .select-badge-wrapper .badge-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--primary-orange);
+        pointer-events: none;
+    }
+
+/* ── Submit Button ── */
+.btn-submit-orange {
+    background-color: var(--primary-orange);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    margin-top: 20px;
+    font-family: var(--font-family);
+}
+
+    .btn-submit-orange:hover {
+        background-color: var(--primary-orange-dark);
+        color: #FFFFFF;
+    }
+
+    .btn-submit-orange:active {
+        transform: scale(0.99);
+    }
+
+/* ── Validation ── */
+.field-validation-error,
+.text-danger {
+    font-size: 12px;
+    color: #dc3545;
+    display: block;
+    margin-top: 4px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 576px) {
+    .main-title {
+        font-size: 1.2rem;
+    }
+
+    .btn-submit-orange {
+        font-size: 16px;
+        padding: 12px;
+    }
+}

@@ -10,10 +10,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - رصيف</title>
-    <link rel="stylesheet" href="~/css/site.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/groupRolePages.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/detailsPages.css" asp-append-version="true">
     <style>
         * {
             box-sizing: border-box;
@@ -23,138 +26,9 @@
         }
 
         body {
-            background-color: #fdf6f0;
+            background-color: var(--bg-color, #FAF2EB);
             color: #333;
             overflow-x: hidden;
-        }
-
-        .dashboard-page {
-            display: flex;
-            min-height: 100vh;
-            flex-direction: row;
-        }
-
-        /* ── SIDEBAR ── */
-        .dashboard-sidebar {
-            width: 260px;
-            background-color: #E87A1E;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 30px 16px 20px;
-            flex-shrink: 0;
-            min-height: 100vh;
-        }
-
-        .sidebar-top {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .sidebar-title {
-            font-size: 26px;
-            font-weight: 700;
-            text-align: center;
-            color: #fff;
-            margin-bottom: 8px;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .sidebar-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 16px;
-            border-radius: 12px;
-            color: #fff;
-            text-decoration: none;
-            font-size: 15px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .sidebar-item:hover {
-            background-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .sidebar-item.active {
-            background-color: #fdf6f0;
-            color: #E87A1E;
-            font-weight: 700;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        .sidebar-item svg {
-            width: 20px;
-            height: 20px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-            flex-shrink: 0;
-        }
-
-        .sidebar-user {
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 16px;
-        }
-
-        .user-info-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-avatar-box {
-            width: 44px;
-            height: 44px;
-            background: #fff;
-            color: #E87A1E;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .user-avatar-box svg {
-            width: 26px;
-            height: 26px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-        }
-
-        .user-details {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name {
-            font-size: 14px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .user-role {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        /* ── MAIN CONTENT ── */
-        .dashboard-main {
-            flex: 1;
-            padding: 30px 40px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
         }
 
         /* Top Header */
@@ -172,7 +46,7 @@
         .page-main-title {
             font-size: 32px;
             font-weight: 800;
-            color: #E87A1E;
+            color: var(--primary-color, #E67E22);
             margin-bottom: 2px;
         }
 
@@ -186,7 +60,7 @@
 
         .page-subtitle::before {
             content: "•";
-            color: #E87A1E;
+            color: var(--primary-color, #E67E22);
             font-size: 16px;
         }
 
@@ -223,12 +97,12 @@
             right: 0;
             width: 100%;
             height: 3px;
-            background-color: #E87A1E;
+            background-color: var(--primary-color, #E67E22);
             border-radius: 2px;
         }
 
         .btn-return {
-            background-color: #E87A1E;
+            background-color: var(--primary-color, #E67E22);
             color: #fff;
             text-decoration: none;
             padding: 8px 24px;
@@ -305,7 +179,7 @@
         }
 
         .btn-edit-custom {
-            background-color: #E87A1E;
+            background-color: var(--primary-color, #E67E22);
             color: #fff;
             box-shadow: 0 3px 8px rgba(232, 122, 30, 0.2);
         }
@@ -327,7 +201,7 @@
         /* Bottom Big Button */
         .btn-add-big {
             width: 100%;
-            background-color: #E87A1E;
+            background-color: var(--primary-color, #E67E22);
             color: #fff;
             border: none;
             padding: 16px;
@@ -394,7 +268,7 @@
         }
 
         .modal-input:focus {
-            border-color: #E87A1E;
+            border-color: var(--primary-color, #E67E22);
             box-shadow: 0 0 0 3px rgba(232, 122, 30, 0.15);
         }
 
@@ -405,7 +279,7 @@
 
         .btn-modal-save {
             flex: 1;
-            background-color: #E87A1E;
+            background-color: var(--primary-color, #E67E22);
             color: #fff;
             border: none;
             padding: 12px;
@@ -439,14 +313,17 @@
         <main class="dashboard-main">
 
             <!-- 1. Header -->
-            <header class="page-header">
-                <div class="header-title-box">
-                    <h1 class="page-main-title">إدارة الإختيارات</h1>
-                    <span class="page-subtitle">آخر تحديث منذ 10 ثواني</span>
+            <header class="dashboard-header">
+                <div class="header-right">
+                    <h2 class="header-title">إدارة الإختيارات</h2>
+                    <div class="header-subtitle">
+                        <span class="update-dot"></span>
+                        <span>آخر تحديث منذ 10 ثواني</span>
+                    </div>
                 </div>
-                <div class="header-logos">
-                    <img src="~/images/Fathalla.png" alt="فتح الله" onerror="this.style.display='none'" />
-                    <img src="~/images/logo.png" alt="رصيف" onerror="this.style.display='none'" />
+                <div class="header-left-logos">
+                    <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
+                    <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
                 </div>
             </header>
 

@@ -15,6 +15,35 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="~/css/viewRole.css" asp-append-version="true">
+    <style>
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .btn-call-next {
+            background-color: #e67e22;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 9px 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(230, 126, 34, 0.28);
+            transition: all 0.2s ease;
+        }
+        .btn-call-next:hover {
+            background-color: #d35400;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(230, 126, 34, 0.38);
+        }
+        .btn-call-next i {
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
 
@@ -27,6 +56,15 @@
                     <span class="status-dot"></span>
                     آخر تحديث منذ 10 ثواني
                 </div>
+            </div>
+
+            <div class="header-actions">
+                <!-- زر استدعاء الدور Call Next -->
+                <a asp-controller="QueueTicket" asp-action="CallStation" class="btn-call-next">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>استدعاء الدور (Call Next)</span>
+                </a>
+
                 <!-- زر الرجوع موجه لكونترولر Authentication -->
                 <a asp-controller="Authentication" asp-action="AddRoleOrView" class="back-btn">
                     <i class="fas fa-home"></i> الرجوع

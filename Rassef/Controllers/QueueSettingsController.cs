@@ -1,5 +1,8 @@
+using Rassef.Filters;
+
 namespace Rassef.Controllers
 {
+    [PermissionAuthorize]
     public class QueueSettingsController : Controller
     {
         private readonly IRepository<QueueSettings> _repository;

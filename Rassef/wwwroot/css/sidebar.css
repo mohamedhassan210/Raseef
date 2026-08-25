@@ -1,0 +1,262 @@
+/*
+ * sidebar.css — Single Source of Truth for Unified Admin Sidebar
+ * Color: #e67e22 | Width: 280px
+ */
+
+:root {
+    --font-arabic: 'IBM Plex Sans Arabic', sans-serif;
+    --primary-color: #e67e22;
+    --primary-hover: #d35400;
+    --bg-color: #FAF2EB;
+    --bg-page: #FAF2EB;
+    --text-dark: #2B241D;
+    --text-muted: #82756A;
+    --border-orange: #e67e22;
+    --border-color: #e67e22;
+    --card-bg: #FFFDFB;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: var(--font-arabic, 'IBM Plex Sans Arabic', sans-serif);
+    background-color: #FAF2EB;
+    direction: rtl;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ────────────────────────────────────────────────
+   PAGE LAYOUT
+   ──────────────────────────────────────────────── */
+.dashboard-page {
+    display: flex !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    width: 100vw !important;
+    overflow: hidden !important;
+    background-color: #FAF2EB !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* ────────────────────────────────────────────────
+   SIDEBAR (Fixed 280px, #e67e22, 100vh)
+   ──────────────────────────────────────────────── */
+.dashboard-sidebar {
+    width: 280px !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    background-color: #e67e22 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 32px 20px !important;
+    color: #FFFFFF !important;
+    flex-shrink: 0 !important;
+    justify-content: space-between !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+    z-index: 100 !important;
+    position: relative !important;
+}
+
+.sidebar-top {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 28px !important;
+}
+
+.sidebar-title {
+    font-size: 30px !important;
+    font-weight: 800 !important;
+    color: #FFFFFF !important;
+    padding-right: 8px !important;
+    margin: 0 !important;
+    text-align: right !important;
+}
+
+.sidebar-menu {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.sidebar-menu li {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.sidebar-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 10px 16px !important;
+    border-radius: 10px !important;
+    color: #FFFFFF !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+}
+
+.sidebar-item svg {
+    width: 20px !important;
+    height: 20px !important;
+    stroke: currentColor !important;
+    fill: none !important;
+    stroke-width: 2 !important;
+    flex-shrink: 0 !important;
+}
+
+.sidebar-item:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: #FFFFFF !important;
+}
+
+.sidebar-item.active {
+    background-color: #FFFFFF !important;
+    color: #e67e22 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+.sidebar-item.active svg {
+    stroke: #e67e22 !important;
+}
+
+/* ────────────────────────────────────────────────
+   SIDEBAR USER (Footer)
+   ──────────────────────────────────────────────── */
+.sidebar-user {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 12px 8px !important;
+    margin-top: 20px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-sizing: border-box !important;
+}
+
+.user-info-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+}
+
+.user-avatar-box {
+    width: 44px !important;
+    height: 44px !important;
+    background: #FFFFFF !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #e67e22 !important;
+    flex-shrink: 0 !important;
+}
+
+.user-avatar-box svg {
+    width: 24px !important;
+    height: 24px !important;
+    fill: #e67e22 !important;
+    stroke: none !important;
+}
+
+.user-details {
+    display: flex !important;
+    flex-direction: column !important;
+    text-align: right !important;
+    flex: 1 !important;
+}
+
+.user-name {
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    color: #FFFFFF !important;
+    line-height: 1.3 !important;
+}
+
+.user-role {
+    font-size: 12px !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-weight: 500 !important;
+}
+
+/* ────────────────────────────────────────────────
+   MAIN CONTENT CONTAINER
+   ──────────────────────────────────────────────── */
+.dashboard-main {
+    flex: 1 !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+    padding: 28px 40px 40px !important;
+}
+
+/* ────────────────────────────────────────────────
+   COMMON HEADER
+   ──────────────────────────────────────────────── */
+.dashboard-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    margin-bottom: 12px !important;
+}
+
+.header-right {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+.header-title {
+    font-size: 34px !important;
+    font-weight: 800 !important;
+    color: #e67e22 !important;
+    margin: 0 !important;
+}
+
+.header-subtitle {
+    font-size: 14px !important;
+    color: #8E877F !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.update-dot {
+    width: 8px !important;
+    height: 8px !important;
+    background-color: #e67e22 !important;
+    border-radius: 50% !important;
+    display: inline-block !important;
+}
+
+.header-left-logos {
+    display: flex !important;
+    align-items: center !important;
+    gap: 24px !important;
+}
+
+.header-logo-fathallah {
+    height: 70px !important;
+    width: auto !important;
+}
+
+.header-logo-raseef {
+    height: 42px !important;
+    width: auto !important;
+}

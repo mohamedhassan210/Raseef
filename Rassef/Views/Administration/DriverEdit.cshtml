@@ -1,0 +1,135 @@
+@model Rassef.ViewModels.Administration.DriverEditVM
+@{
+    ViewData["Title"] = "تعديل سائق";
+    Layout = "_SupOrTra";
+    var driverTypes = ViewBag.DriverTypes as IEnumerable<Rassef.Models.StatusesAndActions.DriverTypes>
+                      ?? Enumerable.Empty<Rassef.Models.StatusesAndActions.DriverTypes>();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/editEntity.css" asp-append-version="true">
+}
+
+<div class="bg"></div>
+
+<div class="container main-container">
+    <!-- HEADER -->
+    <header class="page-header d-flex justify-content-between align-items-center">
+        <div class="logo-wrapper header-right">
+            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-logo"
+                 onerror="this.src='https://via.placeholder.com/100x60?text=Fathalla'">
+        </div>
+        <div class="title-wrapper text-center">
+            <h1 class="main-title">تعديل سائق</h1>
+        </div>
+        <div class="logo-wrapper header-left">
+            <img src="~/img/logo.svg" alt="رصيف" class="brand-logo logo-raseefy"
+                 onerror="this.src='https://via.placeholder.com/120x50?text=Raseef'">
+        </div>
+    </header>
+
+    <!-- BACK BUTTON -->
+    <div class="nav-actions">
+        <a href="@Url.Action("DriversIndex", "Administration")" class="go-suppliers-btn">
+            خطوة للخلف &larr;
+        </a>
+    </div>
+
+    <!-- FORM -->
+    <main class="content-wrapper">
+        <form asp-action="DriverEdit" asp-controller="Administration" method="post"
+              class="supplier-form-container">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div class="supplier-card-main p-4">
+                <div class="row g-4">
+
+                    <!-- اسم السائق -->
+                    <div class="col-md-6 text-center">
+                        <label asp-for="FullName" class="form-label-custom fw-bold mb-1">اسم السائق</label>
+                        <input asp-for="FullName"
+                               class="form-control form-control-custom text-center"
+                               placeholder="اسم السائق"
+                               autocomplete="off" />
+                        <span asp-validation-for="FullName" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <!-- رقم الهاتف -->
+                    <div class="col-md-6 text-center">
+                        <label asp-for="Phone" class="form-label-custom fw-bold mb-1">رقم الهاتف</label>
+                        <input asp-for="Phone"
+                               class="form-control form-control-custom text-center"
+                               placeholder="01002677884"
+                               autocomplete="off"
+                               inputmode="numeric"
+                               maxlength="11"
+                               style="direction: ltr;" />
+                        <span asp-validation-for="Phone" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <!-- الرقم القومي -->
+                    <div class="col-md-6 text-center">
+                        <label asp-for="NationalId" class="form-label-custom fw-bold mb-1">الرقم القومي</label>
+                        <input asp-for="NationalId"
+                               class="form-control form-control-custom text-center"
+                               placeholder="الرقم القومي (14 رقماً)"
+                               autocomplete="off"
+                               inputmode="numeric"
+                               maxlength="14"
+                               style="direction: ltr;" />
+                        <span asp-validation-for="NationalId" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <!-- نوع السائق -->
+                    <div class="col-md-6 text-center">
+                        <label asp-for="DeiverTypeId" class="form-label-custom fw-bold mb-1">نوع السائق</label>
+                        <div class="select-badge-wrapper">
+                            <select asp-for="DeiverTypeId"
+                                    class="form-select form-control-custom form-select-custom text-center">
+                                <option value="">-- اختر نوع السائق --</option>
+                                @foreach (var dt in driverTypes)
+                                {
+                                    <option value="@dt.Id">@dt.Name</option>
+                                }
+                            </select>
+                            <i class="fas fa-user badge-icon"></i>
+                        </div>
+                        <span asp-validation-for="DeiverTypeId" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SUBMIT -->
+            <div class="px-4 pb-4">
+                <button type="submit" class="btn-submit-orange">
+                    تعديل السائق
+                </button>
+            </div>
+        </form>
+    </main>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // الرقم القومي: أرقام فقط، 14 خانة
+            var nationalIdInput = document.getElementById('NationalId');
+            if (nationalIdInput) {
+                nationalIdInput.addEventListener('input', function () {
+                    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 14);
+                });
+            }
+            // رقم الهاتف: أرقام فقط، 11 خانة
+            var phoneInput = document.getElementById('Phone');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function () {
+                    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);
+                });
+            }
+        });
+    </script>
+}

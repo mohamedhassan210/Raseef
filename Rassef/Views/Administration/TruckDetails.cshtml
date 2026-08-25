@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true">
     <link rel="stylesheet" href="~/css/detailsPages.css" asp-append-version="true">
 </head>
 <body>
@@ -30,19 +31,19 @@
                         <span>آخر تحديث منذ 10 ثواني</span>
                     </div>
                 </div>
-                <div class="header-left-logos">
-                    <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
-                    <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
+                <div class="header-left-group">
+                    <div class="header-left-logos">
+                        <img src="~/img/fathallah logo.svg" alt="فتح الله Fathalla" class="header-logo-fathallah">
+                        <img src="~/img/logo.svg" alt="رصيفي Raseefy" class="header-logo-raseef">
+                    </div>
+                    <div class="back-row">
+                        <a href="@Url.Action("TrucksIndex", "Administration")" class="btn-back-orange">
+                            <span>رجوع</span>
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                    </div>
                 </div>
             </header>
-
-            <!-- BACK BUTTON -->
-            <div class="back-row">
-                <a href="@Url.Action("TrucksIndex", "Administration")" class="btn-back-orange">
-                    <span>رجوع</span>
-                    <i class="fas fa-arrow-left"></i>
-                </a>
-            </div>
 
             <!-- SECTION TITLE & VISITS BAR -->
             <div class="section-header-bar">
@@ -62,9 +63,14 @@
             <!-- TRUCK INFO GRID -->
             <div class="details-grid-truck">
                 <!-- TOP RIGHT: رقم الشاحنة -->
-                <div class="detail-card">
+                <div class="detail-card detail-card-interactive">
                     <div class="detail-card-icon">
-                        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" /></svg>
+                        <svg viewBox="0 0 24 24" class="svg-badge-icon">
+                            <path d="M10 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            <rect x="17" y="7" width="6" height="2" rx="1"/>
+                            <rect x="17" y="11" width="6" height="2" rx="1"/>
+                            <rect x="17" y="15" width="4" height="2" rx="1"/>
+                        </svg>
                     </div>
                     <div class="detail-card-body">
                         <span class="detail-card-label">رقم الشاحنة</span>
@@ -73,9 +79,14 @@
                 </div>
 
                 <!-- TOP LEFT: النوع -->
-                <div class="detail-card">
+                <div class="detail-card detail-card-interactive">
                     <div class="detail-card-icon">
-                        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" /></svg>
+                        <svg viewBox="0 0 24 24" class="svg-badge-icon">
+                            <path d="M10 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            <rect x="17" y="7" width="6" height="2" rx="1"/>
+                            <rect x="17" y="11" width="6" height="2" rx="1"/>
+                            <rect x="17" y="15" width="4" height="2" rx="1"/>
+                        </svg>
                     </div>
                     <div class="detail-card-body">
                         <span class="detail-card-label">النوع</span>
@@ -86,32 +97,47 @@
                 <!-- BOTTOM RIGHT: الشركة + سعة التخزين (STACKED) -->
                 <div class="stacked-cards-container">
                     <!-- الشركة -->
-                    <div class="detail-card detail-card-compact">
-                        <div class="detail-card-icon" style="width: 44px; height: 44px;">
-                            <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" /></svg>
+                    <div class="detail-card detail-card-compact detail-card-interactive">
+                        <div class="detail-card-icon">
+                            <svg viewBox="0 0 24 24" class="svg-badge-icon">
+                                <path d="M10 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                <rect x="17" y="7" width="6" height="2" rx="1"/>
+                                <rect x="17" y="11" width="6" height="2" rx="1"/>
+                                <rect x="17" y="15" width="4" height="2" rx="1"/>
+                            </svg>
                         </div>
                         <div class="detail-card-body">
-                            <span class="detail-card-label" style="font-size: 13px;">الشركة</span>
-                            <span class="detail-card-value" style="font-size: 15px;">@(string.IsNullOrWhiteSpace(Model.Company) || Model.Company == "غير محدد" ? "فتح الله" : Model.Company)</span>
+                            <span class="detail-card-label">الشركة</span>
+                            <span class="detail-card-value">@(string.IsNullOrWhiteSpace(Model.Company) || Model.Company == "غير محدد" ? "فتح الله" : Model.Company)</span>
                         </div>
                     </div>
 
                     <!-- سعة التخزين -->
-                    <div class="detail-card detail-card-compact">
-                        <div class="detail-card-icon" style="width: 44px; height: 44px;">
-                            <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" /></svg>
+                    <div class="detail-card detail-card-compact detail-card-interactive">
+                        <div class="detail-card-icon">
+                            <svg viewBox="0 0 24 24" class="svg-badge-icon">
+                                <path d="M10 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                <rect x="17" y="7" width="6" height="2" rx="1"/>
+                                <rect x="17" y="11" width="6" height="2" rx="1"/>
+                                <rect x="17" y="15" width="4" height="2" rx="1"/>
+                            </svg>
                         </div>
                         <div class="detail-card-body">
-                            <span class="detail-card-label" style="font-size: 13px;">سعة التخزين</span>
-                            <span class="detail-card-value" style="font-size: 15px;">@(Model.StorageCapacity > 0 ? $"{Model.StorageCapacity} kg" : "500 kg")</span>
+                            <span class="detail-card-label">سعة التخزين</span>
+                            <span class="detail-card-value">@(Model.StorageCapacity > 0 ? $"{Model.StorageCapacity} kg" : "500 kg")</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- BOTTOM LEFT: الموظف المضيف -->
-                <div class="detail-card">
+                <div class="detail-card detail-card-interactive">
                     <div class="detail-card-icon">
-                        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" /></svg>
+                        <svg viewBox="0 0 24 24" class="svg-badge-icon">
+                            <path d="M10 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            <rect x="17" y="7" width="6" height="2" rx="1"/>
+                            <rect x="17" y="11" width="6" height="2" rx="1"/>
+                            <rect x="17" y="15" width="4" height="2" rx="1"/>
+                        </svg>
                     </div>
                     <div class="detail-card-body">
                         <span class="detail-card-label">الموظف المضيف</span>
@@ -122,13 +148,17 @@
 
             <!-- ACTIONS FOOTER -->
             <div class="details-actions-footer">
+                <form method="post" action="@Url.Action("TruckDeleteConfirmed", "Administration", new { id = Model.Id })"
+                      onsubmit="return confirm('هل أنت متأكد من حذف بيانات هذه الشاحنة؟');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-action-delete">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>حذف البيانات</span>
+                    </button>
+                </form>
                 <a href="@Url.Action("TruckEdit", "Administration", new { id = Model.Id })" class="btn-action-edit">
                     <i class="fas fa-edit"></i>
                     <span>تعديل البيانات</span>
-                </a>
-                <a href="@Url.Action("TruckDelete", "Administration", new { id = Model.Id })" class="btn-action-delete">
-                    <i class="fas fa-trash-alt"></i>
-                    <span>حذف البيانات</span>
                 </a>
             </div>
         </main>

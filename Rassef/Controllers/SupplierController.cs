@@ -189,7 +189,7 @@ namespace Rassef.Controllers
                 await _supplierRepository.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "تم تعديل بيانات المورد بنجاح!";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("SupplierDetails", "Administration", new { id = supplier.Id });
             }
             catch (Exception ex)
             {

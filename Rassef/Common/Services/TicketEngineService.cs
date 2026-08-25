@@ -123,7 +123,8 @@ namespace Rassef.Common.Services
             {
                 if (t.DepartmentId == departmentId || (!string.IsNullOrWhiteSpace(t.TicketNumber) && t.TicketNumber.Trim().StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
                 {
-                    if (t.CreatedAT >= resetDate || t.QueueTime >= resetDate || t.CreatedAT >= new DateTimeOffset(DateTime.Today, now.Offset))
+                    var ticketTime = t.CreatedAT != default ? t.CreatedAT : t.QueueTime;
+                    if (ticketTime >= resetDate)
                     {
                         if (!string.IsNullOrWhiteSpace(t.TicketNumber))
                         {

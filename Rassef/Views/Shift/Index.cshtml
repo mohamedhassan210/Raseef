@@ -1,0 +1,653 @@
+@model Rassef.ViewModels.Shift.ShiftManagementIndexVM
+@{
+    Layout = null;
+    ViewData["Title"] = "إدارة الورديات وتصفير الأدوار";
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - رصيف</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/groupRolePages.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/detailsPages.css" asp-append-version="true">
+    <style>
+        .settings-card {
+            background-color: var(--card-bg, #FFFDFB);
+            border: 1.5px solid var(--border-color, #E67E22);
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+        }
+
+        .settings-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1.5px solid rgba(230, 126, 34, 0.15);
+        }
+
+        .settings-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-dark, #2B241D);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-title i {
+            color: var(--primary-color, #E67E22);
+            font-size: 1.3rem;
+        }
+
+        .reset-options-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @@media (max-width: 992px) {
+            .reset-options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .reset-option-card {
+            border: 2px solid #E5E0D8;
+            border-radius: 12px;
+            padding: 18px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+        }
+
+        .reset-option-card:hover {
+            border-color: var(--primary-color, #E67E22);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(230, 126, 34, 0.12);
+        }
+
+        .reset-option-card.active {
+            border-color: var(--primary-color, #E67E22);
+            background-color: rgba(230, 126, 34, 0.06);
+        }
+
+        .reset-option-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-dark, #2B241D);
+        }
+
+        .reset-option-card.active .reset-option-header {
+            color: var(--primary-color, #E67E22);
+        }
+
+        .reset-option-desc {
+            font-size: 0.88rem;
+            color: var(--text-muted, #82756A);
+            line-height: 1.5;
+        }
+
+        .reset-actions-row {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding-top: 14px;
+            border-top: 1px dashed rgba(230, 126, 34, 0.2);
+        }
+
+        .btn-action-primary {
+            background-color: var(--primary-color, #E67E22);
+            color: #fff;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-action-primary:hover {
+            background-color: var(--primary-hover, #D35400);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+        }
+
+        .btn-action-danger {
+            background-color: #D32F2F;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.92rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action-danger:hover {
+            background-color: #B71C1C;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+        }
+
+        .btn-action-secondary {
+            background-color: #FFF;
+            color: var(--primary-color, #E67E22);
+            border: 1.5px solid var(--primary-color, #E67E22);
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.92rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action-secondary:hover {
+            background-color: rgba(230, 126, 34, 0.08);
+        }
+
+        /* Shifts Table */
+        .shifts-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 12px;
+        }
+
+        .shifts-table th {
+            background: rgba(230, 126, 34, 0.08);
+            color: var(--primary-color, #E67E22);
+            font-weight: 800;
+            font-size: 0.92rem;
+            padding: 14px 16px;
+            text-align: right;
+            border-bottom: 2px solid var(--border-color, #E67E22);
+        }
+
+        .shifts-table th:first-child { border-radius: 0 10px 0 0; }
+        .shifts-table th:last-child { border-radius: 10px 0 0 0; }
+
+        .shifts-table td {
+            padding: 14px 16px;
+            background: #fff;
+            border-bottom: 1px solid #F0ECE6;
+            font-size: 0.95rem;
+            color: var(--text-dark, #2B241D);
+            vertical-align: middle;
+        }
+
+        .shifts-table tr:hover td {
+            background: #FDF9F5;
+        }
+
+        .shift-badge-active {
+            background: #E8F5E9;
+            color: #2E7D32;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .shift-badge-inactive {
+            background: #F5F5F5;
+            color: #757575;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Modal Styles */
+        .modal-backdrop-custom {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-backdrop-custom.show {
+            display: flex;
+        }
+
+        .modal-box-custom {
+            background: #FFF;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            padding: 28px 32px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            animation: modalFadeIn 0.2s ease-out;
+        }
+
+        @@keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header-custom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1.5px solid #F0ECE6;
+            padding-bottom: 12px;
+        }
+
+        .modal-title-custom {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--primary-color, #E67E22);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group-custom {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group-custom label {
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: var(--text-dark, #2B241D);
+        }
+
+        .form-input-custom {
+            border: 1.5px solid #E5E0D8;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input-custom:focus {
+            border-color: var(--primary-color, #E67E22);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-page">
+        <!-- ── SIDEBAR ── -->
+        <partial name="_AdminSidebar" model='"Shifts"' />
+
+        <!-- ── MAIN CONTENT ── -->
+        <main class="dashboard-main">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="header-right">
+                    <h2 class="header-title">إدارة الورديات وتصفير الأدوار</h2>
+                    <div class="header-subtitle">
+                        <span class="update-dot"></span>
+                        <span>إعدادات تصفير العدادات التلقائية واليدوية</span>
+                    </div>
+                </div>
+                <div class="header-left-logos">
+                    <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
+                    <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
+                </div>
+            </header>
+
+            <!-- Alerts -->
+            @if (TempData["Success"] != null)
+            {
+                <div style="background: #E8F5E9; color: #2E7D32; border: 1.5px solid #A5D6A7; padding: 12px 20px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                    <i class="fas fa-check-circle"></i>
+                    <span>@TempData["Success"]</span>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div style="background: #FFEBEE; color: #C62828; border: 1.5px solid #FFCDD2; padding: 12px 20px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>@TempData["Error"]</span>
+                </div>
+            }
+
+            <!-- ── CARD 1: QUEUE RESET STRATEGY SETTINGS ── -->
+            <section class="settings-card">
+                <div class="settings-card-header">
+                    <div class="settings-title">
+                        <i class="fas fa-sliders-h"></i>
+                        <span>استراتيجية ونظام تصفير الأدوار (Reset Mode)</span>
+                    </div>
+                    @if (Model.LastGlobalResetAt.HasValue)
+                    {
+                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+                            آخر تصفير شامل: @Model.LastGlobalResetAt.Value.ToString("yyyy-MM-dd hh:mm tt")
+                        </span>
+                    }
+                </div>
+
+                <form asp-controller="Shift" asp-action="SaveSettings" method="post" id="resetSettingsForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="resetType" id="selectedResetType" value="@Model.CurrentResetType" />
+
+                    <div class="reset-options-grid">
+                        <!-- 1. Daily Reset -->
+                        <div class="reset-option-card @(Model.CurrentResetType == ResetType.Daily ? "active" : "")" onclick="selectResetMode('Daily')">
+                            <div class="reset-option-header">
+                                <i class="fas fa-calendar-day"></i>
+                                <span>يومي (Daily)</span>
+                            </div>
+                            <p class="reset-option-desc">
+                                يتصفر العداد تلقائياً مع بداية كل يوم جديد (00:00). يبدأ العد من <strong>A1</strong> لكل قسم تلقائياً دون تدخل يدوي.
+                            </p>
+                        </div>
+
+                        <!-- 2. By Shift Reset -->
+                        <div class="reset-option-card @(Model.CurrentResetType == ResetType.ByShift ? "active" : "")" onclick="selectResetMode('ByShift')">
+                            <div class="reset-option-header">
+                                <i class="fas fa-business-time"></i>
+                                <span>بالورديات (By Shift)</span>
+                            </div>
+                            <p class="reset-option-desc">
+                                يتصفر العداد تلقائياً مع بداية كل وردية عمل مسجلة في النظام (مثل صباحية / مسائية / ليلية).
+                            </p>
+                        </div>
+
+                        <!-- 3. Manual Reset -->
+                        <div class="reset-option-card @(Model.CurrentResetType == ResetType.Manual ? "active" : "")" onclick="selectResetMode('Manual')">
+                            <div class="reset-option-header">
+                                <i class="fas fa-hand-paper"></i>
+                                <span>يدوي (Manual)</span>
+                            </div>
+                            <p class="reset-option-desc">
+                                يستمر العداد في التزايد بشكل متواصل حتى يقرر المشرف تصفيره يدوياً عبر زر التصفير.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="reset-actions-row">
+                        <button type="submit" class="btn-action-primary">
+                            <i class="fas fa-save"></i>
+                            <span>حفظ نظام التصفير</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- ── CARD 2: INSTANT MANUAL RESET OPERATIONS ── -->
+            <section class="settings-card">
+                <div class="settings-card-header">
+                    <div class="settings-title">
+                        <i class="fas fa-redo-alt"></i>
+                        <span>إجراءات التصفير الفوري اليدوي (Instant Reset)</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-end;">
+                    <!-- Reset All Counters -->
+                    <form asp-controller="Shift" asp-action="ResetAll" method="post" onsubmit="return confirm('هل أنت متأكد من تصفير جميع العدادات لتبدأ من رقم 1 فوراً لجميع الأقسام؟');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-action-danger">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>تصفير شامل للكل (Reset All)</span>
+                        </button>
+                    </form>
+
+                    <!-- Reset Specific Department -->
+                    <form asp-controller="Shift" asp-action="ResetDepartment" method="post" style="display: flex; gap: 10px; align-items: center;" onsubmit="return confirm('هل أنت متأكد من تصفير عداد القسم المحدد؟');">
+                        @Html.AntiForgeryToken()
+                        <div class="form-group-custom" style="margin: 0;">
+                            <select name="id" class="form-input-custom" style="min-width: 200px;" required>
+                                <option value="">-- اختر قسماً لتصفيره --</option>
+                                @foreach (var dept in Model.Departments)
+                                {
+                                    <option value="@dept.Id">@dept.Name (الرمز: @dept.Prefix)</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-action-secondary">
+                            <i class="fas fa-undo"></i>
+                            <span>تصفير القسم</span>
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ── CARD 3: SHIFTS LIST & MANAGEMENT ── -->
+            <section class="settings-card">
+                <div class="settings-card-header">
+                    <div class="settings-title">
+                        <i class="fas fa-clock"></i>
+                        <span>قائمة الورديات المسجلة (Shifts)</span>
+                    </div>
+                    <button type="button" class="btn-action-primary" onclick="openCreateModal()">
+                        <i class="fas fa-plus"></i>
+                        <span>إضافة وردية جديدة</span>
+                    </button>
+                </div>
+
+                @if (Model.Shifts != null && Model.Shifts.Any())
+                {
+                    <table class="shifts-table">
+                        <thead>
+                            <tr>
+                                <th>اسم الوردية</th>
+                                <th>وقت البدء</th>
+                                <th>المدة (ساعات)</th>
+                                <th>الحالة الآن</th>
+                                <th>آخر تصفير</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var shift in Model.Shifts)
+                            {
+                                <tr>
+                                    <td style="font-weight: 700;">@shift.Name</td>
+                                    <td>@shift.StartTime.ToString(@"hh\:mm")</td>
+                                    <td>@shift.Duration.TotalHours.ToString("0.##") ساعة</td>
+                                    <td>
+                                        @if (shift.IsActiveNow)
+                                        {
+                                            <span class="shift-badge-active"><i class="fas fa-circle" style="font-size: 7px;"></i> نشطة الآن</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="shift-badge-inactive">غير نشطة</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @(shift.LastResetAt.HasValue ? shift.LastResetAt.Value.ToString("yyyy-MM-dd hh:mm tt") : "—")
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; gap: 8px;">
+                                            <!-- Reset Shift -->
+                                            <form asp-controller="Shift" asp-action="ResetShift" asp-route-id="@shift.Id" method="post" onsubmit="return confirm('تصفير عداد وردية @shift.Name فوراً؟');" style="display: inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn-action-secondary" style="padding: 5px 10px; font-size: 0.85rem;" title="تصفير عداد هذه الوردية">
+                                                    <i class="fas fa-sync-alt"></i> تصفير
+                                                </button>
+                                            </form>
+
+                                            <!-- Edit Shift -->
+                                            <button type="button" class="btn-action-secondary" style="padding: 5px 10px; font-size: 0.85rem;" onclick="openEditModal(@shift.Id, '@shift.Name', '@shift.StartTime.ToString(@"hh\:mm")', @shift.Duration.TotalHours)">
+                                                <i class="fas fa-edit"></i> تعديل
+                                            </button>
+
+                                            <!-- Delete Shift -->
+                                            <form asp-controller="Shift" asp-action="Delete" asp-route-id="@shift.Id" method="post" onsubmit="return confirm('هل أنت متأكد من حذف وردية @shift.Name؟');" style="display: inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn-action-danger" style="padding: 5px 10px; font-size: 0.85rem;" title="حذف الوردية">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+                        <i class="far fa-clock" style="font-size: 2.5rem; margin-bottom: 12px; color: var(--primary-color);"></i>
+                        <p style="font-weight: 700;">لا توجد ورديات مسجلة حالياً في النظام.</p>
+                        <p style="font-size: 0.9rem;">اضغط على "إضافة وردية جديدة" لتسجيل الورديات الصباحية والمسائية.</p>
+                    </div>
+                }
+            </section>
+        </main>
+    </div>
+
+    <!-- ── MODAL: CREATE SHIFT ── -->
+    <div id="createShiftModal" class="modal-backdrop-custom">
+        <div class="modal-box-custom">
+            <div class="modal-header-custom">
+                <div class="modal-title-custom">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>إضافة وردية جديدة</span>
+                </div>
+                <button type="button" onclick="closeCreateModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #888;">&times;</button>
+            </div>
+
+            <form asp-controller="Shift" asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div class="form-group-custom" style="margin-bottom: 14px;">
+                    <label for="createShiftName">اسم الوردية:</label>
+                    <input type="text" id="createShiftName" name="Name" class="form-input-custom" placeholder="مثال: الوردية الصباحية" required />
+                </div>
+
+                <div class="form-group-custom" style="margin-bottom: 14px;">
+                    <label for="createStartTime">وقت البدء (ساعة:دقيقة):</label>
+                    <input type="time" id="createStartTime" name="StartTime" class="form-input-custom" value="08:00" required />
+                </div>
+
+                <div class="form-group-custom" style="margin-bottom: 20px;">
+                    <label for="createDuration">المدة (بالساعات):</label>
+                    <input type="number" id="createDuration" name="durationHours" class="form-input-custom" value="8" min="0.5" max="24" step="0.5" required />
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn-action-secondary" onclick="closeCreateModal()">إلغاء</button>
+                    <button type="submit" class="btn-action-primary">إضافة الوردية</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MODAL: EDIT SHIFT ── -->
+    <div id="editShiftModal" class="modal-backdrop-custom">
+        <div class="modal-box-custom">
+            <div class="modal-header-custom">
+                <div class="modal-title-custom">
+                    <i class="fas fa-edit"></i>
+                    <span>تعديل الوردية</span>
+                </div>
+                <button type="button" onclick="closeEditModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #888;">&times;</button>
+            </div>
+
+            <form asp-controller="Shift" asp-action="Update" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="editShiftId" name="Id" />
+
+                <div class="form-group-custom" style="margin-bottom: 14px;">
+                    <label for="editShiftName">اسم الوردية:</label>
+                    <input type="text" id="editShiftName" name="Name" class="form-input-custom" required />
+                </div>
+
+                <div class="form-group-custom" style="margin-bottom: 14px;">
+                    <label for="editStartTime">وقت البدء (ساعة:دقيقة):</label>
+                    <input type="time" id="editStartTime" name="StartTime" class="form-input-custom" required />
+                </div>
+
+                <div class="form-group-custom" style="margin-bottom: 20px;">
+                    <label for="editDuration">المدة (بالساعات):</label>
+                    <input type="number" id="editDuration" name="durationHours" class="form-input-custom" min="0.5" max="24" step="0.5" required />
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn-action-secondary" onclick="closeEditModal()">إلغاء</button>
+                    <button type="submit" class="btn-action-primary">حفظ التعديلات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function selectResetMode(mode) {
+            document.getElementById('selectedResetType').value = mode;
+            document.querySelectorAll('.reset-option-card').forEach(card => card.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        function openCreateModal() {
+            document.getElementById('createShiftModal').classList.add('show');
+        }
+
+        function closeCreateModal() {
+            document.getElementById('createShiftModal').classList.remove('show');
+        }
+
+        function openEditModal(id, name, startTime, durationHours) {
+            document.getElementById('editShiftId').value = id;
+            document.getElementById('editShiftName').value = name;
+            document.getElementById('editStartTime').value = startTime;
+            document.getElementById('editDuration').value = durationHours;
+            document.getElementById('editShiftModal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editShiftModal').classList.remove('show');
+        }
+
+        // Close on backdrop click
+        window.onclick = function(e) {
+            if (e.target.classList.contains('modal-backdrop-custom')) {
+                e.target.classList.remove('show');
+            }
+        };
+    </script>
+</body>
+</html>

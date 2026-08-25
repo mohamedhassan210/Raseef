@@ -143,7 +143,7 @@ namespace Rassef.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> TransferUser(int userId, int targetGroupId)
+        public async Task<IActionResult> TransferUser(int userId, int targetGroupId, int? returnGroupId = null)
         {
             var user = await _userRepo.GetByIdAsync(userId);
             if (user != null)
@@ -155,6 +155,11 @@ namespace Rassef.Controllers
             else
             {
                 TempData["ErrorMessage"] = "الموظف غير موجود.";
+            }
+
+            if (returnGroupId.HasValue && returnGroupId.Value > 0)
+            {
+                return RedirectToAction(nameof(GroupDetails), new { id = returnGroupId.Value });
             }
 
             return RedirectToAction(nameof(GroupManagment));
@@ -269,41 +274,73 @@ namespace Rassef.Controllers
                     .ToList();
 
                 var existingPermissions = await _permissionRepo.GetAllAsync();
-                var existingSet = existingPermissions
-                    .Select(p => $"{p.ControllerName}_{p.ActionName}".ToLowerInvariant())
-                    .ToHashSet();
+                // Build a lookup: key="{controller}_{action}" -> Permission entity
+                var existingLookup = existingPermissions
+                    .ToDictionary(
+                        p => $"{p.ControllerName}_{p.ActionName}".ToLowerInvariant(),
+                        p => p);
 
                 var newPermissions = new List<Permission>();
+                bool anyUpdated = false;
 
                 foreach (var controllerType in controllerTypes)
                 {
+                    // Strip "Controller" suffix — matches what PermissionAuthorize reads from RouteData
                     string controllerName = controllerType.Name;
                     if (controllerName.EndsWith("Controller", StringComparison.OrdinalIgnoreCase))
-                    {
-                        controllerName = controllerName.Substring(0, controllerName.Length - "Controller".Length);
-                    }
+                        controllerName = controllerName[..^"Controller".Length];
 
-                    var actionMethods = controllerType.GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.DeclaredOnly)
+                    var actionMethods = controllerType
+                        .GetMethods(System.Reflection.BindingFlags.Instance |
+                                    System.Reflection.BindingFlags.Public |
+                                    System.Reflection.BindingFlags.DeclaredOnly)
                         .Where(m => !m.IsSpecialName &&
+                                    !m.GetCustomAttributes(typeof(NonActionAttribute), true).Any() &&
+                                    m.DeclaringType != typeof(Controller) &&
+                                    m.DeclaringType != typeof(ControllerBase) &&
+                                    m.DeclaringType != typeof(object) &&
                                     (typeof(IActionResult).IsAssignableFrom(m.ReturnType) ||
                                      typeof(Task<IActionResult>).IsAssignableFrom(m.ReturnType) ||
                                      typeof(ActionResult).IsAssignableFrom(m.ReturnType) ||
                                      typeof(Task<ActionResult>).IsAssignableFrom(m.ReturnType)))
-                        .Select(m => m.Name)
-                        .Distinct();
+                        .GroupBy(m => {
+                            var actAttr = m.GetCustomAttributes(typeof(ActionNameAttribute), true).FirstOrDefault() as ActionNameAttribute;
+                            return actAttr?.Name ?? m.Name;
+                        })
+                        .Select(g => g.First());
 
-                    foreach (var actionName in actionMethods)
+                    foreach (var method in actionMethods)
                     {
+                        var actAttr = method.GetCustomAttributes(typeof(ActionNameAttribute), true).FirstOrDefault() as ActionNameAttribute;
+                        string actionName = actAttr?.Name ?? method.Name;
                         string key = $"{controllerName}_{actionName}".ToLowerInvariant();
-                        if (!existingSet.Contains(key))
+
+                        var descAttr = method.GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), true).FirstOrDefault() as System.ComponentModel.DescriptionAttribute;
+                        var dispAttr = method.GetCustomAttributes(typeof(System.ComponentModel.DisplayNameAttribute), true).FirstOrDefault() as System.ComponentModel.DisplayNameAttribute;
+                        
+                        string description = !string.IsNullOrWhiteSpace(descAttr?.Description)
+                            ? descAttr.Description
+                            : (!string.IsNullOrWhiteSpace(dispAttr?.DisplayName)
+                                ? dispAttr.DisplayName
+                                : BuildDescription(controllerName, actionName));
+
+                        if (!existingLookup.TryGetValue(key, out var existing))
                         {
+                            // New permission — add it
                             newPermissions.Add(new Permission
                             {
                                 ControllerName = controllerName,
                                 ActionName = actionName,
-                                Description = $"{controllerName}{actionName}"
+                                Description = description
                             });
-                            existingSet.Add(key);
+                        }
+                        else if (string.IsNullOrWhiteSpace(existing.Description) ||
+                                 existing.Description == $"{existing.ControllerName}{existing.ActionName}")
+                        {
+                            // Old auto-generated description — refresh it
+                            existing.Description = description;
+                            _permissionRepo.Update(existing);
+                            anyUpdated = true;
                         }
                     }
                 }
@@ -311,9 +348,11 @@ namespace Rassef.Controllers
                 if (newPermissions.Any())
                 {
                     foreach (var perm in newPermissions)
-                    {
                         await _permissionRepo.AddAsync(perm);
-                    }
+                    await _permissionRepo.SaveChangesAsync();
+                }
+                else if (anyUpdated)
+                {
                     await _permissionRepo.SaveChangesAsync();
                 }
             }
@@ -321,6 +360,15 @@ namespace Rassef.Controllers
             {
                 // Fallback gracefully if reflection encountered any restriction
             }
+        }
+
+        /// <summary>
+        /// "CreateShift" in controller "Shift" → "Shift - Create Shift"
+        /// </summary>
+        private static string BuildDescription(string controllerName, string actionName)
+        {
+            var words = System.Text.RegularExpressions.Regex.Replace(actionName, "([A-Z])", " $1").Trim();
+            return $"{controllerName} - {words}";
         }
 
         // ==============================================================
@@ -341,6 +389,9 @@ namespace Rassef.Controllers
 
             // Sync all controllers and actions from Reflection into Permission database table
             await SyncPermissionsFromReflectionAsync();
+
+            var allGroups = await _groupRepo.GetAllAsync();
+            ViewBag.AllGroups = allGroups.ToList();
 
             var allPermissions = await _permissionRepo.GetAllAsync();
             var allGroupPermissions = await _groupPermissionRepo.GetAllAsync();
@@ -384,30 +435,39 @@ namespace Rassef.Controllers
                 return View(model);
             }
 
-            // مسح الصلاحيات القديمة للمجموعة
-            var allGroupPermissions = await _groupPermissionRepo.GetAllAsync();
-            var existingPermissions = allGroupPermissions.Where(x => x.GroupId == model.GroupId).ToList();
-
-            foreach (var existingPermission in existingPermissions)
-            {
-                _groupPermissionRepo.Remove(existingPermission);
-            }
-
-            // إضافة الصلاحيات المحددة الجديدة
-            var selectedPermissions = model.Controllers
+            // 1. Get all selected permission IDs (distinct)
+            var selectedPermissionIds = model.Controllers
                 .SelectMany(c => c.Actions)
                 .Where(a => a.IsSelected)
+                .Select(a => a.PermissionId)
+                .Distinct()
                 .ToList();
 
-            foreach (var permission in selectedPermissions)
-            {
-                var newGroupPermission = new GroupPermission
-                {
-                    GroupId = model.GroupId,
-                    PermissionId = permission.PermissionId
-                };
+            // 2. Fetch existing GroupPermissions for this group
+            var allGroupPermissions = await _groupPermissionRepo.GetAllAsync();
+            var existingGroupPermissions = allGroupPermissions.Where(x => x.GroupId == model.GroupId).ToList();
+            var existingPermissionIds = existingGroupPermissions.Select(x => x.PermissionId).ToHashSet();
 
-                await _groupPermissionRepo.AddAsync(newGroupPermission);
+            // 3. Remove deselected permissions
+            foreach (var egp in existingGroupPermissions)
+            {
+                if (!selectedPermissionIds.Contains(egp.PermissionId))
+                {
+                    _groupPermissionRepo.Remove(egp);
+                }
+            }
+
+            // 4. Add newly selected permissions (no duplicates)
+            foreach (var permId in selectedPermissionIds)
+            {
+                if (!existingPermissionIds.Contains(permId))
+                {
+                    await _groupPermissionRepo.AddAsync(new GroupPermission
+                    {
+                        GroupId = model.GroupId,
+                        PermissionId = permId
+                    });
+                }
             }
 
             await _groupPermissionRepo.SaveChangesAsync();

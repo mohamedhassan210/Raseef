@@ -1,8 +1,14 @@
+using FluentValidation;
+using Rassef.ViewModels.Administration;
+
 namespace Rassef.Validators.TruckValidators
 {
-    public class CreateTruckVMValidator : AbstractValidator<CreateTruckVM>
+    /// <summary>
+    /// Validator for the Administration TruckCreateVM
+    /// </summary>
+    public class TruckCreateAdminVMValidator : AbstractValidator<TruckCreateVM>
     {
-        public CreateTruckVMValidator()
+        public TruckCreateAdminVMValidator()
         {
             RuleFor(x => x.PlateNumber)
                 .NotEmpty().WithMessage("رقم اللوحة مطلوب")

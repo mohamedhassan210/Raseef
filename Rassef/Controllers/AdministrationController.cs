@@ -120,11 +120,17 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(EmployeeCreateVM model)
         {
-            // فحص فرادة الرقم القومي للموظف
+            // فحص فرادة الرقم القومي ورقم الهاتف للموظف
             var existingUser = await _userRepository.FindAsync(u => u.NationalId == model.NationalId && !u.IsDeleted);
             if (existingUser != null)
             {
                 ModelState.AddModelError(nameof(model.NationalId), "الرقم القومي مُسجل لموظف آخر بالفعل.");
+            }
+
+            var existingUserPhone = await _userRepository.FindAsync(u => u.Phone == model.Phone && !u.IsDeleted);
+            if (existingUserPhone != null)
+            {
+                ModelState.AddModelError(nameof(model.Phone), "رقم الهاتف مُسجل لموظف آخر بالفعل.");
             }
 
             if (!ModelState.IsValid)
@@ -195,11 +201,17 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EmployeeEditVM model)
         {
-            // فحص فرادة الرقم القومي عند التعديل
+            // فحص فرادة الرقم القومي ورقم الهاتف عند التعديل
             var existingUser = await _userRepository.FindAsync(u => u.NationalId == model.NationalId && u.Id != model.Id && !u.IsDeleted);
             if (existingUser != null)
             {
                 ModelState.AddModelError(nameof(model.NationalId), "الرقم القومي مُسجل لموظف آخر بالفعل.");
+            }
+
+            var existingUserPhone = await _userRepository.FindAsync(u => u.Phone == model.Phone && u.Id != model.Id && !u.IsDeleted);
+            if (existingUserPhone != null)
+            {
+                ModelState.AddModelError(nameof(model.Phone), "رقم الهاتف مُسجل لموظف آخر بالفعل.");
             }
 
             if (!ModelState.IsValid)
@@ -674,6 +686,12 @@ namespace Rassef.Controllers
                 ModelState.AddModelError(nameof(model.NationalId), "الرقم القومي مُسجل لسائق آخر بالفعل.");
             }
 
+            var existingDriverPhone = await _driverRepository.FindAsync(d => d.Phone == model.Phone && !d.IsDeleted);
+            if (existingDriverPhone != null)
+            {
+                ModelState.AddModelError(nameof(model.Phone), "رقم الهاتف مُسجل لسائق آخر بالفعل.");
+            }
+
             if (!ModelState.IsValid)
             {
                 var driverTypes = await _driverTypeRepository.GetAllAsync();
@@ -747,6 +765,12 @@ namespace Rassef.Controllers
             if (existingDriver != null)
             {
                 ModelState.AddModelError(nameof(model.NationalId), "الرقم القومي مُسجل لسائق آخر بالفعل.");
+            }
+
+            var existingDriverPhone = await _driverRepository.FindAsync(d => d.Phone == model.Phone && d.Id != model.Id && !d.IsDeleted);
+            if (existingDriverPhone != null)
+            {
+                ModelState.AddModelError(nameof(model.Phone), "رقم الهاتف مُسجل لسائق آخر بالفعل.");
             }
 
             if (!ModelState.IsValid)
