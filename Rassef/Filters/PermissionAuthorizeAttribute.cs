@@ -88,8 +88,9 @@ namespace Rassef.Filters
                 return;
             }
 
-            // 5. Load user with group and position
+            // 5. Load user with group and position (AsNoTracking to avoid tracking conflict in controllers)
             var user = await _dbContext.Users
+                .AsNoTracking()
                 .Include(u => u.Group!)
                     .ThenInclude(g => g.GroupPermissions)
                         .ThenInclude(gp => gp.Permission)

@@ -192,6 +192,36 @@ html, body {
     font-weight: 500 !important;
 }
 
+.sidebar-logout-btn {
+    width: 38px !important;
+    height: 38px !important;
+    background: rgba(255, 255, 255, 0.18) !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #FFFFFF !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    flex-shrink: 0 !important;
+    margin-right: 4px !important;
+    cursor: pointer !important;
+}
+
+.sidebar-logout-btn:hover {
+    background: #c0392b !important;
+    color: #FFFFFF !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+.sidebar-logout-btn svg {
+    width: 20px !important;
+    height: 20px !important;
+    stroke: currentColor !important;
+    fill: none !important;
+}
+
 /* ────────────────────────────────────────────────
    MAIN CONTENT CONTAINER
    ──────────────────────────────────────────────── */

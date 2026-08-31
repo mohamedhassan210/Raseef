@@ -115,6 +115,29 @@ document.addEventListener("DOMContentLoaded", function () {
         if (sectionTitle) {
             sectionTitle.textContent = `قائمة الأدوار (${visibleCount})`;
         }
+
+        // تحديث أرقام الكروت الإحصائية الحقيقية
+        updateStats();
+    }
+
+    function updateStats() {
+        const waitSpan = document.getElementById("waitCount");
+        const activeSpan = document.getElementById("activeCount");
+        const doneSpan = document.getElementById("doneCount");
+
+        let wait = 0, active = 0, done = 0;
+
+        roleCards.forEach(card => {
+            const cardStatus = card.getAttribute("data-status") || "";
+            const cat = getStatusCategory(cardStatus);
+            if (cat === "waiting") wait++;
+            else if (cat === "active") active++;
+            else if (cat === "done") done++;
+        });
+
+        if (waitSpan) waitSpan.textContent = wait;
+        if (activeSpan) activeSpan.textContent = active;
+        if (doneSpan) doneSpan.textContent = done;
     }
 
     // تشغيل الفلترة المبدئية عند التحميل

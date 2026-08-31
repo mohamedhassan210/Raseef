@@ -61,6 +61,7 @@ namespace Rassef.Dependencyinjection
             services.AddScoped<IWarehouseRepository, WarehouseRepository>();
             services.AddScoped<IShiftRepository, ShiftRepository>();
             services.AddScoped<IQueueSettingsRepository, QueueSettingsRepository>();
+            services.AddScoped<IGroupPermissionRepository, GroupPermissionRepository>();
             services.AddScoped<ITicketEngineService, TicketEngineService>();
             services.AddScoped<IJwtService, JwtService>();
 

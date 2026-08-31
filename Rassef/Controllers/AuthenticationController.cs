@@ -187,6 +187,21 @@ namespace Rassef.Controllers
                 return RedirectToAction(nameof(ChangeInitialPassword));
             }
 
+            var allUsers = await _userRepository.GetAllAsync(q => q
+                .Include(u => u.Group)
+                .Include(u => u.Position)
+            );
+            var userWithRoles = allUsers.FirstOrDefault(u => u.Id == user.Id) ?? user;
+
+            bool isAdmin = (userWithRoles.Group != null && userWithRoles.Group.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                || (userWithRoles.Position != null && userWithRoles.Position.PositionName.Contains("Admin", StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(userWithRoles.UserName) && userWithRoles.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase));
+
+            if (isAdmin)
+            {
+                return RedirectToAction("Index", "Administration");
+            }
+
             return RedirectToAction("AddRoleOrView", "Authentication");
         }
 
@@ -266,6 +281,22 @@ namespace Rassef.Controllers
             await _userRepository.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "تم تعيين كلمة المرور الجديدة بنجاح!";
+
+            var allUsersWithRoles = await _userRepository.GetAllAsync(q => q
+                .Include(u => u.Group)
+                .Include(u => u.Position)
+            );
+            var updatedUser = allUsersWithRoles.FirstOrDefault(u => u.Id == user.Id) ?? user;
+
+            bool isUserAdmin = (updatedUser.Group != null && updatedUser.Group.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                || (updatedUser.Position != null && updatedUser.Position.PositionName.Contains("Admin", StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(updatedUser.UserName) && updatedUser.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase));
+
+            if (isUserAdmin)
+            {
+                return RedirectToAction("Index", "Administration");
+            }
+
             return RedirectToAction("AddRoleOrView", "Authentication");
         }
 

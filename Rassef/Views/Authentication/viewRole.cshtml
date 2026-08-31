@@ -19,7 +19,7 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
         .btn-call-next {
             background-color: #e67e22;
@@ -37,11 +37,62 @@
         }
         .btn-call-next:hover {
             background-color: #d35400;
+            color: #ffffff !important;
             transform: translateY(-2px);
             box-shadow: 0 6px 18px rgba(230, 126, 34, 0.38);
         }
         .btn-call-next i {
             font-size: 16px;
+        }
+        .btn-admin-dashboard {
+            background-color: #e67e22;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 9px 18px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(230, 126, 34, 0.28);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-admin-dashboard:hover {
+            background-color: #d35400;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(230, 126, 34, 0.38);
+        }
+        .btn-admin-dashboard i {
+            font-size: 15px;
+        }
+        .back-btn {
+            background-color: #e67e22;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 9px 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(230, 126, 34, 0.28);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+        }
+        .back-btn:hover {
+            background-color: #d35400;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(230, 126, 34, 0.38);
+        }
+        .back-btn i, .back-btn svg {
+            font-size: 15px;
         }
     </style>
 </head>
@@ -65,9 +116,16 @@
                     <span>استدعاء الدور (Call Next)</span>
                 </a>
 
-                <!-- زر الرجوع موجه لكونترولر Authentication -->
+                <!-- زر لوحة الإدارة (Admin Dashboard) -->
+                <a asp-controller="Administration" asp-action="Index" class="btn-admin-dashboard">
+                    <i class="fas fa-th-large"></i>
+                    <span>لوحة التحكم</span>
+                </a>
+
+                <!-- زر الرجوع -->
                 <a asp-controller="Authentication" asp-action="AddRoleOrView" class="back-btn">
-                    <i class="fas fa-home"></i> الرجوع
+                    <i class="fas fa-arrow-right"></i>
+                    <span>الرجوع</span>
                 </a>
             </div>
         </header>
@@ -96,7 +154,7 @@
                 <div class="stat-text-side">
                     <h3 class="stat-title">إنتظار</h3>
                     <div class="stat-number-row">
-                        <span class="stat-number" id="waitCount">@(Model?.WaitingCount ?? 18)</span>
+                        <span class="stat-number" id="waitCount">@(Model?.WaitingCount ?? 0)</span>
                     </div>
                     <span class="stat-label">دور في الانتظار</span>
                 </div>
@@ -110,7 +168,7 @@
                 <div class="stat-text-side">
                     <h3 class="stat-title">جاري</h3>
                     <div class="stat-number-row">
-                        <span class="stat-number" id="activeCount">@(Model?.InProgressCount ?? 8)</span>
+                        <span class="stat-number" id="activeCount">@(Model?.InProgressCount ?? 0)</span>
                     </div>
                     <span class="stat-label">دور جاري</span>
                 </div>
@@ -124,7 +182,7 @@
                 <div class="stat-text-side">
                     <h3 class="stat-title">تـ ــم</h3>
                     <div class="stat-number-row">
-                        <span class="stat-number" id="doneCount">@(Model?.CompletedCount ?? 55)</span>
+                        <span class="stat-number" id="doneCount">@(Model?.CompletedCount ?? 0)</span>
                     </div>
                     <span class="stat-label">دور تم</span>
                 </div>

@@ -94,7 +94,7 @@
                             <span class="stat-card-title">إنتظار</span>
                             <span class="stat-card-sub">دور في الانتظار</span>
                         </div>
-                        <span class="stat-card-num" id="statWaitingCount">@(waitingCount > 0 ? waitingCount : 18)</span>
+                        <span class="stat-card-num" id="statWaitingCount">@waitingCount</span>
                     </div>
                 </div>
 
@@ -108,7 +108,7 @@
                             <span class="stat-card-title">جاري</span>
                             <span class="stat-card-sub">دور جاري</span>
                         </div>
-                        <span class="stat-card-num" id="statInProgressCount">@(inProgressCount > 0 ? inProgressCount : 8)</span>
+                        <span class="stat-card-num" id="statInProgressCount">@inProgressCount</span>
                     </div>
                 </div>
 
@@ -122,7 +122,7 @@
                             <span class="stat-card-title">تم</span>
                             <span class="stat-card-sub">دور تم</span>
                         </div>
-                        <span class="stat-card-num" id="statCompletedCount">@(completedCount > 0 ? completedCount : 55)</span>
+                        <span class="stat-card-num" id="statCompletedCount">@completedCount</span>
                     </div>
                 </div>
             </div>
@@ -299,6 +299,32 @@
                         card.style.display = "none";
                     }
                 });
+
+                updateSummaryCounts();
+            }
+
+            function updateSummaryCounts() {
+                const statWaiting = document.getElementById("statWaitingCount");
+                const statProgress = document.getElementById("statInProgressCount");
+                const statDone = document.getElementById("statCompletedCount");
+
+                let wait = 0, prog = 0, done = 0;
+                cards.forEach(card => {
+                    if (card.style.display !== "none") {
+                        const status = (card.dataset.status || "").toLowerCase();
+                        if (status.includes("تم") || status.includes("مكتمل") || status.includes("خروج") || status.includes("منتهي")) {
+                            done++;
+                        } else if (status.includes("جاري") || status.includes("تنفيذ") || status.includes("تشغيل")) {
+                            prog++;
+                        } else {
+                            wait++;
+                        }
+                    }
+                });
+
+                if (statWaiting) statWaiting.textContent = wait;
+                if (statProgress) statProgress.textContent = prog;
+                if (statDone) statDone.textContent = done;
             }
 
             if (searchInput) {

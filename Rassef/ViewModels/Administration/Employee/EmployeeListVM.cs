@@ -1,4 +1,4 @@
-﻿namespace Rassef.ViewModels.Administration.Employee
+namespace Rassef.ViewModels.Administration.Employee
 {
     public class EmployeeListVM
     {
@@ -11,6 +11,7 @@
         public string Email { get; set; } = string.Empty;
 
         public string Role { get; set; } = string.Empty;
+        public string GroupName { get; set; } = string.Empty;
 
         public string NationalId { get; set; } = string.Empty;
 

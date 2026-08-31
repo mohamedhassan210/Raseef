@@ -3,6 +3,7 @@
     ViewData["Title"] = "تعديل الموظف";
     Layout = "_SupOrTra";
     var positions = ViewBag.Positions as IEnumerable<Rassef.Models.Entities.Position> ?? new List<Rassef.Models.Entities.Position>();
+    var groups = ViewBag.Groups as IEnumerable<Rassef.Models.Identity.UserGroup> ?? new List<Rassef.Models.Identity.UserGroup>();
 }
 
 @section Styles {
@@ -71,8 +72,8 @@
                 <div class="col-md-6 order-md-2">
                     <label for="empPhone" class="form-label fw-bold">رقم الهاتف</label>
                     <div class="position-relative">
-                        <input type="tel" class="form-control custom-input" id="empPhone" name="Phone" value="@Model?.Phone" placeholder="ادخل رقم هاتف الموظف" pattern="^01[0125][0-9]{8}$" required autocomplete="tel" dir="rtl">
-                        <div class="invalid-feedback text-center mt-2">يرجى إدخال رقم هاتف مصري صحيح (11 رقم).</div>
+                        <input type="tel" class="form-control custom-input" id="empPhone" name="Phone" value="@Model?.Phone" placeholder="ادخل رقم الهاتف (11 رقم - 01xxxxxxxxx)" pattern="^01[0125][0-9]{8}$" maxlength="11" inputmode="numeric" required autocomplete="tel" dir="rtl">
+                        <div class="invalid-feedback text-center mt-2">يرجى إدخال رقم هاتف مصري صحيح (11 رقم يبدأ بـ 010 أو 011 أو 012 أو 015).</div>
                     </div>
                 </div>
 
@@ -85,8 +86,17 @@
                     </div>
                 </div>
 
-                <!-- الدور الوظيفي -->
+                <!-- الرقم القومي -->
                 <div class="col-md-6 order-md-4">
+                    <label for="empNationalId" class="form-label fw-bold">الرقم القومي</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control custom-input" id="empNationalId" name="NationalId" value="@Model?.NationalId" placeholder="ادخل الرقم القومي (14 رقم)" pattern="^[0-9]{14}$" maxlength="14" minlength="14" inputmode="numeric" required autocomplete="off">
+                        <div class="invalid-feedback text-center mt-2">الرقم القومي يجب أن يتكون من 14 رقمًا بالضبط.</div>
+                    </div>
+                </div>
+
+                <!-- الدور الوظيفي -->
+                <div class="col-md-6 order-md-5">
                     <label class="form-label fw-bold" for="empRoleSelect">الدور الوظيفي</label>
                     <div class="position-relative custom-dropdown-container">
                         <select class="visually-hidden-select" id="empRoleSelect" name="PositionId" required>
@@ -138,21 +148,74 @@
                     </div>
                 </div>
 
-                <!-- الرقم القومي -->
-                <div class="col-md-6 order-md-5">
-                    <label for="empNationalId" class="form-label fw-bold">الرقم القومي</label>
-                    <div class="position-relative">
-                        <input type="text" class="form-control custom-input" id="empNationalId" name="NationalId" value="@Model?.NationalId" placeholder="ادخل الرقم القومي (14 رقم)" pattern="^[0-9]{14}$" required autocomplete="off">
-                        <div class="invalid-feedback text-center mt-2">الرقم القومي يجب أن يتكون من 14 رقمًا.</div>
+                <!-- مجموعة الصلاحيات -->
+                <div class="col-md-6 order-md-6">
+                    <label class="form-label fw-bold" for="empGroupSelect">مجموعة الصلاحيات</label>
+                    <div class="position-relative custom-dropdown-container">
+                        <select class="visually-hidden-select" id="empGroupSelect" name="GroupId" required>
+                            @if (Model == null || Model.GroupId == 0)
+                            {
+                                <option value="" disabled selected>اختار المجموعة</option>
+                            }
+                            else
+                            {
+                                <option value="" disabled>اختار المجموعة</option>
+                            }
+                            @foreach (var grp in groups)
+                            {
+                                if (Model?.GroupId == grp.Id)
+                                {
+                                    <option value="@grp.Id" selected>@grp.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@grp.Id">@grp.Name</option>
+                                }
+                            }
+                        </select>
+                        <div class="custom-dropdown" id="groupDropdown" aria-haspopup="listbox" aria-expanded="false">
+                            <div class="dropdown-header">
+                                @{
+                                    var selGrp = groups.FirstOrDefault(g => g.Id == Model?.GroupId);
+                                }
+                                <span class="selected-value @(selGrp != null ? "" : "text-muted")" id="groupSelectedText">@(selGrp != null ? selGrp.Name : "اختار المجموعة")</span>
+                                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#e47925" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="18 15 12 9 6 15"></polyline>
+                                </svg>
+                            </div>
+                            <div class="dropdown-list" role="listbox">
+                                @if (groups.Any())
+                                {
+                                    @foreach (var grp in groups)
+                                    {
+                                        <div class="dropdown-item @(Model?.GroupId == grp.Id ? "selected" : "")" role="option" data-value="@grp.Id" data-text="@grp.Name">@grp.Name</div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="dropdown-item disabled text-muted">لا توجد مجموعات مضافة</div>
+                                }
+                            </div>
+                        </div>
+                        <div class="invalid-feedback text-center mt-2 dropdown-error-msg">يرجى اختيار مجموعة الصلاحيات.</div>
                     </div>
                 </div>
 
                 <!-- كود الموظف -->
-                <div class="col-md-6 order-md-6">
+                <div class="col-md-6 order-md-7">
                     <label for="empUserCode" class="form-label fw-bold">كود الموظف</label>
                     <div class="position-relative">
                         <input type="text" class="form-control custom-input text-end" id="empUserCode" name="UserCode" value="@Model?.UserCode" placeholder="ادخل كود الموظف" required autocomplete="off">
                         <div class="invalid-feedback text-center mt-2">يرجى إدخال كود الموظف.</div>
+                    </div>
+                </div>
+
+                <!-- كود الفرع -->
+                <div class="col-md-6 order-md-8">
+                    <label for="empBranchCode" class="form-label fw-bold">كود الفرع</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control custom-input text-end" id="empBranchCode" name="BranchCode" value="@Model?.BranchCode" placeholder="ادخل كود الفرع (مثال: BR-01)" required autocomplete="off">
+                        <div class="invalid-feedback text-center mt-2">يرجى إدخال كود الفرع.</div>
                     </div>
                 </div>
 
@@ -167,15 +230,39 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('editEmployeeForm');
-            const customDropdown = document.getElementById('roleDropdown');
-            const hiddenSelect = document.getElementById('empRoleSelect');
-            const header = customDropdown ? customDropdown.querySelector('.dropdown-header') : null;
-            const selectedText = document.getElementById('roleSelectedText');
-            const items = customDropdown ? customDropdown.querySelectorAll('.dropdown-item') : [];
+            const phoneInput = document.getElementById('empPhone');
+            const nationalIdInput = document.getElementById('empNationalId');
 
-            if (header && customDropdown) {
+            // 1. تقييد الإدخال في رقم الهاتف للأرقام فقط وبحد أقصى 11 رقماً
+            if (phoneInput) {
+                phoneInput.addEventListener('input', (e) => {
+                    phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '').slice(0, 11);
+                });
+            }
+
+            // 2. تقييد الإدخال في الرقم القومي للأرقام فقط وبحد أقصى 14 رقماً
+            if (nationalIdInput) {
+                nationalIdInput.addEventListener('input', (e) => {
+                    nationalIdInput.value = nationalIdInput.value.replace(/[^0-9]/g, '').slice(0, 14);
+                });
+            }
+
+            // 3. إعداد القوائم المنسدلة المخصصة
+            function setupDropdown(dropdownId, selectId, selectedTextId) {
+                const customDropdown = document.getElementById(dropdownId);
+                const hiddenSelect = document.getElementById(selectId);
+                if (!customDropdown || !hiddenSelect) return;
+
+                const header = customDropdown.querySelector('.dropdown-header');
+                const selectedText = selectedTextId ? document.getElementById(selectedTextId) : customDropdown.querySelector('.selected-value');
+                const items = customDropdown.querySelectorAll('.dropdown-item');
+
                 header.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    // Close other dropdowns
+                    document.querySelectorAll('.custom-dropdown').forEach(d => {
+                        if (d !== customDropdown) d.classList.remove('open');
+                    });
                     customDropdown.classList.toggle('open');
                 });
 
@@ -184,7 +271,7 @@
                         e.stopPropagation();
                         const val = item.getAttribute('data-value');
                         const text = item.getAttribute('data-text');
-                        if (hiddenSelect) hiddenSelect.value = val;
+                        hiddenSelect.value = val;
                         if (selectedText) {
                             selectedText.textContent = text;
                             selectedText.classList.remove('text-muted');
@@ -195,17 +282,53 @@
                         customDropdown.classList.remove('is-invalid-dropdown');
                     });
                 });
-
-                document.addEventListener('click', () => {
-                    customDropdown.classList.remove('open');
-                });
             }
 
+            setupDropdown('roleDropdown', 'empRoleSelect', 'roleSelectedText');
+            setupDropdown('groupDropdown', 'empGroupSelect', 'groupSelectedText');
+
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('open'));
+            });
+
+            // 4. التحقق عند إرسال النموذج
             if (form) {
                 form.addEventListener('submit', (e) => {
-                    if (hiddenSelect && !hiddenSelect.value) {
+                    let hasError = false;
+                    const roleSelect = document.getElementById('empRoleSelect');
+                    const roleDropdown = document.getElementById('roleDropdown');
+                    const groupSelect = document.getElementById('empGroupSelect');
+                    const groupDropdown = document.getElementById('groupDropdown');
+
+                    if (roleSelect && !roleSelect.value) {
+                        hasError = true;
+                        if (roleDropdown) roleDropdown.classList.add('is-invalid-dropdown');
+                    }
+                    if (groupSelect && !groupSelect.value) {
+                        hasError = true;
+                        if (groupDropdown) groupDropdown.classList.add('is-invalid-dropdown');
+                    }
+
+                    // فحص الهاتف المصري (11 رقم يبدأ بـ 010 أو 011 أو 012 أو 015)
+                    const egyptianPhoneRegex = /^01[0125][0-9]{8}$/;
+                    if (phoneInput && !egyptianPhoneRegex.test(phoneInput.value.trim())) {
+                        hasError = true;
+                        phoneInput.setCustomValidity('invalid');
+                    } else if (phoneInput) {
+                        phoneInput.setCustomValidity('');
+                    }
+
+                    // فحص الرقم القومي (14 رقم بالضبط)
+                    const nationalIdRegex = /^[0-9]{14}$/;
+                    if (nationalIdInput && !nationalIdRegex.test(nationalIdInput.value.trim())) {
+                        hasError = true;
+                        nationalIdInput.setCustomValidity('invalid');
+                    } else if (nationalIdInput) {
+                        nationalIdInput.setCustomValidity('');
+                    }
+
+                    if (hasError || !form.checkValidity()) {
                         e.preventDefault();
-                        if (customDropdown) customDropdown.classList.add('is-invalid-dropdown');
                         form.classList.add('was-validated');
                     }
                 });

@@ -1,4 +1,4 @@
-﻿namespace Rassef.ViewModels.Administration.Employee
+namespace Rassef.ViewModels.Administration.Employee
 {
     public class EmployeeCreateVM
     {
@@ -11,8 +11,12 @@
 
         public int PositionId { get; set; }
 
+        public int GroupId { get; set; }
+
         public string NationalId { get; set; } = string.Empty;
 
         public string UserCode { get; set; } = string.Empty;
+
+        public string BranchCode { get; set; } = string.Empty;
     }
 }

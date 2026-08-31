@@ -10,6 +10,7 @@ namespace Rassef.Controllers
         private readonly ITransferRequestRepository _Transferrepository;
         private readonly IUserRepository _userRepository;
         private readonly IRepository<Position> _positionRepository;
+        private readonly IRepository<UserGroup> _groupRepository;
         private readonly IRepository<Truck> _truckRepository;
         private readonly IRepository<TruckTypes> _truckTypesRepository;
         private readonly IRepository<Driver> _driverRepository;
@@ -20,6 +21,7 @@ namespace Rassef.Controllers
         public AdministrationController(
             IUserRepository userRepository,
             IRepository<Position> positionRepository,
+            IRepository<UserGroup> groupRepository,
             IRepository<Truck> truckRepository,
             IRepository<TruckTypes> truckTypeRepository, 
             IRepository<Driver> driverRepository,
@@ -31,6 +33,7 @@ namespace Rassef.Controllers
         {
             _userRepository = userRepository;
             _positionRepository = positionRepository;
+            _groupRepository = groupRepository;
             _truckRepository = truckRepository;
             _truckTypesRepository = truckTypeRepository;
             _driverRepository = driverRepository;
@@ -46,7 +49,7 @@ namespace Rassef.Controllers
         public async Task<IActionResult> Index()
         {
             var users = await _userRepository.GetAllAsync(query =>
-                query.Where(u => !u.IsDeleted).Include(u => u.Position)
+                query.Where(u => !u.IsDeleted).Include(u => u.Position).Include(u => u.Group)
             );
 
             var employees = users.Select(u => new EmployeeListVM
@@ -56,11 +59,10 @@ namespace Rassef.Controllers
                 Phone = u.Phone,
                 Email = u.Email?.ToString() ?? string.Empty,
                 Role = u.Position?.PositionName ?? "غير محدد",
+                GroupName = u.Group?.Name ?? "غير محدد",
                 NationalId = u.NationalId,
                 UserCode = u.UserCode ?? string.Empty
             }).ToList();
-
-          
 
             if (!employees.Any())
             {
@@ -77,7 +79,7 @@ namespace Rassef.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var users = await _userRepository.GetAllAsync(query =>
-                query.Include(u => u.Position)
+                query.Include(u => u.Position).Include(u => u.Group)
             );
 
             var user = users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
@@ -97,7 +99,9 @@ namespace Rassef.Controllers
                 Id = user.Id,
                 Name = user.Name,
                 UserCode = user.UserCode ?? string.Empty,
+                BranchCode = user.BranchCode ?? string.Empty,
                 Role = user.Position?.PositionName ?? "غير محدد",
+                GroupName = user.Group?.Name ?? "غير محدد",
                 Phone = user.Phone,
                 Email = user.Email?.ToString() ?? string.Empty,
                 NationalId = user.NationalId
@@ -110,8 +114,10 @@ namespace Rassef.Controllers
         public async Task<IActionResult> Create()
         {
             var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
+            var groups = await _groupRepository.GetAllAsync(q => q.Where(g => !g.IsDeleted));
 
             ViewBag.Positions = positions;
+            ViewBag.Groups = groups;
 
             return View(new EmployeeCreateVM());
         }
@@ -120,6 +126,18 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(EmployeeCreateVM model)
         {
+            // التحقق من صحة رقم الهاتف المصري
+            if (string.IsNullOrWhiteSpace(model.Phone) || !System.Text.RegularExpressions.Regex.IsMatch(model.Phone.Trim(), @"^01[0125][0-9]{8}$"))
+            {
+                ModelState.AddModelError(nameof(model.Phone), "رقم الهاتف يجب أن يكون رقم مصري صحيح مكون من 11 رقماً (يبدأ بـ 010 أو 011 أو 012 أو 015).");
+            }
+
+            // التحقق من أن الرقم القومي 14 رقم بالضبط
+            if (string.IsNullOrWhiteSpace(model.NationalId) || !System.Text.RegularExpressions.Regex.IsMatch(model.NationalId.Trim(), @"^[0-9]{14}$"))
+            {
+                ModelState.AddModelError(nameof(model.NationalId), "الرقم القومي يجب أن يتكون من 14 رقماً بالضبط.");
+            }
+
             // فحص فرادة الرقم القومي ورقم الهاتف للموظف
             var existingUser = await _userRepository.FindAsync(u => u.NationalId == model.NationalId && !u.IsDeleted);
             if (existingUser != null)
@@ -133,10 +151,23 @@ namespace Rassef.Controllers
                 ModelState.AddModelError(nameof(model.Phone), "رقم الهاتف مُسجل لموظف آخر بالفعل.");
             }
 
+            if (model.GroupId <= 0)
+            {
+                ModelState.AddModelError(nameof(model.GroupId), "يرجى اختيار مجموعة الصلاحيات للموظف.");
+            }
+
+            if (model.PositionId <= 0)
+            {
+                ModelState.AddModelError(nameof(model.PositionId), "يرجى اختيار الدور الوظيفي للموظف.");
+            }
+
             if (!ModelState.IsValid)
             {
                 var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
+                var groups = await _groupRepository.GetAllAsync(q => q.Where(g => !g.IsDeleted));
+
                 ViewBag.Positions = positions;
+                ViewBag.Groups = groups;
 
                 return View(model);
             }
@@ -144,11 +175,13 @@ namespace Rassef.Controllers
             var user = new User
             {
                 Name = model.Name,
-                Phone = model.Phone,
+                Phone = model.Phone.Trim(),
                 Email = Email.Create(model.Email),
                 PositionId = model.PositionId,
-                NationalId = model.NationalId,
+                GroupId = model.GroupId,
+                NationalId = model.NationalId.Trim(),
                 UserCode = model.UserCode,
+                BranchCode = model.BranchCode ?? string.Empty,
                 HashPassword = BCrypt.Net.BCrypt.HashPassword(model.UserCode)
             };
 
@@ -164,7 +197,7 @@ namespace Rassef.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var users = await _userRepository.GetAllAsync(query =>
-                query.Include(u => u.Position)
+                query.Include(u => u.Position).Include(u => u.Group)
             );
 
             var user = users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
@@ -180,8 +213,10 @@ namespace Rassef.Controllers
             }
 
             var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
+            var groups = await _groupRepository.GetAllAsync(q => q.Where(g => !g.IsDeleted));
 
             ViewBag.Positions = positions;
+            ViewBag.Groups = groups;
 
             var employee = new EmployeeEditVM
             {
@@ -190,8 +225,10 @@ namespace Rassef.Controllers
                 Phone = user.Phone,
                 Email = user.Email?.ToString() ?? string.Empty,
                 PositionId = user.PositionId,
+                GroupId = user.GroupId ?? 0,
                 NationalId = user.NationalId,
-                UserCode = user.UserCode ?? string.Empty
+                UserCode = user.UserCode ?? string.Empty,
+                BranchCode = user.BranchCode ?? string.Empty
             };
 
             return View(employee);
@@ -201,6 +238,18 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EmployeeEditVM model)
         {
+            // التحقق من صحة رقم الهاتف المصري
+            if (string.IsNullOrWhiteSpace(model.Phone) || !System.Text.RegularExpressions.Regex.IsMatch(model.Phone.Trim(), @"^01[0125][0-9]{8}$"))
+            {
+                ModelState.AddModelError(nameof(model.Phone), "رقم الهاتف يجب أن يكون رقم مصري صحيح مكون من 11 رقماً (يبدأ بـ 010 أو 011 أو 012 أو 015).");
+            }
+
+            // التحقق من أن الرقم القومي 14 رقم بالضبط
+            if (string.IsNullOrWhiteSpace(model.NationalId) || !System.Text.RegularExpressions.Regex.IsMatch(model.NationalId.Trim(), @"^[0-9]{14}$"))
+            {
+                ModelState.AddModelError(nameof(model.NationalId), "الرقم القومي يجب أن يتكون من 14 رقماً بالضبط.");
+            }
+
             // فحص فرادة الرقم القومي ورقم الهاتف عند التعديل
             var existingUser = await _userRepository.FindAsync(u => u.NationalId == model.NationalId && u.Id != model.Id && !u.IsDeleted);
             if (existingUser != null)
@@ -214,10 +263,23 @@ namespace Rassef.Controllers
                 ModelState.AddModelError(nameof(model.Phone), "رقم الهاتف مُسجل لموظف آخر بالفعل.");
             }
 
+            if (model.GroupId <= 0)
+            {
+                ModelState.AddModelError(nameof(model.GroupId), "يرجى اختيار مجموعة الصلاحيات للموظف.");
+            }
+
+            if (model.PositionId <= 0)
+            {
+                ModelState.AddModelError(nameof(model.PositionId), "يرجى اختيار الدور الوظيفي للموظف.");
+            }
+
             if (!ModelState.IsValid)
             {
                 var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
+                var groups = await _groupRepository.GetAllAsync(q => q.Where(g => !g.IsDeleted));
+
                 ViewBag.Positions = positions;
+                ViewBag.Groups = groups;
 
                 return View(model);
             }
@@ -235,11 +297,13 @@ namespace Rassef.Controllers
             }
 
             user.Name = model.Name;
-            user.Phone = model.Phone;
+            user.Phone = model.Phone.Trim();
             user.Email = Email.Create(model.Email);
             user.PositionId = model.PositionId;
-            user.NationalId = model.NationalId;
+            user.GroupId = model.GroupId;
+            user.NationalId = model.NationalId.Trim();
             user.UserCode = model.UserCode;
+            user.BranchCode = model.BranchCode ?? string.Empty;
             user.MarkAsUpdated();
 
             _userRepository.Update(user);

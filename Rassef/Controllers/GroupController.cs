@@ -1,4 +1,5 @@
 using Rassef.Common.Interfaces.Services.AuthenticationServices;
+using Rassef.Common.Interfaces;
 using Rassef.ViewModels.Group;
 using Rassef.ViewModels.Authentication.Identity;
 using Rassef.Filters;
@@ -10,7 +11,7 @@ namespace Rassef.Controllers
     {
         private readonly IRepository<UserGroup> _groupRepo;
         private readonly IRepository<Permission> _permissionRepo;
-        private readonly IRepository<GroupPermission> _groupPermissionRepo;
+        private readonly IGroupPermissionRepository _groupPermissionRepo;
         private readonly IUserRepository _userRepo;
         private readonly IRepository<DriverTypes> _driverTypesRepo;
         private readonly IRepository<Position> _positionRepo;
@@ -25,7 +26,7 @@ namespace Rassef.Controllers
         public GroupController(
             IRepository<UserGroup> groupRepo,
             IRepository<Permission> permissionRepo,
-            IRepository<GroupPermission> groupPermissionRepo,
+            IGroupPermissionRepository groupPermissionRepo,
             IUserRepository userRepo,
             IRepository<DriverTypes> driverTypesRepo,
             IRepository<Position> positionRepo,
@@ -394,10 +395,9 @@ namespace Rassef.Controllers
             ViewBag.AllGroups = allGroups.ToList();
 
             var allPermissions = await _permissionRepo.GetAllAsync();
-            var allGroupPermissions = await _groupPermissionRepo.GetAllAsync();
+            var allGroupPermissions = await _groupPermissionRepo.GetByGroupIdAsync(groupId);
 
             var currentGroupPermissions = allGroupPermissions
-                .Where(x => x.GroupId == groupId)
                 .Select(x => x.PermissionId)
                 .ToHashSet();
 
@@ -435,7 +435,6 @@ namespace Rassef.Controllers
                 return View(model);
             }
 
-            // 1. Get all selected permission IDs (distinct)
             var selectedPermissionIds = model.Controllers
                 .SelectMany(c => c.Actions)
                 .Where(a => a.IsSelected)
@@ -443,34 +442,7 @@ namespace Rassef.Controllers
                 .Distinct()
                 .ToList();
 
-            // 2. Fetch existing GroupPermissions for this group
-            var allGroupPermissions = await _groupPermissionRepo.GetAllAsync();
-            var existingGroupPermissions = allGroupPermissions.Where(x => x.GroupId == model.GroupId).ToList();
-            var existingPermissionIds = existingGroupPermissions.Select(x => x.PermissionId).ToHashSet();
-
-            // 3. Remove deselected permissions
-            foreach (var egp in existingGroupPermissions)
-            {
-                if (!selectedPermissionIds.Contains(egp.PermissionId))
-                {
-                    _groupPermissionRepo.Remove(egp);
-                }
-            }
-
-            // 4. Add newly selected permissions (no duplicates)
-            foreach (var permId in selectedPermissionIds)
-            {
-                if (!existingPermissionIds.Contains(permId))
-                {
-                    await _groupPermissionRepo.AddAsync(new GroupPermission
-                    {
-                        GroupId = model.GroupId,
-                        PermissionId = permId
-                    });
-                }
-            }
-
-            await _groupPermissionRepo.SaveChangesAsync();
+            await _groupPermissionRepo.UpdatePermissionsForGroupAsync(model.GroupId, selectedPermissionIds);
 
             TempData["SuccessMessage"] = "تم تحديث الصلاحيات بنجاح!";
             return RedirectToAction(nameof(MangeRolesIndex));
