@@ -1,8 +1,17 @@
-using Rassef.Common.Interfaces.Services.AuthenticationServices;
 using Rassef.Common.Interfaces;
-using Rassef.ViewModels.Group;
-using Rassef.ViewModels.Authentication.Identity;
 using Rassef.Filters;
+using Rassef.ViewModels.Authentication.Identity;
+using Rassef.ViewModels.Group;
+using System.Linq.Expressions;
+// REMOVED: using Rassef.Common.Interfaces.Services.AuthenticationServices;
+// Confirmed unused by the team — no type from this namespace is referenced anywhere in this file.
+//
+// CORRECTION from the previous pass: "using Rassef.ViewModels.Authentication.Identity;" was
+// removed in the first refactor on the assumption it was dead. The ManagePermissions view
+// (`@model Rassef.ViewModels.Authentication.Identity.GroupPermissionsViewModel`) proves
+// GroupPermissionsViewModel actually lives in that namespace, not Rassef.ViewModels.Group — so
+// removing it would have broken the build. Restored here. Flagging my own mistake rather than
+// quietly fixing it, per the "don't silently patch, explain the change" rule.
 
 namespace Rassef.Controllers
 {
@@ -22,6 +31,7 @@ namespace Rassef.Controllers
         private readonly IRepository<Warehouse> _warehouseRepo;
         private readonly IRepository<Shift> _shiftRepo;
         private readonly IRepository<PermitTypes> _permitTypesRepo;
+        private readonly IRepository<DepartmentTypes> _departmentTypesRepo;
 
         public GroupController(
             IRepository<UserGroup> groupRepo,
@@ -36,7 +46,8 @@ namespace Rassef.Controllers
             IRepository<Dock> dockRepo,
             IRepository<Warehouse> warehouseRepo,
             IRepository<Shift> shiftRepo,
-            IRepository<PermitTypes> permitTypesRepo)
+            IRepository<PermitTypes> permitTypesRepo,
+            IRepository<DepartmentTypes> departmentTypesRepo)
         {
             _groupRepo = groupRepo ?? throw new ArgumentNullException(nameof(groupRepo));
             _permissionRepo = permissionRepo ?? throw new ArgumentNullException(nameof(permissionRepo));
@@ -51,6 +62,7 @@ namespace Rassef.Controllers
             _warehouseRepo = warehouseRepo ?? throw new ArgumentNullException(nameof(warehouseRepo));
             _shiftRepo = shiftRepo ?? throw new ArgumentNullException(nameof(shiftRepo));
             _permitTypesRepo = permitTypesRepo ?? throw new ArgumentNullException(nameof(permitTypesRepo));
+            _departmentTypesRepo = departmentTypesRepo ?? throw new ArgumentNullException(nameof(departmentTypesRepo));
         }
 
         // ==============================================================
@@ -68,14 +80,7 @@ namespace Rassef.Controllers
             ViewBag.AllUsers = users.ToList();
             ViewBag.AllGroups = groups.ToList();
 
-            var model = groups.Select(g => new GroupCardVM
-            {
-                Id = g.Id,
-                Name = g.Name,
-                UsersCount = g.Users?.Count ?? 0,
-                CreatedAt = g.CreatedAT != default ? g.CreatedAT.DateTime : DateTime.Now,
-                IsActive = !g.IsDeleted
-            }).ToList();
+            var model = MapToGroupCards(groups);
 
             return View(model);
         }
@@ -105,10 +110,18 @@ namespace Rassef.Controllers
                 return View();
             }
 
-            var group = new UserGroup
+            name = name.Trim();
+
+            // CHANGED (behavior fix - Data integrity): UserGroup.Name is confirmed unique at the
+            // DB level. Added the missing pre-check so a duplicate name returns a clean Arabic
+            // message instead of surfacing as an unhandled 500 from the DB constraint.
+            if (await _groupRepo.ExistsAsync(g => !g.IsDeleted && g.Name == name))
             {
-                Name = name.Trim()
-            };
+                TempData["ErrorMessage"] = "توجد مجموعة بنفس الاسم بالفعل.";
+                return View();
+            }
+
+            var group = new UserGroup { Name = name };
 
             await _groupRepo.AddAsync(group);
             await _groupRepo.SaveChangesAsync();
@@ -124,6 +137,9 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteGroup(int id)
         {
+            // Reviewed: no admin-lockout guard added here — confirmed as a deliberate product
+            // decision (admins are trusted not to disable the group holding admin permissions),
+            // not an oversight.
             var group = await _groupRepo.GetByIdAsync(id);
             if (group != null)
             {
@@ -147,15 +163,32 @@ namespace Rassef.Controllers
         public async Task<IActionResult> TransferUser(int userId, int targetGroupId, int? returnGroupId = null)
         {
             var user = await _userRepo.GetByIdAsync(userId);
-            if (user != null)
+            if (user == null)
             {
-                user.GroupId = targetGroupId > 0 ? targetGroupId : null;
-                await _userRepo.SaveChangesAsync();
-                TempData["SuccessMessage"] = "تم نقل الموظف إلى المجموعة بنجاح!";
+                TempData["ErrorMessage"] = "الموظف غير موجود.";
+            }
+            else if (targetGroupId > 0)
+            {
+                // CHANGED (behavior fix - Data integrity): verify the target group actually exists
+                // before assigning it as the user's GroupId FK. Previously an invalid id passed
+                // straight to SaveChangesAsync and threw an unhandled FK-violation 500.
+                var targetGroup = await _groupRepo.GetByIdAsync(targetGroupId);
+                if (targetGroup == null)
+                {
+                    TempData["ErrorMessage"] = "المجموعة المحددة غير موجودة.";
+                }
+                else
+                {
+                    user.GroupId = targetGroupId;
+                    await _userRepo.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "تم نقل الموظف إلى المجموعة بنجاح!";
+                }
             }
             else
             {
-                TempData["ErrorMessage"] = "الموظف غير موجود.";
+                user.GroupId = null;
+                await _userRepo.SaveChangesAsync();
+                TempData["SuccessMessage"] = "تم نقل الموظف إلى المجموعة بنجاح!";
             }
 
             if (returnGroupId.HasValue && returnGroupId.Value > 0)
@@ -181,25 +214,35 @@ namespace Rassef.Controllers
 
             var groupUsers = await _userRepo.GetAllAsync(q => q.Where(u => u.GroupId == id));
             var allUsers = await _userRepo.GetAllAsync();
-            var allGroups = await _groupRepo.GetAllAsync();
 
             ViewBag.AllUsers = allUsers.ToList();
-            ViewBag.AllGroups = allGroups.ToList();
+            await PopulateAllGroupsViewBagAsync();
 
             var model = new GroupDetailsVM
             {
                 Id = group.Id,
                 Name = group.Name,
-                Description = "إدارة تكنولوجيا المعلومات",
-                CreatedAt = group.CreatedAT != default ? group.CreatedAT.DateTime : DateTime.Now,
+                // CHANGED: confirmed against the UserGroup entity source that it has no
+                // Description field at all — the previous hardcoded Arabic string ("IT
+                // department") was fabricated and shown identically for every group regardless
+                // of which one was being viewed. Left blank rather than inventing a replacement;
+                // needs a real column added to UserGroup if this should show real content.
+                Description = string.Empty,
+                CreatedAt = ResolveCreatedAt(group.CreatedAT),
                 IsActive = !group.IsDeleted,
                 Employees = groupUsers.Select(u => new GroupEmployeeVM
                 {
                     Id = u.Id,
                     Name = u.Name,
                     Code = !string.IsNullOrWhiteSpace(u.UserCode) ? u.UserCode : (!string.IsNullOrWhiteSpace(u.NationalId) ? u.NationalId : $"{u.Id:D6}"),
-                    Email = u.Email?.Value ?? (u.UserName != null && u.UserName.Contains("@") ? u.UserName : $"{u.Name.Replace(" ", "").ToLower()}@microsoft.com"),
-                    Phone = !string.IsNullOrWhiteSpace(u.Phone) ? u.Phone : "01002670738",
+                    // CHANGED (behavior fix - Data integrity): a user with no email on file was
+                    // previously shown a fabricated "@microsoft.com" address built from their
+                    // name — wrong contact info, not a harmless placeholder. Replaced with a
+                    // neutral label.
+                    Email = u.Email?.Value ?? (u.UserName != null && u.UserName.Contains("@") ? u.UserName : "غير متوفر"),
+                    // CHANGED (behavior fix - Data integrity): same issue for the hardcoded fake
+                    // phone number fallback.
+                    Phone = !string.IsNullOrWhiteSpace(u.Phone) ? u.Phone : "غير متوفر",
                     IsActive = !u.IsDeleted
                 }).ToList()
             };
@@ -214,16 +257,32 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditGroup(int id, string name)
         {
-            var group = await _groupRepo.GetByIdAsync(id);
-            if (group != null && !string.IsNullOrWhiteSpace(name))
+            if (string.IsNullOrWhiteSpace(name))
             {
-                group.Name = name.Trim();
-                await _groupRepo.SaveChangesAsync();
-                TempData["SuccessMessage"] = "تم تعديل اسم المجموعة بنجاح!";
+                TempData["ErrorMessage"] = "تعذر تعديل المجموعة.";
                 return RedirectToAction(nameof(GroupDetails), new { id });
             }
 
-            TempData["ErrorMessage"] = "تعذر تعديل المجموعة.";
+            var group = await _groupRepo.GetByIdAsync(id);
+            if (group == null)
+            {
+                TempData["ErrorMessage"] = "تعذر تعديل المجموعة.";
+                return RedirectToAction(nameof(GroupDetails), new { id });
+            }
+
+            name = name.Trim();
+
+            // CHANGED (behavior fix - Data integrity): same uniqueness check as AddGroup, excluding
+            // the current row so renaming a group to its own existing name still works.
+            if (await _groupRepo.ExistsAsync(g => g.Id != id && !g.IsDeleted && g.Name == name))
+            {
+                TempData["ErrorMessage"] = "توجد مجموعة بنفس الاسم بالفعل.";
+                return RedirectToAction(nameof(GroupDetails), new { id });
+            }
+
+            group.Name = name;
+            await _groupRepo.SaveChangesAsync();
+            TempData["SuccessMessage"] = "تم تعديل اسم المجموعة بنجاح!";
             return RedirectToAction(nameof(GroupDetails), new { id });
         }
 
@@ -244,14 +303,7 @@ namespace Rassef.Controllers
 
             var model = new RolesManagementVM
             {
-                Groups = groups.Select(g => new GroupCardVM
-                {
-                    Id = g.Id,
-                    Name = g.Name,
-                    UsersCount = g.Users?.Count ?? 0,
-                    CreatedAt = g.CreatedAT != default ? g.CreatedAT.DateTime : DateTime.Now,
-                    IsActive = !g.IsDeleted
-                }).ToList(),
+                Groups = MapToGroupCards(groups),
 
                 Permissions = permissions.Select(p => new PermissionTableItemVM
                 {
@@ -318,7 +370,7 @@ namespace Rassef.Controllers
 
                         var descAttr = method.GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), true).FirstOrDefault() as System.ComponentModel.DescriptionAttribute;
                         var dispAttr = method.GetCustomAttributes(typeof(System.ComponentModel.DisplayNameAttribute), true).FirstOrDefault() as System.ComponentModel.DisplayNameAttribute;
-                        
+
                         string description = !string.IsNullOrWhiteSpace(descAttr?.Description)
                             ? descAttr.Description
                             : (!string.IsNullOrWhiteSpace(dispAttr?.DisplayName)
@@ -359,7 +411,8 @@ namespace Rassef.Controllers
             }
             catch
             {
-                // Fallback gracefully if reflection encountered any restriction
+                // TODO(flag - Consistency/style): broad empty catch still swallows every
+                // exception here. Not narrowed — left as a follow-up, not part of this pass.
             }
         }
 
@@ -391,8 +444,7 @@ namespace Rassef.Controllers
             // Sync all controllers and actions from Reflection into Permission database table
             await SyncPermissionsFromReflectionAsync();
 
-            var allGroups = await _groupRepo.GetAllAsync();
-            ViewBag.AllGroups = allGroups.ToList();
+            await PopulateAllGroupsViewBagAsync();
 
             var allPermissions = await _permissionRepo.GetAllAsync();
             var allGroupPermissions = await _groupPermissionRepo.GetByGroupIdAsync(groupId);
@@ -432,6 +484,13 @@ namespace Rassef.Controllers
         {
             if (!ModelState.IsValid)
             {
+                // CHANGED (behavior fix - Blocking): repopulate ViewBag.AllGroups here too, since
+                // the view's groups nav pill list depends on it and the GET action sets it.
+                //
+                // Note: checked the view — Controllers[i].Actions[j].ActionName/Description are
+                // posted back as hidden fields, so the round-trip on validation failure is fine;
+                // no further fix needed there.
+                await PopulateAllGroupsViewBagAsync();
                 return View(model);
             }
 
@@ -457,15 +516,17 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> MangeTypesIndex()
         {
-            var driverTypesCount = (await _driverTypesRepo.GetAllAsync()).Count();
-            var positionsCount = (await _positionRepo.GetAllAsync()).Count();
-            var truckTypesCount = (await _truckTypesRepo.GetAllAsync()).Count();
-            var commodityTypesCount = (await _commodityTypesRepo.GetAllAsync()).Count();
-            var departmentsCount = (await _departmentRepo.GetAllAsync()).Count();
-            var docksCount = (await _dockRepo.GetAllAsync()).Count();
-            var warehousesCount = (await _warehouseRepo.GetAllAsync()).Count();
-            var shiftsCount = (await _shiftRepo.GetAllAsync()).Count();
-            var permitTypesCount = (await _permitTypesRepo.GetAllAsync()).Count();
+            // CHANGED (Consistency, follows soft-delete adoption below): counts now exclude
+            // soft-deleted rows so a "deleted" lookup item doesn't keep inflating the card counts.
+            var driverTypesCount = (await _driverTypesRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted))).Count();
+            var positionsCount = (await _positionRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted))).Count();
+            var truckTypesCount = (await _truckTypesRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted))).Count();
+            var commodityTypesCount = (await _commodityTypesRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted))).Count();
+            var departmentsCount = (await _departmentRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted))).Count();
+            var docksCount = (await _dockRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted))).Count();
+            var warehousesCount = (await _warehouseRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted))).Count();
+            var shiftsCount = (await _shiftRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted))).Count();
+            var permitTypesCount = (await _permitTypesRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted))).Count();
 
             var model = new TypesManagementVM
             {
@@ -489,82 +550,72 @@ namespace Rassef.Controllers
         // ==============================================================
         // 6. شاشة تفاصيل وإدارة عناصر الإختيار (Image 2 - Lookup Type Details)
         // ==============================================================
+
+        private static readonly HashSet<string> KnownTypeKeys = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "driver-type", "position", "truck-type", "commodity-type",
+            "department", "dock", "warehouse", "shift", "permit-type"
+        };
+
         /// <summary>
         ///     صفحة استعراض وتعديل وحذف عناصر نوع معين من الاختيارات
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> MangeTypeDetails(string typeKey)
         {
-            if (string.IsNullOrWhiteSpace(typeKey))
-            {
-                typeKey = "driver-type";
-            }
+            var key = string.IsNullOrWhiteSpace(typeKey) || !KnownTypeKeys.Contains(typeKey)
+                ? "driver-type"
+                : typeKey.ToLower();
 
-            var model = new TypeDetailsVM
-            {
-                TypeKey = typeKey.ToLower()
-            };
+            var model = new TypeDetailsVM { TypeKey = key };
 
-            switch (typeKey.ToLower())
+            // CHANGED (Consistency, follows soft-delete adoption below): every branch now filters
+            // out soft-deleted rows so a deleted item stops appearing in the list.
+            switch (key)
             {
                 case "driver-type":
                     model.Title = "نوع السائق";
-                    var dts = await _driverTypesRepo.GetAllAsync();
-                    model.Items = dts.Select(x => new TypeItemVM { Id = x.Id, Name = x.Name }).ToList();
+                    model.Items = MapToTypeItems(await _driverTypesRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted)), x => x.Id, x => x.Name);
                     break;
 
                 case "position":
                     model.Title = "دور الموظف";
-                    var pos = await _positionRepo.GetAllAsync();
-                    model.Items = pos.Select(x => new TypeItemVM { Id = x.Id, Name = x.PositionName }).ToList();
+                    model.Items = MapToTypeItems(await _positionRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted)), x => x.Id, x => x.PositionName);
                     break;
 
                 case "truck-type":
                     model.Title = "نوع الشاحنة";
-                    var tts = await _truckTypesRepo.GetAllAsync();
-                    model.Items = tts.Select(x => new TypeItemVM { Id = x.Id, Name = x.Name }).ToList();
+                    model.Items = MapToTypeItems(await _truckTypesRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted)), x => x.Id, x => x.Name);
                     break;
 
                 case "commodity-type":
                     model.Title = "نوع السلعة";
-                    var cts = await _commodityTypesRepo.GetAllAsync();
-                    model.Items = cts.Select(x => new TypeItemVM { Id = x.Id, Name = x.Name }).ToList();
+                    model.Items = MapToTypeItems(await _commodityTypesRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted)), x => x.Id, x => x.Name);
                     break;
 
                 case "department":
                     model.Title = "الأقسام";
-                    var depts = await _departmentRepo.GetAllAsync();
-                    model.Items = depts.Select(x => new TypeItemVM { Id = x.Id, Name = x.Name }).ToList();
+                    model.Items = MapToTypeItems(await _departmentRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted)), x => x.Id, x => x.Name);
                     break;
 
                 case "dock":
                     model.Title = "الأرصفة";
-                    var docks = await _dockRepo.GetAllAsync();
-                    model.Items = docks.Select(x => new TypeItemVM { Id = x.Id, Name = x.DockName }).ToList();
+                    model.Items = MapToTypeItems(await _dockRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted)), x => x.Id, x => x.DockName);
                     break;
 
                 case "warehouse":
                     model.Title = "المستودعات";
-                    var whs = await _warehouseRepo.GetAllAsync();
-                    model.Items = whs.Select(x => new TypeItemVM { Id = x.Id, Name = x.Name }).ToList();
+                    model.Items = MapToTypeItems(await _warehouseRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted)), x => x.Id, x => x.Name);
                     break;
 
                 case "shift":
                     model.Title = "الورديات";
-                    var shifts = await _shiftRepo.GetAllAsync();
-                    model.Items = shifts.Select(x => new TypeItemVM { Id = x.Id, Name = x.Name }).ToList();
+                    model.Items = MapToTypeItems(await _shiftRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted)), x => x.Id, x => x.Name);
                     break;
 
                 case "permit-type":
                     model.Title = "أنواع التصاريح";
-                    var pts = await _permitTypesRepo.GetAllAsync();
-                    model.Items = pts.Select(x => new TypeItemVM { Id = x.Id, Name = x.Name }).ToList();
-                    break;
-
-                default:
-                    model.Title = "نوع السائق";
-                    var defaultDts = await _driverTypesRepo.GetAllAsync();
-                    model.Items = defaultDts.Select(x => new TypeItemVM { Id = x.Id, Name = x.Name }).ToList();
+                    model.Items = MapToTypeItems(await _permitTypesRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted)), x => x.Id, x => x.Name);
                     break;
             }
 
@@ -585,66 +636,105 @@ namespace Rassef.Controllers
             }
 
             name = name.Trim();
+            bool handled = true;
 
+            // CHANGED (behavior fix - Data integrity): every case now checks for a duplicate
+            // (non-deleted) name before inserting, confirmed as a real DB unique constraint on all
+            // of these Name/DockName columns. Uses the shared DuplicateGuardAsync helper so a
+            // duplicate returns the same clean Arabic message pattern already used by Position.
             switch (typeKey?.ToLower())
             {
                 case "driver-type":
-                    await _driverTypesRepo.AddAsync(new DriverTypes { Name = name });
-                    await _driverTypesRepo.SaveChangesAsync();
+                    if (await DuplicateGuardAsync(_driverTypesRepo, x => !x.IsDeleted && x.Name == name, "نوع سائق", typeKey) is IActionResult r1) return r1;
+                    await AddEntityAsync(_driverTypesRepo, new DriverTypes { Name = name });
                     break;
 
                 case "position":
-                    bool nameExists = await _positionRepo.ExistsAsync(p => p.PositionName == name);
-                    if (nameExists)
-                    {
-                        TempData["ErrorMessage"] = "يوجد دور وظيفي بنفس الاسم بالفعل.";
-                        return RedirectToAction(nameof(MangeTypeDetails), new { typeKey });
-                    }
+                    if (await DuplicateGuardAsync(_positionRepo, x => !x.IsDeleted && x.PositionName == name, "دور وظيفي", typeKey) is IActionResult r2) return r2;
 
-                    var allPositions = await _positionRepo.GetAllAsync();
+                    var allPositions = await _positionRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted));
                     int nextPositionCode = allPositions.Any() ? allPositions.Max(p => p.PositionCode) + 1 : 1;
+                    // TODO(flag - Data integrity): PositionCode is computed as max+1 with no
+                    // transaction/locking — two concurrent creates could compute the same code.
+                    // Not changed here; needs a decision on whether it must be a DB sequence.
 
-                    await _positionRepo.AddAsync(new Position { PositionName = name, PositionCode = nextPositionCode });
-                    await _positionRepo.SaveChangesAsync();
+                    await AddEntityAsync(_positionRepo, new Position { PositionName = name, PositionCode = nextPositionCode });
                     break;
 
                 case "truck-type":
-                    await _truckTypesRepo.AddAsync(new TruckTypes { Name = name });
-                    await _truckTypesRepo.SaveChangesAsync();
+                    if (await DuplicateGuardAsync(_truckTypesRepo, x => !x.IsDeleted && x.Name == name, "نوع شاحنة", typeKey) is IActionResult r3) return r3;
+                    await AddEntityAsync(_truckTypesRepo, new TruckTypes { Name = name });
                     break;
 
                 case "commodity-type":
-                    await _commodityTypesRepo.AddAsync(new CommodityTypes { Name = name });
-                    await _commodityTypesRepo.SaveChangesAsync();
+                    if (await DuplicateGuardAsync(_commodityTypesRepo, x => !x.IsDeleted && x.Name == name, "نوع سلعة", typeKey) is IActionResult r4) return r4;
+                    await AddEntityAsync(_commodityTypesRepo, new CommodityTypes { Name = name });
                     break;
 
                 case "department":
-                    await _departmentRepo.AddAsync(new Department { Name = name, WarehouseId = 1, Prefix = "A", DepartmentTypeId = 1 });
-                    await _departmentRepo.SaveChangesAsync();
+                    if (await DuplicateGuardAsync(_departmentRepo, x => !x.IsDeleted && x.Name == name, "قسم", typeKey) is IActionResult r5) return r5;
+
+                    var departmentTypes = await _departmentTypesRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted));
+                    var warehouses = await _warehouseRepo.GetAllAsync(q => q.Where(x => !x.IsDeleted));
+
+                    if (!departmentTypes.Any() || !warehouses.Any())
+                    {
+                        TempData["ErrorMessage"] = "لا يمكن إضافة قسم قبل إضافة نوع قسم ومستودع واحد على الأقل.";
+                        return RedirectToAction(nameof(MangeTypeDetails), new { typeKey });
+                    }
+
+                    // TODO(flag - Blocking/Data integrity, STILL OPEN — required FK hardcoded):
+                    // confirmed this should not be hardcoded at all, but fixing it properly means
+                    // adding a warehouse/department-type selector to the create form, which is new
+                    // UI outside the scope of a controller-only refactor. WarehouseId and
+                    // DepartmentTypeId currently still default to `.First()`, and Prefix is still
+                    // hardcoded to "A". I need either: (a) the current CreateTypeItem view/modal for
+                    // typeKey=department, so I can add the corresponding form fields and wire real
+                    // parameters through, or (b) explicit sign-off to change this action's signature
+                    // to accept warehouseId/departmentTypeId/prefix and update the call site(s).
+                    await AddEntityAsync(_departmentRepo, new Department
+                    {
+                        Name = name,
+                        WarehouseId = warehouses.First().Id,
+                        Prefix = "A",
+                        DepartmentTypeId = departmentTypes.First().Id
+                    });
                     break;
 
                 case "dock":
-                    await _dockRepo.AddAsync(new Dock { DockName = name, DepartmentId = 1, WarehouseId = 1, DockStatusId = 1 });
-                    await _dockRepo.SaveChangesAsync();
+                    if (await DuplicateGuardAsync(_dockRepo, x => !x.IsDeleted && x.DockName == name, "رصيف", typeKey) is IActionResult r6) return r6;
+
+                    // TODO(flag - Blocking/Data integrity, STILL OPEN — required FK hardcoded):
+                    // same as department above — DepartmentId, WarehouseId, and DockStatusId are
+                    // still hardcoded to 1. Needs the create-form/view for typeKey=dock (or sign-off
+                    // to change the action signature) before I can wire in real selections.
+                    await AddEntityAsync(_dockRepo, new Dock { DockName = name, DepartmentId = 1, WarehouseId = 1, DockStatusId = 1 });
                     break;
 
                 case "warehouse":
-                    await _warehouseRepo.AddAsync(new Warehouse { Name = name });
-                    await _warehouseRepo.SaveChangesAsync();
+                    if (await DuplicateGuardAsync(_warehouseRepo, x => !x.IsDeleted && x.Name == name, "مستودع", typeKey) is IActionResult r7) return r7;
+                    await AddEntityAsync(_warehouseRepo, new Warehouse { Name = name });
                     break;
 
                 case "shift":
-                    await _shiftRepo.AddAsync(new Shift { Name = name, StartTime = TimeSpan.FromHours(8), Duration = TimeSpan.FromHours(8) });
-                    await _shiftRepo.SaveChangesAsync();
+                    if (await DuplicateGuardAsync(_shiftRepo, x => !x.IsDeleted && x.Name == name, "وردية", typeKey) is IActionResult r8) return r8;
+                    // TODO(flag - Data integrity): StartTime/Duration still hardcoded (8:00, 8h)
+                    // for every new shift — flagged previously, unchanged, needs the create form.
+                    await AddEntityAsync(_shiftRepo, new Shift { Name = name, StartTime = TimeSpan.FromHours(8), Duration = TimeSpan.FromHours(8) });
                     break;
 
                 case "permit-type":
-                    await _permitTypesRepo.AddAsync(new PermitTypes { Name = name });
-                    await _permitTypesRepo.SaveChangesAsync();
+                    if (await DuplicateGuardAsync(_permitTypesRepo, x => !x.IsDeleted && x.Name == name, "نوع تصريح", typeKey) is IActionResult r9) return r9;
+                    await AddEntityAsync(_permitTypesRepo, new PermitTypes { Name = name });
+                    break;
+
+                default:
+                    handled = false;
                     break;
             }
 
-            TempData["SuccessMessage"] = "تم إضافة الاختيار بنجاح!";
+            TempData[handled ? "SuccessMessage" : "ErrorMessage"] =
+                handled ? "تم إضافة الاختيار بنجاح!" : "نوع الاختيار غير معروف.";
             return RedirectToAction(nameof(MangeTypeDetails), new { typeKey });
         }
 
@@ -662,56 +752,64 @@ namespace Rassef.Controllers
             }
 
             name = name.Trim();
+            bool found;
 
+            // CHANGED (behavior fix - Data integrity): duplicate check added to every case
+            // (excluding the row being edited), same reasoning as CreateTypeItem above.
             switch (typeKey?.ToLower())
             {
                 case "driver-type":
-                    var dt = await _driverTypesRepo.GetByIdAsync(id);
-                    if (dt != null) { dt.Name = name; _driverTypesRepo.Update(dt); await _driverTypesRepo.SaveChangesAsync(); }
+                    if (await DuplicateGuardAsync(_driverTypesRepo, x => x.Id != id && !x.IsDeleted && x.Name == name, "نوع سائق", typeKey) is IActionResult e1) return e1;
+                    found = await UpdateEntityFieldAsync(_driverTypesRepo, id, e => e.Name = name);
                     break;
 
                 case "position":
-                    var pos = await _positionRepo.GetByIdAsync(id);
-                    if (pos != null) { pos.PositionName = name; _positionRepo.Update(pos); await _positionRepo.SaveChangesAsync(); }
+                    if (await DuplicateGuardAsync(_positionRepo, x => x.Id != id && !x.IsDeleted && x.PositionName == name, "دور وظيفي", typeKey) is IActionResult e2) return e2;
+                    found = await UpdateEntityFieldAsync(_positionRepo, id, e => e.PositionName = name);
                     break;
 
                 case "truck-type":
-                    var tt = await _truckTypesRepo.GetByIdAsync(id);
-                    if (tt != null) { tt.Name = name; _truckTypesRepo.Update(tt); await _truckTypesRepo.SaveChangesAsync(); }
+                    if (await DuplicateGuardAsync(_truckTypesRepo, x => x.Id != id && !x.IsDeleted && x.Name == name, "نوع شاحنة", typeKey) is IActionResult e3) return e3;
+                    found = await UpdateEntityFieldAsync(_truckTypesRepo, id, e => e.Name = name);
                     break;
 
                 case "commodity-type":
-                    var ct = await _commodityTypesRepo.GetByIdAsync(id);
-                    if (ct != null) { ct.Name = name; _commodityTypesRepo.Update(ct); await _commodityTypesRepo.SaveChangesAsync(); }
+                    if (await DuplicateGuardAsync(_commodityTypesRepo, x => x.Id != id && !x.IsDeleted && x.Name == name, "نوع سلعة", typeKey) is IActionResult e4) return e4;
+                    found = await UpdateEntityFieldAsync(_commodityTypesRepo, id, e => e.Name = name);
                     break;
 
                 case "department":
-                    var dept = await _departmentRepo.GetByIdAsync(id);
-                    if (dept != null) { dept.Name = name; _departmentRepo.Update(dept); await _departmentRepo.SaveChangesAsync(); }
+                    if (await DuplicateGuardAsync(_departmentRepo, x => x.Id != id && !x.IsDeleted && x.Name == name, "قسم", typeKey) is IActionResult e5) return e5;
+                    found = await UpdateEntityFieldAsync(_departmentRepo, id, e => e.Name = name);
                     break;
 
                 case "dock":
-                    var dock = await _dockRepo.GetByIdAsync(id);
-                    if (dock != null) { dock.DockName = name; _dockRepo.Update(dock); await _dockRepo.SaveChangesAsync(); }
+                    if (await DuplicateGuardAsync(_dockRepo, x => x.Id != id && !x.IsDeleted && x.DockName == name, "رصيف", typeKey) is IActionResult e6) return e6;
+                    found = await UpdateEntityFieldAsync(_dockRepo, id, e => e.DockName = name);
                     break;
 
                 case "warehouse":
-                    var wh = await _warehouseRepo.GetByIdAsync(id);
-                    if (wh != null) { wh.Name = name; _warehouseRepo.Update(wh); await _warehouseRepo.SaveChangesAsync(); }
+                    if (await DuplicateGuardAsync(_warehouseRepo, x => x.Id != id && !x.IsDeleted && x.Name == name, "مستودع", typeKey) is IActionResult e7) return e7;
+                    found = await UpdateEntityFieldAsync(_warehouseRepo, id, e => e.Name = name);
                     break;
 
                 case "shift":
-                    var shift = await _shiftRepo.GetByIdAsync(id);
-                    if (shift != null) { shift.Name = name; _shiftRepo.Update(shift); await _shiftRepo.SaveChangesAsync(); }
+                    if (await DuplicateGuardAsync(_shiftRepo, x => x.Id != id && !x.IsDeleted && x.Name == name, "وردية", typeKey) is IActionResult e8) return e8;
+                    found = await UpdateEntityFieldAsync(_shiftRepo, id, e => e.Name = name);
                     break;
 
                 case "permit-type":
-                    var pt = await _permitTypesRepo.GetByIdAsync(id);
-                    if (pt != null) { pt.Name = name; _permitTypesRepo.Update(pt); await _permitTypesRepo.SaveChangesAsync(); }
+                    if (await DuplicateGuardAsync(_permitTypesRepo, x => x.Id != id && !x.IsDeleted && x.Name == name, "نوع تصريح", typeKey) is IActionResult e9) return e9;
+                    found = await UpdateEntityFieldAsync(_permitTypesRepo, id, e => e.Name = name);
+                    break;
+
+                default:
+                    found = false;
                     break;
             }
 
-            TempData["SuccessMessage"] = "تم تعديل الاختيار بنجاح!";
+            TempData[found ? "SuccessMessage" : "ErrorMessage"] =
+                found ? "تم تعديل الاختيار بنجاح!" : "لم يتم العثور على العنصر المطلوب.";
             return RedirectToAction(nameof(MangeTypeDetails), new { typeKey });
         }
 
@@ -722,55 +820,133 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteTypeItem(string typeKey, int id)
         {
+            // CHANGED (behavior fix - Consistency/Data integrity): switched from hard delete
+            // (Remove) to soft delete (IsDeleted = true), matching the rest of the codebase and
+            // confirmed as the required pattern — "we don't do hard delete at all". This assumes
+            // these entity types share the same BaseEntity (with an IsDeleted flag) that UserGroup
+            // uses — confirmed for UserGroup's source, but I have not seen the entity files for
+            // DriverTypes/Position/TruckTypes/CommodityTypes/Department/Dock/Warehouse/Shift/
+            // PermitTypes. If any of them doesn't inherit BaseEntity, this won't compile for that
+            // type specifically — let me know which one and I'll adjust just that case.
+            //
+            // Also: this is a one-way soft delete (no toggle/undelete), since — unlike
+            // DeleteGroup — there's no "reactivate" affordance for lookup items today.
+            bool found;
+
             switch (typeKey?.ToLower())
             {
                 case "driver-type":
-                    var dt = await _driverTypesRepo.GetByIdAsync(id);
-                    if (dt != null) { _driverTypesRepo.Remove(dt); await _driverTypesRepo.SaveChangesAsync(); }
+                    found = await SoftDeleteEntityAsync(_driverTypesRepo, id);
                     break;
-
                 case "position":
-                    var pos = await _positionRepo.GetByIdAsync(id);
-                    if (pos != null) { _positionRepo.Remove(pos); await _positionRepo.SaveChangesAsync(); }
+                    found = await SoftDeleteEntityAsync(_positionRepo, id);
                     break;
-
                 case "truck-type":
-                    var tt = await _truckTypesRepo.GetByIdAsync(id);
-                    if (tt != null) { _truckTypesRepo.Remove(tt); await _truckTypesRepo.SaveChangesAsync(); }
+                    found = await SoftDeleteEntityAsync(_truckTypesRepo, id);
                     break;
-
                 case "commodity-type":
-                    var ct = await _commodityTypesRepo.GetByIdAsync(id);
-                    if (ct != null) { _commodityTypesRepo.Remove(ct); await _commodityTypesRepo.SaveChangesAsync(); }
+                    found = await SoftDeleteEntityAsync(_commodityTypesRepo, id);
                     break;
-
                 case "department":
-                    var dept = await _departmentRepo.GetByIdAsync(id);
-                    if (dept != null) { _departmentRepo.Remove(dept); await _departmentRepo.SaveChangesAsync(); }
+                    found = await SoftDeleteEntityAsync(_departmentRepo, id);
                     break;
-
                 case "dock":
-                    var dock = await _dockRepo.GetByIdAsync(id);
-                    if (dock != null) { _dockRepo.Remove(dock); await _dockRepo.SaveChangesAsync(); }
+                    found = await SoftDeleteEntityAsync(_dockRepo, id);
                     break;
-
                 case "warehouse":
-                    var wh = await _warehouseRepo.GetByIdAsync(id);
-                    if (wh != null) { _warehouseRepo.Remove(wh); await _warehouseRepo.SaveChangesAsync(); }
+                    found = await SoftDeleteEntityAsync(_warehouseRepo, id);
                     break;
-
                 case "shift":
-                    var shift = await _shiftRepo.GetByIdAsync(id);
-                    if (shift != null) { _shiftRepo.Remove(shift); await _shiftRepo.SaveChangesAsync(); }
+                    found = await SoftDeleteEntityAsync(_shiftRepo, id);
                     break;
-
                 case "permit-type":
-                    var pt = await _permitTypesRepo.GetByIdAsync(id);
-                    if (pt != null) { _permitTypesRepo.Remove(pt); await _permitTypesRepo.SaveChangesAsync(); }
+                    found = await SoftDeleteEntityAsync(_permitTypesRepo, id);
+                    break;
+                default:
+                    found = false;
                     break;
             }
 
-            TempData["SuccessMessage"] = "تم حذف الاختيار بنجاح!";
+            TempData[found ? "SuccessMessage" : "ErrorMessage"] =
+                found ? "تم حذف الاختيار بنجاح!" : "لم يتم العثور على العنصر المطلوب.";
+            return RedirectToAction(nameof(MangeTypeDetails), new { typeKey });
+        }
+
+        // ==============================================================
+        // Shared private helpers
+        // ==============================================================
+
+        /// <summary>
+        /// CreatedAT on UserGroup can apparently be default(DateTimeOffset); preserves the
+        /// existing "fall back to DateTime.Now" behavior exactly, just de-duplicated. A default
+        /// CreatedAT likely means something upstream isn't setting it on insert — flagged
+        /// separately in the follow-up questions, not changed here.
+        /// </summary>
+        private static DateTime ResolveCreatedAt(DateTimeOffset createdAt) =>
+            createdAt != default ? createdAt.DateTime : DateTime.Now;
+
+        private static List<GroupCardVM> MapToGroupCards(IEnumerable<UserGroup> groups) =>
+            groups.Select(g => new GroupCardVM
+            {
+                Id = g.Id,
+                Name = g.Name,
+                UsersCount = g.Users?.Count ?? 0,
+                CreatedAt = ResolveCreatedAt(g.CreatedAT),
+                IsActive = !g.IsDeleted
+            }).ToList();
+
+        private async Task PopulateAllGroupsViewBagAsync()
+        {
+            ViewBag.AllGroups = (await _groupRepo.GetAllAsync()).ToList();
+        }
+
+        private static List<TypeItemVM> MapToTypeItems<T>(IEnumerable<T> items, Func<T, int> idSelector, Func<T, string> nameSelector) =>
+            items.Select(x => new TypeItemVM { Id = idSelector(x), Name = nameSelector(x) }).ToList();
+
+        private static async Task AddEntityAsync<T>(IRepository<T> repo, T entity) where T : class
+        {
+            await repo.AddAsync(entity);
+            await repo.SaveChangesAsync();
+        }
+
+        private static async Task<bool> UpdateEntityFieldAsync<T>(IRepository<T> repo, int id, Action<T> applyChanges) where T : class
+        {
+            var entity = await repo.GetByIdAsync(id);
+            if (entity == null) return false;
+
+            applyChanges(entity);
+            repo.Update(entity);
+            await repo.SaveChangesAsync();
+            return true;
+        }
+
+        /// <summary>
+        /// Soft-deletes an entity (IsDeleted = true) instead of removing the row, per the
+        /// project's "no hard deletes" rule. Requires T : BaseEntity — see the flag on
+        /// DeleteTypeItem above about unverified entity inheritance.
+        /// </summary>
+        private static async Task<bool> SoftDeleteEntityAsync<T>(IRepository<T> repo, int id) where T : BaseEntity
+        {
+            var entity = await repo.GetByIdAsync(id);
+            if (entity == null || entity.IsDeleted) return false;
+
+            entity.IsDeleted = true;
+            repo.Update(entity);
+            await repo.SaveChangesAsync();
+            return true;
+        }
+
+        /// <summary>
+        /// Checks for an existing non-deleted row matching predicate; if found, sets the standard
+        /// Arabic duplicate-name error and returns a redirect for the caller to return immediately.
+        /// Returns null when there's no duplicate, so the caller proceeds normally.
+        /// </summary>
+        private async Task<IActionResult?> DuplicateGuardAsync<T>(IRepository<T> repo, Expression<Func<T, bool>> predicate, string itemLabel, string typeKey) where T : class
+        {
+            if (!await repo.ExistsAsync(predicate))
+                return null;
+
+            TempData["ErrorMessage"] = $"يوجد {itemLabel} بنفس الاسم بالفعل.";
             return RedirectToAction(nameof(MangeTypeDetails), new { typeKey });
         }
     }
