@@ -39,10 +39,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (passwordValue === '') {
             showError(passwordInput, passwordError, 'يرجى إدخال كلمة المرور.');
             isValid = false;
-        } else if (passwordValue.length < 6) {
-            showError(passwordInput, passwordError, 'كلمة المرور يجب ألا تقل عن 6 رموز.');
-            isValid = false;
-        } else {
+        }
+        else {
             clearError(passwordInput, passwordError);
         }
 

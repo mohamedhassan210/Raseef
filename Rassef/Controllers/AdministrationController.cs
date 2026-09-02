@@ -161,6 +161,15 @@ namespace Rassef.Controllers
                 ModelState.AddModelError(nameof(model.PositionId), "يرجى اختيار الدور الوظيفي للموظف.");
             }
 
+            if (!string.IsNullOrWhiteSpace(model.UserName))
+            {
+                var existingUserName = await _userRepository.FindAsync(u => u.UserName == model.UserName && !u.IsDeleted);
+                if (existingUserName != null)
+                {
+                    ModelState.AddModelError(nameof(model.UserName), "اسم المستخدم مُسجل لموظف آخر بالفعل.");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
@@ -175,6 +184,7 @@ namespace Rassef.Controllers
             var user = new User
             {
                 Name = model.Name,
+                UserName = model.UserName,
                 Phone = model.Phone.Trim(),
                 Email = Email.Create(model.Email),
                 PositionId = model.PositionId,

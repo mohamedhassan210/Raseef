@@ -117,10 +117,13 @@
                 </a>
 
                 <!-- زر لوحة الإدارة (Admin Dashboard) -->
-                <a asp-controller="Administration" asp-action="Index" class="btn-admin-dashboard">
-                    <i class="fas fa-th-large"></i>
-                    <span>لوحة التحكم</span>
-                </a>
+                @if (ViewBag.IsAdmin == true)
+                {
+                    <a asp-controller="Administration" asp-action="Index" class="btn-admin-dashboard">
+                        <i class="fas fa-th-large"></i>
+                        <span>لوحة التحكم</span>
+                    </a>
+                }
 
                 <!-- زر الرجوع -->
                 <a asp-controller="Authentication" asp-action="AddRoleOrView" class="back-btn">
@@ -300,6 +303,8 @@
             </div>
         </section>
     </div>
+
+   
 
     <script src="~/js/viewRole.js" asp-append-version="true"></script>
 </body>

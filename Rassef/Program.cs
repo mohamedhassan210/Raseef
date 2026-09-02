@@ -1,3 +1,5 @@
+using Rassef.Filters;
+
 namespace Rassef
 {
     public class Program
@@ -5,6 +7,13 @@ namespace Rassef
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+
+
+            builder.Services.AddControllersWithViews(options =>
+            {
+                options.Filters.Add<NoCacheAttribute>();
+            });
 
             builder.Services.AddDependcyInjection(builder.Configuration);
             builder.Host.UseSerilog();

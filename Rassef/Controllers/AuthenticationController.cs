@@ -177,6 +177,7 @@ namespace Rassef.Controllers
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
+                Path = "/",
                 Expires = DateTimeOffset.UtcNow.AddDays(7),
                 IsEssential = true
             });
@@ -204,6 +205,26 @@ namespace Rassef.Controllers
 
             return RedirectToAction("AddRoleOrView", "Authentication");
         }
+
+
+        private async Task<bool> IsCurrentUserAdminAsync()
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                return false;
+
+            var allUsers = await _userRepository.GetAllAsync(q => q
+                .Include(u => u.Group)
+                .Include(u => u.Position));
+
+            var user = allUsers.FirstOrDefault(u => u.Id == userId);
+            if (user == null) return false;
+
+            return (user.Group != null && user.Group.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                || (user.Position != null && user.Position.PositionName.Contains("Admin", StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(user.UserName) && user.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase));
+        }
+
 
         /// <summary>
         /// صفحة إجبار تغيير كلمة المرور الافتراضية لأول مرة (GET)
@@ -303,11 +324,17 @@ namespace Rassef.Controllers
         /// <summary>
         /// تسجيل الخروج وحذف الكوكيز
         /// Logs out the user and clears authentication cookie
-        /// </summary>
+        /// </summary>        
         [HttpGet]
         public IActionResult Logout()
         {
-            Response.Cookies.Delete("AccessToken");
+            Response.Cookies.Delete("AccessToken", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = "/"
+            });
             return RedirectToAction("Login", "Authentication");
         }
 
@@ -374,6 +401,7 @@ namespace Rassef.Controllers
                 }
             }
 
+            ViewBag.IsAdmin = await IsCurrentUserAdminAsync();
             return View();
         }
 
@@ -394,6 +422,7 @@ namespace Rassef.Controllers
                 }
             }
 
+            ViewBag.IsAdmin = await IsCurrentUserAdminAsync();
             return View();
         }
 
@@ -477,6 +506,7 @@ namespace Rassef.Controllers
                 CompletedCount = completedCount
             };
 
+            ViewBag.IsAdmin = await IsCurrentUserAdminAsync();
             return View("viewRole", viewModel);
         }
 

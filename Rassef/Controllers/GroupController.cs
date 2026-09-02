@@ -594,7 +594,17 @@ namespace Rassef.Controllers
                     break;
 
                 case "position":
-                    await _positionRepo.AddAsync(new Position { PositionName = name });
+                    bool nameExists = await _positionRepo.ExistsAsync(p => p.PositionName == name);
+                    if (nameExists)
+                    {
+                        TempData["ErrorMessage"] = "يوجد دور وظيفي بنفس الاسم بالفعل.";
+                        return RedirectToAction(nameof(MangeTypeDetails), new { typeKey });
+                    }
+
+                    var allPositions = await _positionRepo.GetAllAsync();
+                    int nextPositionCode = allPositions.Any() ? allPositions.Max(p => p.PositionCode) + 1 : 1;
+
+                    await _positionRepo.AddAsync(new Position { PositionName = name, PositionCode = nextPositionCode });
                     await _positionRepo.SaveChangesAsync();
                     break;
 
