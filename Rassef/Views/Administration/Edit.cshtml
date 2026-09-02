@@ -68,8 +68,17 @@
                     </div>
                 </div>
 
-                <!-- رقم الهاتف -->
+                <!-- اسم المستخدم -->
                 <div class="col-md-6 order-md-2">
+                    <label for="empUserName" class="form-label fw-bold">اسم المستخدم</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control custom-input" id="empUserName" name="UserName" value="@Model?.UserName" placeholder="ادخل اسم المستخدم لتسجيل الدخول" required autocomplete="off">
+                        <div class="invalid-feedback text-center mt-2">يرجى إدخال اسم المستخدم.</div>
+                    </div>
+                </div>
+
+                <!-- رقم الهاتف -->
+                <div class="col-md-6 order-md-3">
                     <label for="empPhone" class="form-label fw-bold">رقم الهاتف</label>
                     <div class="position-relative">
                         <input type="tel" class="form-control custom-input" id="empPhone" name="Phone" value="@Model?.Phone" placeholder="ادخل رقم الهاتف (11 رقم - 01xxxxxxxxx)" pattern="^01[0125][0-9]{8}$" maxlength="11" inputmode="numeric" required autocomplete="tel" dir="rtl">
@@ -78,7 +87,7 @@
                 </div>
 
                 <!-- البريد الإلكتروني -->
-                <div class="col-md-6 order-md-3">
+                <div class="col-md-6 order-md-4">
                     <label for="empEmail" class="form-label fw-bold">البريد الإلكتروني</label>
                     <div class="position-relative">
                         <input type="email" class="form-control custom-input text-end" id="empEmail" name="Email" value="@Model?.Email" placeholder="ادخل البريد الإلكتروني للموظف" required autocomplete="email">
@@ -87,7 +96,7 @@
                 </div>
 
                 <!-- الرقم القومي -->
-                <div class="col-md-6 order-md-4">
+                <div class="col-md-6 order-md-5">
                     <label for="empNationalId" class="form-label fw-bold">الرقم القومي</label>
                     <div class="position-relative">
                         <input type="text" class="form-control custom-input" id="empNationalId" name="NationalId" value="@Model?.NationalId" placeholder="ادخل الرقم القومي (14 رقم)" pattern="^[0-9]{14}$" maxlength="14" minlength="14" inputmode="numeric" required autocomplete="off">
@@ -96,7 +105,7 @@
                 </div>
 
                 <!-- الدور الوظيفي -->
-                <div class="col-md-6 order-md-5">
+                <div class="col-md-6 order-md-6">
                     <label class="form-label fw-bold" for="empRoleSelect">الدور الوظيفي</label>
                     <div class="position-relative custom-dropdown-container">
                         <select class="visually-hidden-select" id="empRoleSelect" name="PositionId" required>
@@ -149,7 +158,7 @@
                 </div>
 
                 <!-- مجموعة الصلاحيات -->
-                <div class="col-md-6 order-md-6">
+                <div class="col-md-6 order-md-7">
                     <label class="form-label fw-bold" for="empGroupSelect">مجموعة الصلاحيات</label>
                     <div class="position-relative custom-dropdown-container">
                         <select class="visually-hidden-select" id="empGroupSelect" name="GroupId" required>
@@ -202,7 +211,7 @@
                 </div>
 
                 <!-- كود الموظف -->
-                <div class="col-md-6 order-md-7">
+                <div class="col-md-6 order-md-8">
                     <label for="empUserCode" class="form-label fw-bold">كود الموظف</label>
                     <div class="position-relative">
                         <input type="text" class="form-control custom-input text-end" id="empUserCode" name="UserCode" value="@Model?.UserCode" placeholder="ادخل كود الموظف" required autocomplete="off">
@@ -211,7 +220,7 @@
                 </div>
 
                 <!-- كود الفرع -->
-                <div class="col-md-6 order-md-8">
+                <div class="col-md-6 order-md-9">
                     <label for="empBranchCode" class="form-label fw-bold">كود الفرع</label>
                     <div class="position-relative">
                         <input type="text" class="form-control custom-input text-end" id="empBranchCode" name="BranchCode" value="@Model?.BranchCode" placeholder="ادخل كود الفرع (مثال: BR-01)" required autocomplete="off">

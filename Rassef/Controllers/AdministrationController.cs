@@ -98,6 +98,7 @@ namespace Rassef.Controllers
             {
                 Id = user.Id,
                 Name = user.Name,
+                UserName = user.UserName ?? string.Empty,
                 UserCode = user.UserCode ?? string.Empty,
                 BranchCode = user.BranchCode ?? string.Empty,
                 Role = user.Position?.PositionName ?? "غير محدد",
@@ -232,6 +233,7 @@ namespace Rassef.Controllers
             {
                 Id = user.Id,
                 Name = user.Name,
+                UserName = user.UserName ?? string.Empty,
                 Phone = user.Phone,
                 Email = user.Email?.ToString() ?? string.Empty,
                 PositionId = user.PositionId,
@@ -283,6 +285,15 @@ namespace Rassef.Controllers
                 ModelState.AddModelError(nameof(model.PositionId), "يرجى اختيار الدور الوظيفي للموظف.");
             }
 
+            if (!string.IsNullOrWhiteSpace(model.UserName))
+            {
+                var existingUserName = await _userRepository.FindAsync(u => u.UserName == model.UserName && u.Id != model.Id && !u.IsDeleted);
+                if (existingUserName != null)
+                {
+                    ModelState.AddModelError(nameof(model.UserName), "اسم المستخدم مُسجل لموظف آخر بالفعل.");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
@@ -307,6 +318,7 @@ namespace Rassef.Controllers
             }
 
             user.Name = model.Name;
+            user.UserName = model.UserName;
             user.Phone = model.Phone.Trim();
             user.Email = Email.Create(model.Email);
             user.PositionId = model.PositionId;
