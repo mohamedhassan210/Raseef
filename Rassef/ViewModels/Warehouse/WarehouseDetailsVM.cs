@@ -1,5 +1,4 @@
-﻿
-namespace Rassef.ViewModels.Warehouse
+﻿namespace Rassef.ViewModels.Warehouse
 {
     public class WarehouseDetailsVM
     {
@@ -14,10 +13,20 @@ namespace Rassef.ViewModels.Warehouse
         [Display(Name = "تم الإنشاء بواسطة")]
         public string CreatedByName { get; set; } = string.Empty;
 
-        [Display(Name = "الأقسام المرتبطة")]
-        public List<string> DepartmentNames { get; set; } = new List<string>();
+        [Display(Name = "الأقسام")]
+        public List<WarehouseLinkedItemVM> AllDepartments { get; set; } = new List<WarehouseLinkedItemVM>();
 
-        [Display(Name = "الأرصفة المرتبطة")]
-        public List<string> DockNames { get; set; } = new List<string>();
+        [Display(Name = "الأرصفة")]
+        public List<WarehouseLinkedItemVM> AllDocks { get; set; } = new List<WarehouseLinkedItemVM>();
+    }
+
+    /// <summary>
+    /// Read-only row for the Details page: a department/dock name plus whether
+    /// it's linked to the warehouse being viewed. Not used for selection/editing.
+    /// </summary>
+    public class WarehouseLinkedItemVM
+    {
+        public string Name { get; set; } = string.Empty;
+        public bool IsLinked { get; set; }
     }
 }

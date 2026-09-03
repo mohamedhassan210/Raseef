@@ -1,0 +1,82 @@
+@model Rassef.ViewModels.Warehouse.UpdateWarehouseVM
+@{
+    ViewData["Title"] = "تعديل مستودع";
+    Layout = "_SupOrTra";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="~/css/addCar.css" asp-append-version="true">
+<link rel="stylesheet" href="~/css/companyCars.css" asp-append-version="true">
+
+<main class="page-container">
+
+    <header class="page-header">
+        <div class="logo-wrapper header-right">
+            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-Fathalla">
+        </div>
+        <div class="title-wrapper">
+            <h1 class="main-title">تعديل مستودع</h1>
+        </div>
+        <div class="logo-wrapper header-left">
+            <img src="~/img/logo.svg" alt="رصيف" class="logo-raseefy">
+        </div>
+    </header>
+
+    <div class="nav-actions-container" style="justify-content: flex-end;">
+        <a href="@Url.Action("Index", "Warehouses")" class="action-btn" aria-label="رجوع">
+            رجوع
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </a>
+    </div>
+
+    <section class="form-card mt-3">
+        <form asp-action="Edit" asp-controller="Warehouses" asp-route-id="@Model.Id" method="post" class="needs-validation" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div style="background-color: #fde8e8; color: #dc3545; padding: 12px 20px; border-radius: 10px; font-weight: 700; margin-bottom: 16px;">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
+
+            <div class="row mb-4 gy-4">
+
+                <!-- اسم المستودع -->
+                <div class="col-md-6">
+                    <label asp-for="Name" class="form-label fw-bold">اسم المستودع</label>
+                    <input asp-for="Name" type="text" class="form-control custom-input" placeholder="ادخل اسم المستودع" required>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <!-- الموقع -->
+                <div class="col-md-6">
+                    <label asp-for="Location" class="form-label fw-bold">الموقع</label>
+                    <input asp-for="Location" type="text" class="form-control custom-input" placeholder="ادخل موقع المستودع">
+                    <span asp-validation-for="Location" class="text-danger"></span>
+                </div>
+
+            </div>
+
+            <button type="submit" class="w-100 submit-btn mt-4">حفظ التعديلات</button>
+        </form>
+    </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

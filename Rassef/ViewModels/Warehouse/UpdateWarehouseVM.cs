@@ -1,6 +1,4 @@
-﻿
-
-namespace Rassef.ViewModels.Warehouse
+﻿namespace Rassef.ViewModels.Warehouse
 {
     public class UpdateWarehouseVM
     {
@@ -11,10 +9,5 @@ namespace Rassef.ViewModels.Warehouse
 
         [Display(Name = "الموقع")]
         public string Location { get; set; } = string.Empty;
-
-        [Display(Name = "الأقسام المحددّة")]
-        public List<int> SelectedDepartmentIds { get; set; } = new List<int>();
-
-        public IEnumerable<SelectListItem>? Departments { get; set; }
     }
 }

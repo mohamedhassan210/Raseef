@@ -68,6 +68,35 @@
                     <span>إدارة الورديات</span>
                 </a>
             </li>
+            <!-- ADDED: Position/Warehouses/Department/Dock now have their own management screens
+                 (see GroupController — they were removed from the generic "إدارة الإختيارات" list
+                 because each needs real dropdown-backed forms that the generic name-only modal
+                 couldn't provide without hardcoding required FKs). Flat entries, as requested,
+                 alongside the existing group/options/shift links rather than a new sub-section. -->
+            <li>
+                <a href="@Url.Action("Index", "Position")" class="sidebar-item @(active == "Position" ? "active" : "")">
+                    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+                    <span>إدارة الأدوار الوظيفية</span>
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("Index", "Warehouses")" class="sidebar-item @(active == "Warehouses" ? "active" : "")">
+                    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span>إدارة المستودعات</span>
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("Index", "Department")" class="sidebar-item @(active == "Departments" ? "active" : "")">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <span>إدارة الأقسام</span>
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("Index", "Dock")" class="sidebar-item @(active == "Docks" ? "active" : "")">
+                    <svg viewBox="0 0 24 24"><path d="M12 22V8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M5 12a7 7 0 0 1 14 0"/></svg>
+                    <span>إدارة الأرصفة</span>
+                </a>
+            </li>
         </ul>
     </div>
     <div class="sidebar-user">

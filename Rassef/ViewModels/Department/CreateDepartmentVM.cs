@@ -11,7 +11,13 @@
         [Display(Name = "المخزن")]
         public int WarehouseId { get; set; }
 
+        [Display(Name = "نوع القسم")]
+        public int DepartmentTypeId { get; set; }
+
         // DropDown
         public IEnumerable<SelectListItem>? Warehouses { get; set; }
+
+        // DropDown — Q5
+        public IEnumerable<SelectListItem>? DepartmentTypes { get; set; }
     }
 }

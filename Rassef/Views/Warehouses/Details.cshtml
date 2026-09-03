@@ -1,0 +1,131 @@
+@model Rassef.ViewModels.Warehouse.WarehouseDetailsVM
+@{
+    ViewData["Title"] = "تفاصيل المستودع";
+    Layout = "_SupOrTra";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="~/css/addCar.css" asp-append-version="true">
+<link rel="stylesheet" href="~/css/companyCars.css" asp-append-version="true">
+
+<main class="page-container">
+
+    <header class="page-header">
+        <div class="logo-wrapper header-right">
+            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-Fathalla">
+        </div>
+        <div class="title-wrapper">
+            <h1 class="main-title">تفاصيل المستودع</h1>
+        </div>
+        <div class="logo-wrapper header-left">
+            <img src="~/img/logo.svg" alt="رصيف" class="logo-raseefy">
+        </div>
+    </header>
+
+    <div class="nav-actions-container" style="justify-content: flex-end;">
+        <a href="@Url.Action("Index", "Warehouses")" class="action-btn" aria-label="رجوع">
+            رجوع
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </a>
+    </div>
+
+    <section class="form-card mt-3">
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div style="background-color: #fde8e8; color: #dc3545; padding: 12px 20px; border-radius: 10px; font-weight: 700; margin-bottom: 16px;">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div>@error.ErrorMessage</div>
+                }
+            </div>
+        }
+
+        @if (Model != null && Model.Id > 0)
+        {
+            <div class="row mb-4 gy-4">
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">اسم المستودع</label>
+                    <input type="text" class="form-control custom-input" value="@Model.Name" readonly>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">الموقع</label>
+                    <input type="text" class="form-control custom-input" value="@Model.Location" readonly>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">أنشئ بواسطة</label>
+                    <input type="text" class="form-control custom-input" value="@Model.CreatedByName" readonly>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">الأقسام</label>
+                    @if (Model.AllDepartments != null && Model.AllDepartments.Any())
+                    {
+                        <ul class="list-group">
+                            @foreach (var dept in Model.AllDepartments)
+                            {
+                                <li class="list-group-item @(dept.IsLinked ? "list-group-item-success" : "")">
+                                    @dept.Name
+                                    @if (dept.IsLinked)
+                                    {
+                                        <span class="fw-bold">— مرتبط بهذا المستودع</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <input type="text" class="form-control custom-input" value="لا توجد أقسام" readonly>
+                    }
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">الأرصفة</label>
+                    @if (Model.AllDocks != null && Model.AllDocks.Any())
+                    {
+                        <ul class="list-group">
+                            @foreach (var dock in Model.AllDocks)
+                            {
+                                <li class="list-group-item @(dock.IsLinked ? "list-group-item-success" : "")">
+                                    @dock.Name
+                                    @if (dock.IsLinked)
+                                    {
+                                        <span class="fw-bold">— مرتبط بهذا المستودع</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <input type="text" class="form-control custom-input" value="لا توجد أرصفة" readonly>
+                    }
+                </div>
+
+            </div>
+
+            <div class="d-flex gap-3 mt-3">
+                <a href="@Url.Action("Edit", "Warehouses", new { id = Model.Id })" class="w-100 submit-btn mt-2" style="text-decoration:none; text-align:center;">
+                    تعديل
+                </a>
+                <a href="@Url.Action("Delete", "Warehouses", new { id = Model.Id })" class="w-100 mt-2 btn btn-danger" style="border-radius: 12px; font-weight: 700; font-size: 16px;">
+                    حذف
+                </a>
+            </div>
+        }
+
+    </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

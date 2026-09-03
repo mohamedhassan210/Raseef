@@ -1,0 +1,112 @@
+@model IEnumerable<Rassef.ViewModels.Dock.DockListVM>
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رصيف — إدارة الأرصفة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true">
+</head>
+<body>
+    <div class="dashboard-page">
+
+        <partial name="_AdminSidebar" model='"Docks"' />
+
+        <main class="dashboard-main">
+
+            <header class="dashboard-header">
+                <button class="mobile-toggle" id="mobileToggle" aria-label="القائمة">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6"  x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="header-right">
+                    <h2 class="header-title">إدارة الأرصفة</h2>
+                    <div class="header-subtitle">
+                        <span class="update-dot"></span>
+                        <span>قائمة الأرصفة المسجلة</span>
+                    </div>
+                </div>
+                <div class="header-left-logos">
+                    <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
+                    <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
+                </div>
+            </header>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div style="background-color: #e8f7ee; color: #1e7e34; padding: 12px 20px; border-radius: 10px; font-weight: 700; margin-bottom: 12px;">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div style="background-color: #fde8e8; color: #dc3545; padding: 12px 20px; border-radius: 10px; font-weight: 700; margin-bottom: 12px;">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+
+            <div class="dashboard-actions-bar">
+                <a href="@Url.Action("Create", "Dock")" class="btn-action-add" style="text-decoration: none;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="12" y1="5"  x2="12" y2="19" />
+                        <line x1="5"  y1="12" x2="19" y2="12" />
+                    </svg>
+                    <span>إضافة رصيف</span>
+                </a>
+            </div>
+
+            <div class="table-container">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>اسم الرصيف</th>
+                            <th>المستودع</th>
+                            <th>القسم</th>
+                            <th>الحالة</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var dock in Model)
+                            {
+                                <tr class="table-row">
+                                    <td>@dock.DockName</td>
+                                    <td>@dock.WarehouseName</td>
+                                    <td>@dock.DepartmentName</td>
+                                    <td>@dock.DockStatusName</td>
+                                    <td>
+                                        <a href="@Url.Action("Details", "Dock", new { id = dock.Id })"
+                                           class="btn-table-details" style="text-decoration: none;">
+                                            <span>تفاصيل</span>
+                                            <span class="arrow">&larr;</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="empty-state">لا توجد أرصفة مسجلة حتى الآن</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>

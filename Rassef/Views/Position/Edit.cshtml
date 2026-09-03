@@ -1,0 +1,72 @@
+@model Rassef.ViewModels.Position.UpdatePositionViewModel
+@{
+    ViewData["Title"] = "تعديل دور وظيفي";
+    Layout = "_SupOrTra";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/addEmployee.css" asp-append-version="true">
+}
+
+<main class="page-container">
+    <header class="page-header">
+        <div class="logo-wrapper header-right">
+            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-Fathalla">
+        </div>
+        <div class="title-wrapper">
+            <h1 class="main-title">تعديل دور وظيفي</h1>
+        </div>
+        <div class="logo-wrapper header-left">
+            <img src="~/img/logo.svg" alt="رصيفي" class="logo-raseefy">
+        </div>
+    </header>
+
+    <div class="nav-actions-container" style="justify-content: flex-end;">
+        <a href="@Url.Action("Index", "Position")" class="action-btn" aria-label="خطوة للخلف">
+            خطوة للخلف
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </a>
+    </div>
+
+    <section class="form-card mt-3">
+        <form method="post" action="@Url.Action("Edit", "Position")" class="needs-validation" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@Model.Id" />
+
+            @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+            {
+                <div class="alert alert-danger text-end mb-4">
+                    <ul class="mb-0" style="list-style-type: none; padding-right: 0;">
+                        @foreach (var modelError in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@modelError.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <div class="row mb-4 gy-4">
+                <div class="col-md-6">
+                    <label for="posName" class="form-label fw-bold">اسم الدور الوظيفي</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control custom-input" id="posName" name="PositionName" value="@Model.PositionName" required autocomplete="off">
+                        <div class="invalid-feedback text-center mt-2">يرجى إدخال اسم الدور الوظيفي.</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="posCode" class="form-label fw-bold">كود الدور الوظيفي</label>
+                    <div class="position-relative">
+                        <input type="number" class="form-control custom-input" id="posCode" name="PositionCode" value="@Model.PositionCode" required autocomplete="off">
+                        <div class="invalid-feedback text-center mt-2">يرجى إدخال كود الدور الوظيفي.</div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="w-100 submit-btn mt-4">حفظ التعديلات</button>
+        </form>
+    </section>
+</main>
