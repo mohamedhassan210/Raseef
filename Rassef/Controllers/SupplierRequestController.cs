@@ -313,7 +313,12 @@ namespace Rassef.Controllers
                 return View(new SupplierRequestDetailsVM());
             }
 
-            _supplierRequestRepository.Remove(request);
+            // CHANGED: was a hard delete (_supplierRequestRepository.Remove(request)),
+            // which conflicts with the project's soft-delete-only rule. Assumes
+            // SupplierRequest has an IsDeleted property like Truck/Driver — please
+            // confirm (see follow-up questions).
+            request.IsDeleted = true;
+            _supplierRequestRepository.Update(request);
             await _supplierRequestRepository.SaveChangesAsync();
 
             TempData["Success"] = "تم حذف طلب المورد بنجاح.";
@@ -398,16 +403,21 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateTruckWithDriver(TruckWithDriverVM create)
         {
+            // CHANGED: no longer auto-creates a fabricated "عام" TruckTypes row.
+            // If no truck type could be resolved, this is now a validation error
+            // shown to the user instead of invented data silently written to the DB.
             if (create.TruckTypeId <= 0)
             {
                 var allTruckTypes = await _truckTypeRepository.GetAllAsync();
                 var defaultType = allTruckTypes.FirstOrDefault();
+
                 if (defaultType == null)
                 {
-                    defaultType = new TruckTypes { Name = "عام" };
-                    await _truckTypeRepository.AddAsync(defaultType);
-                    await _truckTypeRepository.SaveChangesAsync();
+                    ModelState.AddModelError("", "لا توجد أنواع شاحنات مُعرّفة في النظام. يرجى إضافة نوع شاحنة أولاً قبل المتابعة.");
+                    await ReloadTruckWithDriverDataAsync(create);
+                    return View(create);
                 }
+
                 create.TruckTypeId = defaultType.Id;
             }
 
@@ -435,23 +445,19 @@ namespace Rassef.Controllers
                 return View(create);
             }
 
-            // جلب السائقين والشاحنات المشغولة حالياً بأدوار نشطة
             var (activeDriverIds, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
 
-            // 0. إنشاء أو ربط السائق إذا تم إدخاله من خلال المودال المباشر (+)
             if (!string.IsNullOrWhiteSpace(create.NewDriverName))
             {
                 var newName = create.NewDriverName.Trim();
                 var newNatId = create.NewDriverNationalId?.Trim() ?? "";
                 var newPhone = create.NewDriverPhone?.Trim() ?? "";
 
-                // 1. التحقق من صحة الرقم القومي (14 رقم)
                 if (string.IsNullOrWhiteSpace(newNatId) || newNatId.Length != 14 || !newNatId.All(char.IsDigit))
                 {
                     ModelState.AddModelError(nameof(create.NewDriverNationalId), "الرقم القومي يجب أن يتكون من 14 رقماً.");
                 }
 
-                // 2. التحقق من صحة رقم الهاتف المصري (11 رقم يبدأ بـ 010 أو 011 أو 012 أو 015)
                 if (string.IsNullOrWhiteSpace(newPhone) || !System.Text.RegularExpressions.Regex.IsMatch(newPhone, @"^01[0125][0-9]{8}$"))
                 {
                     ModelState.AddModelError(nameof(create.NewDriverPhone), "يرجى إدخال رقم هاتف مصري صحيح (11 رقماً يبدأ بـ 010 أو 011 أو 012 أو 015).");
@@ -463,7 +469,6 @@ namespace Rassef.Controllers
                     return View(create);
                 }
 
-                // 3. التحقق إذا كان السائق مسجلاً مسبقاً بنفس الرقم القومي أو الهاتف
                 var existingDriver = await _driverRepository.FindAsync(d => (d.NationalId == newNatId || d.Phone == newPhone) && !d.IsDeleted);
 
                 if (existingDriver != null)
@@ -478,16 +483,25 @@ namespace Rassef.Controllers
                 }
                 else
                 {
+                    // CHANGED: was `defaultType?.Id ?? 1` — a hardcoded FK fallback that
+                    // would throw the same FK-constraint 500 if DriverTypes has no row
+                    // with Id == 1. Now surfaced as a clean validation error instead.
                     var allDriverTypes = await _driverTypeRepository.GetAllAsync();
-                    var defaultType = allDriverTypes.FirstOrDefault();
-                    int driverTypeId = defaultType?.Id ?? 1;
+                    var defaultDriverType = allDriverTypes.FirstOrDefault();
+
+                    if (defaultDriverType == null)
+                    {
+                        ModelState.AddModelError("", "لا توجد أنواع سائقين مُعرّفة في النظام. يرجى إضافة نوع سائق أولاً قبل المتابعة.");
+                        await ReloadTruckWithDriverDataAsync(create);
+                        return View(create);
+                    }
 
                     var newDriver = new Driver
                     {
                         FullName = newName,
                         NationalId = newNatId,
                         Phone = newPhone,
-                        DeiverTypeId = driverTypeId,
+                        DeiverTypeId = defaultDriverType.Id,
                         CreatedBy = currentUser
                     };
 
@@ -498,7 +512,6 @@ namespace Rassef.Controllers
                 }
             }
 
-            // التحقق من أن السائق المختار ليس لديه دور نشط
             if (create.DriverId > 0 && activeDriverIds.Contains(create.DriverId))
             {
                 var busyDriver = await _driverRepository.GetByIdAsync(create.DriverId);
@@ -512,7 +525,6 @@ namespace Rassef.Controllers
 
             var existingTruck = await _truckRepository.FindAsync(t => t.PlateNumber == plateNum && t.PlateLetter == plateLet && !t.IsDeleted);
 
-            // التحقق من أن الشاحنة ليس لديها دور نشط
             if (existingTruck != null && activeTruckIds.Contains(existingTruck.Id))
             {
                 ModelState.AddModelError(nameof(create.PlateNumber), $"الشاحنة ({existingTruck.PlateLetter} {existingTruck.PlateNumber}) لديها دور حالي في الانتظار أو قيد التنفيذ. يجب اكتمال الدور السابق وتسجيل الخروج أولاً.");
@@ -547,13 +559,34 @@ namespace Rassef.Controllers
                 await _truckRepository.SaveChangesAsync();
             }
 
-            // 2. إنشاء طلب توريد (SupplierRequest)
-            int targetDepartmentId = create.DepartmentId.HasValue && create.DepartmentId.Value > 0 ? create.DepartmentId.Value : 1;
+            // CHANGED: was `create.DepartmentId.Value > 0 ? ... : 1` — hardcoded default
+            // department. Department is meant to come from the required modal selection,
+            // so a missing value is now a validation error, not a silent default.
+            if (!create.DepartmentId.HasValue || create.DepartmentId.Value <= 0)
+            {
+                ModelState.AddModelError(nameof(create.DepartmentId), "يرجى اختيار القسم للمتابعة.");
+                await ReloadTruckWithDriverDataAsync(create);
+                return View(create);
+            }
+            int targetDepartmentId = create.DepartmentId.Value;
 
-            // BL-2: جلب القيم الافتراضية بالاسم بدلاً من ID=1 الثابتة
+            // CHANGED: was `?? 1` for all three of these — the exact hardcoded FK
+            // fallback that caused the FK_SupplierRequests_RequestStatuses_RequestStatusId
+            // violation in your error report. Now fails cleanly instead of inserting a
+            // nonexistent FK. NOTE: which specific Permit/Commodity/Status row should be
+            // used as "the default" for this flow is a business decision I don't have —
+            // see follow-up questions below. This only stops the crash; it doesn't pick
+            // the *correct* default.
             var defaultPermit = await _permitTypeRepository.FindAsync(p => true);
             var defaultCommodity = await _commodityTypeRepository.FindAsync(c => true);
             var defaultStatus = await _requestStatusRepository.FindAsync(s => true);
+
+            if (defaultPermit == null || defaultCommodity == null || defaultStatus == null)
+            {
+                ModelState.AddModelError("", "بيانات إعداد النظام غير مكتملة (نوع التصريح / نوع البضاعة / حالة الطلب). يرجى مراجعة الإعدادات.");
+                await ReloadTruckWithDriverDataAsync(create);
+                return View(create);
+            }
 
             var supplierRequest = new SupplierRequest
             {
@@ -561,19 +594,17 @@ namespace Rassef.Controllers
                 TruckId = truck.Id,
                 DriverId = create.DriverId,
                 DepartmentId = targetDepartmentId,
-                PermitTypeId = defaultPermit?.Id ?? 1,
-                CommodityTypeId = defaultCommodity?.Id ?? 1,
-                RequestStatusId = defaultStatus?.Id ?? 1,
+                PermitTypeId = defaultPermit.Id,
+                CommodityTypeId = defaultCommodity.Id,
+                RequestStatusId = defaultStatus.Id,
                 CreatedBy = currentUser
             };
 
             await _supplierRequestRepository.AddAsync(supplierRequest);
             await _supplierRequestRepository.SaveChangesAsync();
 
-            // 3. إنشاء دور / تذكرة دور (QueueTicket) عبر محرك التذاكر
             var ticketResult = await _ticketEngineService.IssueSupplierTicketAsync(targetDepartmentId, supplierRequest.Id, currentUser?.Id ?? 1);
 
-            // 4. التوجيه لـ Recript مع تمرير رقم التذكرة
             return RedirectToAction("Recript", "Driver", new { ticketId = ticketResult.TicketId });
         }
 

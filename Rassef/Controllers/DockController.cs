@@ -80,13 +80,18 @@
  *     DeleteConfirmed at the TODO comment below before deploying.
  * Q4. Should Update/Update be renamed to Edit/Edit for consistency?
  *     If yes, views and sidebar links must also be updated.
- * Q5. What is the correct [PermissionAuthorize] key for Dock?
- *     Placeholder: "Docks". Supply the correct value if different.
+ * Q6. FIXED (runtime bug) — CreatedById (required FK) was never set on Create,
+ *     causing FK_Docks_Users_CreatedById to fail on insert (defaulted to 0).
+ *     Resolved via ClaimTypes.NameIdentifier, same fail-safe pattern used for
+ *     Warehouse/Department (no hardcoded fallback id) — Dock.CreatedById is a
+ *     plain int scalar (unlike Warehouse), so this just parses the claim and
+ *     assigns it directly; no need to round-trip through IUserRepository.
  */
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 using Rassef.Filters;
 using Rassef.Models;
@@ -193,12 +198,24 @@ namespace Rassef.Controllers
                 return View(create);
             }
 
+            // Q6 fix — resolve current user for CreatedById, fail safely
+            // (no hardcoded fallback id) if the claim is missing/invalid.
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var currentUserId))
+            {
+                ModelState.AddModelError("الرصيف", "تعذر تحديد هوية المستخدم الحالي. يرجى تسجيل الدخول والمحاولة مرة أخرى.");
+                create = await PopulateCreateDropdownsAsync(create);
+                return View(create);
+            }
+
             var dock = new Dock
             {
                 DockName = create.DockName,
                 DepartmentId = create.DepartmentId,
                 WarehouseId = create.WarehouseId,
-                DockStatusId = create.DockStatusId
+                DockStatusId = create.DockStatusId,
+                CreatedById = currentUserId   // Q6 — was never set, caused the FK crash
             };
 
             await _repository.AddAsync(dock);
