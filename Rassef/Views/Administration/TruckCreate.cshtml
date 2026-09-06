@@ -1,0 +1,157 @@
+@model Rassef.ViewModels.Administration.TruckCreateVM
+@{
+    ViewData["Title"] = "إضافة شاحنة";
+    Layout = "_SupOrTra";
+    var truckTypes = ViewBag.TruckTypes as IEnumerable<Rassef.Models.StatusesAndActions.TruckTypes>
+                     ?? Enumerable.Empty<Rassef.Models.StatusesAndActions.TruckTypes>();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/editEntity.css" asp-append-version="true">
+}
+
+<div class="bg"></div>
+
+<div class="container main-container">
+    <!-- HEADER -->
+    <header class="page-header d-flex justify-content-between align-items-center">
+        <div class="logo-wrapper header-right">
+            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-logo"
+                 onerror="this.src='https://via.placeholder.com/100x60?text=Fathalla'">
+        </div>
+        <div class="title-wrapper text-center">
+            <h1 class="main-title">إضافة شاحنة</h1>
+        </div>
+        <div class="logo-wrapper header-left">
+            <img src="~/img/logo.svg" alt="رصيف" class="brand-logo logo-raseefy"
+                 onerror="this.src='https://via.placeholder.com/120x50?text=Raseef'">
+        </div>
+    </header>
+
+    <!-- BACK BUTTON -->
+    <div class="nav-actions">
+        <a href="@Url.Action("TrucksIndex", "Administration")" class="go-suppliers-btn">
+            خطوة للخلف &larr;
+        </a>
+    </div>
+
+    <!-- FORM -->
+    <main class="content-wrapper">
+        <form asp-action="TruckCreate" asp-controller="Administration" method="post"
+              class="supplier-form-container">
+            @Html.AntiForgeryToken()
+
+            <div class="supplier-card-main p-4">
+                <div class="row g-4">
+
+                    <!-- رقم الشاحنة -->
+                    <div class="col-md-6 text-center">
+                        <label class="form-label-custom fw-bold mb-1">رقم الشاحنة</label>
+                        <div class="row g-2">
+                            <div class="col-7">
+                                <input asp-for="PlateNumber"
+                                       class="form-control form-control-custom text-center"
+                                       placeholder="1234"
+                                       autocomplete="off"
+                                       inputmode="numeric"
+                                       pattern="[0-9]+"
+                                       title="أدخل أرقام فقط" />
+                            </div>
+                            <div class="col-5">
+                                <input asp-for="PlateLetter"
+                                       class="form-control form-control-custom text-center"
+                                       placeholder="ا ب ج"
+                                       autocomplete="off"
+                                       pattern="[^0-9]+"
+                                       title="أدخل حروف فقط (بدون أرقام)" />
+                            </div>
+                        </div>
+                        <span asp-validation-for="PlateNumber" class="text-danger small d-block mt-1"></span>
+                        <span asp-validation-for="PlateLetter" class="text-danger small d-block"></span>
+                    </div>
+
+                    <!-- سعة التخزين -->
+                    <div class="col-md-6 text-center">
+                        <label asp-for="StorageCapacity" class="form-label-custom fw-bold mb-1">سعة التخزين</label>
+                        <div class="truck-input-badge">
+                            <input asp-for="StorageCapacity"
+                                   class="form-control form-control-custom text-center"
+                                   placeholder="500"
+                                   autocomplete="off"
+                                   inputmode="decimal" />
+                            <div class="truck-badge-box">kg</div>
+                        </div>
+                        <span asp-validation-for="StorageCapacity" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <!-- نوع الشاحنة (تبريد / غير تبريد) -->
+                    <div class="col-md-6 text-center">
+                        <label class="form-label-custom fw-bold mb-1">نوع الشاحنة</label>
+                        <div class="radio-group-container">
+                            <label class="radio-custom-label">
+                                <input type="radio" asp-for="IsRefrigerated" value="true"
+                                       class="radio-custom-input" />
+                                <span>تبريد</span>
+                            </label>
+                            <label class="radio-custom-label">
+                                <input type="radio" asp-for="IsRefrigerated" value="false"
+                                       class="radio-custom-input" />
+                                <span>غير تبريد</span>
+                            </label>
+                        </div>
+                        <span asp-validation-for="IsRefrigerated" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <!-- فئة الشاحنة -->
+                    <div class="col-md-6 text-center">
+                        <label asp-for="TruckTypeId" class="form-label-custom fw-bold mb-1">فئة الشاحنة</label>
+                        <div class="select-badge-wrapper">
+                            <select asp-for="TruckTypeId"
+                                    class="form-select form-control-custom form-select-custom text-center">
+                                <option value="">-- اختر فئة الشاحنة --</option>
+                                @foreach (var tt in truckTypes)
+                                {
+                                    <option value="@tt.Id">@tt.Name</option>
+                                }
+                            </select>
+                            <i class="fas fa-truck badge-icon"></i>
+                        </div>
+                        <span asp-validation-for="TruckTypeId" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SUBMIT -->
+            <div class="px-4 pb-4">
+                <button type="submit" class="btn-submit-orange">
+                    إضافة الشاحنة
+                </button>
+            </div>
+        </form>
+    </main>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // منع إدخال أرقام في حقل الحروف ومنع إدخال حروف في حقل الأرقام
+        document.addEventListener('DOMContentLoaded', function () {
+            var plateNumInput = document.getElementById('PlateNumber');
+            var plateLetInput = document.getElementById('PlateLetter');
+
+            if (plateNumInput) {
+                plateNumInput.addEventListener('input', function () {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                });
+            }
+
+            if (plateLetInput) {
+                plateLetInput.addEventListener('input', function () {
+                    this.value = this.value.replace(/[0-9]/g, '');
+                });
+            }
+        });
+    </script>
+}

@@ -23,7 +23,7 @@ namespace Rassef.Controllers
             IRepository<Position> positionRepository,
             IRepository<UserGroup> groupRepository,
             IRepository<Truck> truckRepository,
-            IRepository<TruckTypes> truckTypeRepository, 
+            IRepository<TruckTypes> truckTypeRepository,
             IRepository<Driver> driverRepository,
             IRepository<DriverTypes> driverTypeRepository,
             ITransferRequestRepository transferRequestRepository,
@@ -401,6 +401,14 @@ namespace Rassef.Controllers
 
         //Truck Administration
 
+        /// <summary>
+        /// Shared company/context display for a truck, used by both TrucksIndex and
+        /// TruckDetails. CHANGED — TruckDetails previously used truck.TruckType?.Name
+        /// as "Company", which is a different (and wrong) value from what Index shows
+        /// for the same truck. Both now use this one computation.
+        /// </summary>
+        // GetTruckCompanyDisplay removed entirely — no longer needed.
+
         [HttpGet]
         public async Task<IActionResult> TrucksIndex()
         {
@@ -408,58 +416,24 @@ namespace Rassef.Controllers
                 query.Where(t => !t.IsDeleted)
                      .Include(t => t.CreatedBy)
                      .Include(t => t.TruckType)
-                     .Include(t => t.SupplierRequests)
-                        .ThenInclude(sr => sr.Supplier)
-                     .Include(t => t.TransferRequests)
             );
+            // CHANGED — SupplierRequests/TransferRequests includes dropped: they were only
+            // ever used to feed GetTruckCompanyDisplay, which is gone.
 
-            var truckList = trucks.Select(t =>
+            var truckList = trucks.Select(t => new ViewModels.Administration.TruckListVM
             {
-                string companyName = "غير محدد";
-                var latestSupplier = t.SupplierRequests?.OrderByDescending(r => r.CreatedAT).FirstOrDefault();
-                var latestTransfer = t.TransferRequests?.OrderByDescending(r => r.CreatedAT).FirstOrDefault();
-
-                if (latestSupplier != null && latestTransfer != null)
-                {
-                    if (latestSupplier.CreatedAT > latestTransfer.CreatedAT)
-                    {
-                        companyName = latestSupplier.Supplier?.Name ?? "غير محدد";
-                    }
-                    else
-                    {
-                        companyName = "تحويل داخلي";
-                    }
-                }
-                else if (latestSupplier != null)
-                {
-                    companyName = latestSupplier.Supplier?.Name ?? "غير محدد";
-                }
-                else if (latestTransfer != null)
-                {
-                    companyName = "تحويل داخلي";
-                }
-                else if (t.TruckType != null)
-                {
-                    companyName = t.TruckType.Name;
-                }
-
-                return new ViewModels.Administration.TruckListVM
-                {
-                    Id = t.Id,
-                    PlateNumber = $"{t.PlateLetter} {t.PlateNumber}",
-                    IsRefrigerated = t.IsRefrigerated ? "تبريد" : "لا تبريد",
-                    Company = companyName,
-                    StorageCapacity = t.StorageCapacity,
-                    HostEmployeeName = !string.IsNullOrWhiteSpace(t.CreatedBy?.Name) ? t.CreatedBy.Name : (!string.IsNullOrWhiteSpace(t.CreatedBy?.UserName) ? t.CreatedBy.UserName : "المسؤول")
-                };
+                Id = t.Id,
+                PlateNumber = $"{t.PlateLetter} {t.PlateNumber}",
+                IsRefrigerated = t.IsRefrigerated ? "تبريد" : "لا تبريد",
+                // CHANGED — Company (fabricated) replaced with the truck's real TruckType relation.
+                TruckTypeName = t.TruckType?.Name ?? "غير محدد",
+                StorageCapacity = t.StorageCapacity,
+                HostEmployeeName = !string.IsNullOrWhiteSpace(t.CreatedBy?.Name) ? t.CreatedBy.Name : (!string.IsNullOrWhiteSpace(t.CreatedBy?.UserName) ? t.CreatedBy.UserName : "المسؤول")
             }).ToList();
 
             if (!truckList.Any())
             {
-                ModelState.AddModelError(
-                    string.Empty,
-                    "لا يوجد أي شاحنات مسجلة حتى الآن."
-                );
+                ModelState.AddModelError(string.Empty, "لا يوجد أي شاحنات مسجلة حتى الآن.");
             }
 
             return View(truckList);
@@ -475,16 +449,15 @@ namespace Rassef.Controllers
                      .Include(t => t.SupplierRequests)
                      .Include(t => t.TransferRequests)
             );
+            // NOTE — SupplierRequests/TransferRequests includes kept here only because
+            // VisitsCount still legitimately needs the counts. If VisitsCount goes away too,
+            // these can drop as well.
 
             var truck = trucks.FirstOrDefault(t => t.Id == id);
 
             if (truck == null)
             {
-                ModelState.AddModelError(
-                    string.Empty,
-                    "هذه الشاحنة غير موجودة."
-                );
-
+                ModelState.AddModelError(string.Empty, "هذه الشاحنة غير موجودة.");
                 return RedirectToAction(nameof(TrucksIndex));
             }
 
@@ -496,7 +469,8 @@ namespace Rassef.Controllers
                 VisitsCount = visitsCount,
                 PlateNumber = $"{truck.PlateLetter} {truck.PlateNumber}",
                 IsRefrigerated = truck.IsRefrigerated ? "تبريد" : "لا تبريد",
-                Company = truck.TruckType?.Name ?? "غير محدد",
+                // CHANGED — Company (fabricated) replaced with the truck's real TruckType relation.
+                TruckTypeName = truck.TruckType?.Name ?? "غير محدد",
                 StorageCapacity = truck.StorageCapacity,
                 HostEmployeeName = truck.CreatedBy?.Name ?? "غير محدد"
             };
@@ -536,12 +510,15 @@ namespace Rassef.Controllers
                 return View(model);
             }
 
-            // جلب معرف الموظف الحالي من الـ Claims بأمان
+            // CHANGED — was a hardcoded `int currentUserId = 1;` fallback if the claim
+            // didn't resolve (same defect class fixed everywhere else this session).
+            // Fails safely instead of attributing the truck to an arbitrary user id.
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int currentUserId = 1;
-            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var currentUserId))
             {
-                currentUserId = parsedId;
+                ModelState.AddModelError(string.Empty, "تعذر تحديد هوية المستخدم الحالي. يرجى تسجيل الدخول والمحاولة مرة أخرى.");
+                ViewBag.TruckTypes = await _truckTypesRepository.GetAllAsync();
+                return View(model);
             }
 
             var truck = new Truck

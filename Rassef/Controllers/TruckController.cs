@@ -65,8 +65,11 @@ namespace Rassef.Controllers
 
             var trucksrepo = await _truckRepository.GetTruckWithTypeName();
 
+            // CHANGED (this pass) — added a TruckType?.TruckTypeCode == 1 filter,
+            // per explicit instruction: this picker should only offer trucks whose
+            // TruckTypes.TruckTypeCode is 1.
             var supplierTrucks = trucksrepo
-                .Where(x => x.SupplierRequests.Any(sr => sr.SupplierId == supplierid) && !activeTruckIds.Contains(x.Id))
+                .Where(x => !activeTruckIds.Contains(x.Id) && x.TruckType?.TruckTypeCode == 2)
                 .Select(x => new TruckListVM
                 {
                     Id = x.Id,
@@ -78,7 +81,6 @@ namespace Rassef.Controllers
                     supplierId = supplierid
                 });
 
-            // 👇 فلترة البيانات لو المستخدم كتب حاجة في خانة البحث
             if (!string.IsNullOrEmpty(searchString))
             {
                 searchString = searchString.Trim().ToLower();
@@ -90,7 +92,7 @@ namespace Rassef.Controllers
 
             ViewBag.SupplierName = supplier.Name;
             ViewBag.SupplierId = supplier.Id;
-            ViewBag.Search = searchString; // لحفظ الكلمة المكتوبة في خانة البحث متبوعة على الشاشة
+            ViewBag.Search = searchString;
 
             return View(supplierTrucks.ToList());
         }
@@ -562,57 +564,41 @@ namespace Rassef.Controllers
                 return BadRequest(new { success = false, message = "الشاحنة لديها دور نشط حالياً (في الانتظار أو قيد التنفيذ). يجب اكتمال الدور السابق أولاً." });
             }
 
-            if (dto.DriverId.HasValue && dto.DriverId.Value > 0 && activeDriverIds.Contains(dto.DriverId.Value))
+            if (!dto.DriverId.HasValue || dto.DriverId.Value <= 0)
+            {
+                return BadRequest(new { success = false, message = "يرجى اختيار سائق قبل المتابعة." });
+            }
+
+            var driver = await _driverRepository.GetByIdAsync(dto.DriverId.Value);
+            if (driver == null)
+            {
+                return NotFound(new { success = false, message = "السائق المحدد غير موجود." });
+            }
+
+            if (activeDriverIds.Contains(driver.Id))
             {
                 return BadRequest(new { success = false, message = "السائق المختار لديه دور نشط حالياً. يجب اكتمال الدور السابق أولاً." });
             }
 
-            // Get or fallback driver
-            Driver? driver = null;
-            if (dto.DriverId.HasValue && dto.DriverId.Value > 0)
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var parsedId))
             {
-                driver = await _driverRepository.GetByIdAsync(dto.DriverId.Value);
-            }
-            if (driver == null)
-            {
-                var allDrivers = await _driverRepository.GetAllAsync();
-                driver = allDrivers.FirstOrDefault(d => !activeDriverIds.Contains(d.Id));
-            }
-            if (driver == null)
-            {
-                driver = new Driver
-                {
-                    FullName = "سائق تحويل عام",
-                    NationalId = $"NAT{DateTime.Now.Ticks % 100000000}",
-                    Phone = "01000000000"
-                };
-                await _driverRepository.AddAsync(driver);
-                await _driverRepository.SaveChangesAsync();
+                return BadRequest(new { success = false, message = "يجب تسجيل الدخول أولاً." });
             }
 
-            // Get current logged-in user
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-            User? currentUser = null;
-            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
-            {
-                currentUser = await _userRepository.GetByIdAsync(parsedId);
-            }
+            var currentUser = await _userRepository.GetByIdAsync(parsedId);
             if (currentUser == null)
             {
-                var email = User.FindFirstValue(ClaimTypes.Email);
-                if (!string.IsNullOrWhiteSpace(email))
-                {
-                    var allUsers = await _userRepository.GetAllAsync();
-                    currentUser = allUsers.FirstOrDefault(u => u.Email != null && u.Email.ToString() == email);
-                }
-            }
-            if (currentUser == null)
-            {
-                currentUser = (await _userRepository.GetAllAsync()).FirstOrDefault();
+                return BadRequest(new { success = false, message = "لم يتم العثور على المستخدم." });
             }
 
             var defaultPermit = (await _permitTypeRepository.GetAllAsync()).FirstOrDefault();
             var defaultStatus = (await _requestStatusRepository.GetAllAsync()).FirstOrDefault();
+
+            if (defaultPermit == null || defaultStatus == null)
+            {
+                return BadRequest(new { success = false, message = "بيانات إعداد النظام غير مكتملة (نوع التصريح / حالة الطلب)." });
+            }
 
             var allTransfers = await _transferRequestRepository.GetAllAsync();
             int nextAvizNumber = allTransfers.Count() + 1;
@@ -623,18 +609,18 @@ namespace Rassef.Controllers
                 TruckId = truck.Id,
                 DriverId = driver.Id,
                 DepartmentId = department.Id,
-                PermitTypeId = defaultPermit?.Id ?? 1,
+                PermitTypeId = defaultPermit.Id,
                 PermitNumber = $"PER-TR-{DateTime.Now.Ticks % 100000}",
                 AvizNumber = avizNumber,
-                RequestStatusId = defaultStatus?.Id ?? 1,
-                CreatedById = (currentUser?.Id ?? 1).ToString(),
-                CreatedBy = currentUser!
+                RequestStatusId = defaultStatus.Id,
+                CreatedById = currentUser.Id.ToString(),
+                CreatedBy = currentUser
             };
 
             await _transferRequestRepository.AddAsync(transferRequest);
             await _transferRequestRepository.SaveChangesAsync();
 
-            var ticketResult = await _ticketEngineService.IssueTransferTicketAsync(department.Id, transferRequest.Id, currentUser?.Id ?? 1);
+            var ticketResult = await _ticketEngineService.IssueTransferTicketAsync(department.Id, transferRequest.Id, currentUser.Id);
 
             return Json(new
             {

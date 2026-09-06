@@ -31,9 +31,13 @@
                 </button>
                 <div class="header-right">
                     <h2 class="header-title">كل الشاحنات</h2>
+                    <!-- CHANGED — removed the hardcoded "10 seconds ago" freshness
+                         claim: it was static text shown regardless of when the data
+                         was actually last updated (fabricated, not real). No real
+                         last-updated timestamp is tracked here yet, so nothing is
+                         claimed instead — see follow-up if you want real tracking. -->
                     <div class="header-subtitle">
                         <span class="update-dot"></span>
-                        <span>آخر تحديث منذ 10 ثواني</span>
                     </div>
                 </div>
 
@@ -54,7 +58,7 @@
                     <ul class="dropdown-menu" id="sortMenu">
                         <li data-sort="number">الرقم</li>
                         <li data-sort="type">النوع</li>
-                        <li data-sort="company">الشركة</li>
+                        <li data-sort="truckType">نوع الشاحنة</li>
                         <li data-sort="capacity">سعة التخزين</li>
                         <li data-sort="host">الموظف المضيف</li>
                     </ul>
@@ -75,7 +79,11 @@
                 </button>
 
                 <!-- Add Truck -->
-                <a href="@Url.Action("CreateTruckWithDriver", "SupplierRequest", new { supplierId = 1 })" class="btn-action-add" id="addTruckBtn" style="text-decoration: none;">
+                <!-- CHANGED — was routing to CreateTruckWithDriver on SupplierRequest
+                     with a hardcoded supplierId=1: the admin "add truck" action was
+                     silently reusing the supplier flow (with driver/company fields)
+                     instead of this controller's own dedicated TruckCreate action. -->
+                <a href="@Url.Action("TruckCreate", "Administration")" class="btn-action-add" id="addTruckBtn" style="text-decoration: none;">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
                     <span>إضافة شاحنة</span>
                 </a>
@@ -88,7 +96,7 @@
                         <tr>
                             <th class="col-number">الرقم</th>
                             <th class="col-type">النوع</th>
-                            <th class="col-company">الشركة</th>  
+                            <th class="col-company">نوع الشاحنة</th>  
                             <th class="col-capacity">سعة التخزين</th>
                             <th class="col-host">الموظف المضيف</th>
                             <th class="col-action"></th>
@@ -102,7 +110,7 @@
                                 <tr class="table-row">
                                     <td class="col-number">@truck.PlateNumber</td>
                                     <td class="col-type">@truck.IsRefrigerated</td>
-                                    <td class="col-company">@truck.Company</td>
+                                    <td class="col-company">@truck.TruckTypeName</td>
                                     <td class="col-capacity">@truck.StorageCapacity kg</td>
                                     <td class="col-host">@truck.HostEmployeeName</td>
                                     <td class="col-action">
@@ -138,7 +146,7 @@
             id = t.Id,
             number = t.PlateNumber, 
             type = t.IsRefrigerated, 
-            company = t.Company,
+            truckType = t.TruckTypeName,
             capacity = t.StorageCapacity,
             host = t.HostEmployeeName
         }).ToList() : new List<object>()));

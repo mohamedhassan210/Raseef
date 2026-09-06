@@ -14,6 +14,8 @@
                    .WithOne(x => x.TruckType)
                    .HasForeignKey(x => x.TruckTypeId)
                    .OnDelete(DeleteBehavior.Restrict);
+     
+           
         }
     }
 }

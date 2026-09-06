@@ -26,9 +26,10 @@
             <header class="dashboard-header">
                 <div class="header-right">
                     <h2 class="header-title">تفاصيل الشاحنة</h2>
+                    <!-- CHANGED — removed the hardcoded "10 seconds ago" freshness
+                         claim (same fix as TrucksIndex). -->
                     <div class="header-subtitle">
                         <span class="update-dot"></span>
-                        <span>آخر تحديث منذ 10 ثواني</span>
                     </div>
                 </div>
                 <div class="header-left-group">
@@ -52,7 +53,7 @@
                         <span>رؤية</span>
                         <i class="fas fa-arrow-left"></i>
                     </a>
-                    <span class="hero-visits-num">@(Model.VisitsCount > 0 ? Model.VisitsCount : 30)</span>
+                    <span class="hero-visits-num">@Model.VisitsCount</span>
                     <span class="hero-visits-label">عدد الزيارات:</span>
                 </div>
                 <div class="section-title-tag">
@@ -94,9 +95,9 @@
                     </div>
                 </div>
 
-                <!-- BOTTOM RIGHT: الشركة + سعة التخزين (STACKED) -->
+                <!-- BOTTOM RIGHT: نوع الشاحنة + سعة التخزين (STACKED) -->
                 <div class="stacked-cards-container">
-                    <!-- الشركة -->
+                    <!-- نوع الشاحنة -->
                     <div class="detail-card detail-card-compact detail-card-interactive">
                         <div class="detail-card-icon">
                             <svg viewBox="0 0 24 24" class="svg-badge-icon">
@@ -107,8 +108,8 @@
                             </svg>
                         </div>
                         <div class="detail-card-body">
-                            <span class="detail-card-label">الشركة</span>
-                            <span class="detail-card-value">@(string.IsNullOrWhiteSpace(Model.Company) || Model.Company == "غير محدد" ? "فتح الله" : Model.Company)</span>
+                            <span class="detail-card-label">نوع الشاحنة</span>
+                            <span class="detail-card-value">@Model.TruckTypeName</span>
                         </div>
                     </div>
 
@@ -124,7 +125,7 @@
                         </div>
                         <div class="detail-card-body">
                             <span class="detail-card-label">سعة التخزين</span>
-                            <span class="detail-card-value">@(Model.StorageCapacity > 0 ? $"{Model.StorageCapacity} kg" : "500 kg")</span>
+                            <span class="detail-card-value">@($"{Model.StorageCapacity} kg")</span>
                         </div>
                     </div>
                 </div>
@@ -141,7 +142,7 @@
                     </div>
                     <div class="detail-card-body">
                         <span class="detail-card-label">الموظف المضيف</span>
-                        <span class="detail-card-value">@(string.IsNullOrWhiteSpace(Model.HostEmployeeName) || Model.HostEmployeeName == "غير محدد" ? "محمد السيد الشناوي" : Model.HostEmployeeName)</span>
+                        <span class="detail-card-value">@Model.HostEmployeeName</span>
                     </div>
                 </div>
             </div>

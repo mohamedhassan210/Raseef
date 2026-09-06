@@ -61,6 +61,8 @@ namespace Rassef.Data
                     entityType.SetQueryFilter(filter);
                 }
             }
+            modelBuilder.Entity<TruckTypes>()
+                .HasIndex(t => t.TruckTypeCode).IsUnique();
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

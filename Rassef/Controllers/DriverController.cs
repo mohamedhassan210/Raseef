@@ -1,4 +1,3 @@
-
 namespace Rassef.Controllers
 {
     public class DriverController : Controller
@@ -48,7 +47,6 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(int id, int supplierId)
         {
-
             var supplier = await _supplierRepository.GetByIdAsync(supplierId);
 
             if (supplier is null)
@@ -58,18 +56,20 @@ namespace Rassef.Controllers
 
             var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
 
-            var drivers =
-                await _driverRepository.GetDriversBySupplierIdAsync(supplierId);
+            // CHANGED (this pass) — added .Include(d => d.DeiverType) and a
+            // DeiverType?.Code == 1 filter, per explicit instruction: this picker
+            // should only offer drivers whose DriverTypes.Code is 1.
+            var drivers = await _driverRepository.GetAllAsync(query =>
+                query.Include(d => d.DeiverType));
 
             var driverList = drivers
-                .Where(d => !activeDriverIds.Contains(d.Id))
+                .Where(d => !activeDriverIds.Contains(d.Id) && d.DeiverType?.Code == 1)
                 .Select(d => new DriverListVM
                 {
                     Id = d.Id,
                     FullName = d.FullName,
                     NationalId = d.NationalId,
                     Phone = d.Phone
-
                 }).ToList();
 
             ViewBag.SupplierName = supplier.Name;
@@ -557,89 +557,84 @@ namespace Rassef.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateSupplierTicket([FromBody] CreateSupplierTicketDto dto)
         {
-            if (dto == null || dto.DepartmentId <= 0)
+            if (dto == null || dto.SupplierId <= 0 || dto.TruckId <= 0 || dto.DriverId <= 0 || dto.DepartmentId <= 0)
             {
-                return BadRequest(new { success = false, message = "بيانات غير مكتملة." });
+                return BadRequest(new { success = false, message = "بيانات غير مكتملة. يرجى اختيار المورد والسيارة والسائق والقسم." });
             }
 
             var supplier = await _supplierRepository.GetByIdAsync(dto.SupplierId);
             if (supplier == null)
             {
-                var allSups = await _supplierRepository.GetAllAsync();
-                supplier = allSups.FirstOrDefault();
-                if (supplier != null) dto.SupplierId = supplier.Id;
+                return NotFound(new { success = false, message = "المورد غير موجود." });
             }
 
             var truck = await _truckRepository.GetByIdAsync(dto.TruckId);
             if (truck == null)
             {
-                var allTrucks = await _truckRepository.GetAllAsync();
-                truck = allTrucks.FirstOrDefault();
-                if (truck != null) dto.TruckId = truck.Id;
+                return NotFound(new { success = false, message = "الشاحنة غير موجودة." });
             }
 
             var driver = await _driverRepository.GetByIdAsync(dto.DriverId);
             if (driver == null)
             {
-                var allDrivers = await _driverRepository.GetAllAsync();
-                driver = allDrivers.FirstOrDefault(d => d.NationalId == dto.DriverId.ToString() || d.Id == dto.DriverId)
-                    ?? allDrivers.FirstOrDefault();
-                if (driver != null) dto.DriverId = driver.Id;
+                return NotFound(new { success = false, message = "السائق غير موجود." });
             }
 
             var department = await _departmentRepository.GetByIdAsync(dto.DepartmentId);
             if (department == null)
             {
-                var allDepts = await _departmentRepository.GetAllAsync();
-                department = allDepts.FirstOrDefault();
-                if (department != null) dto.DepartmentId = department.Id;
+                return NotFound(new { success = false, message = "القسم غير موجود." });
             }
 
             var (activeDriverIds, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
 
-            if (truck != null && activeTruckIds.Contains(truck.Id))
+            if (activeTruckIds.Contains(truck.Id))
             {
                 return BadRequest(new { success = false, message = "الشاحنة لديها دور نشط حالياً (في الانتظار أو قيد التفريغ). يجب اكتمال الدور السابق أولاً." });
             }
 
-            if (driver != null && activeDriverIds.Contains(driver.Id))
+            if (activeDriverIds.Contains(driver.Id))
             {
                 return BadRequest(new { success = false, message = "السائق لديه دور نشط حالياً (في الانتظار أو قيد التفريغ). يجب اكتمال الدور السابق أولاً." });
             }
 
-            if (department == null || supplier == null || truck == null || driver == null)
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var currentUserId))
             {
-                return BadRequest(new { success = false, message = "تعذر إكمال الطلب، يرجى التأكد من اختيار القسم والمورد والسيارة والسائق." });
+                return BadRequest(new { success = false, message = "يجب تسجيل الدخول أولاً." });
             }
 
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int currentUserId = 1;
-            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var uId))
-            {
-                currentUserId = uId;
-            }
             var currentUser = await _userRepository.GetByIdAsync(currentUserId);
+            if (currentUser == null)
+            {
+                return BadRequest(new { success = false, message = "لم يتم العثور على المستخدم." });
+            }
 
             var defaultPermit = (await _permitTypeRepository.GetAllAsync()).FirstOrDefault();
             var defaultCommodity = (await _commodityTypeRepository.GetAllAsync()).FirstOrDefault();
             var defaultStatus = (await _requestStatusRepository.GetAllAsync()).FirstOrDefault();
 
+            if (defaultPermit == null || defaultCommodity == null || defaultStatus == null)
+            {
+                return BadRequest(new { success = false, message = "بيانات إعداد النظام غير مكتملة (نوع التصريح / نوع البضاعة / حالة الطلب)." });
+            }
+
             var supplierRequest = new SupplierRequest
             {
-                SupplierId = dto.SupplierId,
-                TruckId = dto.TruckId,
-                DriverId = dto.DriverId,
-                DepartmentId = dto.DepartmentId,
-                PermitTypeId = defaultPermit?.Id ?? 1,
-                CommodityTypeId = defaultCommodity?.Id ?? 1,
-                RequestStatusId = defaultStatus?.Id ?? 1,
-                CreatedBy = currentUser!
+                SupplierId = supplier.Id,
+                TruckId = truck.Id,
+                DriverId = driver.Id,
+                DepartmentId = department.Id,
+                PermitTypeId = defaultPermit.Id,
+                CommodityTypeId = defaultCommodity.Id,
+                RequestStatusId = defaultStatus.Id,
+                CreatedBy = currentUser
             };
 
             await _supplierRequestRepository.AddAsync(supplierRequest);
             await _supplierRequestRepository.SaveChangesAsync();
 
-            var ticketResult = await _ticketEngineService.IssueSupplierTicketAsync(dto.DepartmentId, supplierRequest.Id, currentUserId);
+            var ticketResult = await _ticketEngineService.IssueSupplierTicketAsync(department.Id, supplierRequest.Id, currentUser.Id);
 
             return Json(new
             {
@@ -651,9 +646,9 @@ namespace Rassef.Controllers
                 departmentName = ticketResult.DepartmentName,
                 dockName = ticketResult.DockName,
                 employeeName = ticketResult.EmployeeName,
-                companyName = supplier?.Name ?? "غير محدد",
-                truckPlate = truck != null ? $"{truck.PlateLetter} {truck.PlateNumber}" : "غير محدد",
-                driverName = driver?.FullName ?? "غير محدد"
+                companyName = supplier.Name,
+                truckPlate = $"{truck.PlateLetter} {truck.PlateNumber}",
+                driverName = driver.FullName
             });
         }
 

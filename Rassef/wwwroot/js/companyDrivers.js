@@ -249,42 +249,50 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             let ticketInfo = null;
+            let errorMessage = null;
+
             try {
                 const endpoint = window.routes?.createSupplierTicket || '/Driver/CreateSupplierTicket';
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                if (response.ok) {
-                    ticketInfo = await response.json();
+                const data = await response.json().catch(() => null);
+
+                if (response.ok && data?.success) {
+                    ticketInfo = data;
+                } else {
+                    errorMessage = data?.message || 'حدث خطأ أثناء إصدار الدور. حاول مرة أخرى.';
                 }
             } catch (err) {
                 console.error('Error creating supplier ticket:', err);
+                errorMessage = 'تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى.';
             }
 
             btnConfirm.disabled = false;
             btnConfirm.innerHTML = 'تأكيد';
 
-            const ticketNum = ticketInfo?.ticketNumber || generateTicketNumber();
-            ticketNumberDisplay.textContent = ticketNum;
+            // CHANGED: was falling through to show a fake "success" modal with a
+            // client-generated ticket number even when the request failed — a failed
+            // ticket creation looked identical to a real one. Now a failure surfaces
+            // as a failure, and the success modal only ever appears for a real ticket.
+            if (!ticketInfo) {
+                alert(errorMessage);
+                return;
+            }
 
-            const deptName = ticketInfo?.departmentName || (selectedDepartmentValue ? selectedDepartmentValue.name : 'غير محدد');
-            const empName = ticketInfo?.employeeName || window.pageData?.employeeName || 'المسؤول';
-            const dock = ticketInfo?.dockName || window.pageData?.dockName || 'A';
-            const waitCount = ticketInfo?.waitingCount !== undefined ? String(ticketInfo.waitingCount) : '0';
+            ticketNumberDisplay.textContent = ticketInfo.ticketNumber;
 
             const receiptData = {
-                ticketId: ticketInfo?.ticketId || null,
-                ticketNumber: ticketNum,
+                ticketId: ticketInfo.ticketId,
+                ticketNumber: ticketInfo.ticketNumber,
                 requestType: 'توريد',
-                waitingCount: waitCount,
-                department: deptName,
-                dockNumber: dock,
-                employeeName: empName,
+                waitingCount: ticketInfo.waitingCount !== undefined ? String(ticketInfo.waitingCount) : '0',
+                department: ticketInfo.departmentName || (selectedDepartmentValue ? selectedDepartmentValue.name : 'غير محدد'),
+                dockNumber: ticketInfo.dockName || window.pageData?.dockName || 'A',
+                employeeName: ticketInfo.employeeName || window.pageData?.employeeName || 'المسؤول',
                 createdAt: new Date().toISOString()
             };
 
