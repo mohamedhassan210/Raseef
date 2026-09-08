@@ -5,7 +5,7 @@
         public int Id { get; set; }
 
         [Display(Name = "الكود")]
-        public int? Code { get; set; }
+        public int Code { get; set; }
 
         [Display(Name = "اسم نوع السائق")]
         public string Name { get; set; } = string.Empty;

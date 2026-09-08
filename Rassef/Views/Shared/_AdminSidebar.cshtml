@@ -55,6 +55,16 @@
                     <span>إدارة المجموعات</span>
                 </a>
             </li>
+            <!-- ADDED: link to Group/MangeRolesIndex (the roles & permissions overview page).
+                 Key "Roles" is deliberately distinct from "Position"'s key ("إدارة الأدوار
+                 الوظيفية" = job positions) below, since these are two different concepts that
+                 both translate loosely to "roles" in English — don't merge them. -->
+            <li>
+                <a href="@Url.Action("MangeRolesIndex", "Group")" class="sidebar-item @(active == "Roles" ? "active" : "")">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><path d="M17 3.5a4 4 0 0 1 0 7"/></svg>
+                    <span>إدارة الأدوار والصلاحيات</span>
+                </a>
+            </li>
 
             <li>
                 <a href="@Url.Action("MangeTypesIndex", "Group")" class="sidebar-item @(active == "Options" ? "active" : "")">

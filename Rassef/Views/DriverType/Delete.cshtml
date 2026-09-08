@@ -1,0 +1,75 @@
+@model Rassef.ViewModels.DriverType.DriverTypeDetailsVM
+@{
+    Layout = null;
+    ViewData["Title"] = "حذف نوع سائق";
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - رصيف</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/employeeDetails.css" asp-append-version="true">
+</head>
+<body>
+    <div class="dashboard-page">
+        <partial name="_AdminSidebar" model='"Options"' />
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="header-right">
+                    <h2 class="header-title">حذف نوع سائق</h2>
+                    <div class="header-subtitle">
+                        <span class="update-dot"></span>
+                        <span>تأكيد الحذف</span>
+                    </div>
+                </div>
+                <div class="header-left-logos">
+                    <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
+                    <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
+                </div>
+            </header>
+
+            @if (Model != null)
+            {
+                <div class="hero-card">
+                    <div class="hero-info">
+                        <h2 class="hero-name">@Model.Name</h2>
+                        <p class="hero-code">الكود : <span>@Model.Code</span></p>
+                    </div>
+                </div>
+
+                <div style="background-color: #fde8e8; color: #dc3545; padding: 16px 20px; border-radius: 12px; font-weight: 700; margin-top: 20px;">
+                    هل أنت متأكد من رغبتك في حذف نوع السائق "@Model.Name"؟ هذا النوع مرتبط بـ @Model.DriversCount سائق.
+                </div>
+
+                <div class="actions-footer">
+                    <form method="post" action="@Url.Action("Delete", "DriverType")" style="display: inline;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn-delete">
+                            <span>تأكيد الحذف</span>
+                        </button>
+                    </form>
+                    <a href="@Url.Action("Details", "DriverType", new { id = Model.Id })" class="btn-edit" style="text-decoration: none;">
+                        <span>إلغاء</span>
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state-container">
+                    <h3 class="section-title" style="color: #dc3545;">نوع السائق غير موجود</h3>
+                    <a href="@Url.Action("Index", "DriverType")" class="btn-action-orange" style="margin-top: 20px; text-decoration: none; display: inline-block;">العودة</a>
+                </div>
+            }
+        </main>
+    </div>
+</body>
+</html>

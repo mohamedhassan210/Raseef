@@ -339,23 +339,28 @@ namespace Rassef.Controllers
             // 2. جلب السائقين والشاحنات المشغولة حالياً بأدوار نشطة (انتظار أو جاري)
             var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
 
-            // 3. جلب السائقين التابعين لهذا المورد تحديداً واستبعاد من لديه دور نشط
-            var supplierDriversEntities = (await _driverRepository.GetDriversBySupplierIdAsync(supplierId)).ToList();
-            if (selectedDriverId.HasValue && !supplierDriversEntities.Any(d => d.Id == selectedDriverId.Value))
+            // CHANGED — There is no real FK relationship between Supplier and Driver, so scoping
+            // this list to "drivers previously linked to this supplier" via
+            // GetDriversBySupplierIdAsync didn't reflect anything real. Now shows the 6 most
+            // recently added drivers globally, excluding anyone with an active (incomplete)
+            // ticket. GetDriversBySupplierIdAsync itself is untouched — it's still used by
+            // ReloadTruckWithDriverDataAsync for the POST action, which is out of scope here.
+            var recentDriverEntities = (await _driverRepository.GetAllAsync(q => q
+                .Where(d => !d.IsDeleted && !activeDriverIds.Contains(d.Id))
+                .OrderByDescending(d => d.CreatedAT)
+                .ThenByDescending(d => d.Id)
+                .Take(6))).ToList();
+
+            if (selectedDriverId.HasValue && !recentDriverEntities.Any(d => d.Id == selectedDriverId.Value))
             {
                 var selDriver = await _driverRepository.GetByIdAsync(selectedDriverId.Value);
                 if (selDriver != null)
                 {
-                    supplierDriversEntities.Add(selDriver);
+                    recentDriverEntities.Add(selDriver);
                 }
             }
 
-            // استبعاد السائقين الذين لديهم أدوار نشطة لم تكتمل بعد
-            supplierDriversEntities = supplierDriversEntities
-                .Where(d => !activeDriverIds.Contains(d.Id) || (selectedDriverId.HasValue && d.Id == selectedDriverId.Value))
-                .ToList();
-
-            var supplierDrivers = supplierDriversEntities
+            var supplierDrivers = recentDriverEntities
                 .Select(d => new SelectListItem
                 {
                     Value = d.Id.ToString(),
@@ -398,7 +403,50 @@ namespace Rassef.Controllers
 
             return View(model);
         }
+        // CHANGED — new AJAX endpoint backing the driver search box added to
+        // CreateTruckWithDriver's picker. Chose to have this same action serve both the
+        // "no term" and "with term" cases (rather than a separate reset endpoint), since an
+        // empty term returning the same top-6-recent list means the JS can call one endpoint
+        // whether the user is searching or has just cleared the box — simpler than branching
+        // client-side on which endpoint to hit.
+        [HttpGet]
+        public async Task<IActionResult> SearchDrivers(string? term)
+        {
+            var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
 
+            IReadOnlyList<Driver> drivers;
+
+            if (string.IsNullOrWhiteSpace(term))
+            {
+                drivers = await _driverRepository.GetAllAsync(q => q
+                    .Where(d => !d.IsDeleted && !activeDriverIds.Contains(d.Id))
+                    .OrderByDescending(d => d.CreatedAT)
+                    .ThenByDescending(d => d.Id)
+                    .Take(6));
+            }
+            else
+            {
+                var trimmedTerm = term.Trim();
+                drivers = await _driverRepository.GetAllAsync(q => q
+                    .Where(d => !d.IsDeleted && !activeDriverIds.Contains(d.Id) &&
+                        (d.FullName.Contains(trimmedTerm) ||
+                         d.Phone.Contains(trimmedTerm) ||
+                         d.NationalId.Contains(trimmedTerm)))
+                    .OrderByDescending(d => d.CreatedAT)
+                    .ThenByDescending(d => d.Id)
+                    .Take(20));
+            }
+
+            var result = drivers.Select(d => new DriverListVM
+            {
+                Id = d.Id,
+                FullName = d.FullName,
+                NationalId = d.NationalId,
+                Phone = d.Phone
+            });
+
+            return Json(result);
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateTruckWithDriver(TruckWithDriverVM create)

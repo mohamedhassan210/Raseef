@@ -64,6 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     document.querySelectorAll('.custom-dropdown').forEach(customDropdown => {
         if (customDropdown.id === 'dept-dropdown-container') return;
+        // CHANGED — customDriverDropdown excluded here too. Its items are no longer
+        // static (they're re-rendered from AJAX search results), and this loop only
+        // wires whatever .dropdown-item elements exist at page load. Section 4b below
+        // owns 100% of the driver dropdown's wiring instead, so it applies identically
+        // to both the initial server-rendered items and every search re-render.
+        if (customDropdown.id === 'customDriverDropdown') return;
 
         const dropdownHeader = customDropdown.querySelector('.dropdown-header');
         const selectedValue = customDropdown.querySelector('.selected-value');
@@ -120,6 +126,117 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // ==========================================
+    // 4b. Driver Search & Dynamic Dropdown Logic
+    // ==========================================
+    const driverDropdown = document.getElementById('customDriverDropdown');
+    const driverDropdownHeader = driverDropdown ? driverDropdown.querySelector('.dropdown-header') : null;
+    const driverSelectedValueSpan = driverDropdown ? driverDropdown.querySelector('.selected-value') : null;
+    const driverSearchInput = document.getElementById('driverSearchInput');
+    const driverDropdownItemsContainer = document.getElementById('driverDropdownItems');
+    const driverInvalidFeedback = document.getElementById('driverSelectView')
+        ? document.getElementById('driverSelectView').querySelector('.invalid-feedback')
+        : null;
+
+    let driverSearchDebounceTimer = null;
+
+    // CHANGED — replicates the open/close behavior the generic loop used to provide
+    // for this dropdown's header before it was excluded above.
+    if (driverDropdownHeader) {
+        driverDropdownHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.querySelectorAll('.custom-dropdown').forEach(d => {
+                if (d !== driverDropdown) d.classList.remove('open');
+            });
+            if (driverDropdown) driverDropdown.classList.toggle('open');
+        });
+    }
+
+    const wireDriverItem = (item) => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (item.classList.contains('disabled')) return;
+
+            const value = item.getAttribute('data-value');
+            const text = item.textContent.trim();
+
+            if (driverSelectedValueSpan) {
+                driverSelectedValueSpan.textContent = text;
+                driverSelectedValueSpan.classList.remove('placeholder-color');
+                driverSelectedValueSpan.classList.remove('text-muted');
+            }
+
+            if (driverSelect) {
+                driverSelect.value = value;
+                driverSelect.disabled = false;
+                driverSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            if (driverDropdownItemsContainer) {
+                driverDropdownItemsContainer.querySelectorAll('.dropdown-item').forEach(el => el.classList.remove('selected'));
+            }
+            item.classList.add('selected');
+
+            if (driverDropdown) driverDropdown.classList.remove('open');
+
+            if (driverInvalidFeedback) driverInvalidFeedback.style.display = 'none';
+        });
+    };
+
+    const renderDriverItems = (drivers) => {
+        if (!driverDropdownItemsContainer) return;
+
+        driverDropdownItemsContainer.innerHTML = '';
+
+        if (!drivers || drivers.length === 0) {
+            const emptyItem = document.createElement('div');
+            emptyItem.className = 'dropdown-item disabled text-muted';
+            emptyItem.textContent = 'لا يوجد سائقين مطابقين';
+            driverDropdownItemsContainer.appendChild(emptyItem);
+            return;
+        }
+
+        drivers.forEach(driver => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item';
+            item.setAttribute('data-value', driver.id);
+            item.textContent = driver.fullName;
+            wireDriverItem(item);
+            driverDropdownItemsContainer.appendChild(item);
+        });
+    };
+
+    // Wire whatever items the server already rendered on page load (the initial
+    // top 6), so they behave identically to AJAX-rendered ones.
+    if (driverDropdownItemsContainer) {
+        driverDropdownItemsContainer.querySelectorAll('.dropdown-item').forEach(item => {
+            if (!item.classList.contains('disabled')) {
+                wireDriverItem(item);
+            }
+        });
+    }
+
+    if (driverSearchInput) {
+        // Prevent typing/clicking in the search box from being treated as an
+        // outside-click that would close the dropdown (handled above).
+        driverSearchInput.addEventListener('click', (e) => e.stopPropagation());
+
+        driverSearchInput.addEventListener('input', () => {
+            const term = driverSearchInput.value.trim();
+
+            clearTimeout(driverSearchDebounceTimer);
+            driverSearchDebounceTimer = setTimeout(() => {
+                fetch(`/SupplierRequest/SearchDrivers?term=${encodeURIComponent(term)}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Search request failed');
+                        return response.json();
+                    })
+                    .then(data => renderDriverItems(data))
+                    .catch(() => renderDriverItems([]));
+            }, 300);
+        });
+    }
 
     // ==========================================
     // 5. Modal System Functions

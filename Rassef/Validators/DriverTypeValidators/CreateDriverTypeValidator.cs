@@ -5,8 +5,7 @@
         public CreateDriverTypeValidator()
         {
             RuleFor(x => x.Code)
-                .GreaterThan(0).When(x => x.Code.HasValue)
-                .WithMessage("كود نوع السائق يجب ألا يكون بالسالب أو صفراً.");
+                .GreaterThan(0).WithMessage("كود نوع السائق يجب ألا يكون بالسالب أو صفراً.");
 
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("يرجى إدخال اسم نوع السائق.")

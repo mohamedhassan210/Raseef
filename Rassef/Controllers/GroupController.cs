@@ -258,6 +258,27 @@ namespace Rassef.Controllers
             return View(model);
         }
 
+        /// <summary>
+        /// تحديث يدوي لمزامنة الصلاحيات من الأكواد الحالية للمتحكمات (نفس المزامنة التي تعمل
+        /// تلقائياً عند فتح الصفحة، بس هنا بطلب صريح من المستخدم مع رسالة تأكيد واضحة)
+        /// </summary>
+        // CHANGED (redesigned per explicit request): this originally redirected back to
+        // MangeRolesIndex after running the sync (matching the reference project's pattern). The
+        // actual requirement is "refresh the DB, don't navigate anywhere" — so this is now called
+        // via fetch()/AJAX from the page itself and returns JSON instead. No RedirectToAction, no
+        // view resolution happens for this action at all anymore.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RefreshPermissions()
+        {
+            // Same caveat as before, still unaddressed on purpose (out of scope): SyncPermissionsFromReflectionAsync's
+            // internal `catch { }` swallows everything, so this can't actually report a failure —
+            // it will always return success:true even if the reflection sync silently broke.
+            await SyncPermissionsFromReflectionAsync();
+
+            return Json(new { success = true, message = "تم تحديث الصلاحيات من الأكواد الحالية بنجاح!" });
+        }
+
         private async Task SyncPermissionsFromReflectionAsync()
         {
             try

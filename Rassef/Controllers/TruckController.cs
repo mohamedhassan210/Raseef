@@ -65,11 +65,11 @@ namespace Rassef.Controllers
 
             var trucksrepo = await _truckRepository.GetTruckWithTypeName();
 
-            // CHANGED (this pass) — added a TruckType?.TruckTypeCode == 1 filter,
-            // per explicit instruction: this picker should only offer trucks whose
-            // TruckTypes.TruckTypeCode is 1.
+            // FIXED — was filtering TruckTypeCode == 2, which put transfer-flow trucks in the
+            // supplier picker. Supplier request flow should only offer trucks with code == 1;
+            // transfer flow (MainTraDrivers) already correctly uses code == 2.
             var supplierTrucks = trucksrepo
-                .Where(x => !activeTruckIds.Contains(x.Id) && x.TruckType?.TruckTypeCode == 2)
+                .Where(x => !activeTruckIds.Contains(x.Id) && x.TruckType?.TruckTypeCode == 1)
                 .Select(x => new TruckListVM
                 {
                     Id = x.Id,

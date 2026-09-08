@@ -64,6 +64,7 @@ namespace Rassef.Dependencyinjection
             services.AddScoped<IGroupPermissionRepository, GroupPermissionRepository>();
             services.AddScoped<ITicketEngineService, TicketEngineService>();
             services.AddScoped<IJwtService, JwtService>();
+            services.AddHostedService<ShiftAutoResetBackgroundService>();
 
             // 5. JWT Settings Configuration
             var jwtSettingsSection = configuration.GetSection("Jwt");

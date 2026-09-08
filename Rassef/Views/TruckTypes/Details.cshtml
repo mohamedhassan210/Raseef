@@ -1,0 +1,113 @@
+@model Rassef.ViewModels.TruckTypes.TruckTypesDetailsVM
+@{
+    Layout = null;
+    ViewData["Title"] = "تفاصيل نوع الشاحنة";
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - رصيف</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/employeeDetails.css" asp-append-version="true">
+</head>
+<body>
+    <div class="dashboard-page">
+        <partial name="_AdminSidebar" model='"Options"' />
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="header-right">
+                    <h2 class="header-title">تفاصيل نوع الشاحنة</h2>
+                    <div class="header-subtitle">
+                        <span class="update-dot"></span>
+                        <span>بيانات نوع الشاحنة المسجلة بالنظام</span>
+                    </div>
+                </div>
+                <div class="header-left-logos">
+                    <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
+                    <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
+                </div>
+            </header>
+
+            <div class="back-action-container">
+                <a href="@Url.Action("Index", "TruckTypes")" class="btn-back-orange" style="text-decoration: none;">
+                    <span>رجوع</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+                </a>
+            </div>
+
+            @if (Model != null)
+            {
+                <div class="hero-card">
+                    <div class="hero-info">
+                        <h2 class="hero-name">@Model.Name</h2>
+                        <p class="hero-code">الكود : <span>@Model.TruckTypeCode</span></p>
+                    </div>
+                </div>
+
+                <div class="section-title-wrapper">
+                    <h3 class="section-title">معلومات نوع الشاحنة</h3>
+                    <div class="section-divider"></div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                        </div>
+                        <div class="info-text">
+                            <span class="info-label">الكود</span>
+                            <span class="info-value">@Model.TruckTypeCode</span>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                        </div>
+                        <div class="info-text">
+                            <span class="info-label">الإسم</span>
+                            <span class="info-value">@Model.Name</span>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-truck" style="font-size: 1.25rem; color: var(--primary-color);"></i>
+                        </div>
+                        <div class="info-text">
+                            <span class="info-label">عدد الشاحنات المرتبطة</span>
+                            <span class="info-value">@Model.TrucksCount</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions-footer">
+                    <a href="@Url.Action("Update", "TruckTypes", new { id = Model.Id })" class="btn-edit" style="text-decoration: none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                        <span>تعديل البيانات</span>
+                    </a>
+                    <a href="@Url.Action("Delete", "TruckTypes", new { id = Model.Id })" class="btn-delete" style="text-decoration: none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                        <span>حذف</span>
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state-container">
+                    <h3 class="section-title" style="color: #dc3545;">نوع الشاحنة غير موجود</h3>
+                    <a href="@Url.Action("Index", "TruckTypes")" class="btn-action-orange" style="margin-top: 20px; text-decoration: none; display: inline-block;">العودة</a>
+                </div>
+            }
+        </main>
+    </div>
+</body>
+</html>

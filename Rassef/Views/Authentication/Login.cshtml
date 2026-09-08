@@ -39,11 +39,11 @@
                     <div asp-validation-summary="ModelOnly" class="c-error-message" style="margin-bottom: 16px; text-align: center;"></div>
 
                     <div class="c-field">
-                        <label class="c-field__label" asp-for="UserNameOrEmail">اسم المستخدم</label>
+                        <label class="c-field__label" asp-for="UserName">اسم المستخدم</label>
                         <div class="c-field__control-wrap">
                             <input type="text"
                                    id="username"
-                                   asp-for="UserNameOrEmail"
+                                   asp-for="UserName"
                                    class="c-field__input"
                                    placeholder="أدخل اسم المستخدم"
                                    required
@@ -55,7 +55,7 @@
                                 </svg>
                             </span>
                         </div>
-                        <span class="c-error-message" id="usernameError" asp-validation-for="UserNameOrEmail"></span>
+                        <span class="c-error-message" id="usernameError" asp-validation-for="UserName"></span>
                     </div>
 
                     <div class="c-field">

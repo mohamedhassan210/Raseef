@@ -1,6 +1,4 @@
-﻿
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class TruckTypesController : Controller
     {
@@ -19,6 +17,7 @@ namespace Rassef.Controllers
             var model = truckTypes.Select(x => new TruckTypesListVM
             {
                 Id = x.Id,
+                TruckTypeCode = x.TruckTypeCode,
                 Name = x.Name,
                 TrucksCount = x.Trucks?.Count ?? 0
             }).ToList();
@@ -40,6 +39,7 @@ namespace Rassef.Controllers
             var model = new TruckTypesDetailsVM
             {
                 Id = truckType.Id,
+                TruckTypeCode = truckType.TruckTypeCode,
                 Name = truckType.Name,
                 TrucksCount = truckType.Trucks?.Count ?? 0
             };
@@ -70,8 +70,15 @@ namespace Rassef.Controllers
                 return View(model);
             }
 
+            if (await _repository.ExistsAsync(x => x.TruckTypeCode == model.TruckTypeCode))
+            {
+                ModelState.AddModelError(nameof(model.TruckTypeCode), "الكود مسجل بالفعل.");
+                return View(model);
+            }
+
             var truckType = new TruckTypes
             {
+                TruckTypeCode = model.TruckTypeCode,
                 Name = model.Name
             };
 
@@ -95,6 +102,7 @@ namespace Rassef.Controllers
             var model = new UpdateTruckTypesVM
             {
                 Id = truckType.Id,
+                TruckTypeCode = truckType.TruckTypeCode,
                 Name = truckType.Name
             };
 
@@ -124,6 +132,13 @@ namespace Rassef.Controllers
                 return View(model);
             }
 
+            if (await _repository.ExistsAsync(x => x.TruckTypeCode == model.TruckTypeCode && x.Id != model.Id))
+            {
+                ModelState.AddModelError(nameof(model.TruckTypeCode), "الكود مسجل بالفعل.");
+                return View(model);
+            }
+
+            truckType.TruckTypeCode = model.TruckTypeCode;
             truckType.Name = model.Name;
 
             _repository.Update(truckType);
@@ -146,6 +161,7 @@ namespace Rassef.Controllers
             var model = new TruckTypesDetailsVM
             {
                 Id = truckType.Id,
+                TruckTypeCode = truckType.TruckTypeCode,
                 Name = truckType.Name,
                 TrucksCount = truckType.Trucks?.Count ?? 0
             };

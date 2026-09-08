@@ -2,7 +2,7 @@
 {
     public class DriverTypes : BaseEntity
     {
-        public int? Code { get; set; }
+        public int Code { get; set; }
         public string Name { get; set; } = string.Empty;
         public ICollection<Driver> Drivers { get; set; } = new HashSet<Driver>();
     }

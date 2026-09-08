@@ -1,16 +1,15 @@
-@{
-    ViewData["Title"] = "سائقين";
-    Layout = "_SupOrTra";
-}
 @model IEnumerable<Rassef.ViewModels.Driver.DriverListVM>
 
-<!-- استدعاء الخطوط ومكتبات التصميم (Bootstrap & Icons) -->
+@{
+    ViewData["Title"] = $"سائقين شاحنة {ViewBag.TruckName}";
+    Layout = "_SupOrTra";
+}
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
-<!-- استدعاء الـ CSS -->
 <link rel="stylesheet" href="~/css/companyDrivers.css" asp-append-version="true" />
 
 <main class="page-container">
@@ -21,8 +20,7 @@
         </div>
 
         <div class="title-wrapper">
-            <!-- عنوان ثابت لصفحة النقل -->
-            <h1 class="main-title" id="page-title">سائقين</h1>
+            <h1 class="main-title" id="page-title">سائقين شاحنة @ViewBag.TruckName</h1>
         </div>
 
         <div class="logo-wrapper header-left">
@@ -31,17 +29,8 @@
     </header>
 
     <div class="nav-actions-container">
-        <!-- التوجيه لصفحة إضافة سائق (مسار النقل) -->
-        <a asp-controller="Driver" asp-action="addDriverTransfer" class="action-btn" aria-label="إضافة جديد">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            إضافة جديد
-        </a>
-
-        <!-- التوجيه للرجوع لصفحة SupOrTra -->
-        <a asp-controller="Authentication" asp-action="SupOrTra" class="action-btn" aria-label="خطوة للخلف">
+        <!-- التوجيه للرجوع لصفحة شاحنات التحويل -->
+        <a asp-controller="Truck" asp-action="MainTraDrivers" class="action-btn" aria-label="خطوة للخلف">
             خطوة للخلف
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -62,13 +51,12 @@
         </div>
     </section>
 
-    <!-- قائمة السائقين -->
     <section class="cards-section" id="cards-container" aria-label="قائمة السائقين">
         @if (Model != null && Model.Any())
         {
             foreach (var driver in Model)
             {
-                <article class="driver-card" data-name="@driver.FullName" data-id="@driver.NationalId">
+                <article class="driver-card" data-name="@driver.FullName" data-id="@driver.Id" data-national-id="@driver.NationalId">
                     <div class="btnAndArticle">
                         <div class="driver-avatar" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -98,7 +86,7 @@
         else
         {
             <div class="text-center mt-5" style="color: var(--dark-text); font-size: 1.2rem;">
-                لا يوجد سائقين مسجلين في النظام.
+                لا يوجد سائقين متاحين لعملية التحويل.
             </div>
         }
     </section>
@@ -107,7 +95,6 @@
 <!-- Multi-Step Modal System -->
 <div id="custom-modal-overlay" class="custom-modal-overlay" aria-hidden="true">
 
-    <!-- Modal 0: Department Selection -->
     <div id="department-modal" class="custom-modal-container d-none" role="dialog" aria-modal="true" aria-labelledby="department-modal-title">
         <div class="modal-header-icon">
             <div class="icon-circle">
@@ -131,9 +118,7 @@
                     </svg>
                 </div>
 
-                <div class="dropdown-list" id="dept-dropdown-list">
-                    <!-- هيتم إضافة الأقسام هنا ديناميكياً عن طريق الجافاسكريبت -->
-                </div>
+                <div class="dropdown-list" id="dept-dropdown-list"></div>
 
                 <div class="invalid-feedback text-right mt-2" id="dept-error-msg" style="display: none; color: #dc3545; font-size: 0.95rem; font-weight: 500;">
                     يرجى اختيار القسم للمتابعة.
@@ -146,7 +131,6 @@
         </div>
     </div>
 
-    <!-- Modal 1: Data Confirmation -->
     <div id="confirmation-modal" class="custom-modal-container d-none" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
         <div class="modal-header-icon">
             <div class="icon-circle">
@@ -156,11 +140,6 @@
             </div>
         </div>
 
-        <div class="modal-header-icon01">
-            <div class="icon-circle01"></div>
-        </div>
-
-        <!-- Content Grid -->
         <div class="modal-body data-grid mt-4 firstModelcontent">
             <div class="data-row">
                 <span class="data-label">الشركة :</span>
@@ -186,44 +165,7 @@
         </div>
     </div>
 
-    <!-- Modal 2: Success & Ticket -->
     <div id="success-modal" class="custom-modal-container d-none" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
         <div class="modal-header-icon">
             <div class="icon-circle green-circle">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-            </div>
-        </div>
-
-        <div class="modal-body text-center w-100 mt-4">
-            <h2 id="success-modal-title" class="modal-title success-text">تم تأكيد البيانات بنجاح</h2>
-            <div class="ticket-box">
-                <span id="ticket-number" class="ticket-number-text"></span>
-            </div>
-        </div>
-
-        <div class="modal-actions">
-            <button id="btn-back" class="btn-secondary-custom" aria-label="الرجوع">الرجوع</button>
-            <button id="btn-print" class="btn-primary-custom" aria-label="طباعة البون">طباعة</button>
-        </div>
-    </div>
-</div> 
-
-@section Scripts {
-    <script>
-        window.pageData = {
-            truckName: '@Html.Raw(ViewBag.TruckName ?? "غير محدد")',
-            dockName: 'A',
-            employeeName: '@Html.Raw(!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "المسؤول")'
-        };
-
-        window.routes = {
-            backRoute: '@Url.Action("SupOrTra", "Authentication")',
-            receiptPage: '@Url.Action("Recript", "Driver")'
-        };
-    </script>
-
-    <script src="~/js/companyDrivers.js" asp-append-version="true"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-}
+                <svg viewBox="0 0 24 24" fill="none"

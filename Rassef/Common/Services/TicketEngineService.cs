@@ -63,20 +63,26 @@ namespace Rassef.Common.Services
                 {
                     var allShifts = await _shiftRepository.GetAllAsync();
                     var currentTime = now.TimeOfDay;
-                    activeShift = allShifts.FirstOrDefault(s =>
-                    {
-                        var start = s.StartTime;
-                        var end = start.Add(s.Duration);
-                        if (end.TotalHours <= 24)
+
+                    // CHANGED: was filtering to shifts whose window (StartTime -> StartTime
+                    // + Duration) currently contains "now", then falling back to an
+                    // arbitrary "first shift in the table" whenever nothing matched (e.g. a
+                    // shortened test shift whose window had already ended, with no other
+                    // shift's window covering the gap). That fallback could land right
+                    // back on the same shift with an unchanged StartTime, so no reset ever
+                    // appeared to happen. Now: pick whichever shift most recently started,
+                    // full stop, no window/duration filter. Always well-defined (as long as
+                    // at least one shift exists), and a shift transition is detected purely
+                    // by crossing a StartTime, not by whether the previous shift's Duration
+                    // "ran out".
+                    activeShift = allShifts
+                        .OrderBy(s =>
                         {
-                            return currentTime >= start && currentTime < end;
-                        }
-                        else
-                        {
-                            var endNextDay = end.Subtract(TimeSpan.FromHours(24));
-                            return currentTime >= start || currentTime < endNextDay;
-                        }
-                    }) ?? allShifts.FirstOrDefault();
+                            var elapsed = currentTime - s.StartTime;
+                            if (elapsed < TimeSpan.Zero) elapsed += TimeSpan.FromHours(24);
+                            return elapsed;
+                        })
+                        .FirstOrDefault();
                 }
 
                 if (activeShift != null)
@@ -91,6 +97,21 @@ namespace Rassef.Common.Services
                     if (activeShift.LastResetAt.HasValue && activeShift.LastResetAt.Value <= now && activeShift.LastResetAt.Value > resetDate)
                     {
                         resetDate = activeShift.LastResetAt.Value;
+                    }
+
+                    // Persist that this occurrence of the shift has started/reset, so
+                    // Shift/Index's "آخر تصفير" column reflects automatic resets too, not
+                    // only manual button clicks. Only writes when the stored value is
+                    // stale (older than this occurrence's start) — a manual mid-shift
+                    // reset (LastResetAt already ahead of shiftStart) is never overwritten,
+                    // and once written for this occurrence, later calls in the same
+                    // window see it's no longer stale and skip the write.
+                    if (!activeShift.LastResetAt.HasValue || activeShift.LastResetAt.Value < shiftStart)
+                    {
+                        activeShift.LastResetAt = shiftStart;
+                        activeShift.MarkAsUpdated();
+                        _shiftRepository.Update(activeShift);
+                        await _shiftRepository.SaveChangesAsync();
                     }
                 }
             }
@@ -155,7 +176,6 @@ namespace Rassef.Common.Services
 
             return (prefix, nextCounter, ticketNumber, activeShift);
         }
-
         public async Task<TicketIssueResult> IssueTransferTicketAsync(int departmentId, int transferRequestId, int userId)
         {
             return await IssueGeneralTicketAsync(departmentId, supplierRequestId: null, transferRequestId: transferRequestId, ticketStatusId: null, userId: userId);

@@ -4,8 +4,8 @@
     {
         public LoginValidator()
         {
-            RuleFor(x => x.UserNameOrEmail)
-                .NotEmpty().WithMessage("اسم المستخدم أو البريد الإلكتروني مطلوب.");
+            RuleFor(x => x.UserName)
+                .NotEmpty().WithMessage("اسم المستخدم مطلوب.");
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("كلمة المرور مطلوبة.");

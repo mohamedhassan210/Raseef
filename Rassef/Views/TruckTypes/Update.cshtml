@@ -1,0 +1,92 @@
+@model Rassef.ViewModels.TruckTypes.UpdateTruckTypesVM
+@{
+    Layout = null;
+    ViewData["Title"] = "تعديل نوع شاحنة";
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - رصيف</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/groupRolePages.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/editEmployee.css" asp-append-version="true">
+</head>
+<body>
+    <div class="dashboard-page">
+        <partial name="_AdminSidebar" model='"Options"' />
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="header-right">
+                    <h2 class="header-title">تعديل نوع شاحنة</h2>
+                    <div class="header-subtitle">
+                        <span class="update-dot"></span>
+                        <span>آخر تحديث منذ 10 ثواني</span>
+                    </div>
+                </div>
+                <div class="header-left-logos">
+                    <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
+                    <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
+                </div>
+            </header>
+
+            <div class="nav-actions-container" style="justify-content: flex-end; margin-top: 10px;">
+                <a href="@Url.Action("Details", "TruckTypes", new { id = Model?.Id })" class="action-btn" aria-label="خطوة للخلف">
+                    خطوة للخلف
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                </a>
+            </div>
+
+            <section class="form-card mt-3">
+                <form method="post" action="@Url.Action("Update", "TruckTypes")" id="updateTruckTypeForm" class="needs-validation" novalidate>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" value="@Model?.Id" />
+
+                    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                    {
+                        <div class="alert alert-danger text-end mb-4">
+                            <ul class="mb-0" style="list-style-type: none; padding-right: 0;">
+                                @foreach (var modelError in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@modelError.ErrorMessage</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    <div class="row mb-4 gy-4">
+                        <div class="col-md-6">
+                            <label for="truckTypeCode" class="form-label fw-bold">الكود</label>
+                            <div class="position-relative">
+                                <input type="number" class="form-control custom-input" id="truckTypeCode" name="TruckTypeCode" value="@Model?.TruckTypeCode" placeholder="ادخل كود نوع الشاحنة" required autocomplete="off">
+                                <div class="invalid-feedback text-center mt-2">يرجى إدخال كود صحيح.</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="truckTypeName" class="form-label fw-bold">اسم نوع الشاحنة</label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control custom-input" id="truckTypeName" name="Name" value="@Model?.Name" placeholder="ادخل اسم نوع الشاحنة" required autocomplete="off" maxlength="100">
+                                <div class="invalid-feedback text-center mt-2">يرجى إدخال اسم نوع الشاحنة.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-100 submit-btn mt-4">حفظ التعديلات</button>
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,6 +1,4 @@
-﻿
-
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class DriverTypeController : Controller
     {
@@ -72,6 +70,12 @@ namespace Rassef.Controllers
                 return View(model);
             }
 
+            if (await _repository.ExistsAsync(x => x.Code == model.Code))
+            {
+                ModelState.AddModelError(nameof(model.Code), "الكود مسجل بالفعل.");
+                return View(model);
+            }
+
             var driverType = new DriverTypes
             {
                 Code = model.Code,
@@ -125,6 +129,12 @@ namespace Rassef.Controllers
             if (await _repository.ExistsAsync(x => x.Name == model.Name && x.Id != model.Id))
             {
                 ModelState.AddModelError(nameof(model.Name), "اسم نوع السائق مسجل بالفعل.");
+                return View(model);
+            }
+
+            if (await _repository.ExistsAsync(x => x.Code == model.Code && x.Id != model.Id))
+            {
+                ModelState.AddModelError(nameof(model.Code), "الكود مسجل بالفعل.");
                 return View(model);
             }
 

@@ -76,8 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
             pageData.forEach((emp) => {
                 const tr = document.createElement('tr');
                 tr.className = 'table-row';
-                const detailsUrl = window.mvcRoutes?.detailsEmployeeUrl 
-                    ? `${window.mvcRoutes.detailsEmployeeUrl}/${emp.id}` 
+                const detailsUrl = window.mvcRoutes?.detailsEmployeeUrl
+                    ? `${window.mvcRoutes.detailsEmployeeUrl}/${emp.id}`
                     : `/Administration/Details/${emp.id}`;
 
                 tr.innerHTML = `
@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         searchTerm: "",
         sortBy: "number",
         sortLabels: {
-            "number": "الرقم", "type": "النوع", "company": "الشركة",
+            "number": "الرقم", "type": "النوع", "truckType": "نوع الشاحنة",
             "capacity": "سعة التخزين", "host": "الموظف المضيف"
         },
         allData: Array.isArray(window.initialTrucksData) ? window.initialTrucksData : []
@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filtered = filtered.filter(t =>
                 (t.number && t.number.toLowerCase().includes(term)) ||
                 (t.type && t.type.toLowerCase().includes(term)) ||
-                (t.company && t.company.toLowerCase().includes(term)) ||
+                (t.truckType && t.truckType.toLowerCase().includes(term)) ||
                 (t.host && t.host.toLowerCase().includes(term))
             );
         }
@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tr.innerHTML = `
                     <td class="col-number">${truck.number || '--'}</td>
                     <td class="col-type">${truck.type || '--'}</td>
-                    <td class="col-company">${truck.company || '--'}</td>
+                    <td class="col-company">${truck.truckType || '--'}</td>
                     <td class="col-capacity">${truck.capacity ? truck.capacity + ' kg' : '--'}</td>
                     <td class="col-host">${truck.host || '--'}</td>
                     <td class="col-action">
@@ -433,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const excelData = filteredData.map(t => ({
                 "الرقم": t.number || '--',
                 "النوع": t.type || '--',
-                "الشركة": t.company || '--',
+                "نوع الشاحنة": t.truckType || '--',
                 "سعة التخزين": t.capacity ? t.capacity + ' kg' : '--',
                 "الموظف المضيف": t.host || '--'
             }));
@@ -473,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sortBy: "number",
         sortDesc: false, // حالة الترتيب (تصاعدي ولا تنازلي)
         sortLabels: {
-            "number": "الرقم", "type": "النوع", "company": "الشركة",
+            "number": "الرقم", "type": "النوع", "truckType": "نوع الشاحنة",
             "capacity": "سعة التخزين", "host": "الموظف المضيف"
         },
         allData: Array.isArray(window.initialTrucksData) ? window.initialTrucksData : []
@@ -488,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filtered = filtered.filter(t =>
                 (t.number && String(t.number).toLowerCase().includes(term)) ||
                 (t.type && String(t.type).toLowerCase().includes(term)) ||
-                (t.company && String(t.company).toLowerCase().includes(term)) ||
+                (t.truckType && String(t.truckType).toLowerCase().includes(term)) ||
                 (t.host && String(t.host).toLowerCase().includes(term)) ||
                 (t.capacity && String(t.capacity).toLowerCase().includes(term))
             );
@@ -552,7 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tr.innerHTML = `
                     <td class="col-number">${truck.number || '--'}</td>
                     <td class="col-type">${truckTypeDisplay || '--'}</td>
-                    <td class="col-company">${truck.company || '--'}</td>
+                    <td class="col-company">${truck.truckType || '--'}</td>
                     <td class="col-capacity">${truck.capacity ? truck.capacity + ' kg' : '--'}</td>
                     <td class="col-host">${truck.host || '--'}</td>
                     <td class="col-action">
@@ -692,7 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return {
                     "الرقم": t.number || '--',
                     "النوع": typeText || '--',
-                    "الشركة": t.company || '--',
+                    "نوع الشاحنة": t.truckType || '--',
                     "سعة التخزين": t.capacity ? t.capacity + ' kg' : '--',
                     "الموظف المضيف": t.host || '--'
                 };
@@ -736,7 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sortBy: "number",
             sortDesc: false,
             sortLabels: {
-                "number": "الرقم", "type": "النوع", "company": "الشركة",
+                "number": "الرقم", "type": "النوع", "truckType": "نوع الشاحنة",
                 "capacity": "سعة التخزين", "host": "الموظف المضيف"
             },
             allData: Array.isArray(window.initialTrucksData) ? window.initialTrucksData : []
@@ -750,7 +750,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 filtered = filtered.filter(t =>
                     (t.number && String(t.number).toLowerCase().includes(term)) ||
                     (t.type && String(t.type).toLowerCase().includes(term)) ||
-                    (t.company && String(t.company).toLowerCase().includes(term)) ||
+                    (t.truckType && String(t.truckType).toLowerCase().includes(term)) ||
                     (t.host && String(t.host).toLowerCase().includes(term)) ||
                     (t.capacity && String(t.capacity).toLowerCase().includes(term))
                 );
@@ -809,7 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tr.innerHTML = `
                         <td class="col-number">${truck.number || '--'}</td>
                         <td class="col-type">${truckTypeDisplay || '--'}</td>
-                        <td class="col-company">${truck.company || '--'}</td>
+                        <td class="col-company">${truck.truckType || '--'}</td>
                         <td class="col-capacity">${truck.capacity ? truck.capacity + ' kg' : '--'}</td>
                         <td class="col-host">${truck.host || '--'}</td>
                         <td class="col-action">
@@ -942,7 +942,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return {
                         "الرقم": t.number || '--',
                         "النوع": typeText || '--',
-                        "الشركة": t.company || '--',
+                        "نوع الشاحنة": t.truckType || '--',
                         "سعة التخزين": t.capacity ? t.capacity + ' kg' : '--',
                         "الموظف المضيف": t.host || '--'
                     };
@@ -1674,7 +1674,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sortBy: "number",
             sortDesc: false,
             sortLabels: {
-                "number": "الرقم", "type": "النوع", "company": "الشركة",
+                "number": "الرقم", "type": "النوع", "truckType": "نوع الشاحنة",
                 "capacity": "سعة التخزين", "host": "الموظف المضيف"
             },
             allData: Array.isArray(window.initialTrucksData) ? window.initialTrucksData : []
@@ -1687,7 +1687,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 filtered = filtered.filter(t =>
                     (t.number && String(t.number).toLowerCase().includes(term)) ||
                     (t.type && String(t.type).toLowerCase().includes(term)) ||
-                    (t.company && String(t.company).toLowerCase().includes(term)) ||
+                    (t.truckType && String(t.truckType).toLowerCase().includes(term)) ||
                     (t.host && String(t.host).toLowerCase().includes(term)) ||
                     (t.capacity && String(t.capacity).toLowerCase().includes(term))
                 );
@@ -1739,7 +1739,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tr.innerHTML = `
                         <td class="col-number">${truck.number || '--'}</td>
                         <td class="col-type">${truckTypeDisplay || '--'}</td>
-                        <td class="col-company">${truck.company || '--'}</td>
+                        <td class="col-company">${truck.truckType || '--'}</td>
                         <td class="col-capacity">${truck.capacity ? truck.capacity + ' kg' : '--'}</td>
                         <td class="col-host">${truck.host || '--'}</td>
                         <td class="col-action">
@@ -1868,7 +1868,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return {
                         "الرقم": t.number || '--',
                         "النوع": typeText || '--',
-                        "الشركة": t.company || '--',
+                        "نوع الشاحنة": t.truckType || '--',
                         "سعة التخزين": t.capacity ? t.capacity + ' kg' : '--',
                         "الموظف المضيف": t.host || '--'
                     };

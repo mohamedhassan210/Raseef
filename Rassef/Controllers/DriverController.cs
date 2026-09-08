@@ -448,18 +448,36 @@ namespace Rassef.Controllers
             });
         }
         [HttpGet]
-        public async Task<IActionResult> TransferDrivers()
+        public async Task<IActionResult> TransferDrivers(int id) // id = truckId
         {
-
-            var allDrivers = await _driverRepository.GetAllAsync();
-
-            var driverList = allDrivers.Select(d => new DriverListVM
+            var truck = await _truckRepository.GetByIdAsync(id);
+            if (truck == null)
             {
-                Id = d.Id,
-                FullName = d.FullName,
-                NationalId = d.NationalId,
-                Phone = d.Phone
-            }).ToList();
+                return RedirectToAction("MainTraDrivers", "Truck");
+            }
+
+            var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
+
+            // Transfer flow only offers drivers whose DriverTypes.Code is 2
+            // (supplier flow's Driver/Index uses Code == 1).
+            var drivers = await _driverRepository.GetAllAsync(query =>
+                query.Include(d => d.DeiverType));
+
+            var driverList = drivers
+                .Where(d => !activeDriverIds.Contains(d.Id) && d.DeiverType?.Code == 2)
+                .Select(d => new DriverListVM
+                {
+                    Id = d.Id,
+                    FullName = d.FullName,
+                    NationalId = d.NationalId,
+                    Phone = d.Phone
+                }).ToList();
+
+            ViewBag.TruckId = id;
+            ViewBag.TruckName = $"{truck.PlateLetter} {truck.PlateNumber}";
+
+            var depts = await _departmentRepository.GetAllAsync();
+            ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
 
             return View(driverList);
         }

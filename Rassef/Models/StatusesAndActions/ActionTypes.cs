@@ -1,4 +1,6 @@
-﻿namespace Rassef.Models.StatusesAndActions
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+
+namespace Rassef.Models.StatusesAndActions
 {
     public class ActionTypes : BaseEntity
     {

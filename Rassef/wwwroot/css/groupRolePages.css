@@ -110,16 +110,16 @@ body {
     margin-bottom: 16px;
 }
 
-.section-underlined-title::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 55px;
-    height: 3px;
-    background-color: var(--primary-color);
-    border-radius: 2px;
-}
+    .section-underlined-title::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 55px;
+        height: 3px;
+        background-color: var(--primary-color);
+        border-radius: 2px;
+    }
 
 .groups-toolbar {
     display: flex;
@@ -154,9 +154,9 @@ body {
     white-space: nowrap;
 }
 
-.btn-add-group:hover {
-    background-color: var(--primary-hover);
-}
+    .btn-add-group:hover {
+        background-color: var(--primary-hover);
+    }
 
 .search-box-groups {
     position: relative;
@@ -178,9 +178,9 @@ body {
     outline: none;
 }
 
-.search-input-groups:focus {
-    border-color: var(--primary-hover);
-}
+    .search-input-groups:focus {
+        border-color: var(--primary-hover);
+    }
 
 .search-icon-pos {
     position: absolute;
@@ -224,10 +224,10 @@ body {
     border: 1.5px solid var(--border-color);
 }
 
-.group-card-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(234, 115, 24, 0.15);
-}
+    .group-card-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(234, 115, 24, 0.15);
+    }
 
 .group-card-header {
     background-color: var(--primary-color);
@@ -270,17 +270,17 @@ body {
     gap: 5px;
 }
 
-.group-status-pill.active {
-    background-color: #E8F5E9;
-    color: #2E7D32;
-    border: 1px solid #A5D6A7;
-}
+    .group-status-pill.active {
+        background-color: #E8F5E9;
+        color: #2E7D32;
+        border: 1px solid #A5D6A7;
+    }
 
-.group-status-pill.inactive {
-    background-color: #FFEBEE;
-    color: #C62828;
-    border: 1px solid #FFCDD2;
-}
+    .group-status-pill.inactive {
+        background-color: #FFEBEE;
+        color: #C62828;
+        border: 1px solid #FFCDD2;
+    }
 
 .btn-card-action {
     background-color: var(--primary-color);
@@ -302,9 +302,9 @@ body {
     transition: all 0.2s ease;
 }
 
-.btn-card-action:hover {
-    background-color: var(--primary-hover);
-}
+    .btn-card-action:hover {
+        background-color: var(--primary-hover);
+    }
 
 /* ────────────────────────────────────────────────
    4. ROLES MANAGEMENT PAGE (HORIZONTAL ROW & TABLE)
@@ -318,25 +318,25 @@ body {
     scroll-behavior: smooth;
 }
 
-.horizontal-groups-row::-webkit-scrollbar {
-    height: 8px;
-}
+    .horizontal-groups-row::-webkit-scrollbar {
+        height: 8px;
+    }
 
-.horizontal-groups-row::-webkit-scrollbar-track {
-    background: #E5E0D8;
-    border-radius: 6px;
-}
+    .horizontal-groups-row::-webkit-scrollbar-track {
+        background: #E5E0D8;
+        border-radius: 6px;
+    }
 
-.horizontal-groups-row::-webkit-scrollbar-thumb {
-    background: var(--primary-color, #EA7318);
-    border-radius: 6px;
-}
+    .horizontal-groups-row::-webkit-scrollbar-thumb {
+        background: var(--primary-color, #EA7318);
+        border-radius: 6px;
+    }
 
-.horizontal-groups-row .group-card-item {
-    min-width: 220px;
-    width: 220px;
-    flex-shrink: 0;
-}
+    .horizontal-groups-row .group-card-item {
+        min-width: 220px;
+        width: 220px;
+        flex-shrink: 0;
+    }
 
 .permissions-table-wrapper {
     background-color: var(--card-bg);
@@ -347,19 +347,19 @@ body {
     overflow-y: auto;
 }
 
-.permissions-table-wrapper::-webkit-scrollbar {
-    width: 6px;
-}
+    .permissions-table-wrapper::-webkit-scrollbar {
+        width: 6px;
+    }
 
-.permissions-table-wrapper::-webkit-scrollbar-track {
-    background: #E5E0D8;
-    border-radius: 4px;
-}
+    .permissions-table-wrapper::-webkit-scrollbar-track {
+        background: #E5E0D8;
+        border-radius: 4px;
+    }
 
-.permissions-table-wrapper::-webkit-scrollbar-thumb {
-    background: var(--primary-color, #EA7318);
-    border-radius: 4px;
-}
+    .permissions-table-wrapper::-webkit-scrollbar-thumb {
+        background: var(--primary-color, #EA7318);
+        border-radius: 4px;
+    }
 
 .permissions-table {
     width: 100%;
@@ -367,26 +367,26 @@ body {
     text-align: right;
 }
 
-.permissions-table th {
-    background-color: #FFF3E6;
-    color: var(--text-dark);
-    padding: 14px 20px;
-    font-size: 15px;
-    font-weight: 800;
-    border-bottom: 1.5px solid var(--border-color);
-}
+    .permissions-table th {
+        background-color: #FFF3E6;
+        color: var(--text-dark);
+        padding: 14px 20px;
+        font-size: 15px;
+        font-weight: 800;
+        border-bottom: 1.5px solid var(--border-color);
+    }
 
-.permissions-table td {
-    padding: 12px 20px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-dark);
-    border-bottom: 1px solid #F5E6D8;
-}
+    .permissions-table td {
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+        border-bottom: 1px solid #F5E6D8;
+    }
 
-.permissions-table tr:last-child td {
-    border-bottom: none;
-}
+    .permissions-table tr:last-child td {
+        border-bottom: none;
+    }
 
 /* ────────────────────────────────────────────────
    5. MANAGE PERMISSIONS ACCORDIONS & CHECKBOXES
@@ -408,9 +408,9 @@ body {
     transition: all 0.2s ease;
 }
 
-.btn-back-action:hover {
-    background-color: var(--primary-hover);
-}
+    .btn-back-action:hover {
+        background-color: var(--primary-hover);
+    }
 
 .accordions-container {
     display: flex;
@@ -574,6 +574,7 @@ body {
     .groups-cards-grid {
         grid-template-columns: repeat(3, 1fr);
     }
+
     .permissions-checkbox-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -583,6 +584,7 @@ body {
     .groups-cards-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
     .permissions-checkbox-grid {
         grid-template-columns: 1fr;
     }
@@ -592,14 +594,17 @@ body {
     .groups-cards-grid {
         grid-template-columns: 1fr;
     }
+
     .groups-toolbar {
         flex-direction: column;
         align-items: stretch;
     }
+
     .toolbar-controls {
         flex-direction: column;
         align-items: stretch;
     }
+
     .search-box-groups {
         width: 100%;
     }
@@ -608,11 +613,24 @@ body {
 /* ────────────────────────────────────────────────
    7. GROUPS HORIZONTAL NAV & PERMISSIONS CONTROLS
    ──────────────────────────────────────────────── */
+/* CHANGED: this container was clipping the pills — only padding-bottom was set (no
+   padding-top/min-height/align-items), and it sat flush against the header above with no
+   margin-top. Added explicit top padding, a min-height sized for the pill content, vertical
+   centering, and top margin to push the row down from the header. Also added flex-shrink:0 on
+   the pills themselves so they don't get squeezed if there are many groups. This is a best-guess
+   fix based on the CSS alone — I don't have sidebar.css or live computed styles, so if the pills
+   are still clipped after this, it's likely something in sidebar.css or an inline style I can't
+   see; a browser dev-tools screenshot of the computed height on .groups-horizontal-nav would
+   pin it down immediately. */
 .groups-horizontal-nav {
     display: flex;
+    align-items: center;
     gap: 12px;
     overflow-x: auto;
-    padding-bottom: 10px;
+    overflow-y: visible;
+    min-height: 56px;
+    padding: 12px 4px 14px;
+    margin-top: 16px;
     margin-bottom: 20px;
     border-bottom: 1.5px solid rgba(234, 115, 24, 0.2);
 }
@@ -630,21 +648,22 @@ body {
     align-items: center;
     gap: 8px;
     white-space: nowrap;
+    flex-shrink: 0;
     transition: all 0.2s ease;
 }
 
-.group-nav-pill:hover {
-    background-color: rgba(234, 115, 24, 0.1);
-    color: var(--primary-color, #EA7318);
-    transform: translateY(-2px);
-}
+    .group-nav-pill:hover {
+        background-color: rgba(234, 115, 24, 0.1);
+        color: var(--primary-color, #EA7318);
+        transform: translateY(-2px);
+    }
 
-.group-nav-pill.active {
-    background-color: var(--primary-color, #EA7318);
-    color: #FFFFFF !important;
-    border-color: var(--primary-color, #EA7318);
-    box-shadow: 0 4px 12px rgba(234, 115, 24, 0.25);
-}
+    .group-nav-pill.active {
+        background-color: var(--primary-color, #EA7318);
+        color: #FFFFFF !important;
+        border-color: var(--primary-color, #EA7318);
+        box-shadow: 0 4px 12px rgba(234, 115, 24, 0.25);
+    }
 
 .controller-header-left {
     display: flex;
@@ -666,6 +685,6 @@ body {
     transition: background 0.2s;
 }
 
-.controller-select-all-label:hover {
-    background: rgba(234, 115, 24, 0.15);
-}
+    .controller-select-all-label:hover {
+        background: rgba(234, 115, 24, 0.15);
+    }

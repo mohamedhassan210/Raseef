@@ -21,7 +21,9 @@
 <body>
     <div class="dashboard-page">
         <!-- SIDEBAR -->
-        <partial name="_AdminSidebar" model='"Groups"' />
+        <!-- CHANGED: active key now "Roles" to match the new dedicated sidebar entry for this
+             page (previously "Groups", which now only highlights GroupManagment). -->
+        <partial name="_AdminSidebar" model='"Roles"' />
 
         <!-- MAIN CONTENT -->
         <main class="dashboard-main">
@@ -69,7 +71,13 @@
                         string statusClass = group.IsActive ? "active" : "inactive";
                         string statusText = group.IsActive ? "مفعل" : "معطل";
 
-                        <div class="group-card-item">
+                        <!-- CHANGED: whole card is now the click target (→ ManagePermissions for
+                             this group) instead of just the small button at the bottom. Card is
+                             now an <a>, not a <div> — can't nest the old <a class="btn-card-action">
+                             inside another <a> (invalid HTML, unpredictable click behavior), so
+                             that's now a non-interactive <span> kept purely as a visual label/cue
+                             that the card is clickable. -->
+                        <a href="@Url.Action("ManagePermissions", "Group", new { groupId = group.Id })" class="group-card-item" style="text-decoration: none; color: inherit; cursor: pointer;">
                             <!-- Card Header -->
                             <div class="group-card-header">
                                 <h3 class="group-card-title">@group.Name</h3>
@@ -92,13 +100,12 @@
                                     <span>@statusText</span>
                                 </div>
 
-                                <!-- Manage Permissions Button -->
-                                <a href="@Url.Action("ManagePermissions", "Group", new { groupId = group.Id })" class="btn-card-action">
+                                <span class="btn-card-action" style="pointer-events: none;">
                                     <i class="fas fa-key"></i>
                                     <span>إدارة الصلاحيات</span>
-                                </a>
+                                </span>
                             </div>
-                        </div>
+                        </a>
                     }
                 }
                 else
@@ -110,9 +117,25 @@
             </div>
 
             <!-- 2. BOTTOM SECTION: ALL PERMISSIONS TABLE -->
-            <div class="section-underlined-title">
-                كل الصلاحيات
+            <!-- CHANGED: refresh is now a plain button wired to fetch()/AJAX, not a form POST —
+                 pressing it never navigates the browser anywhere; it stays on this exact page and
+                 shows the result inline. The antiforgery token still needs to travel with the
+                 request, so it's hosted in a hidden form purely so JS can read its value. -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div class="section-underlined-title" style="margin-bottom: 0;">
+                    كل الصلاحيات
+                </div>
+
+                <form id="refreshPermissionsTokenForm" style="display: none;">
+                    @Html.AntiForgeryToken()
+                </form>
+                <button type="button" id="btnRefreshPermissions" class="btn-card-action" style="width: auto; margin-top: 0; border: none; cursor: pointer;" onclick="refreshPermissions(this)">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>تحديث الصلاحيات</span>
+                </button>
             </div>
+
+            <div id="refreshPermissionsAlert" style="display: none;"></div>
 
             <div class="permissions-table-wrapper">
                 <table class="permissions-table">
@@ -148,5 +171,65 @@
             </div>
         </main>
     </div>
+
+    <script>
+        async function refreshPermissions(button) {
+            const tokenInput = document.querySelector('#refreshPermissionsTokenForm input[name="__RequestVerificationToken"]');
+            const alertBox = document.getElementById('refreshPermissionsAlert');
+            const originalHtml = button.innerHTML;
+
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>جارِ التحديث...</span>';
+
+            try {
+                const formData = new FormData();
+                formData.append('__RequestVerificationToken', tokenInput.value);
+
+                const response = await fetch('@Url.Action("RefreshPermissions", "Group")', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+
+                const data = await response.json();
+                showRefreshAlert(alertBox, data.success, data.message);
+
+                if (data.success) {
+                    // Reload this same page (same URL, no navigation elsewhere) after a moment so
+                    // the permissions table below reflects anything newly discovered by the sync.
+                    setTimeout(() => window.location.reload(), 900);
+                }
+            } catch (err) {
+                showRefreshAlert(alertBox, false, 'حدث خطأ أثناء الاتصال بالخادم لتحديث الصلاحيات.');
+                button.disabled = false;
+                button.innerHTML = originalHtml;
+            }
+        }
+
+        function showRefreshAlert(alertBox, success, message) {
+            alertBox.style.display = 'flex';
+            alertBox.style.alignItems = 'center';
+            alertBox.style.gap = '8px';
+            alertBox.style.padding = '12px 20px';
+            alertBox.style.borderRadius = '10px';
+            alertBox.style.fontWeight = '700';
+            alertBox.style.fontSize = '14px';
+
+            if (success) {
+                alertBox.style.background = '#E8F5E9';
+                alertBox.style.color = '#2E7D32';
+                alertBox.style.border = '1.5px solid #A5D6A7';
+                alertBox.innerHTML = '<i class="fas fa-check-circle"></i><span>' + message + '</span>';
+            } else {
+                alertBox.style.background = '#FFEBEE';
+                alertBox.style.color = '#C62828';
+                alertBox.style.border = '1.5px solid #FFCDD2';
+                alertBox.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>' + message + '</span>';
+            }
+        }
+    </script>
 </body>
 </html>

@@ -289,7 +289,18 @@
                 {
                     foreach (var item in Model.TypeCategories)
                     {
-                        <a href="@Url.Action("MangeTypeDetails", "Group", new { typeKey = item.Key })" class="type-card" data-title="@item.Title.ToLower()" style="text-decoration: none; color: inherit; cursor: pointer;">
+                        // CHANGED: driver-type and truck-type now have their own dedicated
+                        // controllers (DriverTypeController / TruckTypesController) with the
+                        // real Code fields — those two cards must not fall back into the
+                        // generic name-only Group/MangeTypeDetails screen.
+                        string cardUrl = item.Key switch
+                        {
+                            "driver-type" => Url.Action("Index", "DriverType"),
+                            "truck-type" => Url.Action("Index", "TruckTypes"),
+                            _ => Url.Action("MangeTypeDetails", "Group", new { typeKey = item.Key })
+                        };
+
+                        <a href="@cardUrl" class="type-card" data-title="@item.Title.ToLower()" style="text-decoration: none; color: inherit; cursor: pointer;">
                             <div class="type-card-header">
                                 @item.Title
                             </div>

@@ -1,0 +1,126 @@
+@model IEnumerable<Rassef.ViewModels.TruckTypes.TruckTypesListVM>
+@{
+    Layout = null;
+    ViewData["Title"] = "أنواع الشاحنات";
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - رصيف</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/groupRolePages.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/detailsPages.css" asp-append-version="true">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'IBM Plex Sans Arabic', sans-serif; }
+        body { background-color: var(--bg-color, #FAF2EB); color: #333; overflow-x: hidden; }
+        .controls-row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+        .section-tab-title { font-size: 24px; font-weight: 800; color: #333; position: relative; padding-bottom: 6px; }
+        .section-tab-title::after { content: ""; position: absolute; bottom: 0; right: 0; width: 100%; height: 3px; background-color: var(--primary-color, #E67E22); border-radius: 2px; }
+        .btn-add-orange { background-color: var(--primary-color, #E67E22); color: #fff; text-decoration: none; padding: 8px 24px; border-radius: 10px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(232, 122, 30, 0.25); transition: background 0.2s; }
+        .btn-add-orange:hover { background-color: #d16b15; color: #fff; }
+        .table-outer-card { background: #fff; border: 2px solid #eecfb7; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04); margin-top: 16px; }
+        .types-table { width: 100%; border-collapse: collapse; }
+        .types-table thead tr { background-color: var(--primary-color, #E67E22); }
+        .types-table thead th { color: #fff; padding: 14px 20px; font-size: 14px; font-weight: 700; text-align: right; }
+        .types-table tr { border-bottom: 1.5px solid #faede2; }
+        .types-table tr:last-child { border-bottom: none; }
+        .types-table td { padding: 14px 20px; vertical-align: middle; font-size: 15px; }
+        .cell-code { font-weight: 800; color: var(--primary-color, #E67E22); }
+        .cell-name { font-weight: 700; color: #333; }
+        .cell-actions { display: flex; gap: 10px; }
+        .btn-action-custom { border: none; padding: 8px 20px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-details-custom { background-color: #2b6cb0; color: #fff; }
+        .btn-edit-custom { background-color: var(--primary-color, #E67E22); color: #fff; }
+        .btn-delete-custom { background-color: #e03838; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-page">
+        <partial name="_AdminSidebar" model='"Options"' />
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="header-right">
+                    <h2 class="header-title">أنواع الشاحنات</h2>
+                    <div class="header-subtitle">
+                        <span class="update-dot"></span>
+                        <span>آخر تحديث منذ 10 ثواني</span>
+                    </div>
+                </div>
+                <div class="header-left-logos">
+                    <img src="~/img/fathallah logo.svg" alt="فتح الله" class="header-logo-fathallah">
+                    <img src="~/img/logo.svg" alt="رصيف" class="header-logo-raseef">
+                </div>
+            </header>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div style="background-color: #e8f7ee; color: #1e7e34; padding: 12px 20px; border-radius: 10px; font-weight: 700; margin-top: 12px;">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div style="background-color: #fde8e8; color: #dc3545; padding: 12px 20px; border-radius: 10px; font-weight: 700; margin-top: 12px;">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+
+            <div class="controls-row">
+                <span class="section-tab-title">كل أنواع الشاحنات</span>
+                <a href="@Url.Action("Create", "TruckTypes")" class="btn-add-orange">
+                    <span>+ إضافة نوع شاحنة</span>
+                </a>
+            </div>
+
+            <div class="table-outer-card">
+                <table class="types-table">
+                    <thead>
+                        <tr>
+                            <th>الكود</th>
+                            <th>الاسم</th>
+                            <th>عدد الشاحنات</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="cell-code">@item.TruckTypeCode</td>
+                                    <td class="cell-name">@item.Name</td>
+                                    <td>@item.TrucksCount</td>
+                                    <td>
+                                        <div class="cell-actions">
+                                            <a href="@Url.Action("Details", "TruckTypes", new { id = item.Id })" class="btn-action-custom btn-details-custom">عرض</a>
+                                            <a href="@Url.Action("Update", "TruckTypes", new { id = item.Id })" class="btn-action-custom btn-edit-custom">تعديل</a>
+                                            <a href="@Url.Action("Delete", "TruckTypes", new { id = item.Id })" class="btn-action-custom btn-delete-custom">حذف</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 36px; color: #888; font-size: 16px; font-weight: 600;">
+                                    لا توجد أنواع شاحنات مسجلة حالياً.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
