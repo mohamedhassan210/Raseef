@@ -29,7 +29,6 @@
     </header>
 
     <div class="nav-actions-container">
-        <!-- التوجيه للرجوع لصفحة شاحنات التحويل -->
         <a asp-controller="Truck" asp-action="MainTraDrivers" class="action-btn" aria-label="خطوة للخلف">
             خطوة للخلف
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -168,4 +167,42 @@
     <div id="success-modal" class="custom-modal-container d-none" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
         <div class="modal-header-icon">
             <div class="icon-circle green-circle">
-                <svg viewBox="0 0 24 24" fill="none"
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+        </div>
+
+        <div class="modal-body text-center w-100 mt-4">
+            <h2 id="success-modal-title" class="modal-title success-text">تم تأكيد البيانات بنجاح</h2>
+            <div class="ticket-box">
+                <span id="ticket-number" class="ticket-number-text"></span>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button id="btn-back" class="btn-secondary-custom" aria-label="الرجوع">الرجوع</button>
+            <button id="btn-print" class="btn-primary-custom" aria-label="طباعة البون">طباعة</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        window.departmentsData = @Html.Raw(Json.Serialize(ViewBag.Departments ?? new List<object>()));
+        window.pageData = {
+            truckId: @(ViewBag.TruckId ?? 0),
+            companyName: 'تحويل داخلي',
+            truckName: '@Html.Raw(ViewBag.TruckName ?? "")',
+            dockName: 'A',
+            employeeName: '@Html.Raw(!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "المسؤول")'
+        };
+        window.routes = {
+            backRoute: '@Url.Action("MainTraDrivers", "Truck")',
+            receiptPage: '@Url.Action("Recript", "Driver")',
+            createTransferTicket: '@Url.Action("CreateTransferTicket", "Truck")'
+        };
+    </script>
+    <script src="~/js/companyTransferDrivers.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+}

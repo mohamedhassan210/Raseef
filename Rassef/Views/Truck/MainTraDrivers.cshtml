@@ -2,6 +2,7 @@
     ViewData["Title"] = "شاحنات التحويل";
     Layout = "_SupOrTra";
 }
+<!-- غيرنا الموديل عشان يتناسب مع بيانات السيارات، يرجى تغييره لاسم الموديل الفعلي عندك -->
 @model IEnumerable<Rassef.ViewModels.Truck.TruckListVM>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,7 +37,6 @@
             إضافة جديد
         </a>
 
-        <!-- الرجوع لصفحة اختيار توريد/تحويل -->
         <a asp-controller="Authentication" asp-action="SupOrTra" class="action-btn" aria-label="خطوة للخلف">
             خطوة للخلف
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -118,14 +118,122 @@
     </section>
 </main>
 
+<!-- Multi-Step Modal System -->
+<div id="custom-modal-overlay" class="custom-modal-overlay" aria-hidden="true">
+
+    <!-- Modal 0: Department Selection -->
+    <div id="department-modal" class="custom-modal-container d-none" role="dialog" aria-modal="true" aria-labelledby="department-modal-title">
+        <div class="modal-header-icon">
+            <div class="icon-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <rect x="9" y="3" width="6" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="2" />
+                    <rect x="3" y="17" width="6" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="2" />
+                    <rect x="15" y="17" width="6" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="2" />
+                    <path d="M12 7v5M6 17v-3h12v3M18 14v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="modal-body text-center w-100 mt-4">
+            <h2 id="department-modal-title" class="modal-title" style="margin-bottom: 24px;">اختار القسم</h2>
+
+            <div class="custom-dropdown" id="dept-dropdown-container">
+                <div class="dropdown-header" id="dept-dropdown-header">
+                    <span class="selected-value text-muted" id="dept-selected-value">اختار القسم</span>
+                    <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#EB842D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+
+                <div class="dropdown-list" id="dept-dropdown-list">
+                    <!-- Dynamic departments populated via JS -->
+                </div>
+
+                <div class="invalid-feedback text-right mt-2" id="dept-error-msg" style="display: none; color: #dc3545; font-size: 0.95rem; font-weight: 500;">
+                    يرجى اختيار القسم للمتابعة.
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions mt-4" style="margin-top: 32px !important;">
+            <button id="btn-confirm-dept" class="btn-primary-custom w-100" aria-label="تأكيد القسم">تأكيد</button>
+        </div>
+    </div>
+
+    <!-- Modal 1: Data Confirmation -->
+    <div id="confirmation-modal" class="custom-modal-container d-none" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+        <div class="modal-header-icon">
+            <div class="icon-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-question-lg" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M4.475 5.458c-.284 0-.514-.237-.47-.517C4.28 3.24 5.576 2 7.825 2c2.25 0 3.767 1.36 3.767 3.215 0 1.344-.665 2.288-1.79 2.973-1.1.659-1.414 1.118-1.414 2.01v.03a.5.5 0 0 1-.5.5h-.77a.5.5 0 0 1-.5-.495l-.003-.2c-.043-1.221.477-2.001 1.645-2.712 1.03-.632 1.397-1.135 1.397-2.028 0-.979-.758-1.698-1.926-1.698-1.009 0-1.71.529-1.938 1.402-.066.254-.278.461-.54.461h-.777ZM7.496 14c.622 0 1.095-.474 1.095-1.09 0-.618-.473-1.092-1.095-1.092-.606 0-1.087.474-1.087 1.091S6.89 14 7.496 14" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="modal-body data-grid mt-4 firstModelcontent">
+            <div class="data-row">
+                <span class="data-label">الشركة :</span>
+                <span class="data-value" id="confirm-company">تحويل داخلي</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">السيارة :</span>
+                <span class="data-value" id="confirm-truck"></span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">السائق :</span>
+                <span class="data-value" id="confirm-driver-name">غير محدد</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">القسم :</span>
+                <span class="data-value" id="confirm-driver-dep"></span>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button id="btn-edit" class="btn-secondary-custom" aria-label="تعديل البيانات">تعديل</button>
+            <button id="btn-confirm" class="btn-primary-custom" aria-label="تأكيد البيانات">تأكيد</button>
+        </div>
+    </div>
+
+    <!-- Modal 2: Success & Ticket -->
+    <div id="success-modal" class="custom-modal-container d-none" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
+        <div class="modal-header-icon">
+            <div class="icon-circle green-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+        </div>
+
+        <div class="modal-body text-center w-100 mt-4">
+            <h2 id="success-modal-title" class="modal-title success-text">تم تأكيد البيانات بنجاح</h2>
+            <div class="ticket-box">
+                <span id="ticket-number" class="ticket-number-text">A1</span>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button id="btn-back" class="btn-secondary-custom" aria-label="الرجوع">الرجوع</button>
+            <button id="btn-print" class="btn-primary-custom" aria-label="طباعة البون">طباعة</button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        // CHANGED — department/driver/ticket selection no longer happens on this
-        // page. Picking a truck now navigates to the filtered driver picker
-        // (Driver/TransferDrivers), which owns the department + confirmation +
-        // success modal flow and the real CreateTransferTicket call.
+        window.departmentsData = @Html.Raw(Json.Serialize(ViewBag.Departments ?? new List<object>()));
+
+        window.pageData = {
+            truckName: '@Html.Raw(ViewBag.TruckName ?? "شاحنة تحويل")',
+            dockName: 'A',
+            employeeName: '@Html.Raw(!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "المسؤول")'
+        };
+
         window.routes = {
-            transferDriversPage: '@Url.Action("TransferDrivers", "Driver")'
+            backRoute: '@Url.Action("SupOrTra", "Authentication")',
+            viewRole: '@Url.Action("ViewRole", "Authentication")',
+            receiptPage: '@Url.Action("Recript", "Driver")',
+            createTransferTicket: '@Url.Action("CreateTransferTicket", "Truck")'
         };
     </script>
     <script src="~/js/companyTraDrivers.js" asp-append-version="true"></script>
