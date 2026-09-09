@@ -20,6 +20,15 @@
         var s = (x.TicketStatusName ?? x.RequestStatusName ?? "إنتظار").Replace("إ", "ا").Trim();
         return s.Contains("مكتمل") || s.Contains("تم") || s.Contains("خروج") || s.Contains("منتهي");
     });
+
+    // Distinct department names for the new department filter, derived from the loaded list
+    // (no extra repository call). "غير محدد" excluded — see follow-up question about this.
+    var departmentOptions = list
+        .Select(x => x.DepartmentName)
+        .Where(d => !string.IsNullOrWhiteSpace(d) && d != "غير محدد")
+        .Distinct()
+        .OrderBy(d => d)
+        .ToList();
 }
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -34,6 +43,148 @@
     <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true">
     <link rel="stylesheet" href="~/css/requestsQueue.css" asp-append-version="true">
     <link rel="stylesheet" href="~/css/detailsPages.css" asp-append-version="true">
+
+    <!--
+        Department-filter dropdown styling — copied verbatim from the custom-dropdown
+        component already established in Department/Dock/Warehouse form views (same
+        border color, radius, orange accent, IBM Plex font). Placed after the linked
+        stylesheets above so it wins the cascade even if requestsQueue.css happens to
+        define .custom-dropdown differently elsewhere on this page — scoped only to
+        this view, not touching any shared file. Width narrowed to 220px for the
+        toolbar context (forms use w-100); flagged as the one visual deviation.
+    -->
+    <style>
+        .custom-dropdown {
+            position: relative;
+            width: 220px;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+        }
+
+            .custom-dropdown .dropdown-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 16px;
+                border: 1.5px solid #e8c8a8;
+                border-radius: 12px;
+                background: #fff;
+                cursor: pointer;
+                user-select: none;
+                font-size: 15px;
+                min-height: 44px;
+            }
+
+                .custom-dropdown .dropdown-header:hover {
+                    border-color: var(--primary-color, #E67E22);
+                }
+
+            .custom-dropdown .dropdown-arrow {
+                transition: transform 0.2s;
+                width: 18px;
+                height: 18px;
+                flex-shrink: 0;
+            }
+
+            .custom-dropdown.open .dropdown-arrow {
+                transform: rotate(180deg);
+            }
+
+            .custom-dropdown .dropdown-list {
+                display: none;
+                position: absolute;
+                top: calc(100% + 4px);
+                right: 0;
+                left: 0;
+                background: #fff;
+                border: 1.5px solid #e8c8a8;
+                border-radius: 12px;
+                z-index: 200;
+                max-height: 220px;
+                overflow-y: auto;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+            }
+
+            .custom-dropdown.open .dropdown-list {
+                display: block;
+            }
+
+            .custom-dropdown .dropdown-list .dropdown-item {
+                padding: 10px 16px;
+                cursor: pointer;
+                font-size: 15px;
+                border-bottom: 1px solid #faede2;
+                transition: background 0.15s;
+            }
+
+                .custom-dropdown .dropdown-list .dropdown-item:last-child {
+                    border-bottom: none;
+                }
+
+                .custom-dropdown .dropdown-list .dropdown-item:hover {
+                    background: #fdf1e7;
+                }
+
+                .custom-dropdown .dropdown-list .dropdown-item.selected {
+                    background: #fde8cb;
+                    font-weight: 700;
+                }
+
+        .placeholder-color {
+            color: #aaa;
+        }
+
+        .selected-value {
+            color: #333;
+        }
+
+        .custom-range-wrapper {
+            display: none;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .custom-range-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+            .custom-range-field label {
+                font-size: 13px;
+                font-weight: 700;
+                color: #555;
+            }
+
+        .custom-range-input {
+            border: 1.5px solid #e8c8a8;
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            font-size: 14px;
+            min-height: 40px;
+            background: #fff;
+        }
+
+            .custom-range-input:focus {
+                outline: none;
+                border-color: var(--primary-color, #E67E22);
+            }
+
+
+        .btn-filter-pill-all {
+            border: 1.5px dashed #999;
+            background: #f5f5f5;
+            color: #555;
+        }
+
+            .btn-filter-pill-all.active {
+                background: #333;
+                color: #fff;
+                border-color: #333;
+            }
+
+
+    </style>
 </head>
 <body>
     <div class="dashboard-page">
@@ -62,10 +213,39 @@
                 <div class="toolbar-right-group">
                     <!-- Date Filter Pills -->
                     <div class="date-filter-group" id="dateFilterGroup">
-                        <button type="button" class="btn-filter-pill active" data-filter="all">اليوم</button>
+                        <button type="button" class="btn-filter-pill" data-filter="today">اليوم</button>
                         <button type="button" class="btn-filter-pill" data-filter="week">اسبوع</button>
                         <button type="button" class="btn-filter-pill" data-filter="month">شهر</button>
-                        <button type="button" class="btn-filter-pill" data-filter="custom">تحرير</button>
+                        <button type="button" class="btn-filter-pill active" data-filter="custom">تحرير</button>
+                        <button type="button" class="btn-filter-pill btn-filter-pill-all" data-filter="all">الكل</button>
+                    </div>
+
+                    <div class="custom-range-wrapper" id="customRangeWrapper">
+                        <div class="custom-range-field">
+                            <label for="customDateFrom">من</label>
+                            <input type="date" id="customDateFrom" class="custom-range-input">
+                        </div>
+                        <div class="custom-range-field">
+                            <label for="customDateTo">الي</label>
+                            <input type="date" id="customDateTo" class="custom-range-input">
+                        </div>
+                    </div>
+
+                    <!-- Department Filter (new) -->
+                    <div class="custom-dropdown" id="departmentFilterDropdown">
+                        <div class="dropdown-header" id="departmentFilterHeader">
+                            <span class="selected-value" id="departmentFilterSelectedText">كل الأقسام</span>
+                            <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#e47925" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="18 15 12 9 6 15"></polyline>
+                            </svg>
+                        </div>
+                        <div class="dropdown-list" id="departmentFilterList">
+                            <div class="dropdown-item selected" data-value="">كل الأقسام</div>
+                            @foreach (var dept in departmentOptions)
+                            {
+                                <div class="dropdown-item" data-value="@dept">@dept</div>
+                            }
+                        </div>
                     </div>
 
                     <!-- Search Box -->
@@ -154,7 +334,9 @@
                              data-employee="@item.EmployeeName"
                              data-department="@item.DepartmentName"
                              data-dock="@item.DockName"
-                             data-date="@item.QueueTime.ToString("yyyy-MM-dd")">
+                             data-date="@item.QueueTime.ToString("yyyy-MM-dd")"
+                             data-status-class="@statusClass"
+                             data-status-text="@statusText">
 
                             <!-- 1. رقم الدور -->
                             <div class="queue-col-ticket">
@@ -254,6 +436,29 @@
             const filterPills = document.querySelectorAll("#dateFilterGroup .btn-filter-pill");
             const cards = document.querySelectorAll(".queue-row-card");
 
+            // Department filter state
+            let selectedDepartment = "";
+            const deptDropdown = document.getElementById("departmentFilterDropdown");
+            const deptHeader = document.getElementById("departmentFilterHeader");
+            const deptList = document.getElementById("departmentFilterList");
+            const deptSelectedText = document.getElementById("departmentFilterSelectedText");
+
+            // Custom date-range state
+            const customRangeWrapper = document.getElementById("customRangeWrapper");
+            const customDateFrom = document.getElementById("customDateFrom");
+            const customDateTo = document.getElementById("customDateTo");
+
+            // Earliest/latest dates across all rows — used as the implicit bound when
+            // "من" or "الي" is left empty while "تحرير" is active.
+            let minRowDate = null;
+            let maxRowDate = null;
+            cards.forEach(card => {
+                const d = card.dataset.date || "";
+                if (!d) return;
+                if (minRowDate === null || d < minRowDate) minRowDate = d;
+                if (maxRowDate === null || d > maxRowDate) maxRowDate = d;
+            });
+
             function filterRows() {
                 const query = (searchInput.value || "").trim().toLowerCase();
                 const activeFilter = document.querySelector("#dateFilterGroup .btn-filter-pill.active")?.dataset.filter || "all";
@@ -291,9 +496,17 @@
                     } else if (activeFilter === "month" && cardDate) {
                         const d = new Date(cardDate);
                         matchesDate = (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear());
+                    } else if (activeFilter === "custom" && cardDate) {
+                        const fromVal = customDateFrom.value || minRowDate || "";
+                        const toVal = customDateTo.value || maxRowDate || "";
+                        matchesDate = (!fromVal || cardDate >= fromVal) && (!toVal || cardDate <= toVal);
                     }
+                    // "all" (الكل) intentionally matches no branch above — always true, no date restriction.
 
-                    if (matchesQuery && matchesDate) {
+                    const matchesDepartment = !selectedDepartment ||
+                        (card.dataset.department || "") === selectedDepartment;
+
+                    if (matchesQuery && matchesDate && matchesDepartment) {
                         card.style.display = "flex";
                     } else {
                         card.style.display = "none";
@@ -311,10 +524,10 @@
                 let wait = 0, prog = 0, done = 0;
                 cards.forEach(card => {
                     if (card.style.display !== "none") {
-                        const status = (card.dataset.status || "").toLowerCase();
-                        if (status.includes("تم") || status.includes("مكتمل") || status.includes("خروج") || status.includes("منتهي")) {
+                        const statusClass = card.dataset.statusClass || "waiting";
+                        if (statusClass === "completed") {
                             done++;
-                        } else if (status.includes("جاري") || status.includes("تنفيذ") || status.includes("تشغيل")) {
+                        } else if (statusClass === "in-progress") {
                             prog++;
                         } else {
                             wait++;
@@ -335,9 +548,44 @@
                 pill.addEventListener("click", () => {
                     filterPills.forEach(p => p.classList.remove("active"));
                     pill.classList.add("active");
+                    if (customRangeWrapper) {
+                        customRangeWrapper.style.display = pill.dataset.filter === "custom" ? "flex" : "none";
+                    }
                     filterRows();
                 });
             });
+
+            if (customDateFrom) customDateFrom.addEventListener("change", filterRows);
+            if (customDateTo) customDateTo.addEventListener("change", filterRows);
+
+            if (deptDropdown && deptHeader && deptList && deptSelectedText) {
+                deptHeader.addEventListener("click", () => deptDropdown.classList.toggle("open"));
+
+                deptList.querySelectorAll(".dropdown-item").forEach(item => {
+                    item.addEventListener("click", () => {
+                        selectedDepartment = item.dataset.value || "";
+                        deptSelectedText.textContent = item.textContent;
+                        deptList.querySelectorAll(".dropdown-item").forEach(i => i.classList.remove("selected"));
+                        item.classList.add("selected");
+                        deptDropdown.classList.remove("open");
+                        filterRows();
+                    });
+                });
+
+                document.addEventListener("click", (e) => {
+                    if (!deptDropdown.contains(e.target)) deptDropdown.classList.remove("open");
+                });
+            }
+
+            // تحرير is now the default active pill — show the من/الي boxes on load
+            // to match whichever pill actually starts active, instead of assuming hidden.
+            if (customRangeWrapper) {
+                const initialActive = document.querySelector("#dateFilterGroup .btn-filter-pill.active")?.dataset.filter;
+                customRangeWrapper.style.display = initialActive === "custom" ? "flex" : "none";
+            }
+
+            // Initial run so the default "تحرير" filter applies on load.
+            filterRows();
 
             // Export to CSV
             const btnExport = document.getElementById("btnExport");
@@ -347,6 +595,7 @@
                     cards.forEach(card => {
                         if (card.style.display !== "none") {
                             const t = card.dataset.ticket;
+                            const st = card.dataset.statusText || "";
                             const dr = card.dataset.driver;
                             const tr = card.dataset.truck;
                             const dk = card.dataset.dock;
@@ -354,7 +603,7 @@
                             const sp = card.dataset.supplier;
                             const emp = card.dataset.employee;
                             const dt = card.dataset.date;
-                            csv += `"${t}","${dr}","${tr}","${dk}","${dp}","${sp}","${emp}","${dt}"\n`;
+                            csv += `"${t}","${st}","${dr}","${tr}","${dk}","${dp}","${sp}","${emp}","${dt}"\n`;
                         }
                     });
                     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
