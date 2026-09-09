@@ -396,6 +396,67 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ChangePassword(int id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+
+            if (user == null || user.IsDeleted)
+            {
+                ModelState.AddModelError(string.Empty, "هذا الموظف غير موجود.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            var model = new ChangePasswordVM
+            {
+                Id = user.Id,
+                EmployeeName = user.Name
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordVM model)
+        {
+            if (string.IsNullOrEmpty(model.NewPassword))
+            {
+                ModelState.AddModelError(nameof(model.NewPassword), "يرجى إدخال كلمة المرور الجديدة.");
+            }
+            else if (model.NewPassword != model.ConfirmPassword)
+            {
+                ModelState.AddModelError(nameof(model.ConfirmPassword), "كلمتا المرور غير متطابقتين.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Repopulate the name for display — it isn't posted back from the form fields.
+                var existing = await _userRepository.GetByIdAsync(model.Id);
+                model.EmployeeName = existing?.Name ?? model.EmployeeName;
+                return View(model);
+            }
+
+            var user = await _userRepository.GetByIdAsync(model.Id);
+
+            if (user == null || user.IsDeleted)
+            {
+                ModelState.AddModelError(string.Empty, "هذا الموظف غير موجود.");
+                return View(model);
+            }
+
+            user.HashPassword = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+            user.MarkAsUpdated();
+
+            _userRepository.Update(user);
+            await _userRepository.SaveChangesAsync();
+
+            TempData["Success"] = "تم تغيير كلمة المرور بنجاح.";
+
+            return RedirectToAction(nameof(Details), new { id = model.Id });
+        }
+
+
         ////////////////////
         ////////////////////
 
