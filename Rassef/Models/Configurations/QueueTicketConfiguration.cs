@@ -10,6 +10,12 @@ namespace Rassef.Configurations
                    .IsRequired()
                    .HasMaxLength(50);
 
+            builder.Property(qt => qt.TrackingCode)
+                   .IsRequired();
+
+            builder.HasIndex(qt => qt.TrackingCode)
+                   .IsUnique();
+
             builder.Property(qt => qt.QueueTime)
                    .IsRequired();
 

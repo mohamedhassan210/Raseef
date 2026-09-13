@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+
 namespace Rassef.Controllers
 {
     public class DriverController : Controller
@@ -14,6 +16,7 @@ namespace Rassef.Controllers
         private readonly IRepository<RequestStatuses> _requestStatusRepository;
         private readonly IUserRepository _userRepository;
         private readonly ITicketEngineService _ticketEngineService;
+        private readonly Microsoft.Extensions.Options.IOptions<Rassef.Models.Options.PrinterSettings> _printerSettings;
 
         public DriverController(
             IDriverRepository repository,
@@ -27,7 +30,8 @@ namespace Rassef.Controllers
             IRepository<CommodityTypes> commodityTypeRepository,
             IRepository<RequestStatuses> requestStatusRepository,
             IUserRepository userRepository,
-            ITicketEngineService ticketEngineService)
+            ITicketEngineService ticketEngineService,
+            Microsoft.Extensions.Options.IOptions<Rassef.Models.Options.PrinterSettings> printerSettings)
         {
             _driverRepository = repository;
             _supplierRepository = supplierRepository;
@@ -41,6 +45,7 @@ namespace Rassef.Controllers
             _requestStatusRepository = requestStatusRepository;
             _userRepository = userRepository;
             _ticketEngineService = ticketEngineService;
+            _printerSettings = printerSettings;
         }
 
         // Get All Drivers
@@ -137,36 +142,11 @@ namespace Rassef.Controllers
                     : (!string.IsNullOrWhiteSpace(User.Identity?.Name) ? User.Identity.Name : "المسؤول"))));
 
                 // حساب عدد الأدوار المنتظرة فعلياً قبل هذا الدور
-                int waitingCount = allTickets.Count(t =>
-                {
-                    if (t.Id >= ticket.Id) return false;
+                int waitingCount = CalculateWaitingCount(ticket, allTickets);
 
-                    bool matchesDept = t.DepartmentId == ticket.DepartmentId ||
-                        (!string.IsNullOrWhiteSpace(t.TicketNumber) && !string.IsNullOrWhiteSpace(ticket.TicketNumber) &&
-                         char.ToUpper(t.TicketNumber.Trim()[0]) == char.ToUpper(ticket.TicketNumber.Trim()[0]));
-
-                    if (!matchesDept && ticket.DepartmentId > 0) return false;
-
-                    if (t.ExitTime != DateTimeOffset.MinValue && t.ExitTime > t.QueueTime) return false;
-
-                    if (t.TicketStatus != null)
-                    {
-                        var st = t.TicketStatus.Name.Replace("إ", "ا").Trim().ToLower();
-                        if (st.Contains("مكتمل") || st.Contains("تم") || st.Contains("خروج") || st.Contains("منتهي"))
-                            return false;
-                    }
-
-                    return true;
-                });
-
-                if (waitingCount == 0 && ticket.Id > 1)
-                {
-                    waitingCount = allTickets.Count(t =>
-                        t.Id < ticket.Id &&
-                        (t.ExitTime == DateTimeOffset.MinValue || t.ExitTime <= t.QueueTime) &&
-                        (t.TicketStatus == null || (!t.TicketStatus.Name.Contains("مكتمل") && !t.TicketStatus.Name.Contains("تم") && !t.TicketStatus.Name.Contains("خروج")))
-                    );
-                }
+                // إنشاء رابط صفحة متابعة الدور الديناميكية + صورة الـ QR Code بتاعتها
+                var liveStatusUrl = Url.Action("LiveStatus", "Driver",
+                    new { code = ticket.TrackingCode }, Request.Scheme);
 
                 model = new ReceiptVM
                 {
@@ -176,11 +156,137 @@ namespace Rassef.Controllers
                     DockName = dockName,
                     EmployeeName = empName,
                     WaitingCount = waitingCount.ToString(),
-                    CreatedAt = ticket.CreatedAT != default ? ticket.CreatedAT : DateTimeOffset.Now
+                    CreatedAt = ticket.CreatedAT != default ? ticket.CreatedAT : DateTimeOffset.Now,
+                    TrackingCode = ticket.TrackingCode,
+                    QrCodeImage = GenerateQrCodeBase64(liveStatusUrl),
+                    PrintWidthMm = _printerSettings.Value.ReceiptPaperWidthMm,
+                    PrintHeightMm = _printerSettings.Value.ReceiptPaperHeightMm
                 };
             }
 
             return View(model);
+        }
+
+        /// <summary>
+        /// صفحة متابعة الدور الديناميكية اللي بيوصلها السواق عن طريق مسح QR Code.
+        /// الصفحة نفسها فاضية من البيانات، وكل البيانات بتتحمل وتتحدّث عن طريق
+        /// GetLiveStatus (Polling) عشان تفضل شغالة لحظياً من غير ما السواق يعمل Refresh.
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult LiveStatus(Guid code)
+        {
+            ViewBag.TrackingCode = code;
+            return View("LiveStatus");
+        }
+
+        /// <summary>
+        /// Endpoint خفيف بيتنادى كل كذا ثانية (Polling) من صفحة LiveStatus
+        /// عشان يرجع آخر حالة للدور: لسه مستني / جه دوره دلوقتي / الدور خلص.
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetLiveStatus(Guid code)
+        {
+            var allTickets = await _ticketRepository.GetAllAsync(
+                query => query
+                    .Include(t => t.Department)
+                    .Include(t => t.TicketStatus)
+                    .Include(t => t.DockAssignments!).ThenInclude(da => da.Dock)
+            );
+
+            var ticket = allTickets.FirstOrDefault(t => t.TrackingCode == code);
+
+            if (ticket == null)
+            {
+                return Json(new { found = false });
+            }
+
+            var state = ClassifyTicketStatus(ticket.TicketStatus?.Name);
+            var dockName = ticket.DockAssignments?.OrderByDescending(da => da.AssignedAt).Select(da => da.Dock?.DockName).FirstOrDefault()
+                ?? (ticket.Department != null ? $"{ticket.Department.Prefix}1" : "A1");
+
+            return Json(new
+            {
+                found = true,
+                state, // "waiting" | "in_progress" | "done"
+                ticketNumber = ticket.TicketNumber,
+                statusName = ticket.TicketStatus?.Name ?? "إنتظار",
+                dockName,
+                waitingCount = state == "waiting" ? CalculateWaitingCount(ticket, allTickets) : 0
+            });
+        }
+
+        /// <summary>
+        /// بيصنّف حالة التذكرة (سواء جاية من TicketStatus.Name) لواحدة من 3 حالات
+        /// موحّدة، بنفس منطق التطبيع (Normalization) المستخدم في باقي البروجكت.
+        /// </summary>
+        private static string ClassifyTicketStatus(string? statusName)
+        {
+            var s = (statusName ?? "").Replace("إ", "ا").Trim();
+
+            if (s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل"))
+                return "in_progress";
+
+            if (s.Contains("تم") || s.Contains("مكتمل") || s.Contains("خروج") || s.Contains("منتهي"))
+                return "done";
+
+            return "waiting";
+        }
+
+        /// <summary>
+        /// يحسب عدد الأدوار اللي لسه مستنية قبل التذكرة دي في نفس القسم/الرصيف.
+        /// </summary>
+        private static int CalculateWaitingCount(QueueTicket ticket, IReadOnlyList<QueueTicket> allTickets)
+        {
+            int waitingCount = allTickets.Count(t =>
+            {
+                if (t.Id >= ticket.Id) return false;
+
+                bool matchesDept = t.DepartmentId == ticket.DepartmentId ||
+                    (!string.IsNullOrWhiteSpace(t.TicketNumber) && !string.IsNullOrWhiteSpace(ticket.TicketNumber) &&
+                     char.ToUpper(t.TicketNumber.Trim()[0]) == char.ToUpper(ticket.TicketNumber.Trim()[0]));
+
+                if (!matchesDept && ticket.DepartmentId > 0) return false;
+
+                if (t.ExitTime != DateTimeOffset.MinValue && t.ExitTime > t.QueueTime) return false;
+
+                if (t.TicketStatus != null)
+                {
+                    var st = t.TicketStatus.Name.Replace("إ", "ا").Trim().ToLower();
+                    if (st.Contains("مكتمل") || st.Contains("تم") || st.Contains("خروج") || st.Contains("منتهي"))
+                        return false;
+                }
+
+                return true;
+            });
+
+            if (waitingCount == 0 && ticket.Id > 1)
+            {
+                waitingCount = allTickets.Count(t =>
+                    t.Id < ticket.Id &&
+                    (t.ExitTime == DateTimeOffset.MinValue || t.ExitTime <= t.QueueTime) &&
+                    (t.TicketStatus == null || (!t.TicketStatus.Name.Contains("مكتمل") && !t.TicketStatus.Name.Contains("تم") && !t.TicketStatus.Name.Contains("خروج")))
+                );
+            }
+
+            return waitingCount;
+        }
+
+        /// <summary>
+        /// يولّد صورة QR Code لرابط معين ويرجعها كـ Base64 Data URI
+        /// جاهزة للعرض المباشر في &lt;img src="..."&gt;.
+        /// </summary>
+        private static string GenerateQrCodeBase64(string? content)
+        {
+            if (string.IsNullOrWhiteSpace(content)) return string.Empty;
+
+            using var qrGenerator = new QRCodeGenerator();
+            using var qrCodeData = qrGenerator.CreateQrCode(content, QRCodeGenerator.ECCLevel.Q);
+            using var qrCode = new PngByteQRCode(qrCodeData);
+            byte[] qrBytes = qrCode.GetGraphic(20);
+
+            return $"data:image/png;base64,{Convert.ToBase64String(qrBytes)}";
         }
 
         /// <summary>

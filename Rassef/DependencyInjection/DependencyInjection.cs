@@ -31,6 +31,8 @@ namespace Rassef.Dependencyinjection
                 options.Filters.Add<Filters.FluentValidationActionFilter>();
             });
 
+            services.AddSignalR();
+
             services.AddAntiforgery(options =>
             {
                 options.HeaderName = "X-CSRF-TOKEN";
@@ -70,6 +72,10 @@ namespace Rassef.Dependencyinjection
             var jwtSettingsSection = configuration.GetSection("Jwt");
             services.Configure<JwtSettings>(jwtSettingsSection);
             var jwtSettings = jwtSettingsSection.Get<JwtSettings>();
+
+            // إعدادات مقاس ورق طابعة الإيصال (قابلة للتعديل من appsettings.json)
+            services.Configure<Rassef.Models.Options.PrinterSettings>(
+                configuration.GetSection("PrinterSettings"));
 
             services.AddAuthentication(options =>
             {
@@ -152,6 +158,8 @@ namespace Rassef.Dependencyinjection
 
             // Health check endpoint for container / load balancer monitoring
             app.MapHealthChecks("/healthz");
+
+            app.MapHub<Rassef.Hubs.QueueHub>("/hubs/queue");
 
             app.MapControllerRoute(
                 name: "default",

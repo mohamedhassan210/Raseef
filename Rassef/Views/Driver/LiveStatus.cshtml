@@ -1,0 +1,73 @@
+@{
+    ViewData["Title"] = "متابعة الدور";
+    Layout = null;
+    var trackingCode = ViewBag.TrackingCode;
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="~/css/liveStatus.css" asp-append-version="true">
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+</head>
+<body>
+
+    <!-- بيتحمل أول ما الصفحة تفتح لحد ما ييجي أول رد من السيرفر -->
+    <div id="state-loading" class="status-card">
+        <p class="loading-hint">جاري تحميل بيانات الدور...</p>
+    </div>
+
+    <!-- التذكرة مش موجودة / كود غير صحيح -->
+    <div id="state-not-found" class="status-card d-none">
+        <p class="not-found-hint">تعذر العثور على هذا الدور. تأكد من مسح الكود الصحيح.</p>
+    </div>
+
+    <!-- الحالة 1: لسه في الانتظار -->
+    <div id="state-waiting" class="status-card state-waiting d-none">
+        <div class="status-ticket-number" id="ls-ticket-num-waiting">--</div>
+        <div class="status-label">رقم دورك</div>
+
+        <div class="status-headline">لسه شوية وييجي دورك</div>
+
+        <div class="waiting-count-box">
+            <div class="waiting-count-number" id="ls-waiting-count">0</div>
+            <div class="waiting-count-caption">دور قبلك</div>
+        </div>
+
+        <div class="status-label">الرصيف: <span id="ls-dock-waiting">--</span></div>
+    </div>
+
+    <!-- الحالة 2: جه دورك دلوقتي -->
+    <div id="state-your-turn" class="status-card state-your-turn d-none">
+        <div class="your-turn-icon">🚛</div>
+        <div class="your-turn-headline">دورك جه دلوقتي!</div>
+        <div class="status-ticket-number" id="ls-ticket-num-turn">--</div>
+        <div class="your-turn-sub">توجّه فوراً إلى الرصيف: <span id="ls-dock-turn">--</span></div>
+    </div>
+
+    <!-- الحالة 3: الدور خلص / قديم -->
+    <div id="state-done" class="status-card state-done d-none">
+        <div class="done-icon">✔</div>
+        <div class="done-headline">هذا الدور انتهى</div>
+        <div class="status-ticket-number" id="ls-ticket-num-done">--</div>
+        <div class="done-sub">تم تسجيل خروج الشاحنة الخاصة بهذا الدور بالفعل، أو أن الرابط قديم.</div>
+    </div>
+
+    <script>
+        window.trackingCode = '@trackingCode';
+        window.routes = {
+            getLiveStatus: '@Url.Action("GetLiveStatus", "Driver")',
+            queueHub: '@Url.Content("~/hubs/queue")'
+        };
+    </script>
+    <script src="~/js/liveStatus.js" asp-append-version="true"></script>
+</body>
+</html>

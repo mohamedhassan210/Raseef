@@ -61,7 +61,11 @@ html, body {
     overflow-y: auto !important;
     box-sizing: border-box !important;
     z-index: 100 !important;
-    position: relative !important;
+    /* position متعمّد من غير !important عشان ميديا كويري الموبايل
+       في dashboard.css/employeeDetails.css/detailsPages.css تقدر
+       تحوّله لـ fixed وتطلعه بره الشاشة على الموبايل. كان !important
+       هنا بيمنع أي Responsive breakpoint من الشغل نهائياً. */
+    position: relative;
 }
 
 .sidebar-top {
@@ -88,11 +92,11 @@ html, body {
     margin: 0 !important;
 }
 
-.sidebar-menu li {
-    list-style: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
+    .sidebar-menu li {
+        list-style: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
 
 .sidebar-item {
     display: flex !important;
@@ -109,29 +113,29 @@ html, body {
     box-sizing: border-box !important;
 }
 
-.sidebar-item svg {
-    width: 20px !important;
-    height: 20px !important;
-    stroke: currentColor !important;
-    fill: none !important;
-    stroke-width: 2 !important;
-    flex-shrink: 0 !important;
-}
+    .sidebar-item svg {
+        width: 20px !important;
+        height: 20px !important;
+        stroke: currentColor !important;
+        fill: none !important;
+        stroke-width: 2 !important;
+        flex-shrink: 0 !important;
+    }
 
-.sidebar-item:hover {
-    background-color: rgba(255, 255, 255, 0.15) !important;
-    color: #FFFFFF !important;
-}
+    .sidebar-item:hover {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        color: #FFFFFF !important;
+    }
 
-.sidebar-item.active {
-    background-color: #FFFFFF !important;
-    color: #e67e22 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-}
+    .sidebar-item.active {
+        background-color: #FFFFFF !important;
+        color: #e67e22 !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    }
 
-.sidebar-item.active svg {
-    stroke: #e67e22 !important;
-}
+        .sidebar-item.active svg {
+            stroke: #e67e22 !important;
+        }
 
 /* ────────────────────────────────────────────────
    SIDEBAR USER (Footer)
@@ -165,12 +169,12 @@ html, body {
     flex-shrink: 0 !important;
 }
 
-.user-avatar-box svg {
-    width: 24px !important;
-    height: 24px !important;
-    fill: #e67e22 !important;
-    stroke: none !important;
-}
+    .user-avatar-box svg {
+        width: 24px !important;
+        height: 24px !important;
+        fill: #e67e22 !important;
+        stroke: none !important;
+    }
 
 .user-details {
     display: flex !important;
@@ -208,19 +212,19 @@ html, body {
     cursor: pointer !important;
 }
 
-.sidebar-logout-btn:hover {
-    background: #c0392b !important;
-    color: #FFFFFF !important;
-    transform: scale(1.05) !important;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
-}
+    .sidebar-logout-btn:hover {
+        background: #c0392b !important;
+        color: #FFFFFF !important;
+        transform: scale(1.05) !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+    }
 
-.sidebar-logout-btn svg {
-    width: 20px !important;
-    height: 20px !important;
-    stroke: currentColor !important;
-    fill: none !important;
-}
+    .sidebar-logout-btn svg {
+        width: 20px !important;
+        height: 20px !important;
+        stroke: currentColor !important;
+        fill: none !important;
+    }
 
 /* ────────────────────────────────────────────────
    MAIN CONTENT CONTAINER
@@ -282,11 +286,60 @@ html, body {
 }
 
 .header-logo-fathallah {
-    height: 70px !important;
+    /* من غير !important عشان الميديا كويريز بتاعت كل صفحة تقدر تصغّره
+       على الموبايل بدل ما يفضل ثابت على 70px دايماً */
+    height: 70px;
     width: auto !important;
 }
 
 .header-logo-raseef {
-    height: 42px !important;
+    height: 42px;
     width: auto !important;
+}
+
+/* ==========================================================================
+   MOBILE SIDEBAR TOGGLE — النسخة الموحّدة (Single Source of Truth)
+   الزرار بيتحط بنفس الشكل في كل صفحة (أول حاجة جوه <body>)، وشكله ومكانه
+   وسلوكه بيتحددوا هنا بس عشان يبقوا متطابقين في كل مكان في التطبيق.
+   ========================================================================== */
+.mobile-toggle {
+    display: none;
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 500;
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 2px solid #e67e22;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+    .mobile-toggle svg {
+        width: 22px;
+        height: 22px;
+    }
+
+@media (max-width: 900px) {
+    .mobile-toggle {
+        display: flex !important;
+    }
+
+    /* !important هنا مقصودة: عشان تبقى القاعدة الحاكمة بغض النظر عن أي
+       Media Query تانية بتحاول تعمل نفس الحاجة بأرقام مختلفة في ملفات
+       الصفحات المنفصلة (dashboard.css, detailsPages.css, ...) */
+    .dashboard-sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        right: -300px !important;
+        transition: right 0.3s ease-in-out !important;
+    }
+
+        .dashboard-sidebar.active {
+            right: 0 !important;
+        }
 }

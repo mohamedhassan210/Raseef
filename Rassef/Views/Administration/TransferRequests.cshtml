@@ -36,6 +36,12 @@
     <link rel="stylesheet" href="~/css/detailsPages.css" asp-append-version="true">
 </head>
 <body>
+
+    <!-- زرار فتح/قفل السايدبار على الموبايل (mobile-toggle) -->
+    <button class="mobile-toggle" id="mobileToggle" aria-label="القائمة">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    </button>
+
     <div class="dashboard-page">
         <!-- SIDEBAR -->
         <partial name="_AdminSidebar" model='"TransferRequests"' />
@@ -367,5 +373,6 @@
             }
         });
     </script>
+    <script src="~/js/sidebarToggle.js" asp-append-version="true"></script>
 </body>
 </html>

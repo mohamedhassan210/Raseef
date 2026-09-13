@@ -458,6 +458,43 @@ body {
     .header-logo-raseef {
         height: 35px;
     }
+
+    /* الزرار (☰) بقى position:fixed في sidebar.css فوق يمين الشاشة،
+       فلازم نسيب مسافة فاضية عشان عنوان الصفحة/اللوجوهات مايتغطوش تحته */
+    .dashboard-header {
+        flex-wrap: wrap;
+        padding-right: 56px;
+        row-gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-left-logos {
+        order: -1;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .header-title {
+        font-size: 20px;
+    }
+
+    .header-logo-fathallah {
+        height: 34px;
+    }
+
+    .header-logo-raseef {
+        height: 26px;
+    }
+
+    .dashboard-actions-bar > * {
+        flex: 1 1 auto;
+    }
 }
 
 /* Column Specific Styles للمركبات */

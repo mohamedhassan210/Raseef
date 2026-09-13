@@ -1,0 +1,191 @@
+:root {
+    --primary-color: #EB842D;
+    --bg-color: #F9F2F2;
+    --dark-text: #332D24;
+    --border-subtle: rgba(235, 132, 45, 0.25);
+    --success-color: #2E9E5B;
+    --muted-color: #8a8378;
+    --font-family: 'IBM Plex Sans Arabic', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    font-family: var(--font-family);
+    color: var(--dark-text);
+    direction: rtl;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.d-none {
+    display: none !important;
+}
+
+.status-card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    padding: 32px 24px;
+    text-align: center;
+    transition: background 0.3s ease;
+}
+
+.status-ticket-number {
+    font-size: 3.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 6px;
+}
+
+.status-label {
+    font-size: 1.05rem;
+    color: var(--muted-color);
+    margin-bottom: 24px;
+}
+
+/* حالة: لسه في الانتظار */
+.state-waiting .status-headline {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.waiting-count-box {
+    margin: 20px auto;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 6px solid var(--primary-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.waiting-count-number {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+.waiting-count-caption {
+    font-size: 0.85rem;
+    color: var(--muted-color);
+    margin-top: 4px;
+}
+
+/* حالة: جه دورك دلوقتي */
+.state-your-turn {
+    background: var(--success-color);
+    color: #fff;
+    animation: pulse-turn 1.4s ease-in-out infinite;
+}
+
+    .state-your-turn .status-label,
+    .state-your-turn .status-ticket-number {
+        color: #fff;
+    }
+
+.your-turn-icon {
+    font-size: 3.5rem;
+    margin-bottom: 8px;
+}
+
+.your-turn-headline {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.your-turn-sub {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+@keyframes pulse-turn {
+    0%, 100% {
+        box-shadow: 0 10px 30px rgba(46, 158, 91, 0.35);
+    }
+
+    50% {
+        box-shadow: 0 10px 46px rgba(46, 158, 91, 0.6);
+    }
+}
+
+/* حالة: الدور خلص/قديم */
+.state-done {
+    opacity: 0.9;
+}
+
+.done-icon {
+    font-size: 3rem;
+    margin-bottom: 8px;
+    color: var(--muted-color);
+}
+
+.done-headline {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin-bottom: 6px;
+}
+
+.done-sub {
+    font-size: 0.95rem;
+    color: var(--muted-color);
+}
+
+.loading-hint,
+.not-found-hint {
+    color: var(--muted-color);
+    font-size: 1rem;
+}
+
+/* شاشات صغيرة جداً (أجهزة PDA وموبايلات قديمة) */
+@media (max-width: 340px) {
+    .status-card {
+        padding: 22px 16px;
+        border-radius: 14px;
+    }
+
+    .status-ticket-number {
+        font-size: 2.4rem;
+    }
+
+    .waiting-count-box {
+        width: 110px;
+        height: 110px;
+        border-width: 4px;
+    }
+
+    .waiting-count-number {
+        font-size: 2.2rem;
+    }
+
+    .your-turn-headline {
+        font-size: 1.3rem;
+    }
+
+    .your-turn-icon {
+        font-size: 2.6rem;
+    }
+}
+
+/* شاشات عريضة نسبياً (تابلت/PDA أفقي) عشان الكارت ميفضلش صغير وسط شاشة واسعة */
+@media (min-width: 700px) {
+    .status-card {
+        max-width: 460px;
+    }
+}

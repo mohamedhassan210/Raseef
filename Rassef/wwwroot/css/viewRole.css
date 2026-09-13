@@ -1,4 +1,4 @@
-/* ==========================================================================
+ï»¿/* ==========================================================================
    Design System & Variables (Matching Reference Image)
    ========================================================================== */
 :root {
@@ -267,7 +267,7 @@ body {
     border-radius: 14px;
     padding: 12px 24px;
     display: grid;
-    /* ÊÎØíØ ÇáÜ 7 ÃÚãÏÉ ÈÇáÊØÇÈÞ ÇáÊÇã ãÚ ÇáÕæÑÉ */
+    /* ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ 7 ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
     grid-template-columns: 80px 110px 1.4fr 1fr 100px 1.1fr 110px;
     align-items: center;
     column-gap: 16px;
@@ -407,6 +407,23 @@ body {
         grid-template-columns: repeat(2, 1fr);
         row-gap: 14px;
     }
+
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    .header-actions {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+        .header-actions a,
+        .header-actions button {
+            flex: 1 1 auto;
+            justify-content: center;
+        }
 }
 
 @media (max-width: 500px) {
@@ -421,5 +438,20 @@ body {
 
     .role-card {
         grid-template-columns: 1fr;
+    }
+
+    .header-actions {
+        flex-direction: column;
+    }
+
+        .header-actions a,
+        .header-actions button {
+            width: 100%;
+        }
+
+    .header-right {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
     }
 }

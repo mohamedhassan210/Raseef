@@ -29,6 +29,26 @@
 
     <!-- استدعاء ملف الـ CSS -->
     <link rel="stylesheet" href="~/css/receipt.css" asp-append-version="true">
+
+    @{
+        var printWidthMm = Model?.PrintWidthMm > 0 ? Model.PrintWidthMm : 80;
+        var printHeightCss = Model?.PrintHeightMm.HasValue == true ? $"{Model.PrintHeightMm}mm" : "auto";
+    }
+    <style>
+        /* مقاس الطباعة ده جاي من إعدادات الطابعة (appsettings.json -> PrinterSettings)
+                   وبيتظبط تلقائياً حسب مقاس الورق المحدد هناك */
+        @@page {
+            size: @(printWidthMm) mm @(printHeightCss);
+            margin: 2mm;
+        }
+
+        @@media print {
+            body, .receipt-container, .receipt-badge {
+                max-width: @(printWidthMm) mm !important;
+                width: @(printWidthMm) mm !important;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -101,6 +121,17 @@
                     <div class="grid-value" id="rec-dock">@dockDisplay</div>
                 </div>
             </div>
+
+            @if (Model != null && !string.IsNullOrWhiteSpace(Model.QrCodeImage))
+            {
+                <div class="badge-divider-dashed"></div>
+
+                <!-- QR Code لمتابعة الدور لحظياً من الموبايل -->
+                <div class="badge-section text-center qr-section">
+                    <h3 class="section-title">امسح الكود لمتابعة دورك</h3>
+                    <img src="@Model.QrCodeImage" alt="QR Code لمتابعة الدور" class="receipt-qr-img" width="140" height="140" />
+                </div>
+            }
 
             <div class="badge-divider-dashed"></div>
 

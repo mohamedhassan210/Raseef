@@ -4,6 +4,9 @@ namespace Rassef.Models.Entities
     public class QueueTicket : BaseEntity
     {
         public string TicketNumber { get; set; } = string.Empty;
+        // كود عشوائي غير قابل للتخمين يُستخدم في رابط الـ QR Code
+        // الخاص بصفحة متابعة الدور، بدل استخدام الـ Id التسلسلي مباشرة
+        public Guid TrackingCode { get; set; } = Guid.NewGuid();
         public int? TransferRequestId { get; set; }
         public int? SupplierRequestId { get; set; }
         public int DepartmentId { get; set; }

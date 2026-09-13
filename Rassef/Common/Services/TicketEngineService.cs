@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.SignalR;
+
 namespace Rassef.Common.Services
 {
     public class TicketEngineService : ITicketEngineService
@@ -10,6 +12,7 @@ namespace Rassef.Common.Services
         private readonly IDockRepository _dockRepository;
         private readonly IDockAssignmentRepository _dockAssignmentRepository;
         private readonly IUserRepository _userRepository;
+        private readonly Microsoft.AspNetCore.SignalR.IHubContext<Rassef.Hubs.QueueHub> _hubContext;
 
         // Concurrency Guard: منع أي Race Condition أثناء استدعاء الأدوار أو توليد التذاكر المتزامنة
         private static readonly System.Threading.SemaphoreSlim _concurrencyLock = new System.Threading.SemaphoreSlim(1, 1);
@@ -22,7 +25,8 @@ namespace Rassef.Common.Services
             IRepository<TicketStatuses> ticketStatusRepository,
             IDockRepository dockRepository,
             IDockAssignmentRepository dockAssignmentRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            Microsoft.AspNetCore.SignalR.IHubContext<Rassef.Hubs.QueueHub> hubContext)
         {
             _departmentRepository = departmentRepository;
             _ticketRepository = ticketRepository;
@@ -32,7 +36,16 @@ namespace Rassef.Common.Services
             _dockRepository = dockRepository;
             _dockAssignmentRepository = dockAssignmentRepository;
             _userRepository = userRepository;
+            _hubContext = hubContext;
         }
+
+        /// <summary>
+        /// بيبعت إشعار لكل الشاشات وصفحات متابعة الدور المتصلة إن حاجة في الطابور
+        /// اتغيّرت، عشان كل واحدة تروح تجيب حالتها المحدّثة (بدل ما السيرفر يحسب
+        /// ويبعت بيانات كل تذكرة لوحدها).
+        /// </summary>
+        private Task NotifyQueueUpdatedAsync()
+            => _hubContext.Clients.All.SendAsync("QueueUpdated");
 
         public async Task<(string Prefix, int Counter, string TicketNumber, Shift? ActiveShift)> GenerateTicketNumberAsync(int departmentId)
         {
@@ -417,6 +430,8 @@ namespace Rassef.Common.Services
                     string driverName = nextTicket.SupplierRequest?.Driver?.FullName
                         ?? nextTicket.TransferRequest?.Driver?.FullName ?? "غير محدد";
 
+                    await NotifyQueueUpdatedAsync();
+
                     return new TicketStatusUpdateResult
                     {
                         Success = true,
@@ -432,6 +447,8 @@ namespace Rassef.Common.Services
                 }
                 else if (currentInProgressTickets.Any())
                 {
+                    await NotifyQueueUpdatedAsync();
+
                     return new TicketStatusUpdateResult
                     {
                         Success = true,
@@ -522,6 +539,8 @@ namespace Rassef.Common.Services
 
                 string driverName = ticketDetails?.SupplierRequest?.Driver?.FullName
                     ?? ticketDetails?.TransferRequest?.Driver?.FullName ?? "غير محدد";
+
+                await NotifyQueueUpdatedAsync();
 
                 return new TicketStatusUpdateResult
                 {

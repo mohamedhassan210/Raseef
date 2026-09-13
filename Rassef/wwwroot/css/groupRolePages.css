@@ -342,13 +342,14 @@ body {
     background-color: var(--card-bg);
     border: 1.5px solid var(--border-color);
     border-radius: 14px;
-    overflow: hidden;
-    max-height: 420px;
     overflow-y: auto;
+    overflow-x: auto;
+    max-height: 420px;
 }
 
     .permissions-table-wrapper::-webkit-scrollbar {
         width: 6px;
+        height: 6px;
     }
 
     .permissions-table-wrapper::-webkit-scrollbar-track {
@@ -363,6 +364,7 @@ body {
 
 .permissions-table {
     width: 100%;
+    min-width: 480px;
     border-collapse: collapse;
     text-align: right;
 }
@@ -374,6 +376,7 @@ body {
         font-size: 15px;
         font-weight: 800;
         border-bottom: 1.5px solid var(--border-color);
+        white-space: nowrap;
     }
 
     .permissions-table td {
@@ -382,6 +385,7 @@ body {
         font-weight: 600;
         color: var(--text-dark);
         border-bottom: 1px solid #F5E6D8;
+        white-space: nowrap;
     }
 
     .permissions-table tr:last-child td {

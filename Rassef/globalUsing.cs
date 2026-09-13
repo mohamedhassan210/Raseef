@@ -7,6 +7,7 @@ global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 global using Microsoft.Extensions.Options;
 global using Microsoft.IdentityModel.Tokens;
+global using QRCoder;
 global using Rassef.Common.Interfaces;
 global using Rassef.Common.Interfaces.Services;
 global using Rassef.Common.Interfaces.Services.AuthenticationServices;
