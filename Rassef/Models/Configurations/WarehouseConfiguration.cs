@@ -15,8 +15,9 @@
                    .HasMaxLength(250);
 
             builder.HasOne(w => w.CreatedBy)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
+       .WithMany()
+       .HasForeignKey("CreatedById")
+       .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

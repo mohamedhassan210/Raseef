@@ -27,6 +27,11 @@ namespace Rassef.Models.Configurations
                    .WithOne(x => x.Shift)
                    .HasForeignKey(x => x.ShiftId)
                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(x => x.Warehouse)
+       .WithMany()
+       .HasForeignKey(x => x.WarehouseId)
+       .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

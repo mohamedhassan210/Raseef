@@ -8,6 +8,8 @@
 
     public DateTimeOffset? LastResetAt { get; set; }
 
+    public int WarehouseId { get; set; }
+    public Warehouse Warehouse { get; set; }
     public ICollection<QueueSettings> QueueSettings { get; set; }
         = new HashSet<QueueSettings>();
 

@@ -124,9 +124,14 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            // NEW — Feature 3: scope the list to the active (selected) warehouse.
+            // Same "unfiltered if unresolved" fallback as DepartmentController.
+            var selectedWarehouseId = GetSelectedWarehouseId();
+
             // C3 + B5 — Include navigations and filter soft-deleted
             var docks = await _repository.GetAllAsync(query => query
                 .Where(d => !d.IsDeleted)
+                .Where(d => selectedWarehouseId == null || d.WarehouseId == selectedWarehouseId.Value)
                 .Include(d => d.Warehouse)
                 .Include(d => d.Department)
                 .Include(d => d.DockStatus));
@@ -351,7 +356,26 @@ namespace Rassef.Controllers
         // ── PRIVATE HELPERS ───────────────────────────────────────────────────
 
         /// <summary>
+        /// Feature 3 — reads the active warehouse from the "SelectedWarehouseId"
+        /// cookie. Null means unresolved; Index treats that as "show everything".
+        /// </summary>
+        private int? GetSelectedWarehouseId()
+        {
+            if (Request.Cookies.TryGetValue("SelectedWarehouseId", out var cookieValue)
+                && int.TryParse(cookieValue, out var warehouseId))
+            {
+                return warehouseId;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Loads a single non-deleted Dock with all navigation properties included.
+        /// Feature 3/Q1-followup — also enforces warehouse scoping: if a warehouse
+        /// is selected and this dock belongs to a different one, it's treated as
+        /// not found rather than leaking that a dock exists in another warehouse.
+        /// Used by every by-id action, so this blocks direct-URL access too, not
+        /// just the Index listing.
         /// </summary>
         private async Task<Dock?> FindActiveDockAsync(int id)
         {
@@ -361,7 +385,19 @@ namespace Rassef.Controllers
                 .Include(d => d.Department)
                 .Include(d => d.DockStatus));
 
-            return results.FirstOrDefault();
+            var dock = results.FirstOrDefault();
+            if (dock == null)
+            {
+                return null;
+            }
+
+            var selectedWarehouseId = GetSelectedWarehouseId();
+            if (selectedWarehouseId.HasValue && dock.WarehouseId != selectedWarehouseId.Value)
+            {
+                return null;
+            }
+
+            return dock;
         }
 
         private async Task<(IEnumerable<SelectListItem> Depts,

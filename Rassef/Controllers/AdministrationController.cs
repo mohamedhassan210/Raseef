@@ -17,6 +17,8 @@ namespace Rassef.Controllers
         private readonly IRepository<DriverTypes> _driverTypeRepository;
         private readonly IRepository<Supplier> _supplierRepository;
         private readonly ITicketEngineService _ticketEngineService;
+        private readonly IRepository<Warehouse> _warehouseRepository;           // NEW
+        private readonly IRepository<UserWarehouse> _userWarehouseRepository;   // NEW
 
         public AdministrationController(
             IUserRepository userRepository,
@@ -29,7 +31,9 @@ namespace Rassef.Controllers
             ITransferRequestRepository transferRequestRepository,
             ISupplierRequestRepository supplierRequestRepository,
             IRepository<Supplier> supplierRepository,
-            ITicketEngineService ticketEngineService)
+            ITicketEngineService ticketEngineService,
+            IRepository<Warehouse> warehouseRepository,           // NEW
+            IRepository<UserWarehouse> userWarehouseRepository)   // NEW
         {
             _userRepository = userRepository;
             _positionRepository = positionRepository;
@@ -42,6 +46,8 @@ namespace Rassef.Controllers
             _supplierRequestRepository = supplierRequestRepository;
             _supplierRepository = supplierRepository;
             _ticketEngineService = ticketEngineService;
+            _warehouseRepository = warehouseRepository;             // NEW
+            _userWarehouseRepository = userWarehouseRepository;     // NEW
         }
 
         //Employee Administration
@@ -116,9 +122,11 @@ namespace Rassef.Controllers
         {
             var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
             var groups = await _groupRepository.GetAllAsync(q => q.Where(g => !g.IsDeleted));
+            var warehouses = await _warehouseRepository.GetAllAsync(q => q.Where(w => !w.IsDeleted)); // NEW
 
             ViewBag.Positions = positions;
             ViewBag.Groups = groups;
+            ViewBag.Warehouses = warehouses; // NEW
 
             return View(new EmployeeCreateVM());
         }
@@ -127,19 +135,16 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(EmployeeCreateVM model)
         {
-            // التحقق من صحة رقم الهاتف المصري
             if (string.IsNullOrWhiteSpace(model.Phone) || !System.Text.RegularExpressions.Regex.IsMatch(model.Phone.Trim(), @"^01[0125][0-9]{8}$"))
             {
                 ModelState.AddModelError(nameof(model.Phone), "رقم الهاتف يجب أن يكون رقم مصري صحيح مكون من 11 رقماً (يبدأ بـ 010 أو 011 أو 012 أو 015).");
             }
 
-            // التحقق من أن الرقم القومي 14 رقم بالضبط
             if (string.IsNullOrWhiteSpace(model.NationalId) || !System.Text.RegularExpressions.Regex.IsMatch(model.NationalId.Trim(), @"^[0-9]{14}$"))
             {
                 ModelState.AddModelError(nameof(model.NationalId), "الرقم القومي يجب أن يتكون من 14 رقماً بالضبط.");
             }
 
-            // فحص فرادة الرقم القومي ورقم الهاتف للموظف
             var existingUser = await _userRepository.FindAsync(u => u.NationalId == model.NationalId && !u.IsDeleted);
             if (existingUser != null)
             {
@@ -175,9 +180,11 @@ namespace Rassef.Controllers
             {
                 var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
                 var groups = await _groupRepository.GetAllAsync(q => q.Where(g => !g.IsDeleted));
+                var warehouses = await _warehouseRepository.GetAllAsync(q => q.Where(w => !w.IsDeleted)); // NEW
 
                 ViewBag.Positions = positions;
                 ViewBag.Groups = groups;
+                ViewBag.Warehouses = warehouses; // NEW
 
                 return View(model);
             }
@@ -199,11 +206,31 @@ namespace Rassef.Controllers
             await _userRepository.AddAsync(user);
             await _userRepository.SaveChangesAsync();
 
-            TempData["Success"] = "تم إضافة الموظف بنجاح.";
+            // NEW — link the employee to whichever warehouses were checked. Never trust
+            // posted ids blindly: only link ids that are real, active warehouses.
+            if (model.SelectedWarehouseIds != null && model.SelectedWarehouseIds.Any())
+            {
+                var validWarehouseIds = (await _warehouseRepository.GetAllAsync(q => q.Where(w => !w.IsDeleted)))
+                    .Select(w => w.Id)
+                    .ToHashSet();
 
+                foreach (var warehouseId in model.SelectedWarehouseIds.Distinct())
+                {
+                    if (!validWarehouseIds.Contains(warehouseId)) continue;
+
+                    await _userWarehouseRepository.AddAsync(new UserWarehouse
+                    {
+                        UserId = user.Id,
+                        WarehouseId = warehouseId
+                    });
+                }
+
+                await _userWarehouseRepository.SaveChangesAsync();
+            }
+
+            TempData["Success"] = "تم إضافة الموظف بنجاح.";
             return RedirectToAction(nameof(Index));
         }
-
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -215,19 +242,22 @@ namespace Rassef.Controllers
 
             if (user == null)
             {
-                ModelState.AddModelError(
-                    string.Empty,
-                    "هذا الموظف غير موجود."
-                );
-
+                ModelState.AddModelError(string.Empty, "هذا الموظف غير موجود.");
                 return RedirectToAction(nameof(Index));
             }
 
             var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
             var groups = await _groupRepository.GetAllAsync(q => q.Where(g => !g.IsDeleted));
+            var warehouses = await _warehouseRepository.GetAllAsync(q => q.Where(w => !w.IsDeleted)); // NEW
+
+            // NEW — this employee's current warehouse links, to pre-check the boxes.
+            var userWarehouses = await _userWarehouseRepository.GetAllAsync(q =>
+                q.Where(uw => uw.UserId == user.Id && !uw.IsDeleted));
+            var selectedWarehouseIds = userWarehouses.Select(uw => uw.WarehouseId).ToList();
 
             ViewBag.Positions = positions;
             ViewBag.Groups = groups;
+            ViewBag.Warehouses = warehouses; // NEW
 
             var employee = new EmployeeEditVM
             {
@@ -240,7 +270,8 @@ namespace Rassef.Controllers
                 GroupId = user.GroupId ?? 0,
                 NationalId = user.NationalId,
                 UserCode = user.UserCode ?? string.Empty,
-                BranchCode = user.BranchCode ?? string.Empty
+                BranchCode = user.BranchCode ?? string.Empty,
+                SelectedWarehouseIds = selectedWarehouseIds // NEW
             };
 
             return View(employee);
@@ -250,19 +281,16 @@ namespace Rassef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EmployeeEditVM model)
         {
-            // التحقق من صحة رقم الهاتف المصري
             if (string.IsNullOrWhiteSpace(model.Phone) || !System.Text.RegularExpressions.Regex.IsMatch(model.Phone.Trim(), @"^01[0125][0-9]{8}$"))
             {
                 ModelState.AddModelError(nameof(model.Phone), "رقم الهاتف يجب أن يكون رقم مصري صحيح مكون من 11 رقماً (يبدأ بـ 010 أو 011 أو 012 أو 015).");
             }
 
-            // التحقق من أن الرقم القومي 14 رقم بالضبط
             if (string.IsNullOrWhiteSpace(model.NationalId) || !System.Text.RegularExpressions.Regex.IsMatch(model.NationalId.Trim(), @"^[0-9]{14}$"))
             {
                 ModelState.AddModelError(nameof(model.NationalId), "الرقم القومي يجب أن يتكون من 14 رقماً بالضبط.");
             }
 
-            // فحص فرادة الرقم القومي ورقم الهاتف عند التعديل
             var existingUser = await _userRepository.FindAsync(u => u.NationalId == model.NationalId && u.Id != model.Id && !u.IsDeleted);
             if (existingUser != null)
             {
@@ -298,9 +326,11 @@ namespace Rassef.Controllers
             {
                 var positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
                 var groups = await _groupRepository.GetAllAsync(q => q.Where(g => !g.IsDeleted));
+                var warehouses = await _warehouseRepository.GetAllAsync(q => q.Where(w => !w.IsDeleted)); // NEW
 
                 ViewBag.Positions = positions;
                 ViewBag.Groups = groups;
+                ViewBag.Warehouses = warehouses; // NEW
 
                 return View(model);
             }
@@ -309,11 +339,7 @@ namespace Rassef.Controllers
 
             if (user == null || user.IsDeleted)
             {
-                ModelState.AddModelError(
-                    string.Empty,
-                    "هذا الموظف غير موجود."
-                );
-
+                ModelState.AddModelError(string.Empty, "هذا الموظف غير موجود.");
                 return View(model);
             }
 
@@ -331,11 +357,40 @@ namespace Rassef.Controllers
             _userRepository.Update(user);
             await _userRepository.SaveChangesAsync();
 
-            TempData["Success"] = "تم تعديل بيانات الموظف بنجاح.";
+            // NEW — sync this employee's warehouse links to match the checked boxes:
+            // soft-delete links that got unchecked, add links that are newly checked.
+            var validWarehouseIds = (await _warehouseRepository.GetAllAsync(q => q.Where(w => !w.IsDeleted)))
+                .Select(w => w.Id)
+                .ToHashSet();
+            var selectedIds = (model.SelectedWarehouseIds ?? new List<int>())
+                .Where(validWarehouseIds.Contains)
+                .Distinct()
+                .ToHashSet();
 
+            var existingLinks = await _userWarehouseRepository.GetAllAsync(q =>
+                q.Where(uw => uw.UserId == user.Id && !uw.IsDeleted));
+
+            foreach (var link in existingLinks.Where(l => !selectedIds.Contains(l.WarehouseId)))
+            {
+                link.IsDeleted = true;
+                _userWarehouseRepository.Update(link);
+            }
+
+            var existingWarehouseIds = existingLinks.Select(l => l.WarehouseId).ToHashSet();
+            foreach (var warehouseId in selectedIds.Where(id => !existingWarehouseIds.Contains(id)))
+            {
+                await _userWarehouseRepository.AddAsync(new UserWarehouse
+                {
+                    UserId = user.Id,
+                    WarehouseId = warehouseId
+                });
+            }
+
+            await _userWarehouseRepository.SaveChangesAsync();
+
+            TempData["Success"] = "تم تعديل بيانات الموظف بنجاح.";
             return RedirectToAction(nameof(Index));
         }
-
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
@@ -1081,7 +1136,8 @@ namespace Rassef.Controllers
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             int currentUserId = int.TryParse(userIdClaim, out var uId) ? uId : 1;
 
-            var result = await _ticketEngineService.CallNextTicketAsync(departmentId, currentUserId);
+            // NEW — Feature 3: scope "call next" to the caller's active warehouse.
+            var result = await _ticketEngineService.CallNextTicketAsync(departmentId, currentUserId, GetSelectedWarehouseId());
             return Json(result);
         }
 
@@ -1216,6 +1272,21 @@ namespace Rassef.Controllers
                 TempData["Success"] = "تم حذف طلب التحويل بنجاح.";
             }
             return RedirectToAction(nameof(TransferRequests));
+        }
+
+        /// <summary>
+        /// Feature 3 — reads the active warehouse from the "SelectedWarehouseId"
+        /// cookie, same convention used in AuthenticationController/DepartmentController/
+        /// DockController/QueueTicketController. Null means unresolved.
+        /// </summary>
+        private int? GetSelectedWarehouseId()
+        {
+            if (Request.Cookies.TryGetValue("SelectedWarehouseId", out var cookieValue)
+                && int.TryParse(cookieValue, out var warehouseId))
+            {
+                return warehouseId;
+            }
+            return null;
         }
     }
 }

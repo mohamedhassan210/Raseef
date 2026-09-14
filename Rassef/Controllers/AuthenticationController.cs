@@ -1,395 +1,428 @@
-    using Rassef.Filters;
-    using Rassef.ViewModels.Authentication.UserViewModels;
-    using Rassef.ViewModels.Drivers;
+using Rassef.Filters;
+using Rassef.ViewModels.Authentication.UserViewModels;
+using Rassef.ViewModels.Drivers;
 
-    namespace Rassef.Controllers
+namespace Rassef.Controllers
+{
+
+
+    public class AuthenticationController : Controller
     {
-   
+        private readonly IUserRepository _userRepository;
+        private readonly IJwtService _jwtService;
+        private readonly IDriverRepository _driverRepository;
+        private readonly IRepository<SupplierRequest> _transferRequestRepository;
+        private readonly IDepartmentRepository _departmentRepository;
+        private readonly IRepository<TicketStatuses> _ticketStatusRepository;
+        private readonly IRepository<QueueTicket> _ticketRepository;
+        private readonly ITicketEngineService _ticketEngineService;
+        private readonly IRepository<Warehouse> _warehouseRepository;           // NEW
+        private readonly IRepository<UserWarehouse> _userWarehouseRepository;   // NEW
 
-        public class AuthenticationController : Controller
+        public AuthenticationController(
+            IUserRepository userRepository,
+            IJwtService jwtService,
+            ILogger<AuthenticationController> logger,
+            IDriverRepository driverRepository,
+            IRepository<SupplierRequest> transferRequestRepository,
+            IDepartmentRepository departmentRepository,
+            IRepository<TicketStatuses> ticketStatusesRepository,
+            IRepository<QueueTicket> ticketRepository,
+            ITicketEngineService ticketEngineService,
+            IRepository<Warehouse> warehouseRepository,           // NEW
+            IRepository<UserWarehouse> userWarehouseRepository)   // NEW
         {
-            private readonly IUserRepository _userRepository;
-            private readonly IJwtService _jwtService;
-            private readonly IDriverRepository _driverRepository;
-            private readonly IRepository<SupplierRequest> _transferRequestRepository;
-            private readonly IDepartmentRepository _departmentRepository;
-            private readonly IRepository<TicketStatuses> _ticketStatusRepository;
-            private readonly IRepository<QueueTicket> _ticketRepository;
-            private readonly ITicketEngineService _ticketEngineService;
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
+            _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
+            _transferRequestRepository = transferRequestRepository ?? throw new ArgumentNullException(nameof(transferRequestRepository));
+            _departmentRepository = departmentRepository;
+            _ticketStatusRepository = ticketStatusesRepository;
+            _ticketRepository = ticketRepository;
+            _ticketEngineService = ticketEngineService;
+            _warehouseRepository = warehouseRepository;                 // NEW
+            _userWarehouseRepository = userWarehouseRepository;         // NEW
+        }
 
-            public AuthenticationController(
-                IUserRepository userRepository,
-                IJwtService jwtService,
-                ILogger<AuthenticationController> logger,
-                IDriverRepository driverRepository,
-                IRepository<SupplierRequest> transferRequestRepository,
-                IDepartmentRepository departmentRepository,
-                IRepository<TicketStatuses> ticketStatusesRepository,
-                IRepository<QueueTicket> ticketRepository,
-                ITicketEngineService ticketEngineService)
+        // ── PRIVATE HELPERS (Feature 3 / 4) ──────────────────────────────────
+
+        /// <summary>
+        /// Reads the active warehouse from the "SelectedWarehouseId" cookie.
+        /// Null means unresolved (no cookie, or an unparsable value) — callers
+        /// decide whether that means "show everything" or "block".
+        /// </summary>
+        private int? GetSelectedWarehouseId()
+        {
+            if (Request.Cookies.TryGetValue("SelectedWarehouseId", out var cookieValue)
+                && int.TryParse(cookieValue, out var warehouseId))
             {
-                _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-                _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
-                _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
-                _transferRequestRepository = transferRequestRepository ?? throw new ArgumentNullException(nameof(transferRequestRepository));
-                _departmentRepository = departmentRepository;
-                _ticketStatusRepository = ticketStatusesRepository;
-                _ticketRepository = ticketRepository;
-                _ticketEngineService = ticketEngineService;
+                return warehouseId;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Feature 4 — true if the user has at least one active (non-deleted)
+        /// UserWarehouse row. Used to block SupOrTra/ViewRole entirely for
+        /// zero-warehouse users, per the confirmed scope decision.
+        /// </summary>
+        private async Task<bool> CurrentUserHasWarehouseAccessAsync(int userId)
+        {
+            return await _userWarehouseRepository.ExistsAsync(uw => uw.UserId == userId && !uw.IsDeleted);
+        }
+
+        /// <summary>
+        /// صفحة البداية والمقدمة للتعريف بالنظام
+        /// Introduction and landing page for the application
+        /// </summary>
+        [HttpGet]
+        public IActionResult Intro()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// عرض قائمة الموظفين والمستخدمين المسجلين في النظام
+        /// Lists all registered employees and users
+        /// </summary>
+        [PermissionAuthorize]
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var users = await _userRepository.GetAllAsync();
+
+            var allUsers = users.Select(u => new UserList
+            {
+                Name = u.Name,
+                Phone = u.Phone,
+                Email = u.Email != null ? u.Email.ToString() : string.Empty,
+                NationalId = u.NationalId,
+                UserCode = u.UserCode
+            }).ToList();
+
+            if (!allUsers.Any())
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "لا يوجد أي مستخدمين حتى الآن"
+                );
             }
 
-            /// <summary>
-            /// صفحة البداية والمقدمة للتعريف بالنظام
-            /// Introduction and landing page for the application
-            /// </summary>
-            [HttpGet]
-            public IActionResult Intro()
+            return View(allUsers);
+        }
+
+        /// <summary>
+        /// عرض الملف الشخصي وسجل زيارات السائق
+        /// Displays driver profile and historical visit count
+        /// </summary>
+        /// 
+        [PermissionAuthorize]
+
+        [HttpGet]
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
             {
-                return View();
+                ModelState.AddModelError("السائق", "رقم السائق مفقود.");
+                return View(new DriverProfileVM());
             }
 
-            /// <summary>
-            /// عرض قائمة الموظفين والمستخدمين المسجلين في النظام
-            /// Lists all registered employees and users
-            /// </summary>
-            [PermissionAuthorize]
-            [HttpGet]
-            public async Task<IActionResult> Index()
+            var driver = await _driverRepository.GetByIdWithDetailsAsync(id.Value);
+
+            if (driver == null)
             {
-                var users = await _userRepository.GetAllAsync();
-
-                var allUsers = users.Select(u => new UserList
-                {
-                    Name = u.Name,
-                    Phone = u.Phone,
-                    Email = u.Email != null ? u.Email.ToString() : string.Empty,
-                    NationalId = u.NationalId,
-                    UserCode = u.UserCode
-                }).ToList();
-
-                if (!allUsers.Any())
-                {
-                    ModelState.AddModelError(
-                        string.Empty,
-                        "لا يوجد أي مستخدمين حتى الآن"
-                    );
-                }
-
-                return View(allUsers);
+                ModelState.AddModelError("السائق", "هذا السائق غير موجود.");
+                return View(new DriverProfileVM());
             }
 
-            /// <summary>
-            /// عرض الملف الشخصي وسجل زيارات السائق
-            /// Displays driver profile and historical visit count
-            /// </summary>
-            /// 
-            [PermissionAuthorize]
+            int visitsCount = driver.SupplierRequests?.Count ?? 0;
+            string companyName = "غير محدد";
 
-            [HttpGet]
-            public async Task<IActionResult> Details(int? id)
+            if (visitsCount > 0 && driver.SupplierRequests != null)
             {
-                if (id == null)
-                {
-                    ModelState.AddModelError("السائق", "رقم السائق مفقود.");
-                    return View(new DriverProfileVM());
-                }
-
-                var driver = await _driverRepository.GetByIdWithDetailsAsync(id.Value);
-
-                if (driver == null)
-                {
-                    ModelState.AddModelError("السائق", "هذا السائق غير موجود.");
-                    return View(new DriverProfileVM());
-                }
-
-                int visitsCount = driver.SupplierRequests?.Count ?? 0;
-                string companyName = "غير محدد";
-
-                if (visitsCount > 0 && driver.SupplierRequests != null)
-                {
-                    var latestRequest = driver.SupplierRequests.OrderByDescending(r => r.Id).FirstOrDefault();
-                    companyName = latestRequest?.Supplier?.Name ?? "غير محدد";
-                }
-
-                var driverProfile = new DriverProfileVM
-                {
-                    Id = driver.Id,
-                    Name = driver.FullName,
-                    NationalId = driver.NationalId,
-                    Phone = driver.Phone,
-                    CompanyName = companyName,
-                    VisitsCount = visitsCount
-                };
-
-                return View(driverProfile);
+                var latestRequest = driver.SupplierRequests.OrderByDescending(r => r.Id).FirstOrDefault();
+                companyName = latestRequest?.Supplier?.Name ?? "غير محدد";
             }
 
-            /// <summary>
-            /// صفحة تسجيل الدخول (GET)
-            /// Displays the login page or redirects if already authenticated
-            /// </summary>
-            /// 
-
-            [HttpGet]
-            public IActionResult Login()
+            var driverProfile = new DriverProfileVM
             {
-                if (User.Identity != null && User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("AddRoleOrView", "Authentication");
-                }
-                return View();
+                Id = driver.Id,
+                Name = driver.FullName,
+                NationalId = driver.NationalId,
+                Phone = driver.Phone,
+                CompanyName = companyName,
+                VisitsCount = visitsCount
+            };
+
+            return View(driverProfile);
+        }
+
+        /// <summary>
+        /// صفحة تسجيل الدخول (GET)
+        /// Displays the login page or redirects if already authenticated
+        /// </summary>
+        /// 
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("AddRoleOrView", "Authentication");
             }
+            return View();
+        }
 
-            /// <summary>
-            /// معالجة تسجيل الدخول والتحقق من كلمة المرور وإنشاء رمز JWT (POST)
-            /// Authenticates user credentials, sets HTTP-only JWT cookie, and redirects
-            /// </summary>
-            [HttpPost]
-            [ValidateAntiForgeryToken]
-            public async Task<IActionResult> Login(LoginViewModel login)
+        /// <summary>
+        /// معالجة تسجيل الدخول والتحقق من كلمة المرور وإنشاء رمز JWT (POST)
+        /// Authenticates user credentials, sets HTTP-only JWT cookie, and redirects
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel login)
+        {
+            if (!ModelState.IsValid)
             {
-                if (!ModelState.IsValid)
-                {
-                    return View(login);
-                }
+                return View(login);
+            }
             var user = await _userRepository.FindAsync(x => x.UserName == login.UserName);
 
             if (user is null)
-                {
-                    ModelState.AddModelError(nameof(login.UserName),
-                        "اسم المستخدم غير موجود.");
+            {
+                ModelState.AddModelError(nameof(login.UserName),
+                    "اسم المستخدم غير موجود.");
 
+                return View(login);
+            }
+
+            try
+            {
+                if (!BCrypt.Net.BCrypt.Verify(login.Password, user.HashPassword))
+                {
+                    ModelState.AddModelError(nameof(login.Password), "كلمة المرور غير صحيحة.");
                     return View(login);
                 }
+            }
+            catch (BCrypt.Net.SaltParseException)
+            {
+                ModelState.AddModelError(nameof(login.Password), "يوجد مشكلة في حسابك، يرجى التواصل مع الإدارة.");
+                return View(login);
+            }
 
-                try
-                {
-                    if (!BCrypt.Net.BCrypt.Verify(login.Password, user.HashPassword))
-                    {
-                        ModelState.AddModelError(nameof(login.Password), "كلمة المرور غير صحيحة.");
-                        return View(login);
-                    }
-                }
-                catch (BCrypt.Net.SaltParseException)
-                {
-                    ModelState.AddModelError(nameof(login.Password), "يوجد مشكلة في حسابك، يرجى التواصل مع الإدارة.");
-                    return View(login);
-                }
+            var userNameToPass = !string.IsNullOrWhiteSpace(user.Name) ? user.Name : (!string.IsNullOrWhiteSpace(user.UserName) ? user.UserName : user.Email?.ToString());
+            var token = _jwtService.GenerateToken(user.Id, user.Email!, userNameToPass);
 
-                var userNameToPass = !string.IsNullOrWhiteSpace(user.Name) ? user.Name : (!string.IsNullOrWhiteSpace(user.UserName) ? user.UserName : user.Email?.ToString());
-                var token = _jwtService.GenerateToken(user.Id, user.Email!, userNameToPass);
+            Response.Cookies.Append("AccessToken", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = "/",
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                IsEssential = true
+            });
 
-                Response.Cookies.Append("AccessToken", token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict,
-                    Path = "/",
-                    Expires = DateTimeOffset.UtcNow.AddDays(7),
-                    IsEssential = true
-                });
+            // إذا كان المستخدم يسجل الدخول لأول مرة ولم يغير كلمة المرور من كوده بعد
+            if (!user.IsChanged)
+            {
+                return RedirectToAction(nameof(ChangeInitialPassword));
+            }
 
-                // إذا كان المستخدم يسجل الدخول لأول مرة ولم يغير كلمة المرور من كوده بعد
-                if (!user.IsChanged)
-                {
-                    return RedirectToAction(nameof(ChangeInitialPassword));
-                }
+            var allUsers = await _userRepository.GetAllAsync(q => q
+                .Include(u => u.Group)
+                .Include(u => u.Position)
+            );
+            var userWithRoles = allUsers.FirstOrDefault(u => u.Id == user.Id) ?? user;
 
-                var allUsers = await _userRepository.GetAllAsync(q => q
-                    .Include(u => u.Group)
-                    .Include(u => u.Position)
-                );
-                var userWithRoles = allUsers.FirstOrDefault(u => u.Id == user.Id) ?? user;
+            bool isAdmin = (userWithRoles.Group != null && userWithRoles.Group.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                || (userWithRoles.Position != null && userWithRoles.Position.PositionName.Contains("Admin", StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(userWithRoles.UserName) && userWithRoles.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase));
 
-                bool isAdmin = (userWithRoles.Group != null && userWithRoles.Group.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-                    || (userWithRoles.Position != null && userWithRoles.Position.PositionName.Contains("Admin", StringComparison.OrdinalIgnoreCase))
-                    || (!string.IsNullOrWhiteSpace(userWithRoles.UserName) && userWithRoles.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase));
+            if (isAdmin)
+            {
+                return RedirectToAction("Index", "Administration");
+            }
 
-                if (isAdmin)
-                {
-                    return RedirectToAction("Index", "Administration");
-                }
+            return RedirectToAction("AddRoleOrView", "Authentication");
+        }
 
+
+        private async Task<bool> IsCurrentUserAdminAsync()
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                return false;
+
+            var allUsers = await _userRepository.GetAllAsync(q => q
+                .Include(u => u.Group)
+                .Include(u => u.Position));
+
+            var user = allUsers.FirstOrDefault(u => u.Id == userId);
+            if (user == null) return false;
+
+            return (user.Group != null && user.Group.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                || (user.Position != null && user.Position.PositionName.Contains("Admin", StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(user.UserName) && user.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase));
+        }
+
+
+        /// <summary>
+        /// صفحة إجبار تغيير كلمة المرور الافتراضية لأول مرة (GET)
+        /// Displays view forcing user to change their initial employee code password
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> ChangeInitialPassword()
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            // لو كان غيرها بالفعل، يوجهه مباشرة للصفحة الرئيسية
+            if (user.IsChanged)
+            {
                 return RedirectToAction("AddRoleOrView", "Authentication");
             }
 
+            return View(new Rassef.ViewModels.Authentication.ChangeInitialPasswordVM());
+        }
 
-            private async Task<bool> IsCurrentUserAdminAsync()
+        /// <summary>
+        /// معالجة وحفظ كلمة المرور الجديدة للمستخدم لأول مرة (POST)
+        /// Validates current code and sets permanent password on first login
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeInitialPassword(Rassef.ViewModels.Authentication.ChangeInitialPasswordVM model)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             {
-                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-                    return false;
-
-                var allUsers = await _userRepository.GetAllAsync(q => q
-                    .Include(u => u.Group)
-                    .Include(u => u.Position));
-
-                var user = allUsers.FirstOrDefault(u => u.Id == userId);
-                if (user == null) return false;
-
-                return (user.Group != null && user.Group.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-                    || (user.Position != null && user.Position.PositionName.Contains("Admin", StringComparison.OrdinalIgnoreCase))
-                    || (!string.IsNullOrWhiteSpace(user.UserName) && user.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase));
+                return RedirectToAction(nameof(Login));
             }
 
-
-            /// <summary>
-            /// صفحة إجبار تغيير كلمة المرور الافتراضية لأول مرة (GET)
-            /// Displays view forcing user to change their initial employee code password
-            /// </summary>
-            [HttpGet]
-            public async Task<IActionResult> ChangeInitialPassword()
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
             {
-                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-                {
-                    return RedirectToAction(nameof(Login));
-                }
-
-                var user = await _userRepository.GetByIdAsync(userId);
-                if (user == null)
-                {
-                    return RedirectToAction(nameof(Login));
-                }
-
-                // لو كان غيرها بالفعل، يوجهه مباشرة للصفحة الرئيسية
-                if (user.IsChanged)
-                {
-                    return RedirectToAction("AddRoleOrView", "Authentication");
-                }
-
-                return View(new Rassef.ViewModels.Authentication.ChangeInitialPasswordVM());
+                return RedirectToAction(nameof(Login));
             }
 
-            /// <summary>
-            /// معالجة وحفظ كلمة المرور الجديدة للمستخدم لأول مرة (POST)
-            /// Validates current code and sets permanent password on first login
-            /// </summary>
-            [HttpPost]
-            [ValidateAntiForgeryToken]
-            public async Task<IActionResult> ChangeInitialPassword(Rassef.ViewModels.Authentication.ChangeInitialPasswordVM model)
+            if (!ModelState.IsValid)
             {
-                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-                {
-                    return RedirectToAction(nameof(Login));
-                }
-
-                var user = await _userRepository.GetByIdAsync(userId);
-                if (user == null)
-                {
-                    return RedirectToAction(nameof(Login));
-                }
-
-                if (!ModelState.IsValid)
-                {
-                    return View(model);
-                }
-
-                // التحقق من صحة كلمة المرور الحالية (كود الموظف)
-                if (!BCrypt.Net.BCrypt.Verify(model.CurrentPassword, user.HashPassword))
-                {
-                    ModelState.AddModelError(nameof(model.CurrentPassword), "كلمة المرور الحالية (كود الموظف) غير صحيحة.");
-                    return View(model);
-                }
-
-                // التحقق من أن كلمة المرور الجديدة تختلف عن القديمة
-                if (model.NewPassword.Trim() == model.CurrentPassword.Trim())
-                {
-                    ModelState.AddModelError(nameof(model.NewPassword), "يجب اختيار كلمة مرور جديدة مختلفة عن كود الموظف القديم.");
-                    return View(model);
-                }
-
-                // حفظ كلمة المرور الجديدة وتحديث حالة التغيير
-                user.HashPassword = BCrypt.Net.BCrypt.HashPassword(model.NewPassword.Trim());
-                user.IsChanged = true;
-                user.MarkAsUpdated();
-
-                _userRepository.Update(user);
-                await _userRepository.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "تم تعيين كلمة المرور الجديدة بنجاح!";
-
-                var allUsersWithRoles = await _userRepository.GetAllAsync(q => q
-                    .Include(u => u.Group)
-                    .Include(u => u.Position)
-                );
-                var updatedUser = allUsersWithRoles.FirstOrDefault(u => u.Id == user.Id) ?? user;
-
-                bool isUserAdmin = (updatedUser.Group != null && updatedUser.Group.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-                    || (updatedUser.Position != null && updatedUser.Position.PositionName.Contains("Admin", StringComparison.OrdinalIgnoreCase))
-                    || (!string.IsNullOrWhiteSpace(updatedUser.UserName) && updatedUser.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase));
-
-                if (isUserAdmin)
-                {
-                    return RedirectToAction("Index", "Administration");
-                }
-
-                return RedirectToAction("AddRoleOrView", "Authentication");
+                return View(model);
             }
 
-            /// <summary>
-            /// تسجيل الخروج وحذف الكوكيز
-            /// Logs out the user and clears authentication cookie
-            /// </summary>        
-            [HttpGet]
-            public IActionResult Logout()
+            // التحقق من صحة كلمة المرور الحالية (كود الموظف)
+            if (!BCrypt.Net.BCrypt.Verify(model.CurrentPassword, user.HashPassword))
             {
-                Response.Cookies.Delete("AccessToken", new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict,
-                    Path = "/"
-                });
-                return RedirectToAction("Login", "Authentication");
+                ModelState.AddModelError(nameof(model.CurrentPassword), "كلمة المرور الحالية (كود الموظف) غير صحيحة.");
+                return View(model);
             }
 
-            /// <summary>
-            /// صفحة استرجاع كلمة المرور (GET)
-            /// Displays password recovery page
-            /// </summary>
-            [HttpGet]
-            public IActionResult ForgetPassword()
+            // التحقق من أن كلمة المرور الجديدة تختلف عن القديمة
+            if (model.NewPassword.Trim() == model.CurrentPassword.Trim())
             {
-                return View();
+                ModelState.AddModelError(nameof(model.NewPassword), "يجب اختيار كلمة مرور جديدة مختلفة عن كود الموظف القديم.");
+                return View(model);
             }
 
-            /// <summary>
-            /// معالجة استرجاع كلمة المرور (POST)
-            /// Handles forgot password request
-            /// </summary>
-            [HttpPost]
-            [ValidateAntiForgeryToken]
-            public IActionResult ForgetPassword(ForgetPasswordViewModel register)
+            // حفظ كلمة المرور الجديدة وتحديث حالة التغيير
+            user.HashPassword = BCrypt.Net.BCrypt.HashPassword(model.NewPassword.Trim());
+            user.IsChanged = true;
+            user.MarkAsUpdated();
+
+            _userRepository.Update(user);
+            await _userRepository.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "تم تعيين كلمة المرور الجديدة بنجاح!";
+
+            var allUsersWithRoles = await _userRepository.GetAllAsync(q => q
+                .Include(u => u.Group)
+                .Include(u => u.Position)
+            );
+            var updatedUser = allUsersWithRoles.FirstOrDefault(u => u.Id == user.Id) ?? user;
+
+            bool isUserAdmin = (updatedUser.Group != null && updatedUser.Group.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                || (updatedUser.Position != null && updatedUser.Position.PositionName.Contains("Admin", StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(updatedUser.UserName) && updatedUser.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase));
+
+            if (isUserAdmin)
             {
-                return View();
+                return RedirectToAction("Index", "Administration");
             }
 
-            /// <summary>
-            /// عرض الملف الشخصي للمستخدم الحالي
-            /// Displays detailed profile for specified user
-            /// </summary>
-            [HttpGet]
-            public async Task<IActionResult> UserProfile(int id)
-            {
-                var user = await _userRepository.GetByIdAsync(id);
-                if (user == null)
-                {
-                    ModelState.AddModelError(string.Empty, "هذا الملف المستخدم غير موجود.");
-                    return View(new UserProfileViewModel());
-                }
-                var profile = new UserProfileViewModel
-                {
-                    Email = user.Email,
-                    UserName = user.UserName,
-                    Name = user.Name,
-                    Phone = user.Phone,
-                    NationalId = user.NationalId
-                };
+            return RedirectToAction("AddRoleOrView", "Authentication");
+        }
 
-                return View(profile);
+        /// <summary>
+        /// تسجيل الخروج وحذف الكوكيز
+        /// Logs out the user and clears authentication cookie
+        /// </summary>        
+        [HttpGet]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("AccessToken", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = "/"
+            });
+            return RedirectToAction("Login", "Authentication");
+        }
+
+        /// <summary>
+        /// صفحة استرجاع كلمة المرور (GET)
+        /// Displays password recovery page
+        /// </summary>
+        [HttpGet]
+        public IActionResult ForgetPassword()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// معالجة استرجاع كلمة المرور (POST)
+        /// Handles forgot password request
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ForgetPassword(ForgetPasswordViewModel register)
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// عرض الملف الشخصي للمستخدم الحالي
+        /// Displays detailed profile for specified user
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> UserProfile(int id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "هذا الملف المستخدم غير موجود.");
+                return View(new UserProfileViewModel());
             }
+            var profile = new UserProfileViewModel
+            {
+                Email = user.Email,
+                UserName = user.UserName,
+                Name = user.Name,
+                Phone = user.Phone,
+                NationalId = user.NationalId
+            };
+
+            return View(profile);
+        }
 
         /// <summary>
         /// شاشة التوجيه الرئيسية لاختيار: إضافة دور / متابعة الأدوار / لوحة الإدارة
@@ -399,20 +432,119 @@
         [HttpGet]
         public async Task<IActionResult> AddRoleOrView()
         {
-                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
-                {
-                    var user = await _userRepository.GetByIdAsync(parsedId);
-                    if (user != null && !user.IsChanged)
-                    {
-                        return RedirectToAction(nameof(ChangeInitialPassword));
-                    }
-                }
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            User? currentUser = null;
 
-                ViewBag.IsAdmin = await IsCurrentUserAdminAsync();
-                return View();
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
+            {
+                currentUser = await _userRepository.GetByIdAsync(parsedId);
+                if (currentUser != null && !currentUser.IsChanged)
+                {
+                    return RedirectToAction(nameof(ChangeInitialPassword));
+                }
             }
 
+            ViewBag.IsAdmin = await IsCurrentUserAdminAsync();
+
+            // NEW — greeting next to the warehouse picker.
+            ViewBag.CurrentUserName = currentUser?.Name;
+
+            // NEW — warehouse picker: only warehouses this user is actively assigned to.
+            if (currentUser != null)
+            {
+                var userWarehouseLinks = await _userWarehouseRepository.GetAllAsync(q => q
+                    .Where(uw => uw.UserId == currentUser.Id && !uw.IsDeleted)
+                    .Include(uw => uw.Warehouse));
+
+                var assignedWarehouses = userWarehouseLinks
+                    .Where(uw => uw.Warehouse != null && !uw.Warehouse.IsDeleted)
+                    .Select(uw => uw.Warehouse)
+                    .ToList();
+
+                int? selectedWarehouseId = null;
+
+                // 1) Cookie wins if present and still a warehouse this user has access to.
+                if (Request.Cookies.TryGetValue("SelectedWarehouseId", out var cookieValue)
+                    && int.TryParse(cookieValue, out var cookieWarehouseId)
+                    && assignedWarehouses.Any(w => w.Id == cookieWarehouseId))
+                {
+                    selectedWarehouseId = cookieWarehouseId;
+                }
+                // 2) No usable cookie (first visit, cleared cookies, new device) — fall
+                //    back to the DB's last pick, and re-seed the cookie so this session
+                //    stays consistent from here on.
+                else if (currentUser.LastPickedWarehouseId.HasValue
+                    && assignedWarehouses.Any(w => w.Id == currentUser.LastPickedWarehouseId.Value))
+                {
+                    selectedWarehouseId = currentUser.LastPickedWarehouseId.Value;
+
+                    Response.Cookies.Append("SelectedWarehouseId", selectedWarehouseId.Value.ToString(), new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict,
+                        Path = "/",
+                        Expires = DateTimeOffset.UtcNow.AddDays(365),
+                        IsEssential = true
+                    });
+                }
+
+                ViewBag.Warehouses = assignedWarehouses;
+                ViewBag.SelectedWarehouseId = selectedWarehouseId;
+            }
+            else
+            {
+                ViewBag.Warehouses = new List<Warehouse>();
+                ViewBag.SelectedWarehouseId = (int?)null;
+            }
+
+            return View();
+        }
+        [PermissionAuthorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SelectWarehouse(int warehouseId)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var currentUserId))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            var currentUser = await _userRepository.GetByIdAsync(currentUserId);
+            if (currentUser == null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            // Never trust the posted id blindly — confirm it's a warehouse this user is
+            // actually assigned to before switching the session to it.
+            var isAssigned = await _userWarehouseRepository.ExistsAsync(uw =>
+                uw.UserId == currentUser.Id && uw.WarehouseId == warehouseId && !uw.IsDeleted);
+
+            if (!isAssigned)
+            {
+                TempData["ErrorMessage"] = "لا يمكنك اختيار هذا المخزن.";
+                return RedirectToAction(nameof(AddRoleOrView));
+            }
+
+            Response.Cookies.Append("SelectedWarehouseId", warehouseId.ToString(), new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = "/",
+                Expires = DateTimeOffset.UtcNow.AddDays(365),
+                IsEssential = true
+            });
+
+            currentUser.LastPickedWarehouseId = warehouseId;
+            currentUser.MarkAsUpdated();
+            _userRepository.Update(currentUser);
+            await _userRepository.SaveChangesAsync();
+
+            return RedirectToAction(nameof(AddRoleOrView));
+        }
         /// <summary>
         /// شاشة الاختيار بين خدمات التوريد (الموردين) والتحويل (الفروع)
         /// Selection screen between Supplier flow and Internal Transfer flow
@@ -421,105 +553,135 @@
         [HttpGet]
         public async Task<IActionResult> SupOrTra()
         {
-                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
-                {
-                    var user = await _userRepository.GetByIdAsync(parsedId);
-                    if (user != null && !user.IsChanged)
-                    {
-                        return RedirectToAction(nameof(ChangeInitialPassword));
-                    }
-                }
-
-                ViewBag.IsAdmin = await IsCurrentUserAdminAsync();
-                return View();
-            }
-
-            /// <summary>
-            /// شاشة عرض الأدوار الحية المباشرة (شاحنات جارية / انتظار / منتهية)
-            /// Displays live queue status board with current active and waiting trucks
-            /// </summary>
-            /// 
-            [PermissionAuthorize]
-            [HttpGet]
-            public async Task<IActionResult> ViewRole()
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
             {
-                var ticketsList = await _ticketRepository.GetAllAsync(query => query
-                    .Include(t => t.Department)
-                    .Include(t => t.TicketStatus)
-                    .Include(t => t.SupplierRequest)
-                        .ThenInclude(sr => sr!.Supplier)
-                    .Include(t => t.SupplierRequest)
-                        .ThenInclude(sr => sr!.Driver)
-                    .Include(t => t.SupplierRequest)
-                        .ThenInclude(sr => sr!.Truck)
-                    .Include(t => t.TransferRequest)
-                        .ThenInclude(tr => tr!.Driver)
-                    .Include(t => t.TransferRequest)
-                        .ThenInclude(tr => tr!.Truck)
-                    .Include(t => t.DockAssignments)
-                        .ThenInclude(da => da.Dock)
-                );
-
-                var ticketViewModels = ticketsList.Select(t =>
+                var user = await _userRepository.GetByIdAsync(parsedId);
+                if (user != null && !user.IsChanged)
                 {
-                    var dockAssignment = t.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
-                    bool isSupplier = t.SupplierRequestId != null || t.SupplierRequest != null;
-                    string reqType = isSupplier ? "توريد" : "تحويل";
-                    string company = isSupplier ? (t.SupplierRequest?.Supplier?.Name ?? "غير محدد") : "تحويل داخلي";
-
-                    return new QueueTicketListVM
-                    {
-                        Id = t.Id,
-                        TicketNumber = t.TicketNumber ?? "A1",
-                        TicketStatusName = t.TicketStatus != null ? t.TicketStatus.Name : "إنتظار",
-                        DriverName = t.SupplierRequest?.Driver?.FullName ?? t.TransferRequest?.Driver?.FullName ?? "غير محدد",
-                        TruckNumber = t.SupplierRequest?.Truck != null ? $"{t.SupplierRequest.Truck.PlateLetter} {t.SupplierRequest.Truck.PlateNumber}" : (t.TransferRequest?.Truck != null ? $"{t.TransferRequest.Truck.PlateLetter} {t.TransferRequest.Truck.PlateNumber}" : "غير محدد"),
-                        DepartmentName = t.Department?.Name ?? "غير محدد",
-                        DockName = dockAssignment?.Dock?.DockName ?? "A1",
-                        RequestType = reqType,
-                        CompanyName = company,
-                        EntryTime = t.EntryTime != DateTimeOffset.MinValue ? t.EntryTime : t.CreatedAT
-                    };
-                }).ToList();
-
-                int waitingCount = 0, inProgressCount = 0, completedCount = 0;
-                foreach (var t in ticketViewModels)
-                {
-                    var s = t.TicketStatusName.Replace("إ", "ا").Trim();
-                    if (s.Contains("انتظار") || s.Contains("طابور") || s.Contains("معلق"))
-                        waitingCount++;
-                    else if (s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل"))
-                        inProgressCount++;
-                    else if (s.Contains("تم") || s.Contains("مكتمل") || s.Contains("منتهي") || s.Contains("خروج"))
-                        completedCount++;
+                    return RedirectToAction(nameof(ChangeInitialPassword));
                 }
 
-                int GetStatusPriority(string statusName)
+                // NEW — Feature 4: zero-warehouse users are blocked from this
+                // screen entirely, same as ViewRole below.
+                if (user != null && !await CurrentUserHasWarehouseAccessAsync(user.Id))
                 {
-                    var s = statusName.Replace("إ", "ا").Trim();
-                    if (s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل")) return 1;
-                    if (s.Contains("انتظار") || s.Contains("طابور") || s.Contains("معلق")) return 2;
-                    if (s.Contains("تم") || s.Contains("مكتمل") || s.Contains("منتهي") || s.Contains("خروج")) return 3;
-                    return 4;
+                    TempData["ErrorMessage"] = "لا يوجد لديك صلاحية الوصول إلى أي مخزن. يرجى التواصل مع الإدارة.";
+                    return RedirectToAction(nameof(AddRoleOrView));
                 }
-
-                var orderedViewModels = ticketViewModels
-                    .OrderBy(t => GetStatusPriority(t.TicketStatusName))
-                    .ThenByDescending(t => t.Id)
-                    .ToList();
-
-                var viewModel = new QueueTicketIndexVM
-                {
-                    Tickets = orderedViewModels,
-                    WaitingCount = waitingCount,
-                    InProgressCount = inProgressCount,
-                    CompletedCount = completedCount
-                };
-
-                ViewBag.IsAdmin = await IsCurrentUserAdminAsync();
-                return View("viewRole", viewModel);
             }
+
+            ViewBag.IsAdmin = await IsCurrentUserAdminAsync();
+            return View();
+        }
+
+        /// <summary>
+        /// شاشة عرض الأدوار الحية المباشرة (شاحنات جارية / انتظار / منتهية)
+        /// Displays live queue status board with current active and waiting trucks
+        /// </summary>
+        /// 
+        [PermissionAuthorize]
+        [HttpGet]
+        public async Task<IActionResult> ViewRole()
+        {
+            // NEW — Feature 4: zero-warehouse users are blocked from this
+            // screen entirely; there is nothing warehouse-scoped to show them.
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrWhiteSpace(userIdClaim) && int.TryParse(userIdClaim, out var parsedId))
+            {
+                var currentUser = await _userRepository.GetByIdAsync(parsedId);
+                if (currentUser != null && !await CurrentUserHasWarehouseAccessAsync(currentUser.Id))
+                {
+                    TempData["ErrorMessage"] = "لا يوجد لديك صلاحية الوصول إلى أي مخزن. يرجى التواصل مع الإدارة.";
+                    return RedirectToAction(nameof(AddRoleOrView));
+                }
+            }
+
+            // NEW — Feature 3: scope the live queue board to the active
+            // (selected) warehouse via Department.WarehouseId. Falls through
+            // unfiltered only if no warehouse is resolved (shouldn't normally
+            // happen once feature 4's block above is in place, but kept safe
+            // rather than throwing).
+            var selectedWarehouseId = GetSelectedWarehouseId();
+
+            var ticketsList = await _ticketRepository.GetAllAsync(query => query
+                .Where(t => selectedWarehouseId == null
+                    || (t.Department != null && t.Department.WarehouseId == selectedWarehouseId.Value))
+                .Include(t => t.Department)
+                .Include(t => t.TicketStatus)
+                .Include(t => t.SupplierRequest)
+                    .ThenInclude(sr => sr!.Supplier)
+                .Include(t => t.SupplierRequest)
+                    .ThenInclude(sr => sr!.Driver)
+                .Include(t => t.SupplierRequest)
+                    .ThenInclude(sr => sr!.Truck)
+                .Include(t => t.TransferRequest)
+                    .ThenInclude(tr => tr!.Driver)
+                .Include(t => t.TransferRequest)
+                    .ThenInclude(tr => tr!.Truck)
+                .Include(t => t.DockAssignments)
+                    .ThenInclude(da => da.Dock)
+            );
+
+            var ticketViewModels = ticketsList.Select(t =>
+            {
+                var dockAssignment = t.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
+                bool isSupplier = t.SupplierRequestId != null || t.SupplierRequest != null;
+                string reqType = isSupplier ? "توريد" : "تحويل";
+                string company = isSupplier ? (t.SupplierRequest?.Supplier?.Name ?? "غير محدد") : "تحويل داخلي";
+
+                return new QueueTicketListVM
+                {
+                    Id = t.Id,
+                    TicketNumber = t.TicketNumber ?? "A1",
+                    TicketStatusName = t.TicketStatus != null ? t.TicketStatus.Name : "إنتظار",
+                    DriverName = t.SupplierRequest?.Driver?.FullName ?? t.TransferRequest?.Driver?.FullName ?? "غير محدد",
+                    TruckNumber = t.SupplierRequest?.Truck != null ? $"{t.SupplierRequest.Truck.PlateLetter} {t.SupplierRequest.Truck.PlateNumber}" : (t.TransferRequest?.Truck != null ? $"{t.TransferRequest.Truck.PlateLetter} {t.TransferRequest.Truck.PlateNumber}" : "غير محدد"),
+                    DepartmentName = t.Department?.Name ?? "غير محدد",
+                    DockName = dockAssignment?.Dock?.DockName ?? "A1",
+                    RequestType = reqType,
+                    CompanyName = company,
+                    EntryTime = t.EntryTime != DateTimeOffset.MinValue ? t.EntryTime : t.CreatedAT
+                };
+            }).ToList();
+
+            int waitingCount = 0, inProgressCount = 0, completedCount = 0;
+            foreach (var t in ticketViewModels)
+            {
+                var s = t.TicketStatusName.Replace("إ", "ا").Trim();
+                if (s.Contains("انتظار") || s.Contains("طابور") || s.Contains("معلق"))
+                    waitingCount++;
+                else if (s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل"))
+                    inProgressCount++;
+                else if (s.Contains("تم") || s.Contains("مكتمل") || s.Contains("منتهي") || s.Contains("خروج"))
+                    completedCount++;
+            }
+
+            int GetStatusPriority(string statusName)
+            {
+                var s = statusName.Replace("إ", "ا").Trim();
+                if (s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل")) return 1;
+                if (s.Contains("انتظار") || s.Contains("طابور") || s.Contains("معلق")) return 2;
+                if (s.Contains("تم") || s.Contains("مكتمل") || s.Contains("منتهي") || s.Contains("خروج")) return 3;
+                return 4;
+            }
+
+            var orderedViewModels = ticketViewModels
+                .OrderBy(t => GetStatusPriority(t.TicketStatusName))
+                .ThenByDescending(t => t.Id)
+                .ToList();
+
+            var viewModel = new QueueTicketIndexVM
+            {
+                Tickets = orderedViewModels,
+                WaitingCount = waitingCount,
+                InProgressCount = inProgressCount,
+                CompletedCount = completedCount
+            };
+
+            ViewBag.IsAdmin = await IsCurrentUserAdminAsync();
+            return View("viewRole", viewModel);
+        }
 
         /// <summary>
         /// استدعاء الدور القادم من قائمة الانتظار وتحويله إلى جاري التنفيذ
@@ -527,44 +689,45 @@
         /// </summary>
         [PermissionAuthorize]
         [HttpPost]
-           public async Task<IActionResult> CallNext(int? departmentId)
+        public async Task<IActionResult> CallNext(int? departmentId)
         {
-                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int currentUserId = int.TryParse(userIdClaim, out var uId) ? uId : 1;
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int currentUserId = int.TryParse(userIdClaim, out var uId) ? uId : 1;
 
-                var result = await _ticketEngineService.CallNextTicketAsync(departmentId, currentUserId);
-                return Json(result);
-            }
+            // NEW — Feature 3: scope "call next" to the caller's active warehouse.
+            var result = await _ticketEngineService.CallNextTicketAsync(departmentId, currentUserId, GetSelectedWarehouseId());
+            return Json(result);
+        }
 
-            /// <summary>
-            /// تحديث حالة الدور (إنتظار / جاري التنفيذ / مكتمل)
-            /// Updates status of a queue ticket with audit tracking
-            /// </summary>
-            [HttpPost]
-            public async Task<IActionResult> UpdateStatus([FromBody] UpdateTicketStatusDTO dto)
+        /// <summary>
+        /// تحديث حالة الدور (إنتظار / جاري التنفيذ / مكتمل)
+        /// Updates status of a queue ticket with audit tracking
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> UpdateStatus([FromBody] UpdateTicketStatusDTO dto)
+        {
+            if (dto == null || dto.TicketId <= 0 || string.IsNullOrWhiteSpace(dto.Status))
             {
-                if (dto == null || dto.TicketId <= 0 || string.IsNullOrWhiteSpace(dto.Status))
-                {
-                    return Json(new { success = false, message = "بيانات غير صالحة." });
-                }
-
-                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int currentUserId = int.TryParse(userIdClaim, out var uId) ? uId : 1;
-
-                var result = await _ticketEngineService.UpdateTicketStatusAsync(dto.TicketId, dto.Status, currentUserId);
-                return Json(result);
+                return Json(new { success = false, message = "بيانات غير صالحة." });
             }
 
-            /// <summary>
-            /// صفحة رفض الوصول عند عدم وجود الصلاحيات الكافية
-            /// Access Denied page when user role is unauthorized
-            /// </summary>
-            [HttpGet]
-            public IActionResult AccessDenied(string? controllerName = null, string? actionName = null)
-            {
-                ViewBag.ControllerName = controllerName;
-                ViewBag.ActionName = actionName;
-                return View();
-            }
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int currentUserId = int.TryParse(userIdClaim, out var uId) ? uId : 1;
+
+            var result = await _ticketEngineService.UpdateTicketStatusAsync(dto.TicketId, dto.Status, currentUserId);
+            return Json(result);
+        }
+
+        /// <summary>
+        /// صفحة رفض الوصول عند عدم وجود الصلاحيات الكافية
+        /// Access Denied page when user role is unauthorized
+        /// </summary>
+        [HttpGet]
+        public IActionResult AccessDenied(string? controllerName = null, string? actionName = null)
+        {
+            ViewBag.ControllerName = controllerName;
+            ViewBag.ActionName = actionName;
+            return View();
         }
     }
+}

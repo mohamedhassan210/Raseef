@@ -12,5 +12,8 @@ namespace Rassef.ViewModels.Administration.Employee
         public string NationalId { get; set; } = string.Empty;
         public string UserCode { get; set; } = string.Empty;
         public string BranchCode { get; set; } = string.Empty;
+
+        // NEW — pre-checked on load, synced against UserWarehouse on save.
+        public List<int> SelectedWarehouseIds { get; set; } = new();
     }
 }

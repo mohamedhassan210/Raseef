@@ -6,7 +6,7 @@ namespace Rassef.Common.Interfaces
         Task<TicketIssueResult> IssueTransferTicketAsync(int departmentId, int transferRequestId, int userId);
         Task<TicketIssueResult> IssueSupplierTicketAsync(int departmentId, int supplierRequestId, int userId);
         Task<TicketIssueResult> IssueGeneralTicketAsync(int departmentId, int? supplierRequestId, int? transferRequestId, int? ticketStatusId, int userId);
-        Task<TicketStatusUpdateResult> CallNextTicketAsync(int? departmentId, int userId);
+        Task<TicketStatusUpdateResult> CallNextTicketAsync(int? departmentId, int userId, int? warehouseId = null);
         Task<TicketStatusUpdateResult> UpdateTicketStatusAsync(int ticketId, string targetStatusName, int userId);
     }
 }

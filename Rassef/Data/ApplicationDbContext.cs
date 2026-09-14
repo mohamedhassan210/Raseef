@@ -30,6 +30,7 @@ namespace Rassef.Data
         public virtual DbSet<TransferRequest> TransferRequests => Set<TransferRequest>();
         public virtual DbSet<Truck> Trucks => Set<Truck>();
         public virtual DbSet<Warehouse> Warehouses => Set<Warehouse>();
+        public virtual DbSet<UserWarehouse> UserWarehouses => Set<UserWarehouse>();
         public virtual DbSet<Position> Positions => Set<Position>();
         //action and status 
         public virtual DbSet<DriverTypes> DriverTypes => Set<DriverTypes>();

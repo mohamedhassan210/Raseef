@@ -444,7 +444,8 @@ namespace Rassef.Controllers
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             int currentUserId = int.TryParse(userIdClaim, out var uId) ? uId : 1;
 
-            var result = await _ticketEngineService.CallNextTicketAsync(departmentId, currentUserId);
+            // NEW — Feature 3: scope "call next" to the caller's active warehouse.
+            var result = await _ticketEngineService.CallNextTicketAsync(departmentId, currentUserId, GetSelectedWarehouseId());
             return Json(result);
         }
 
@@ -771,6 +772,21 @@ namespace Rassef.Controllers
             model.TicketStatuses = statuses.Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name });
             model.TransferRequests = transfers.Select(t => new SelectListItem { Value = t.Id.ToString(), Text = $"طلب تحويل #{t.Id}" });
             model.SupplierRequests = suppliers.Select(s => new SelectListItem { Value = s.Id.ToString(), Text = $"طلب مورد #{s.Id}" });
+        }
+
+        /// <summary>
+        /// Feature 3 — reads the active warehouse from the "SelectedWarehouseId"
+        /// cookie, same convention used in AuthenticationController/DepartmentController/
+        /// DockController. Null means unresolved.
+        /// </summary>
+        private int? GetSelectedWarehouseId()
+        {
+            if (Request.Cookies.TryGetValue("SelectedWarehouseId", out var cookieValue)
+                && int.TryParse(cookieValue, out var warehouseId))
+            {
+                return warehouseId;
+            }
+            return null;
         }
     }
 }

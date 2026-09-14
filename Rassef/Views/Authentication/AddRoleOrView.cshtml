@@ -47,6 +47,58 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(230, 126, 34, 0.5);
         }
+
+    .warehouse-picker {
+        position: fixed;
+        bottom: 25px;
+        left: 25px;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        background-color: #ffffff;
+        border: 2px solid #e67e22;
+        border-radius: 12px;
+        padding: 6px 14px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
+
+    .warehouse-picker-label {
+        color: #e67e22;
+        display: flex;
+        align-items: center;
+        margin-left: 8px;
+        font-size: 18px;
+    }
+
+    .warehouse-picker-select {
+        border: none;
+        outline: none;
+        background: transparent;
+        font-family: 'IBM Plex Sans Arabic', sans-serif;
+        font-weight: 600;
+        color: #332D24;
+        font-size: 14px;
+        cursor: pointer;
+        max-width: 180px;
+    }
+
+    .welcome-badge {
+        position: fixed;
+        top: 25px;
+        left: 25px;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        background-color: #ffffff;
+        border: 2px solid #e67e22;
+        border-radius: 12px;
+        padding: 6px 14px;
+        font-family: 'IBM Plex Sans Arabic', sans-serif;
+        font-weight: 600;
+        color: #332D24;
+        font-size: 14px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
 </style>
 
 
@@ -96,6 +148,65 @@
             <span>لوحة التحكم</span>
         </a>
     }
+
+    @{
+        var currentUserName = ViewBag.CurrentUserName as string;
+    }
+
+    @if (!string.IsNullOrWhiteSpace(currentUserName))
+    {
+        <div class="welcome-badge">
+            <span>اهلا, @currentUserName</span>
+        </div>
+    }
+
+    @{
+        var assignedWarehouses = ViewBag.Warehouses as IEnumerable<Rassef.Models.Entities.Warehouse> ?? new List<Rassef.Models.Entities.Warehouse>();
+        int? selectedWarehouseId = ViewBag.SelectedWarehouseId as int?;
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger" style="position: fixed; bottom: 95px; left: 25px; z-index: 10000; max-width: 260px;">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <form id="warehousePickerForm" method="post" action="@Url.Action("SelectWarehouse", "Authentication")" class="warehouse-picker">
+        @Html.AntiForgeryToken()
+        <label for="warehouseSelect" class="warehouse-picker-label">
+            <i class="fas fa-warehouse"></i>
+        </label>
+        <select id="warehouseSelect" name="warehouseId" class="warehouse-picker-select" onchange="document.getElementById('warehousePickerForm').submit()">
+            @if (!assignedWarehouses.Any())
+            {
+                <option value="" disabled selected>لا توجد مخازن متاحة</option>
+            }
+            else
+            {
+                if (selectedWarehouseId == null)
+                {
+                    <option value="" disabled selected>اختر المخزن</option>
+                }
+                else
+                {
+                    <option value="" disabled>اختر المخزن</option>
+                }
+
+                @foreach (var wh in assignedWarehouses)
+                {
+                    if (selectedWarehouseId == wh.Id)
+                    {
+                        <option value="@wh.Id" selected>@wh.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@wh.Id">@wh.Name</option>
+                    }
+                }
+            }
+        </select>
+    </form>
 
     <a id="logout-btn" class="logout-btn" aria-label="تسجيل خروج" href="@Url.Action("Logout", "Authentication")">
         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="32" fill="currentColor" style="transform: rotate(180deg);" viewBox="0 0 16 16">

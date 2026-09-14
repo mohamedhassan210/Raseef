@@ -14,6 +14,9 @@
         public Position Position { get; set; }
         public int? GroupId { get; set; }
         public UserGroup? Group { get; set; }
+        public int? LastPickedWarehouseId { get; set; }
+        public Warehouse? LastPickedWarehouse { get; set; }
+        public ICollection<UserWarehouse> UserWarehouses { get; set; } = new HashSet<UserWarehouse>();
         // for password
 
         public bool IsChanged { get; set; } = false;

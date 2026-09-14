@@ -134,8 +134,14 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            // NEW — Feature 3: scope the list to the active (selected) warehouse.
+            // Falls through unfiltered if no warehouse is resolved (e.g. an admin
+            // who hasn't picked one yet) rather than showing an empty list.
+            var selectedWarehouseId = GetSelectedWarehouseId();
+
             var departments = await _repository.GetAllAsync(query => query
                 .Where(d => !d.IsDeleted)                       // B3
+                .Where(d => selectedWarehouseId == null || d.WarehouseId == selectedWarehouseId.Value)
                 .Include(d => d.Warehouse));
 
             var depart = departments.Select(x => new DepartmentListVM
@@ -409,7 +415,27 @@ namespace Rassef.Controllers
         // ── PRIVATE HELPERS ───────────────────────────────────────────────────
 
         /// <summary>
+        /// Feature 3 — reads the active warehouse from the "SelectedWarehouseId"
+        /// cookie. Null means unresolved; Index treats that as "show everything".
+        /// </summary>
+        private int? GetSelectedWarehouseId()
+        {
+            if (Request.Cookies.TryGetValue("SelectedWarehouseId", out var cookieValue)
+                && int.TryParse(cookieValue, out var warehouseId))
+            {
+                return warehouseId;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Loads a single non-deleted Department with all required navigation properties.
+        /// Feature 3/Q1-followup — also enforces warehouse scoping: if a warehouse is
+        /// selected and this department belongs to a different one, it's treated as
+        /// not found (same response as a missing id) rather than leaking that a
+        /// department exists in another warehouse. Used by every by-id action
+        /// (Details/Update/Reset/Delete), so this is a hard block on direct-URL
+        /// access, not just an Index-listing filter.
         /// </summary>
         private async Task<Department?> FindActiveDepartmentAsync(int id)
         {
@@ -419,7 +445,19 @@ namespace Rassef.Controllers
                 .Include(d => d.Docks)
                 .Include(d => d.SupplierRequests));   // for referential guard — see Q1/Q4
 
-            return results.FirstOrDefault();
+            var department = results.FirstOrDefault();
+            if (department == null)
+            {
+                return null;
+            }
+
+            var selectedWarehouseId = GetSelectedWarehouseId();
+            if (selectedWarehouseId.HasValue && department.WarehouseId != selectedWarehouseId.Value)
+            {
+                return null;
+            }
+
+            return department;
         }
 
         private async Task<IEnumerable<SelectListItem>> GetWarehouseSelectListAsync()
@@ -442,4 +480,4 @@ namespace Rassef.Controllers
                 new SelectListItem { Value = t.Id.ToString(), Text = t.Name });
         }
     }
-}           
+}

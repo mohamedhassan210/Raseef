@@ -312,7 +312,7 @@ namespace Rassef.Common.Services
             }
         }
 
-        public async Task<TicketStatusUpdateResult> CallNextTicketAsync(int? departmentId, int userId)
+        public async Task<TicketStatusUpdateResult> CallNextTicketAsync(int? departmentId, int userId, int? warehouseId = null)
         {
             await _concurrencyLock.WaitAsync();
             try
@@ -370,6 +370,12 @@ namespace Rassef.Common.Services
                         if (departmentId.HasValue && departmentId.Value > 0 && t.DepartmentId != departmentId.Value)
                             return false;
 
+                        // NEW — Feature 3 (queue-engine scoping): when no specific
+                        // department is requested, still keep "call next" inside the
+                        // caller's active warehouse rather than truly global.
+                        if (warehouseId.HasValue && (t.Department == null || t.Department.WarehouseId != warehouseId.Value))
+                            return false;
+
                         return true;
                     })
                     .OrderBy(t => t.QueueTime)
@@ -382,6 +388,13 @@ namespace Rassef.Common.Services
                     {
                         if (departmentId.HasValue && departmentId.Value > 0 && t.DepartmentId != departmentId.Value)
                             return false;
+
+                        // NEW — Feature 3: same warehouse scoping as the waiting-list
+                        // filter above, so this "auto-complete the current ticket"
+                        // step doesn't reach across warehouses either.
+                        if (warehouseId.HasValue && (t.Department == null || t.Department.WarehouseId != warehouseId.Value))
+                            return false;
+
                         if (t.ExitTime != DateTimeOffset.MinValue && t.ExitTime > t.QueueTime) return false;
                         if (t.TicketStatus != null)
                         {
