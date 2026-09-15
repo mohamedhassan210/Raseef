@@ -100,7 +100,14 @@ using Rassef.ViewModels.Dock;
 
 namespace Rassef.Controllers
 {
-    [PermissionAuthorize("Docks")]   // S1 — was missing
+    [PermissionAuthorize("Dock")]   // was "Docks" — the reflected/stored permission's
+                                    // ControllerName is "Dock" (from "DockController"
+                                    // minus the "Controller" suffix, same as every other
+                                    // auto-discovered permission and the same value the
+                                    // sidebar already checks via HasAsync("Dock", ...)).
+                                    // The old "Docks" string never matched any stored
+                                    // GroupPermission row, so a granted permission could
+                                    // never actually open this controller for a non-admin.
     public class DockController : Controller
     {
         private readonly IDockRepository _repository;

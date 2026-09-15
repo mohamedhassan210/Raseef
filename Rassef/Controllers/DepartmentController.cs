@@ -110,7 +110,12 @@ using Rassef.ViewModels.Department;
 
 namespace Rassef.Controllers
 {
-    [PermissionAuthorize("Departments")]   // S1 — was missing
+    [PermissionAuthorize("Department")]   // was "Departments" — same mismatch as Dock:
+                                          // the reflected/stored permission's ControllerName
+                                          // is "Department" (from "DepartmentController"),
+                                          // which is also what the sidebar already checks
+                                          // via HasAsync("Department", ...). The old plural
+                                          // string never matched a stored GroupPermission row.
     public class DepartmentController : Controller
     {
         private readonly IDepartmentRepository _repository;
