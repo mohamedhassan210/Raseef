@@ -25,7 +25,7 @@
         <!-- SIDEBAR -->
         <!-- CHANGED: active key now "Roles" to match the new dedicated sidebar entry for this
              page (previously "Groups", which now only highlights GroupManagment). -->
-        <vc:admin-sidebar active="Roles" />
+        @await Component.InvokeAsync("AdminSidebar", new { active = "Roles" })
 
         <!-- MAIN CONTENT -->
         <main class="dashboard-main">

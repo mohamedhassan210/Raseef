@@ -18,13 +18,39 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true">
     <link rel="stylesheet" href="~/css/employeeDetails.css" asp-append-version="true">
+
+    <style>
+        /* Warehouse access card: spans the full info grid because the number of
+           assigned warehouses varies and chips wrap onto several rows. */
+        .warehouse-access-card {
+            grid-column: 1 / -1;
+            align-items: flex-start;
+        }
+
+        .warehouse-chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .warehouse-chip {
+            background-color: rgba(235, 132, 45, 0.15);
+            border: 1px solid var(--primary-color);
+            border-radius: 999px;
+            padding: 4px 14px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+    </style>
 </head>
 <body>
 
     <div class="dashboard-page">
 
         <!-- ── RIGHT SIDEBAR ── -->
-        <vc:admin-sidebar active="Employees" />
+        @await Component.InvokeAsync("AdminSidebar", new { active = "Employees" })
 
         <!-- ── MAIN CONTENT AREA ── -->
         <main class="dashboard-main">
@@ -175,6 +201,29 @@
                             <div class="info-text">
                                 <span class="info-label">كود الفرع</span>
                                 <span class="info-value" id="cardBranchCode">@(string.IsNullOrWhiteSpace(Model.BranchCode) ? "--" : Model.BranchCode)</span>
+                            </div>
+                        </div>
+
+                        <!-- Card: Accessible Warehouses -->
+                        <div class="info-card warehouse-access-card">
+                            <div class="info-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+                            </div>
+                            <div class="info-text">
+                                <span class="info-label">المخازن المسموح بالوصول إليها</span>
+                                @if (Model.AccessibleWarehouses.Any())
+                                {
+                                    <div class="warehouse-chip-list" id="cardWarehouses">
+                                        @foreach (var warehouseName in Model.AccessibleWarehouses)
+                                        {
+                                            <span class="warehouse-chip">@warehouseName</span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="info-value" id="cardWarehouses">لا يوجد مخزن مخصص لهذا الموظف</span>
+                                }
                             </div>
                         </div>
                     </div>

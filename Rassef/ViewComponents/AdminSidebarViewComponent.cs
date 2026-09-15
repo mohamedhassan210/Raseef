@@ -36,33 +36,44 @@ namespace Rassef.ViewComponents
             model.CanViewDepartments = await _permissionService.HasAsync("Department", "Index");
             model.CanViewDocks = await _permissionService.HasAsync("Dock", "Index");
 
-            // Warehouse dropdown — populated with real data, not yet functionally wired
-            // (selecting an item doesn't persist anywhere yet; that's the Stage 2 work).
+            // Warehouse dropdown — the view posts the chosen id to
+            // AuthenticationController.SelectWarehouse, which persists it to the
+            // SelectedWarehouseId cookie plus User.LastPickedWarehouseId.
             var userIdStr = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                           ?? HttpContext.User.FindFirst("sub")?.Value;
             int.TryParse(userIdStr, out int userId);
 
-            var isAdmin = await _permissionService.IsAdminAsync();
-
-            if (isAdmin)
-            {
-                model.AvailableWarehouses = await _dbContext.Set<Rassef.Models.Entities.Warehouse>()
-                    .Where(w => !w.IsDeleted)
-                    .OrderBy(w => w.Name)
-                    .Select(w => new WarehouseOptionVM { Id = w.Id, Name = w.Name })
-                    .ToListAsync();
-            }
-            else
-            {
-                model.AvailableWarehouses = await _dbContext.Set<Rassef.Models.Identity.UserWarehouse>()
-                    .Where(uw => uw.UserId == userId && !uw.IsDeleted && !uw.Warehouse.IsDeleted)
-                    .OrderBy(uw => uw.Warehouse.Name)
-                    .Select(uw => new WarehouseOptionVM { Id = uw.WarehouseId, Name = uw.Warehouse.Name })
-                    .ToListAsync();
-            }
+            // Only warehouses this user is actually assigned to (UserWarehouse rows) —
+            // NO admin bypass. This deliberately matches the rule
+            // AuthenticationController.SelectWarehouse already enforces on POST: it
+            // rejects any warehouse the user isn't assigned to, admin or not. Listing
+            // every warehouse here (the previous behaviour) meant an admin could pick
+            // an option that the server would then refuse to switch to.
+            model.AvailableWarehouses = await _dbContext.Set<Rassef.Models.Identity.UserWarehouse>()
+                .Where(uw => uw.UserId == userId && !uw.IsDeleted && !uw.Warehouse.IsDeleted)
+                .OrderBy(uw => uw.Warehouse.Name)
+                .Select(uw => new WarehouseOptionVM { Id = uw.WarehouseId, Name = uw.Warehouse.Name })
+                .ToListAsync();
 
             var user = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
             model.UserName = user?.Name ?? "مستخدم";
+
+            // Which option should show as chosen. Same precedence the SupOrTra page
+            // uses: the cookie wins if it still points at an assigned warehouse,
+            // otherwise fall back to the user's last saved pick.
+            var accessibleIds = model.AvailableWarehouses.Select(w => w.Id).ToHashSet();
+
+            if (HttpContext.Request.Cookies.TryGetValue("SelectedWarehouseId", out var cookieValue)
+                && int.TryParse(cookieValue, out var cookieWarehouseId)
+                && accessibleIds.Contains(cookieWarehouseId))
+            {
+                model.SelectedWarehouseId = cookieWarehouseId;
+            }
+            else if (user?.LastPickedWarehouseId != null
+                && accessibleIds.Contains(user.LastPickedWarehouseId.Value))
+            {
+                model.SelectedWarehouseId = user.LastPickedWarehouseId;
+            }
 
             return View(model);
         }
@@ -73,6 +84,7 @@ namespace Rassef.ViewComponents
         public string Active { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
         public List<WarehouseOptionVM> AvailableWarehouses { get; set; } = new();
+        public int? SelectedWarehouseId { get; set; }
 
         public bool CanViewEmployees { get; set; }
         public bool CanViewTrucks { get; set; }

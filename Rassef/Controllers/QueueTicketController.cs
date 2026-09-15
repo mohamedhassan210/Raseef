@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Rassef.Filters;
 
 namespace Rassef.Controllers
@@ -472,7 +472,7 @@ namespace Rassef.Controllers
         public async Task<IActionResult> CallStation(int? departmentId)
         {
             var model = await BuildCallStationVM(departmentId);
-            ViewBag.Departments = await _departmentRepository.GetAllAsync();
+            ViewBag.Departments = await GetScopedDepartmentsAsync();
             return View("CallStation", model);
         }
 
@@ -750,7 +750,7 @@ namespace Rassef.Controllers
 
         private async Task PopulateDropdowns(CreateQueueTicketVM model)
         {
-            var departments = await _departmentRepository.GetAllAsync();
+            var departments = await GetScopedDepartmentsAsync();
             var statuses = await _ticketStatusRepository.GetAllAsync();
             var transfers = await _transferRequestRepository.GetAllAsync();
             var suppliers = await _supplierRequestRepository.GetAllAsync();
@@ -763,7 +763,7 @@ namespace Rassef.Controllers
 
         private async Task PopulateDropdowns(UpdateQueueTicketVM model)
         {
-            var departments = await _departmentRepository.GetAllAsync();
+            var departments = await GetScopedDepartmentsAsync();
             var statuses = await _ticketStatusRepository.GetAllAsync();
             var transfers = await _transferRequestRepository.GetAllAsync();
             var suppliers = await _supplierRequestRepository.GetAllAsync();
@@ -788,5 +788,23 @@ namespace Rassef.Controllers
             }
             return null;
         }
+
+        /// <summary>
+        /// Feature 3 — the departments offered to the user are limited to the
+        /// warehouse they are currently working in (the SelectedWarehouseId cookie).
+        /// A null selection means "unresolved" (user hasn't picked a warehouse yet),
+        /// which falls through unfiltered rather than presenting an empty dropdown.
+        /// Soft-deleted departments are excluded here too — the previous plain
+        /// GetAllAsync() call had no IsDeleted filter at all.
+        /// </summary>
+        private async Task<IReadOnlyList<Department>> GetScopedDepartmentsAsync()
+        {
+            var selectedWarehouseId = Request.GetSelectedWarehouseId();
+
+            return await _departmentRepository.GetAllAsync(q => q
+                .Where(d => !d.IsDeleted)
+                .Where(d => selectedWarehouseId == null || d.WarehouseId == selectedWarehouseId.Value));
+        }
+
     }
 }

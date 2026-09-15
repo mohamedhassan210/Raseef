@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 
 namespace Rassef.Controllers
 {
@@ -85,7 +85,7 @@ namespace Rassef.Controllers
                     : "سيارة غير محددة";
 
             ViewBag.SupplierId = supplierId;
-            var depts = await _departmentRepository.GetAllAsync();
+            var depts = await GetScopedDepartmentsAsync();
             ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
 
             return View(driverList);
@@ -335,7 +335,7 @@ namespace Rassef.Controllers
                 }
             }
 
-            var departments = await _departmentRepository.GetAllAsync();
+            var departments = await GetScopedDepartmentsAsync();
             ViewBag.Departments = departments.Select(d => new { id = d.Id, name = d.Name }).ToList();
 
             return View(model);
@@ -352,7 +352,7 @@ namespace Rassef.Controllers
                     create.SupplierName = supplier.Name;
                 }
             }
-            var depts = await _departmentRepository.GetAllAsync();
+            var depts = await GetScopedDepartmentsAsync();
             ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
         }
 
@@ -582,7 +582,7 @@ namespace Rassef.Controllers
             ViewBag.TruckId = id;
             ViewBag.TruckName = $"{truck.PlateLetter} {truck.PlateNumber}";
 
-            var depts = await _departmentRepository.GetAllAsync();
+            var depts = await GetScopedDepartmentsAsync();
             ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
 
             return View(driverList);
@@ -815,5 +815,23 @@ namespace Rassef.Controllers
 
             return (driverIds, truckIds);
         }
+
+        /// <summary>
+        /// Feature 3 — the departments offered to the user are limited to the
+        /// warehouse they are currently working in (the SelectedWarehouseId cookie).
+        /// A null selection means "unresolved" (user hasn't picked a warehouse yet),
+        /// which falls through unfiltered rather than presenting an empty dropdown.
+        /// Soft-deleted departments are excluded here too — the previous plain
+        /// GetAllAsync() call had no IsDeleted filter at all.
+        /// </summary>
+        private async Task<IReadOnlyList<Department>> GetScopedDepartmentsAsync()
+        {
+            var selectedWarehouseId = Request.GetSelectedWarehouseId();
+
+            return await _departmentRepository.GetAllAsync(q => q
+                .Where(d => !d.IsDeleted)
+                .Where(d => selectedWarehouseId == null || d.WarehouseId == selectedWarehouseId.Value));
+        }
+
     }
 }

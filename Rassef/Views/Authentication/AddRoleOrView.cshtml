@@ -63,7 +63,7 @@
        toggle button), which is self-sufficient and reads its own data. No
        matching accordion category for this role-picker screen, so nothing
        is highlighted. *@
-    <vc:admin-sidebar active="" />
+    @await Component.InvokeAsync("AdminSidebar", new { active = "" })
 
     <!-- تمرير روابط MVC إلى JavaScript بشكل نظيف -->
     <script>

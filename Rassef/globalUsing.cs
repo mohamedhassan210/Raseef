@@ -1,4 +1,4 @@
-global using ClosedXML.Excel;
+﻿global using ClosedXML.Excel;
 global using FluentValidation;
 global using Microsoft.AspNetCore.Diagnostics;
 global using Microsoft.AspNetCore.Mvc;
@@ -8,6 +8,7 @@ global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 global using Microsoft.Extensions.Options;
 global using Microsoft.IdentityModel.Tokens;
 global using QRCoder;
+global using Rassef.Common.Helpers;
 global using Rassef.Common.Interfaces;
 global using Rassef.Common.Interfaces.Services;
 global using Rassef.Common.Interfaces.Services.AuthenticationServices;

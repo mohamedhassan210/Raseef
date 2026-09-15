@@ -12,5 +12,8 @@ namespace Rassef.ViewModels.Administration.Employee
         public string Email { get; set; } = string.Empty;
         public string NationalId { get; set; } = string.Empty;
         public string BranchCode { get; set; } = string.Empty;
+
+        // Names of the warehouses this employee is assigned to (UserWarehouse rows).
+        public List<string> AccessibleWarehouses { get; set; } = new();
     }
 }

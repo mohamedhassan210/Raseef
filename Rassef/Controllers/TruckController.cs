@@ -1,4 +1,4 @@
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class TruckController : Controller
     {
@@ -367,7 +367,7 @@ namespace Rassef.Controllers
                     IsRefrigerated = d.IsRefrigerated
                 }).ToList();
 
-            var depts = await _departmentRepository.GetAllAsync();
+            var depts = await GetScopedDepartmentsAsync();
             ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
 
             return View(truckList);
@@ -687,5 +687,23 @@ namespace Rassef.Controllers
                 selectedTruckTypeId);
         }
         #endregion
+
+        /// <summary>
+        /// Feature 3 — the departments offered to the user are limited to the
+        /// warehouse they are currently working in (the SelectedWarehouseId cookie).
+        /// A null selection means "unresolved" (user hasn't picked a warehouse yet),
+        /// which falls through unfiltered rather than presenting an empty dropdown.
+        /// Soft-deleted departments are excluded here too — the previous plain
+        /// GetAllAsync() call had no IsDeleted filter at all.
+        /// </summary>
+        private async Task<IReadOnlyList<Department>> GetScopedDepartmentsAsync()
+        {
+            var selectedWarehouseId = Request.GetSelectedWarehouseId();
+
+            return await _departmentRepository.GetAllAsync(q => q
+                .Where(d => !d.IsDeleted)
+                .Where(d => selectedWarehouseId == null || d.WarehouseId == selectedWarehouseId.Value));
+        }
+
     }
 }

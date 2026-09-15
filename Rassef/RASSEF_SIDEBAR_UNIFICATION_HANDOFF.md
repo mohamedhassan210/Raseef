@@ -121,6 +121,136 @@ STILL OPEN / NOT DECIDED — genuinely needs the user, don't guess:
    sidebar work (verified independent), but blocks anything touching
    Shift/Warehouse code.
 
+====================================================================
+SESSION 2 — OVERLAY REWRITE + BUG FIXES (continuation after token cutoff)
+====================================================================
+User reported, with screenshots:
+1. Wanted the sidebar to actually show/hide on the hamburger press, and
+   wanted the page content to NEVER shift/move when toggling — stay
+   centered/fixed always.
+2. Authentication/AddRoleOrView and Authentication/SupOrTra "don't have it".
+3. Authentication/viewRole was visibly broken (giant unstyled icon filling
+   the screen).
+4. Supplier/Index "has it but it doesn't open".
+5. Truck/Index?supplierId=1 "has it but it doesn't open too, and has text
+   on the left".
+6. "some other pages have the same problems."
+
+ROOT CAUSES FOUND (by actually reading the rendered CSS/HTML, not guessing):
+- viewRole.cshtml and AddRoleOrView.cshtml call the AdminSidebar component
+  but link NEITHER sidebar.css NOR sidebar-widget.css — the component's
+  markup rendered completely unstyled, so its bare `<svg viewBox="0 0 24
+  24">` icons (no CSS width/height) expanded to fill the width of their
+  container, producing the giant black icon in the screenshot.
+- Truck/Index, Supplier/Index, and every other page on _SupOrTra layout:
+  their own page CSS (e.g. companyCars.css) sets `body { display: flex;
+  justify-content: center; ... }`. The AdminSidebar's `<aside
+  class="dashboard-sidebar">` was a second flow child of that flex body
+  (position: relative), so the flex algorithm placed it as a second flex
+  item — in an RTL flex row that lands on the LEFT edge, which is exactly
+  the "text on the left" the user saw (it was the unstyled/dim sidebar
+  peeking out, not page content). And because the old JS only toggled a
+  `.sidebar-open` class that had ZERO matching CSS rule anywhere, pressing
+  the hamburger visibly did nothing — hence "doesn't open".
+- On the plain-block (non-flex) standalone pages the same "sidebar is just
+  a normal flow element" problem meant the sidebar rendered BELOW the
+  visible viewport (after the page's own full-height content), invisible
+  without scrolling — and again the toggle had no CSS to act on.
+- Common thread: the sidebar's visibility/position was never independent
+  of the host page's own layout, so it broke differently on every
+  differently-built page, and there was no working show/hide mechanism at
+  all (the `.sidebar-open` class was dead).
+
+FIX — rebuilt AdminSidebar as a fully self-contained fixed-overlay widget,
+all inside Views/Shared/Components/AdminSidebar/Default.cshtml (the ONE
+file every page already calls, so this fixes every page at once with no
+per-page edits needed):
+- `.dashboard-sidebar` is now `position: fixed !important` (top/right/
+  bottom 0, 280px wide), hidden by default via `transform:
+  translateX(100%)`, slid in via `.sidebar-open { transform:
+  translateX(0) }`. Because it's `position: fixed`, it is removed from
+  the host page's normal flow / flex layout entirely — it can no longer
+  become a stray flex item, and toggling it can never resize or reposition
+  the page's own content (main content literally never references the
+  sidebar's state). This directly satisfies "don't make pages move,
+  keep centered always."
+- Added a `.sidebar-backdrop` overlay (dimmed background, click-to-close)
+  and Esc-to-close, in addition to the hamburger toggle.
+- ALL of the sidebar's own visual styling (colors, sizing, the user
+  footer, the mobile-toggle button, `#warehouseSwitcher`) was copied
+  in full, inline, into this component's own `<style>` block — it no
+  longer depends on sidebar.css or sidebar-widget.css being linked by
+  the host page at all. This is what fixes viewRole/AddRoleOrView
+  without touching those files: the giant-icon bug is gone because the
+  component now always carries its own complete styling everywhere it's
+  used.
+- Toggle button raised to z-index 2001 (above the sidebar's 2000 and the
+  backdrop's 1999) so it stays visible/clickable as a close control even
+  while the sidebar is open.
+- sidebar.css and sidebar-widget.css were intentionally left UNCHANGED —
+  their old `.dashboard-sidebar`/`.sidebar-*`/`.mobile-toggle` rules are
+  now dead weight (fully superseded by the component's own inline
+  `!important` styles, which win any cascade tie because they're emitted
+  later in the document — inside `<body>` — than any page's `<head>`
+  `<link>`). Left as-is to minimize risk of breaking something
+  page-specific that also happens to load those files; safe to clean up
+  later as a separate pass if desired.
+- Old dead responsive rules in dashboard.css / employeeDetails.css /
+  detailsPages.css (`.dashboard-sidebar.active { right: 0 }`, `.mobile-
+  toggle { display: none }` etc., leftover from the pre-unification
+  offcanvas mechanism) were also left alone for the same reason — they
+  target a `.active` class the sidebar no longer uses, and any
+  `display`/`position` value they set is a plain (non-!important) rule
+  that the component's `!important` always overrides.
+
+VERIFIED BY READING (not assumed):
+- Every one of the 34 pages that calls `<vc:admin-sidebar>` or
+  `Component.InvokeAsync("AdminSidebar")` renders through this same
+  Default.cshtml, so this is a single point of fix — no per-page CSS
+  audit needed going forward for sidebar issues specifically.
+- Checked z-index usage app-wide (grep across wwwroot/css/*.css): nothing
+  else in the app uses 1999-2001, and the few higher values that do exist
+  (9999/10000/99999 — toasts, a logout/stepback button on the SupOrTra
+  intro screens) sit above the sidebar, which is correct (those should
+  stay visible/usable over the sidebar).
+
+STILL OPEN — genuinely worth flagging, not fixed this session:
+1. UX judgment call made without asking: the sidebar now defaults to
+   CLOSED on every page (including the 31 "dashboard" pages where it used
+   to be permanently visible, e.g. GroupManagment in the user's own
+   screenshot). This was the most literal reading of "I want it to show
+   and hide when press the three lines button" + "don't move the page" —
+   an always-open-and-reserving-280px sidebar can't be toggled without
+   either covering content or shifting it. If the user actually wants it
+   OPEN BY DEFAULT on desktop/wide screens (auto-open above some
+   breakpoint, closed by default only on narrow/mobile), that's a
+   straightforward follow-up: default `.sidebar-open` on load above e.g.
+   900px, or persist the last state in localStorage. Ask before guessing
+   which.
+2. sidebar.css / sidebar-widget.css still contain the old, now-fully-dead
+   `.dashboard-sidebar`/`.sidebar-*` rule blocks (see above) — safe to
+   delete in a follow-up cleanup pass; not done this session to keep the
+   diff minimal and low-risk.
+3. Did not re-verify migration/DB status (Part A) — still unconfirmed
+   from Session 1, unrelated to this sidebar work.
+
+CAUTION FOR NEXT EDITOR (bug introduced and fixed within this same
+session, but worth flagging so it isn't repeated): the new explanatory
+comment block at the top of Default.cshtml's `<style>` originally
+contained literal angle-bracket mentions of HTML tags (`<style>`,
+`<body>`, `<head>`, `<link>`) written as plain English references inside
+a CSS `/* ... */` comment. Razor's parser does not understand CSS comment
+syntax — it scans the whole file for tag-like tokens regardless of
+whether they're inside a `<style>` block or a CSS comment. Those stray
+mentions were counted as real unclosed tags, which broke Razor's tag
+-balance tracking for the *entire* file and surfaced as "malformed head
+tag helper" / "malformed body tag helper" compile errors on every page
+that invokes this component (i.e. broke the whole app, not just this
+file). Fixed by rewording the comments to avoid angle brackets entirely
+(e.g. "inside the body element" instead of "inside `<body>`"). Lesson:
+never write a literal `<tagname>` inside any comment in a .cshtml file,
+CSS comment or otherwise — spell it out in prose instead.
+
 ACTIVE-CATEGORY MAPPING USED (for reference / auditing):
   Suppliers        → Supplier/{Create,Index,Edit}, Administration/Suppliers,
                       SupplierRequest/CreateTruckWithDriver → "SupplierRequests" (not Suppliers)

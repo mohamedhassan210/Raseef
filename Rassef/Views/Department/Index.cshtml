@@ -17,7 +17,7 @@
 <body>
     <div class="dashboard-page">
 
-        <vc:admin-sidebar active="Departments" />
+        @await Component.InvokeAsync("AdminSidebar", new { active = "Departments" })
 
         <main class="dashboard-main">
 

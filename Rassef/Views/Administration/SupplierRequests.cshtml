@@ -191,7 +191,7 @@
 
     <div class="dashboard-page">
         <!-- SIDEBAR -->
-        <vc:admin-sidebar active="SupplierRequests" />
+        @await Component.InvokeAsync("AdminSidebar", new { active = "SupplierRequests" })
 
         <!-- MAIN CONTENT -->
         <main class="dashboard-main">

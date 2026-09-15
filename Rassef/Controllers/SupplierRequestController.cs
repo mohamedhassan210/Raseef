@@ -1,4 +1,4 @@
-using Rassef.Filters;
+﻿using Rassef.Filters;
 
 namespace Rassef.Controllers
 {
@@ -60,8 +60,14 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            // Feature 3 — a supplier request belongs to a warehouse through its
+            // Department, so the list is scoped the same way the dropdowns are.
+            var selectedWarehouseId = Request.GetSelectedWarehouseId();
+
             var requests = await _supplierRequestRepository.GetAllAsync(
                 include: query => query
+                    .Where(r => selectedWarehouseId == null
+                                || r.Department.WarehouseId == selectedWarehouseId.Value)
                     .Include(r => r.Supplier)
                     .Include(r => r.Truck)
                     .Include(r => r.Driver)
@@ -386,7 +392,7 @@ namespace Rassef.Controllers
                     }).ToList()
             };
 
-            var allDepartments = await _departmentRepository.GetAllAsync();
+            var allDepartments = await GetScopedDepartmentsAsync();
             ViewBag.Departments = allDepartments.Select(d => new SelectListItem
             {
                 Value = d.Id.ToString(),
@@ -665,7 +671,7 @@ namespace Rassef.Controllers
             var suppliers = await _supplierRepository.GetAllAsync();
             var allTrucks = await _truckRepository.GetAllAsync();
             var allDrivers = await _driverRepository.GetAllAsync();
-            var departments = await _departmentRepository.GetAllAsync();
+            var departments = await GetScopedDepartmentsAsync();
             var permitTypes = await _permitTypeRepository.GetAllAsync();
             var commodityTypes = await _commodityTypeRepository.GetAllAsync();
             var requestStatuses = await _requestStatusRepository.GetAllAsync();
@@ -738,7 +744,7 @@ namespace Rassef.Controllers
             var supplier = await _supplierRepository.FindAsync(s => s.Id == create.SupId);
             ViewBag.SupplierName = supplier?.Name;
 
-            var allDepartments = await _departmentRepository.GetAllAsync();
+            var allDepartments = await GetScopedDepartmentsAsync();
             ViewBag.Departments = allDepartments.Select(d => new SelectListItem
             {
                 Value = d.Id.ToString(),
@@ -826,5 +832,23 @@ namespace Rassef.Controllers
             return (driverIds, truckIds);
         }
         #endregion
+
+        /// <summary>
+        /// Feature 3 — the departments offered to the user are limited to the
+        /// warehouse they are currently working in (the SelectedWarehouseId cookie).
+        /// A null selection means "unresolved" (user hasn't picked a warehouse yet),
+        /// which falls through unfiltered rather than presenting an empty dropdown.
+        /// Soft-deleted departments are excluded here too — the previous plain
+        /// GetAllAsync() call had no IsDeleted filter at all.
+        /// </summary>
+        private async Task<IReadOnlyList<Department>> GetScopedDepartmentsAsync()
+        {
+            var selectedWarehouseId = Request.GetSelectedWarehouseId();
+
+            return await _departmentRepository.GetAllAsync(q => q
+                .Where(d => !d.IsDeleted)
+                .Where(d => selectedWarehouseId == null || d.WarehouseId == selectedWarehouseId.Value));
+        }
+
     }
 }

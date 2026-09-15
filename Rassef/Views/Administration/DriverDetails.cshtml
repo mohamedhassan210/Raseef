@@ -20,7 +20,7 @@
 
     <div class="dashboard-page">
         <!-- SIDEBAR -->
-        <vc:admin-sidebar active="Drivers" />
+        @await Component.InvokeAsync("AdminSidebar", new { active = "Drivers" })
 
         <!-- MAIN CONTENT -->
         <main class="dashboard-main">

@@ -1,50 +1,16 @@
 /*
- * sidebar.css — Single Source of Truth for Unified Admin Sidebar
+ * sidebar-widget.css — the AdminSidebar component's OWN styling only
+ * (dashboard-sidebar/sidebar-*/user-*/mobile-toggle), split out of
+ * sidebar.css so it can be linked on pages that use _SupOrTra.cshtml
+ * without also pulling in sidebar.css's page-shell rules (html,body
+ * overflow:hidden, .dashboard-page, .dashboard-main, .dashboard-header,
+ * .header-*) — those assume a full-viewport dashboard layout that
+ * _SupOrTra pages do not use and would break their scrolling/layout.
+ * sidebar.css itself is UNCHANGED and still used as-is by the 31
+ * standalone dashboard pages that were already built for that shell.
  * Color: #e67e22 | Width: 280px
  */
 
-:root {
-    --font-arabic: 'IBM Plex Sans Arabic', sans-serif;
-    --primary-color: #e67e22;
-    --primary-hover: #d35400;
-    --bg-color: #FAF2EB;
-    --bg-page: #FAF2EB;
-    --text-dark: #2B241D;
-    --text-muted: #82756A;
-    --border-orange: #e67e22;
-    --border-color: #e67e22;
-    --card-bg: #FFFDFB;
-}
-
-html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    font-family: var(--font-arabic, 'IBM Plex Sans Arabic', sans-serif);
-    background-color: #FAF2EB;
-    direction: rtl;
-    -webkit-font-smoothing: antialiased;
-}
-
-/* ────────────────────────────────────────────────
-   PAGE LAYOUT
-   ──────────────────────────────────────────────── */
-.dashboard-page {
-    display: flex !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
-    width: 100vw !important;
-    overflow: hidden !important;
-    background-color: #FAF2EB !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-}
-
-/* ────────────────────────────────────────────────
-   SIDEBAR (Fixed 280px, #e67e22, 100vh)
-   ──────────────────────────────────────────────── */
 .dashboard-sidebar {
     width: 280px !important;
     min-width: 280px !important;
@@ -227,81 +193,8 @@ html, body {
     }
 
 /* ────────────────────────────────────────────────
-   MAIN CONTENT CONTAINER
+   MOBILE SIDEBAR TOGGLE
    ──────────────────────────────────────────────── */
-.dashboard-main {
-    flex: 1 !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    box-sizing: border-box !important;
-    padding: 28px 40px 40px !important;
-}
-
-/* ────────────────────────────────────────────────
-   COMMON HEADER
-   ──────────────────────────────────────────────── */
-.dashboard-header {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    width: 100% !important;
-    margin-bottom: 12px !important;
-}
-
-.header-right {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 4px !important;
-}
-
-.header-title {
-    font-size: 34px !important;
-    font-weight: 800 !important;
-    color: #e67e22 !important;
-    margin: 0 !important;
-}
-
-.header-subtitle {
-    font-size: 14px !important;
-    color: #8E877F !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-}
-
-.update-dot {
-    width: 8px !important;
-    height: 8px !important;
-    background-color: #e67e22 !important;
-    border-radius: 50% !important;
-    display: inline-block !important;
-}
-
-.header-left-logos {
-    display: flex !important;
-    align-items: center !important;
-    gap: 24px !important;
-}
-
-.header-logo-fathallah {
-    /* من غير !important عشان الميديا كويريز بتاعت كل صفحة تقدر تصغّره
-       على الموبايل بدل ما يفضل ثابت على 70px دايماً */
-    height: 70px;
-    width: auto !important;
-}
-
-.header-logo-raseef {
-    height: 42px;
-    width: auto !important;
-}
-
-/* ==========================================================================
-   MOBILE SIDEBAR TOGGLE — النسخة الموحّدة (Single Source of Truth)
-   الزرار بيتحط بنفس الشكل في كل صفحة (أول حاجة جوه <body>)، وشكله ومكانه
-   وسلوكه بيتحددوا هنا بس عشان يبقوا متطابقين في كل مكان في التطبيق.
-   ========================================================================== */
 /* CHANGED — was hidden by default and only shown <=900px; now always
    visible at every screen size, per explicit instruction. !important
    is kept (not tied to a media query anymore) so this still wins over

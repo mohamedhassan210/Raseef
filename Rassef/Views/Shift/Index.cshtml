@@ -319,7 +319,7 @@
 
     <div class="dashboard-page">
         <!-- ── SIDEBAR ── -->
-        <vc:admin-sidebar active="Shifts" />
+        @await Component.InvokeAsync("AdminSidebar", new { active = "Shifts" })
 
         <!-- ── MAIN CONTENT ── -->
         <main class="dashboard-main">

@@ -23,7 +23,7 @@
     <div class="dashboard-page">
 
         <!-- ── 1. RIGHT SIDEBAR ── -->
-        <vc:admin-sidebar active="Employees" />
+        @await Component.InvokeAsync("AdminSidebar", new { active = "Employees" })
 
         <!-- ── 2. MAIN CONTENT AREA ── -->
         <main class="dashboard-main">

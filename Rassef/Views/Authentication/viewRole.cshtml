@@ -98,7 +98,7 @@
 </head>
 <body>
 
-    <vc:admin-sidebar active="" />
+    @await Component.InvokeAsync("AdminSidebar", new { active = "" })
 
     <div class="page-container">
         <!-- الهيدر العلوي -->

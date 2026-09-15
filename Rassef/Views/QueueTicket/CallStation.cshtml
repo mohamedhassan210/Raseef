@@ -1,4 +1,4 @@
-@model Rassef.ViewModels.QueueTicket.CallStationVM
+﻿@model Rassef.ViewModels.QueueTicket.CallStationVM
 @{
     ViewData["Title"] = "شاشة استدعاء الأدوار المتتالية — Next Station";
     Layout = null;
@@ -19,6 +19,15 @@
     <link rel="stylesheet" href="~/css/callStation.css" asp-append-version="true">
 </head>
 <body>
+
+@* Unified permission-aware sidebar (same component every other page uses).
+   Rendered only for signed-in users: these two station screens sit on a
+   controller with no authorization filter, so an anonymous visitor would
+   otherwise get an empty sidebar with a placeholder greeting. *@
+@if (User?.Identity?.IsAuthenticated == true)
+{
+    @await Component.InvokeAsync("AdminSidebar", new { active = "" })
+}
 
     <div class="station-container">
         <!-- Header -->

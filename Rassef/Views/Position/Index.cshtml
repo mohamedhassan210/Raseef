@@ -18,7 +18,7 @@
 </head>
 <body>
     <div class="dashboard-page">
-        <vc:admin-sidebar active="Position" />
+        @await Component.InvokeAsync("AdminSidebar", new { active = "Position" })
 
         <main class="dashboard-main">
             <header class="dashboard-header">

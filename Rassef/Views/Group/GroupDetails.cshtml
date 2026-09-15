@@ -253,7 +253,7 @@
 
     <div class="dashboard-page">
         <!-- SIDEBAR -->
-        <vc:admin-sidebar active="Groups" />
+        @await Component.InvokeAsync("AdminSidebar", new { active = "Groups" })
 
         <!-- MAIN CONTENT -->
         <main class="dashboard-main">

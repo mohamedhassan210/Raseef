@@ -1,4 +1,4 @@
-using Rassef.Filters;
+﻿using Rassef.Filters;
 using Rassef.ViewModels.Administration;
 using Rassef.ViewModels.Administration.Employee;
 namespace Rassef.Controllers
@@ -100,8 +100,21 @@ namespace Rassef.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            // NEW — the warehouses this employee can access, same source the edit form
+            // writes to, so details and edit can never disagree.
+            var warehouseLinks = await _userWarehouseRepository.GetAllAsync(q => q
+                .Where(uw => uw.UserId == user.Id && !uw.IsDeleted)
+                .Include(uw => uw.Warehouse));
+
+            var accessibleWarehouses = warehouseLinks
+                .Where(uw => uw.Warehouse != null && !uw.Warehouse.IsDeleted)
+                .Select(uw => uw.Warehouse.Name)
+                .OrderBy(name => name)
+                .ToList();
+
             var employee = new EmployeeDetailsVM
             {
+                AccessibleWarehouses = accessibleWarehouses,
                 Id = user.Id,
                 Name = user.Name,
                 UserName = user.UserName ?? string.Empty,
@@ -340,6 +353,13 @@ namespace Rassef.Controllers
             if (user == null || user.IsDeleted)
             {
                 ModelState.AddModelError(string.Empty, "هذا الموظف غير موجود.");
+
+                // Without this the view falls back to empty lists, so the position,
+                // group and warehouse controls would all render blank on this path.
+                ViewBag.Positions = await _positionRepository.GetAllAsync(q => q.Where(p => !p.IsDeleted));
+                ViewBag.Groups = await _groupRepository.GetAllAsync(q => q.Where(g => !g.IsDeleted));
+                ViewBag.Warehouses = await _warehouseRepository.GetAllAsync(q => q.Where(w => !w.IsDeleted));
+
                 return View(model);
             }
 

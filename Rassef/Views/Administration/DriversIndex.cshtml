@@ -21,7 +21,7 @@
 
         <!-- Sidebar -->
         <!-- تمرير كلمة Drivers عشان يخلي "السائقين المسجلين" هي اللي Active -->
-        <vc:admin-sidebar active="Drivers" />
+        @await Component.InvokeAsync("AdminSidebar", new { active = "Drivers" })
 
         <main class="dashboard-main">
 

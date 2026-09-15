@@ -1,4 +1,4 @@
-using Rassef.Filters;
+﻿using Rassef.Filters;
 
 namespace Rassef.Controllers
 {
@@ -41,7 +41,7 @@ namespace Rassef.Controllers
         {
             var (activeDriverIds, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
 
-            var departments = await _departmentRepository.GetAllAsync();
+            var departments = await GetScopedDepartmentsAsync();
             var permitTypes = await _permitTypeRepository.GetAllAsync();
             var allTrucks = await _truckRepository.GetAllAsync();
             var allDrivers = await _driverRepository.GetAllAsync();
@@ -77,8 +77,14 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            // Feature 3 — a transfer request belongs to a warehouse through its
+            // Department, so the list is scoped the same way the dropdowns are.
+            var selectedWarehouseId = Request.GetSelectedWarehouseId();
+
             var requests = await _repository.GetAllAsync(
                 include: query => query
+                    .Where(r => selectedWarehouseId == null
+                                || r.Department.WarehouseId == selectedWarehouseId.Value)
                     .Include(r => r.Truck)
                     .Include(r => r.Driver)
                     .Include(r => r.Department)
@@ -239,7 +245,7 @@ namespace Rassef.Controllers
                 RequestStatusId = request.RequestStatusId
             };
 
-            ViewBag.Departments = await _departmentRepository.GetAllAsync();
+            ViewBag.Departments = await GetScopedDepartmentsAsync();
             ViewBag.PermitTypes = await _permitTypeRepository.GetAllAsync();
             ViewBag.RequestStatuses = await _requestStatusRepository.GetAllAsync();
 
@@ -253,7 +259,7 @@ namespace Rassef.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Departments = await _departmentRepository.GetAllAsync();
+                ViewBag.Departments = await GetScopedDepartmentsAsync();
                 ViewBag.PermitTypes = await _permitTypeRepository.GetAllAsync();
                 ViewBag.RequestStatuses = await _requestStatusRepository.GetAllAsync();
                 return View(model);
@@ -270,7 +276,7 @@ namespace Rassef.Controllers
             if (await _repository.ExistsAsync(x => x.AvizNumber == model.AvizNumber && x.Id != model.Id))
             {
                 ModelState.AddModelError(nameof(model.AvizNumber), "رقم الأفيز مسجل بالفعل.");
-                ViewBag.Departments = await _departmentRepository.GetAllAsync();
+                ViewBag.Departments = await GetScopedDepartmentsAsync();
                 ViewBag.PermitTypes = await _permitTypeRepository.GetAllAsync();
                 ViewBag.RequestStatuses = await _requestStatusRepository.GetAllAsync();
                 return View(model);
@@ -383,5 +389,23 @@ namespace Rassef.Controllers
             return (driverIds, truckIds);
         }
         #endregion
+
+        /// <summary>
+        /// Feature 3 — the departments offered to the user are limited to the
+        /// warehouse they are currently working in (the SelectedWarehouseId cookie).
+        /// A null selection means "unresolved" (user hasn't picked a warehouse yet),
+        /// which falls through unfiltered rather than presenting an empty dropdown.
+        /// Soft-deleted departments are excluded here too — the previous plain
+        /// GetAllAsync() call had no IsDeleted filter at all.
+        /// </summary>
+        private async Task<IReadOnlyList<Department>> GetScopedDepartmentsAsync()
+        {
+            var selectedWarehouseId = Request.GetSelectedWarehouseId();
+
+            return await _departmentRepository.GetAllAsync(q => q
+                .Where(d => !d.IsDeleted)
+                .Where(d => selectedWarehouseId == null || d.WarehouseId == selectedWarehouseId.Value));
+        }
+
     }
 }

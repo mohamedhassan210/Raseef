@@ -222,12 +222,39 @@ body {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     background-color: var(--card-bg);
     border: 1.5px solid var(--border-color);
+    /* The whole card is now an <a> (see MangeRolesIndex.cshtml / GroupManagment.cshtml).
+       Without this, mobile browsers paint a solid gray/blue box over the entire card on
+       every tap — the "acts weird on phone" symptom. */
+    -webkit-tap-highlight-color: transparent;
+    /* Keep this element on its own compositing layer permanently, not only while :hover is
+       active. overflow:hidden + a transform that only appears on :hover makes Chromium/Edge
+       promote/demote the layer every time the pointer enters or leaves, and the repaint after
+       a promote occasionally drops a frame where the card's own children (info rows, status
+       pill, button) haven't been painted back onto the new layer yet — header still visible,
+       body briefly gone. Forcing the layer to exist at all times removes that promote/demote
+       step entirely. This is what the screenshot mid-hover was showing. */
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
+/* Only raise/animate the card for input devices that genuinely hover (mouse or trackpad).
+   Touch devices fire :hover on tap and then never get a matching hover-out — the pointer
+   just lifts away — so a touch tap left the card permanently "raised" until the next
+   unrelated tap somewhere else on the page. On a card that's now a full-size link, that
+   reads as the card being stuck/broken, which is the mobile symptom being reported. */
+@media (hover: hover) and (pointer: fine) {
     .group-card-item:hover {
-        transform: translateY(-3px);
+        transform: translateY(-3px) translateZ(0);
         box-shadow: 0 8px 20px rgba(234, 115, 24, 0.15);
     }
+}
+
+/* Touch devices still get instant tap feedback via :active (press-and-release), which
+   never gets stuck the way :hover does — it clears the moment the finger lifts. */
+.group-card-item:active {
+    box-shadow: 0 2px 8px rgba(234, 115, 24, 0.18);
+}
 
 .group-card-header {
     background-color: var(--primary-color);
@@ -337,6 +364,23 @@ body {
         width: 220px;
         flex-shrink: 0;
     }
+
+@media (max-width: 480px) {
+    /* Fixed 220px cards on a ~360-390px phone screen show one full card plus an awkward
+       sliver of the next one, which is what reads as "acts weird". Sizing each card to a
+       share of the viewport and adding scroll-snap turns the same horizontal scroller into
+       a normal one-card-at-a-time swipe carousel instead. */
+    .horizontal-groups-row {
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+
+        .horizontal-groups-row .group-card-item {
+            min-width: 78vw;
+            width: 78vw;
+            scroll-snap-align: start;
+        }
+}
 
 .permissions-table-wrapper {
     background-color: var(--card-bg);

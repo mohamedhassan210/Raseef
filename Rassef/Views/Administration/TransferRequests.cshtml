@@ -40,7 +40,7 @@
 
     <div class="dashboard-page">
         <!-- SIDEBAR -->
-        <vc:admin-sidebar active="TransferRequests" />
+        @await Component.InvokeAsync("AdminSidebar", new { active = "TransferRequests" })
 
         <!-- MAIN CONTENT -->
         <main class="dashboard-main">

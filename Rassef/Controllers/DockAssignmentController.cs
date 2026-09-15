@@ -1,4 +1,4 @@
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class DockAssignmentController : Controller
     {
@@ -258,7 +258,7 @@ namespace Rassef.Controllers
 
         private async Task<CreateDockAssignmentVM> PopulateCreateDropdownsAsync(CreateDockAssignmentVM vm)
         {
-            var docks = await _dockRepository.GetAllAsync();
+            var docks = await GetScopedDocksAsync();
             var tickets = await _ticketRepository.GetAllAsync();
 
             vm.Docks = docks.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.DockName });
@@ -269,7 +269,7 @@ namespace Rassef.Controllers
 
         private async Task<UpdateDockAssignmentVM> PopulateUpdateDropdownsAsync(UpdateDockAssignmentVM vm)
         {
-            var docks = await _dockRepository.GetAllAsync();
+            var docks = await GetScopedDocksAsync();
             var tickets = await _ticketRepository.GetAllAsync();
 
             vm.Docks = docks.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.DockName });
@@ -279,5 +279,20 @@ namespace Rassef.Controllers
         }
 
         #endregion
+
+        /// <summary>
+        /// Feature 3 — docks offered to the user are limited to the warehouse they
+        /// are currently working in. Null selection falls through unfiltered, same
+        /// convention the rest of the app uses. Soft-deleted docks are excluded.
+        /// </summary>
+        private async Task<IReadOnlyList<Dock>> GetScopedDocksAsync()
+        {
+            var selectedWarehouseId = Request.GetSelectedWarehouseId();
+
+            return await _dockRepository.GetAllAsync(q => q
+                .Where(d => !d.IsDeleted)
+                .Where(d => selectedWarehouseId == null || d.WarehouseId == selectedWarehouseId.Value));
+        }
+
     }
 }
