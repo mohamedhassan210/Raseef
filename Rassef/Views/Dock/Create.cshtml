@@ -13,19 +13,88 @@
 <link rel="stylesheet" href="~/css/companyCars.css" asp-append-version="true">
 
 <style>
-    .custom-dropdown { position: relative; width: 100%; font-family: 'IBM Plex Sans Arabic', sans-serif; }
-    .custom-dropdown .dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border: 1.5px solid #e8c8a8; border-radius: 12px; background: #fff; cursor: pointer; user-select: none; font-size: 15px; min-height: 44px; }
-    .custom-dropdown .dropdown-header:hover { border-color: var(--primary-color, #E67E22); }
-    .custom-dropdown .dropdown-arrow { transition: transform 0.2s; width: 18px; height: 18px; flex-shrink: 0; }
-    .custom-dropdown.open .dropdown-arrow { transform: rotate(180deg); }
-    .custom-dropdown .dropdown-list { display: none; position: absolute; top: calc(100% + 4px); right: 0; left: 0; background: #fff; border: 1.5px solid #e8c8a8; border-radius: 12px; z-index: 200; max-height: 220px; overflow-y: auto; box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
-    .custom-dropdown.open .dropdown-list { display: block; }
-    .custom-dropdown .dropdown-list .dropdown-item { padding: 10px 16px; cursor: pointer; font-size: 15px; border-bottom: 1px solid #faede2; transition: background 0.15s; }
-    .custom-dropdown .dropdown-list .dropdown-item:last-child { border-bottom: none; }
-    .custom-dropdown .dropdown-list .dropdown-item:hover { background: #fdf1e7; }
-    .custom-dropdown .dropdown-list .dropdown-item.selected { background: #fde8cb; font-weight: 700; }
-    .placeholder-color { color: #aaa; }
-    .selected-value    { color: #333; }
+    .custom-dropdown {
+        position: relative;
+        width: 100%;
+        font-family: 'IBM Plex Sans Arabic', sans-serif;
+    }
+
+        .custom-dropdown .dropdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            border: 1.5px solid #e8c8a8;
+            border-radius: 12px;
+            background: #fff;
+            cursor: pointer;
+            user-select: none;
+            font-size: 15px;
+            min-height: 44px;
+        }
+
+            .custom-dropdown .dropdown-header:hover {
+                border-color: var(--primary-color, #E67E22);
+            }
+
+        .custom-dropdown .dropdown-arrow {
+            transition: transform 0.2s;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .custom-dropdown.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .custom-dropdown .dropdown-list {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            left: 0;
+            background: #fff;
+            border: 1.5px solid #e8c8a8;
+            border-radius: 12px;
+            z-index: 200;
+            max-height: 220px;
+            overflow-y: auto;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+        }
+
+        .custom-dropdown.open .dropdown-list {
+            display: block;
+        }
+
+        .custom-dropdown .dropdown-list .dropdown-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 15px;
+            border-bottom: 1px solid #faede2;
+            transition: background 0.15s;
+        }
+
+            .custom-dropdown .dropdown-list .dropdown-item:last-child {
+                border-bottom: none;
+            }
+
+            .custom-dropdown .dropdown-list .dropdown-item:hover {
+                background: #fdf1e7;
+            }
+
+            .custom-dropdown .dropdown-list .dropdown-item.selected {
+                background: #fde8cb;
+                font-weight: 700;
+            }
+
+    .placeholder-color {
+        color: #aaa;
+    }
+
+    .selected-value {
+        color: #333;
+    }
 </style>
 
 <main class="page-container">
@@ -107,16 +176,23 @@
                         {
                             foreach (var d in Model.Departments)
                             {
-                                <option value="@d.Value">@d.Text</option>
+                                var deptWarehouseId = (Model.DepartmentWarehouseMap != null
+                                && int.TryParse(d.Value, out var deptId)
+                                && Model.DepartmentWarehouseMap.TryGetValue(deptId, out var whId))
+                                ? whId.ToString()
+                                : "";
+                                <option value="@d.Value" data-warehouse="@deptWarehouseId">@d.Text</option>
                             }
                         }
                     </select>
                     <div class="custom-dropdown" id="departmentDropdown">
                         <div class="dropdown-header" id="departmentDropdownHeader">
-                            <span class="selected-value placeholder-color" id="departmentSelectedText">اختر القسم</span>
+                            <span class="selected-value placeholder-color" id="departmentSelectedText">اختر المستودع أولاً</span>
                             <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#e47925" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
                         </div>
-                        <div class="dropdown-list" id="departmentDropdownList"></div>
+                        <div class="dropdown-list" id="departmentDropdownList">
+                            <div class="dropdown-item" id="departmentNoOptions" style="color:#aaa; cursor: default;">اختر المستودع أولاً لعرض الأقسام التابعة له</div>
+                        </div>
                     </div>
                     <span asp-validation-for="DepartmentId" class="text-danger"></span>
                 </div>
@@ -153,10 +229,15 @@
 </main>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 
     <script>
-        function setupDropdown(selectId, dropdownId, headerId, listId, selectedTextId) {
+        // onChange(value) — optional, called right after the hidden <select>'s value is
+        // updated by a click, so callers (e.g. the warehouse dropdown) can react to the
+        // new selection without wiring up a native 'change' event on a hidden element.
+        function setupDropdown(selectId, dropdownId, headerId, listId, selectedTextId, onChange) {
             const select       = document.getElementById(selectId);
             const dropdown     = document.getElementById(dropdownId);
             const header       = document.getElementById(headerId);
@@ -170,6 +251,9 @@
                 item.className = 'dropdown-item' + (opt.selected ? ' selected' : '');
                 item.textContent = opt.text;
                 item.dataset.value = opt.value;
+                if (opt.dataset.warehouse) {
+                    item.dataset.warehouse = opt.dataset.warehouse;
+                }
                 item.addEventListener('click', () => {
                     select.value = opt.value;
                     selectedText.textContent = opt.text;
@@ -178,6 +262,7 @@
                     list.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
                     item.classList.add('selected');
                     dropdown.classList.remove('open');
+                    if (onChange) onChange(opt.value);
                 });
                 list.appendChild(item);
             });
@@ -196,10 +281,58 @@
             });
         }
 
+        // Feature — filters the department dropdown-list down to the departments that
+        // belong to the currently selected warehouse. If nothing is selected, every
+        // department item is hidden and a "pick a warehouse first" row is shown instead.
+        function filterDepartmentsByWarehouse(warehouseId) {
+            const departmentSelect       = document.getElementById('departmentSelect');
+            const departmentList         = document.getElementById('departmentDropdownList');
+            const departmentSelectedText = document.getElementById('departmentSelectedText');
+            const noOptionsRow           = document.getElementById('departmentNoOptions');
+            if (!departmentSelect || !departmentList || !departmentSelectedText) return;
+
+            const items = departmentList.querySelectorAll('.dropdown-item[data-value]');
+            let visibleCount = 0;
+            let selectedStillValid = false;
+
+            items.forEach(item => {
+                const matches = !!warehouseId && item.dataset.warehouse === warehouseId;
+                item.style.display = matches ? '' : 'none';
+                if (matches) {
+                    visibleCount++;
+                    if (departmentSelect.value === item.dataset.value) selectedStillValid = true;
+                }
+            });
+
+            if (noOptionsRow) {
+                if (!warehouseId) {
+                    noOptionsRow.textContent = 'اختر المستودع أولاً لعرض الأقسام التابعة له';
+                    noOptionsRow.style.display = '';
+                } else if (visibleCount === 0) {
+                    noOptionsRow.textContent = 'لا توجد أقسام في هذا المستودع';
+                    noOptionsRow.style.display = '';
+                } else {
+                    noOptionsRow.style.display = 'none';
+                }
+            }
+
+            // The previously chosen department may belong to a different warehouse now —
+            // clear it rather than silently submitting a department/warehouse mismatch.
+            if (!selectedStillValid) {
+                departmentSelect.value = '';
+                departmentSelectedText.textContent = warehouseId ? 'اختر القسم' : 'اختر المستودع أولاً';
+                departmentSelectedText.classList.remove('selected-value');
+                departmentSelectedText.classList.add('placeholder-color');
+                items.forEach(i => i.classList.remove('selected'));
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            setupDropdown('warehouseSelect',  'warehouseDropdown',  'warehouseDropdownHeader',  'warehouseDropdownList',  'warehouseSelectedText');
+            setupDropdown('warehouseSelect',  'warehouseDropdown',  'warehouseDropdownHeader',  'warehouseDropdownList',  'warehouseSelectedText', filterDepartmentsByWarehouse);
             setupDropdown('departmentSelect', 'departmentDropdown', 'departmentDropdownHeader', 'departmentDropdownList', 'departmentSelectedText');
             setupDropdown('statusSelect',     'statusDropdown',     'statusDropdownHeader',     'statusDropdownList',     'statusSelectedText');
+
+            filterDepartmentsByWarehouse(document.getElementById('warehouseSelect').value);
         });
     </script>
 }

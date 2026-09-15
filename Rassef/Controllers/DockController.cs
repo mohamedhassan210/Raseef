@@ -409,7 +409,8 @@ namespace Rassef.Controllers
 
         private async Task<(IEnumerable<SelectListItem> Depts,
                              IEnumerable<SelectListItem> Warehouses,
-                             IEnumerable<SelectListItem> Statuses)> GetDropdownDataAsync()
+                             IEnumerable<SelectListItem> Statuses,
+                             Dictionary<int, int> DeptWarehouseMap)> GetDropdownDataAsync()
         {
             // D1 — filter soft-deleted from all three dropdown sources
             var departments = await _departmentRepo.GetAllAsync(
@@ -419,10 +420,15 @@ namespace Rassef.Controllers
             var statuses = await _statusRepo.GetAllAsync(
                 q => q.Where(s => !s.IsDeleted));   // see Q2 if DockStatuses has no IsDeleted
 
+            // Feature — department -> warehouse lookup so Create.cshtml can filter the
+            // department dropdown down to whichever warehouse is selected.
+            var deptWarehouseMap = departments.ToDictionary(d => d.Id, d => d.WarehouseId);
+
             return (
                 departments.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name }),
                 warehouses.Select(w => new SelectListItem { Value = w.Id.ToString(), Text = w.Name }),
-                statuses.Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
+                statuses.Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name }),
+                deptWarehouseMap
             );
         }
 
@@ -432,6 +438,7 @@ namespace Rassef.Controllers
             vm.Departments = data.Depts;
             vm.Warehouses = data.Warehouses;
             vm.DockStatus = data.Statuses;
+            vm.DepartmentWarehouseMap = data.DeptWarehouseMap;
             return vm;
         }
 

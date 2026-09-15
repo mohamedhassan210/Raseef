@@ -1,5 +1,4 @@
-﻿
-namespace Rassef.ViewModels.Dock
+﻿namespace Rassef.ViewModels.Dock
 {
     public class CreateDockVM
     {
@@ -23,5 +22,9 @@ namespace Rassef.ViewModels.Dock
 
         // Status DropDown
         public IEnumerable<SelectListItem>? DockStatus { get; set; }
+
+        // Feature — department (Id) -> warehouse (Id) lookup, used client-side to
+        // filter the department dropdown down to the selected warehouse.
+        public Dictionary<int, int>? DepartmentWarehouseMap { get; set; }
     }
 }
