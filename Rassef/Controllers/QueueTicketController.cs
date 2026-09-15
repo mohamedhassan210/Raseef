@@ -12,6 +12,7 @@ namespace Rassef.Controllers
         private readonly IRepository<SupplierRequest> _supplierRequestRepository;
         private readonly IRepository<QueueSettings> _queueSettingsRepository;
         private readonly IRepository<Shift> _shiftRepository;
+        private readonly IRepository<Dock> _dockRepository;
         private readonly IUserRepository _userRepository;
         private readonly ITicketEngineService _ticketEngineService;
 
@@ -23,6 +24,7 @@ namespace Rassef.Controllers
             IRepository<TicketStatuses> ticketStatusRepository,
             IRepository<TransferRequest> transferRequestRepository,
             IRepository<SupplierRequest> supplierRequestRepository,
+            IRepository<Dock> dockRepository,
             IUserRepository userRepository,
             ITicketEngineService ticketEngineService)
         {
@@ -33,6 +35,7 @@ namespace Rassef.Controllers
             _supplierRequestRepository = supplierRequestRepository;
             _queueSettingsRepository = queueSettingsRepository;
             _shiftRepository = shiftRepository;
+            _dockRepository = dockRepository;
             _userRepository = userRepository;
             _ticketEngineService = ticketEngineService;
         }
@@ -55,67 +58,33 @@ namespace Rassef.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> LiveQueue()
         {
-            var ticketsList = await _ticketRepository.GetAllAsync(query => query
-                .Include(t => t.Department)
-                .Include(t => t.TicketStatus)
-                .Include(t => t.Shift)
-                .Include(t => t.SupplierRequest!)
-                    .ThenInclude(sr => sr!.Supplier)
-                .Include(t => t.SupplierRequest!)
-                    .ThenInclude(sr => sr!.Driver)
-                .Include(t => t.SupplierRequest!)
-                    .ThenInclude(sr => sr!.Truck)
-                .Include(t => t.TransferRequest!)
-                    .ThenInclude(tr => tr!.Driver)
-                .Include(t => t.TransferRequest!)
-                    .ThenInclude(tr => tr!.Truck)
-                .Include(t => t.DockAssignments!)
-                    .ThenInclude(da => da.Dock)
-            );
+            var selectedWarehouseId = Request.GetSelectedWarehouseId();
 
-            var ticketViewModels = ticketsList.Select(t =>
-            {
-                var dockAssignment = t.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
-                bool isSupplier = t.SupplierRequestId != null || t.SupplierRequest != null;
-                string reqType = isSupplier ? "توريد" : "تحويل";
-                string company = isSupplier ? (t.SupplierRequest?.Supplier?.Name ?? "غير محدد") : "تحويل داخلي";
+            var ticketsList = await GetTicketsForLiveBoardAsync();
+            var scopedTickets = selectedWarehouseId.HasValue
+                ? ticketsList.Where(t => t.Department != null && t.Department.WarehouseId == selectedWarehouseId.Value).ToList()
+                : ticketsList;
 
-                return new QueueTicketListVM
-                {
-                    Id = t.Id,
-                    TicketNumber = t.TicketNumber ?? "A1",
-                    TicketStatusName = t.TicketStatus != null ? t.TicketStatus.Name : "إنتظار",
-                    DriverName = t.SupplierRequest?.Driver?.FullName ?? t.TransferRequest?.Driver?.FullName ?? "غير محدد",
-                    TruckNumber = t.SupplierRequest?.Truck != null ? $"{t.SupplierRequest.Truck.PlateLetter} {t.SupplierRequest.Truck.PlateNumber}" : (t.TransferRequest?.Truck != null ? $"{t.TransferRequest.Truck.PlateLetter} {t.TransferRequest.Truck.PlateNumber}" : "غير محدد"),
-                    DepartmentName = t.Department?.Name ?? "غير محدد",
-                    DockName = dockAssignment?.Dock?.DockName ?? "A1",
-                    RequestType = reqType,
-                    CompanyName = company,
-                    QueueTime = t.QueueTime,
-                    EntryTime = t.EntryTime != DateTimeOffset.MinValue ? t.EntryTime : t.CreatedAT,
-                    ExitTime = t.ExitTime
-                };
-            }).ToList();
+            var ticketViewModels = scopedTickets.Select(MapToListVM).ToList();
 
             int waitingCount = 0, inProgressCount = 0, completedCount = 0;
             foreach (var t in ticketViewModels)
             {
                 var s = t.TicketStatusName.Replace("إ", "ا").Trim();
-                if (s.Contains("انتظار") || s.Contains("طابور") || s.Contains("معلق"))
-                    waitingCount++;
-                else if (s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل"))
+                if (s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل"))
                     inProgressCount++;
                 else if (s.Contains("تم") || s.Contains("مكتمل") || s.Contains("منتهي") || s.Contains("خروج"))
                     completedCount++;
+                else
+                    waitingCount++;
             }
 
             int GetStatusPriority(string statusName)
             {
                 var s = statusName.Replace("إ", "ا").Trim();
                 if (s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل")) return 1;
-                if (s.Contains("انتظار") || s.Contains("طابور") || s.Contains("معلق")) return 2;
                 if (s.Contains("تم") || s.Contains("مكتمل") || s.Contains("منتهي") || s.Contains("خروج")) return 3;
-                return 4;
+                return 2;
             }
 
             var orderedViewModels = ticketViewModels
@@ -123,44 +92,7 @@ namespace Rassef.Controllers
                 .ThenByDescending(t => t.Id)
                 .ToList();
 
-            var dockLetters = new[] { "A", "B", "C", "D", "E", "F" };
-            var dockNames = new[] { "رصيف 1", "رصيف 2", "رصيف 3", "رصيف 4", "رصيف 5", "رصيف 6" };
-
-            var inProgressList = ticketViewModels.Where(t =>
-            {
-                var s = t.TicketStatusName.Replace("إ", "ا").Trim();
-                return s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل");
-            }).OrderByDescending(t => t.EntryTime).ToList();
-
-            var waitingList = ticketViewModels.Where(t =>
-            {
-                var s = t.TicketStatusName.Replace("إ", "ا").Trim();
-                bool isDone = s.Contains("تم") || s.Contains("مكتمل") || s.Contains("خروج") || s.Contains("منتهي");
-                bool isActive = s.Contains("جاري") || s.Contains("تنفيذ");
-                return !isDone && !isActive;
-            }).OrderBy(t => t.QueueTime).ToList();
-
-            var dockCards = new List<LiveDockCardVM>();
-            for (int i = 0; i < 6; i++)
-            {
-                string letter = dockLetters[i];
-                string name = dockNames[i];
-
-                var currentTicket = inProgressList.FirstOrDefault(t => t.DockName.Contains((i + 1).ToString()) || t.DockName.Contains(letter))
-                    ?? (inProgressList.Count > i ? inProgressList[i] : null);
-
-                var nextTicket = waitingList.FirstOrDefault(t => t.DockName.Contains((i + 1).ToString()) || t.DockName.Contains(letter))
-                    ?? (waitingList.Count > i ? waitingList[i] : null);
-
-                dockCards.Add(new LiveDockCardVM
-                {
-                    DockLetter = letter,
-                    DockName = name,
-                    CurrentTicketNumber = currentTicket?.TicketNumber ?? (inProgressList.FirstOrDefault()?.TicketNumber ?? "A265"),
-                    NextTicketNumber = nextTicket?.TicketNumber ?? (waitingList.FirstOrDefault()?.TicketNumber ?? "A266"),
-                    Status = currentTicket != null ? "جاري" : "إنتظار"
-                });
-            }
+            var dockCards = await BuildLiveDockCardsAsync(scopedTickets, selectedWarehouseId);
 
             var viewModel = new QueueTicketIndexVM
             {
@@ -178,67 +110,155 @@ namespace Rassef.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetLiveDisplayData()
         {
-            var ticketsList = await _ticketRepository.GetAllAsync(query => query
-                .Include(t => t.Department)
+            var selectedWarehouseId = Request.GetSelectedWarehouseId();
+
+            var ticketsList = await GetTicketsForLiveBoardAsync();
+            var scopedTickets = selectedWarehouseId.HasValue
+                ? ticketsList.Where(t => t.Department != null && t.Department.WarehouseId == selectedWarehouseId.Value).ToList()
+                : ticketsList;
+
+            var dockCards = await BuildLiveDockCardsAsync(scopedTickets, selectedWarehouseId);
+
+            var payload = dockCards.Select(d => new
+            {
+                dockLetter = d.DockLetter,
+                dockName = d.DockName,
+                departmentName = d.DepartmentName,
+                warehouseName = d.WarehouseName,
+                currentTicketNumber = d.CurrentTicketNumber,
+                nextTicketNumber = d.NextTicketNumber,
+                status = d.Status
+            });
+
+            return Json(new { success = true, dockCards = payload });
+        }
+
+        /// <summary>
+        /// Loads tickets with everything the live board / dock cards need, including the
+        /// real dock each ticket is assigned to (via its latest DockAssignment) and the
+        /// department's warehouse (needed to scope the board to the selected warehouse).
+        /// </summary>
+        private async Task<List<QueueTicket>> GetTicketsForLiveBoardAsync()
+        {
+            var tickets = await _ticketRepository.GetAllAsync(query => query
+                .Include(t => t.Department!)
+                    .ThenInclude(d => d.Warehouse)
                 .Include(t => t.TicketStatus)
+                .Include(t => t.Shift)
+                .Include(t => t.SupplierRequest!)
+                    .ThenInclude(sr => sr!.Supplier)
+                .Include(t => t.SupplierRequest!)
+                    .ThenInclude(sr => sr!.Driver)
+                .Include(t => t.SupplierRequest!)
+                    .ThenInclude(sr => sr!.Truck)
+                .Include(t => t.TransferRequest!)
+                    .ThenInclude(tr => tr!.Driver)
+                .Include(t => t.TransferRequest!)
+                    .ThenInclude(tr => tr!.Truck)
                 .Include(t => t.DockAssignments!)
                     .ThenInclude(da => da.Dock)
             );
 
-            var ticketViewModels = ticketsList.Select(t =>
+            return tickets.ToList();
+        }
+
+        private static QueueTicketListVM MapToListVM(QueueTicket t)
+        {
+            var dockAssignment = t.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
+            bool isSupplier = t.SupplierRequestId != null || t.SupplierRequest != null;
+            string reqType = isSupplier ? "توريد" : "تحويل";
+            string company = isSupplier ? (t.SupplierRequest?.Supplier?.Name ?? "غير محدد") : "تحويل داخلي";
+
+            return new QueueTicketListVM
             {
-                var dockAssignment = t.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
-                return new
+                Id = t.Id,
+                TicketNumber = t.TicketNumber ?? "A1",
+                TicketStatusName = t.TicketStatus != null ? t.TicketStatus.Name : "إنتظار",
+                DriverName = t.SupplierRequest?.Driver?.FullName ?? t.TransferRequest?.Driver?.FullName ?? "غير محدد",
+                TruckNumber = t.SupplierRequest?.Truck != null ? $"{t.SupplierRequest.Truck.PlateLetter} {t.SupplierRequest.Truck.PlateNumber}" : (t.TransferRequest?.Truck != null ? $"{t.TransferRequest.Truck.PlateLetter} {t.TransferRequest.Truck.PlateNumber}" : "غير محدد"),
+                DepartmentName = t.Department?.Name ?? "غير محدد",
+                DockName = dockAssignment?.Dock?.DockName ?? "A1",
+                RequestType = reqType,
+                CompanyName = company,
+                QueueTime = t.QueueTime,
+                EntryTime = t.EntryTime != DateTimeOffset.MinValue ? t.EntryTime : t.CreatedAT,
+                ExitTime = t.ExitTime
+            };
+        }
+
+        private static bool IsInProgressStatus(QueueTicket t)
+        {
+            var s = (t.TicketStatus?.Name ?? "").Replace("إ", "ا").Trim();
+            return s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل");
+        }
+
+        private static bool IsCompletedStatus(QueueTicket t)
+        {
+            var s = (t.TicketStatus?.Name ?? "").Replace("إ", "ا").Trim();
+            return s.Contains("تم") || s.Contains("مكتمل") || s.Contains("خروج") || s.Contains("منتهي");
+        }
+
+        /// <summary>
+        /// Builds one card per REAL dock (from the Docks table, scoped to the selected
+        /// warehouse), instead of six hardcoded letters guessed from string matching.
+        /// Each ticket is matched to its card purely through its own DockAssignment —
+        /// the same relationship the rest of the app (dock assignment on ticket
+        /// creation, CallStation, exit gate) already relies on — so a dock only ever
+        /// shows a ticket that is actually assigned to it, and never borrows another
+        /// dock's ticket as a fallback.
+        /// </summary>
+        private async Task<List<LiveDockCardVM>> BuildLiveDockCardsAsync(List<QueueTicket> scopedTickets, int? selectedWarehouseId)
+        {
+            var docks = await _dockRepository.GetAllAsync(q => q
+                .Include(d => d.Department)
+                .Include(d => d.Warehouse)
+                .Where(d => !d.IsDeleted)
+                .Where(d => selectedWarehouseId == null || d.WarehouseId == selectedWarehouseId.Value)
+                .OrderBy(d => d.DockName));
+
+            var ticketsByDock = scopedTickets
+                .Select(t => new
                 {
-                    Id = t.Id,
-                    TicketNumber = t.TicketNumber ?? "A1",
-                    TicketStatusName = t.TicketStatus != null ? t.TicketStatus.Name : "إنتظار",
-                    DockName = dockAssignment?.Dock?.DockName ?? "A1",
-                    QueueTime = t.QueueTime,
-                    EntryTime = t.EntryTime
-                };
-            }).ToList();
+                    Ticket = t,
+                    DockId = t.DockAssignments?.OrderByDescending(a => a.AssignedAt).FirstOrDefault()?.DockId
+                })
+                .Where(x => x.DockId.HasValue)
+                .ToLookup(x => x.DockId!.Value, x => x.Ticket);
 
-            var dockLetters = new[] { "A", "B", "C", "D", "E", "F" };
-            var dockNames = new[] { "رصيف 1", "رصيف 2", "رصيف 3", "رصيف 4", "رصيف 5", "رصيف 6" };
+            const string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            var cards = new List<LiveDockCardVM>();
+            int index = 0;
 
-            var inProgressList = ticketViewModels.Where(t =>
+            foreach (var dock in docks)
             {
-                var s = t.TicketStatusName.Replace("إ", "ا").Trim();
-                return s.Contains("جاري") || s.Contains("تنفيذ") || s.Contains("تشغيل");
-            }).OrderByDescending(t => t.EntryTime).ToList();
+                var ticketsForDock = ticketsByDock[dock.Id];
 
-            var waitingList = ticketViewModels.Where(t =>
-            {
-                var s = t.TicketStatusName.Replace("إ", "ا").Trim();
-                bool isDone = s.Contains("تم") || s.Contains("مكتمل") || s.Contains("خروج") || s.Contains("منتهي");
-                bool isActive = s.Contains("جاري") || s.Contains("تنفيذ");
-                return !isDone && !isActive;
-            }).OrderBy(t => t.QueueTime).ToList();
+                var currentTicket = ticketsForDock
+                    .Where(IsInProgressStatus)
+                    .OrderByDescending(t => t.EntryTime != DateTimeOffset.MinValue ? t.EntryTime : t.CreatedAT)
+                    .FirstOrDefault();
 
-            var dockCards = new List<object>();
-            for (int i = 0; i < 6; i++)
-            {
-                string letter = dockLetters[i];
-                string name = dockNames[i];
+                var nextTicket = ticketsForDock
+                    .Where(t => !IsInProgressStatus(t) && !IsCompletedStatus(t))
+                    .OrderBy(t => t.QueueTime)
+                    .ThenBy(t => t.Id)
+                    .FirstOrDefault();
 
-                var currentTicket = inProgressList.FirstOrDefault(t => t.DockName.Contains((i + 1).ToString()) || t.DockName.Contains(letter))
-                    ?? (inProgressList.Count > i ? inProgressList[i] : null);
-
-                var nextTicket = waitingList.FirstOrDefault(t => t.DockName.Contains((i + 1).ToString()) || t.DockName.Contains(letter))
-                    ?? (waitingList.Count > i ? waitingList[i] : null);
-
-                dockCards.Add(new
+                cards.Add(new LiveDockCardVM
                 {
-                    dockLetter = letter,
-                    dockName = name,
-                    currentTicketNumber = currentTicket?.TicketNumber ?? (inProgressList.FirstOrDefault()?.TicketNumber ?? "A265"),
-                    nextTicketNumber = nextTicket?.TicketNumber ?? (waitingList.FirstOrDefault()?.TicketNumber ?? "A266"),
-                    status = currentTicket != null ? "جاري" : "إنتظار"
+                    DockLetter = letters[index % letters.Length].ToString(),
+                    DockName = dock.DockName,
+                    DepartmentName = dock.Department?.Name ?? "—",
+                    WarehouseName = dock.Warehouse?.Name ?? "—",
+                    CurrentTicketNumber = currentTicket?.TicketNumber ?? "—",
+                    NextTicketNumber = nextTicket?.TicketNumber ?? "—",
+                    Status = currentTicket != null ? "جاري" : "إنتظار"
                 });
+
+                index++;
             }
 
-            return Json(new { success = true, dockCards });
+            return cards;
         }
 
         [HttpGet]

@@ -145,6 +145,65 @@ body {
     flex: 1;
 }
 
+/* Department & Warehouse meta row — same font-family/weight as the rest of the
+   card's labels (role-divider-label), just muted so it stays secondary to the
+   ticket numbers. */
+.dock-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 14px;
+}
+
+.dock-meta-item {
+    font-family: var(--font-arabic);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.dock-meta-item i {
+    color: var(--primary-color);
+    font-size: 12px;
+}
+
+.dock-meta-separator {
+    font-family: var(--font-arabic);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--border-soft);
+}
+
+/* Empty state when no docks are configured (or none in the selected warehouse) */
+.docks-empty-state {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 80px 20px;
+    color: var(--text-muted);
+    font-family: var(--font-arabic);
+}
+
+.docks-empty-state i {
+    font-size: 48px;
+    color: var(--border-soft);
+}
+
+.docks-empty-state p {
+    font-size: 20px;
+    font-weight: 700;
+}
+
 /* Current Role Subtitle with Lines */
 .current-role-divider {
     display: flex;

@@ -39,11 +39,10 @@ namespace Rassef.Services
             if (_isAdmin)
                 return true;
 
-            // Same hard denylist PermissionAuthorizeFilter enforces — a granted
-            // GroupPermission row can never open these up for a non-admin.
-            if (PermissionPolicy.AdminOnlyControllers.Contains(controller))
-                return false;
-
+            // Same rule PermissionAuthorizeFilter enforces: no controller is hardcoded to
+            // deny. A group's access is entirely driven by the GroupPermission rows actually
+            // granted to it — including for Administration/Group/Shift/QueueSettings, which
+            // are just as grantable per-action as any other controller via Group/ManagePermissions.
             return _keys.Contains($"{controller}|{action}");
         }
 

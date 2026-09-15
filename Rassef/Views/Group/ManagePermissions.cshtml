@@ -1,4 +1,5 @@
 @model Rassef.ViewModels.Authentication.Identity.GroupPermissionsViewModel
+@using Rassef.Common.Helpers
 @{
     Layout = null;
     ViewData["Title"] = "إدارة صلاحيات";
@@ -73,6 +74,13 @@
                 <input type="hidden" asp-for="GroupId" />
                 <input type="hidden" asp-for="GroupName" />
 
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                    <button type="button" id="btnToggleSelectAll" class="btn-add-group" onclick="toggleSelectAllPermissions()">
+                        <i class="fas fa-check-double"></i>
+                        <span>تحديد الكل</span>
+                    </button>
+                </div>
+
                 <div class="accordions-container">
                     @if (Model.Controllers != null && Model.Controllers.Any())
                     {
@@ -109,7 +117,7 @@
                                             <span>الكل</span>
                                         </label>
                                         <i class="fas @iconClass accordion-title-icon"></i>
-                                        <span>@ctrl.ControllerName</span>
+                                        <span>@PermissionDisplayNames.GetControllerDisplayName(ctrl.ControllerName)</span>
                                     </div>
                                     <div class="controller-header-left">
                                         <i class="fas fa-chevron-down accordion-chevron"></i>
@@ -134,7 +142,7 @@
                                                        value="true"
                                                        onchange="onActionCheckChanged(@i)"
                                                        @(act.IsSelected ? "checked" : "") />
-                                                <span>@act.ActionName</span>
+                                                <span>@PermissionDisplayNames.GetActionDisplayName(ctrl.ControllerName, act.ActionName)</span>
                                             </label>
                                         }
                                     </div>
@@ -158,6 +166,47 @@
 
     <!-- ACCORDION & CHECKBOX SYNC SCRIPTS -->
     <script>
+        function getAllActionCheckboxes() {
+            // Matches only the real (submitted) permission checkboxes, by their name suffix —
+            // the per-controller "الكل" master checkboxes have no name attribute at all
+            // (they're UI-only, never posted), so this selector can't accidentally include them.
+            return document.querySelectorAll('input[type="checkbox"][name$=".IsSelected"]');
+        }
+
+        function refreshGlobalToggleButtonState() {
+            const button = document.getElementById('btnToggleSelectAll');
+            if (!button) return;
+
+            const checkboxes = Array.from(getAllActionCheckboxes());
+            const allChecked = checkboxes.length > 0 && checkboxes.every(cb => cb.checked);
+
+            const icon = button.querySelector('i');
+            const label = button.querySelector('span');
+            if (allChecked) {
+                icon.className = 'fas fa-times';
+                label.textContent = 'إلغاء تحديد الكل';
+            } else {
+                icon.className = 'fas fa-check-double';
+                label.textContent = 'تحديد الكل';
+            }
+        }
+
+        function toggleSelectAllPermissions() {
+            const checkboxes = getAllActionCheckboxes();
+            const allCurrentlyChecked = Array.from(checkboxes).every(cb => cb.checked);
+            const nextState = !allCurrentlyChecked;
+
+            checkboxes.forEach(cb => { cb.checked = nextState; });
+
+            // Re-sync every controller's own master checkbox (checked/indeterminate/unchecked)
+            // now that its actions changed in bulk.
+            document.querySelectorAll('.controller-master-checkbox').forEach(mb => {
+                onActionCheckChanged(mb.getAttribute('data-index'));
+            });
+
+            refreshGlobalToggleButtonState();
+        }
+
         function toggleAccordion(index) {
             const card = document.getElementById(`accordion-${index}`);
             const body = document.getElementById(`body-${index}`);
@@ -176,6 +225,8 @@
             actionChecks.forEach(cb => {
                 cb.checked = isChecked;
             });
+
+            refreshGlobalToggleButtonState();
         }
 
         function onActionCheckChanged(index) {
@@ -196,6 +247,8 @@
                 masterCheckbox.checked = false;
                 masterCheckbox.indeterminate = false;
             }
+
+            refreshGlobalToggleButtonState();
         }
 
         // Initialize checkboxes state on page load
@@ -205,6 +258,8 @@
                 const index = mb.getAttribute('data-index');
                 onActionCheckChanged(index);
             });
+
+            refreshGlobalToggleButtonState();
         });
     </script>
 </body>

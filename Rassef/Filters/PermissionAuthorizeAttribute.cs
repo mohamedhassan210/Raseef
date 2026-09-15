@@ -108,27 +108,35 @@ namespace Rassef.Filters
             if (isAdmin)
                 return;
 
-            // 8. Non-admin: block access to admin-only dashboard controllers
-            if (PermissionPolicy.AdminOnlyControllers.Contains(currentController))
-            {
-                DenyAccess(context, currentController, currentAction);
-                return;
-            }
-
-            // 9. Non-admin: allow access to all other controllers freely
-            //    (group-based granular permissions are optional; if no specific permission is
-            //     required the user passes through; if a specific permission IS required,
-            //     verify it via the group's GroupPermissions)
+            // 8. Decide whether this request needs a real, granular GroupPermission check.
             //
-            //    If the attribute was applied WITHOUT specifying a controller/action (i.e. bare
-            //    [PermissionAuthorize]), we simply allow any authenticated non-admin user through.
-            if (string.IsNullOrWhiteSpace(_requiredController) && string.IsNullOrWhiteSpace(_requiredAction))
+            //    The attribute has two usage styles in this codebase:
+            //      a) [PermissionAuthorize("Controller", "Action")] / [PermissionAuthorize("Controller")]
+            //         — an explicit permission key was given, so we always check it.
+            //      b) bare [PermissionAuthorize] — normally means "any authenticated user is
+            //         fine, no specific permission needed" (e.g. the general navigation actions
+            //         on AuthenticationController). BUT a handful of controllers
+            //         (PermissionPolicy.ExplicitPermissionControllers) are decorated with the bare
+            //         form purely for convenience while their actions are still meant to be
+            //         individually grantable per group via Group/ManagePermissions — Administration,
+            //         Group, Shift, QueueSettings. For those, we still resolve the real
+            //         controller/action from the route and check it for real, instead of letting
+            //         every authenticated user through and instead of hardcoding a blanket deny.
+            bool needsGranularCheck =
+                !string.IsNullOrWhiteSpace(_requiredController) ||
+                !string.IsNullOrWhiteSpace(_requiredAction) ||
+                PermissionPolicy.ExplicitPermissionControllers.Contains(currentController);
+
+            if (!needsGranularCheck)
             {
-                // No specific permission required — authenticated user is allowed
+                // Bare [PermissionAuthorize] on a controller that isn't one of the
+                // explicit-permission controllers — authenticated user is allowed.
                 return;
             }
 
-            // 10. A specific permission was requested — check group permissions
+            // 9. A specific permission is required — check the user's group permissions.
+            //    No controller is ever hardcoded to deny here; access is entirely driven by
+            //    whatever GroupPermission rows have actually been granted to the user's group.
             if (user.Group == null)
             {
                 // No group assigned — deny the specific-permission endpoint

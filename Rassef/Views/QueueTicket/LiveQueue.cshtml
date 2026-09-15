@@ -54,6 +54,13 @@
 
                         <!-- Card Body -->
                         <div class="dock-card-body">
+                            <!-- Department & Warehouse (same font style as the rest of the card's labels) -->
+                            <div class="dock-meta-row">
+                                <span class="dock-meta-item"><i class="fas fa-building"></i> @dock.DepartmentName</span>
+                                <span class="dock-meta-separator">•</span>
+                                <span class="dock-meta-item"><i class="fas fa-warehouse"></i> @dock.WarehouseName</span>
+                            </div>
+
                             <!-- Role Subtitle Divider -->
                             <div class="current-role-divider">
                                 <span class="role-divider-line"></span>
@@ -84,32 +91,12 @@
             }
             else
             {
-                <!-- Default 6 Fallback Docks -->
-                var fallbackLetters = new[] { "A", "B", "C", "D", "E", "F" };
-                foreach (var letter in fallbackLetters)
-                {
-                    <div class="dock-card-board">
-                        <div class="dock-letter-badge">
-                            <span>@letter</span>
-                        </div>
-                        <div class="dock-card-header">
-                            <h3 class="dock-name-title">رصيف 5</h3>
-                        </div>
-                        <div class="dock-card-body">
-                            <div class="current-role-divider">
-                                <span class="role-divider-line"></span>
-                                <span class="role-divider-label">الدور الحالي</span>
-                                <span class="role-divider-line"></span>
-                            </div>
-                            <div class="dock-giant-ticket">A265</div>
-                            <div class="dock-ticket-underline"></div>
-                            <div class="dock-next-upcoming">
-                                <span class="next-chevron-circle"><i class="fas fa-angle-double-left"></i></span>
-                                <span class="next-ticket-num">A266</span>
-                            </div>
-                        </div>
-                    </div>
-                }
+                <!-- No docks configured (or none in the selected warehouse) — honest empty state
+                     instead of fabricated ticket numbers. -->
+                <div class="docks-empty-state">
+                    <i class="fas fa-warehouse"></i>
+                    <p>لا توجد أرصفة معرّفة حالياً</p>
+                </div>
             }
         </main>
     </div>

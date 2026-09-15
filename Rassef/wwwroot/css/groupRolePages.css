@@ -224,28 +224,17 @@ body {
     border: 1.5px solid var(--border-color);
     /* The whole card is now an <a> (see MangeRolesIndex.cshtml / GroupManagment.cshtml).
        Without this, mobile browsers paint a solid gray/blue box over the entire card on
-       every tap — the "acts weird on phone" symptom. */
+       every tap. */
     -webkit-tap-highlight-color: transparent;
-    /* Keep this element on its own compositing layer permanently, not only while :hover is
-       active. overflow:hidden + a transform that only appears on :hover makes Chromium/Edge
-       promote/demote the layer every time the pointer enters or leaves, and the repaint after
-       a promote occasionally drops a frame where the card's own children (info rows, status
-       pill, button) haven't been painted back onto the new layer yet — header still visible,
-       body briefly gone. Forcing the layer to exist at all times removes that promote/demote
-       step entirely. This is what the screenshot mid-hover was showing. */
-    transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
 }
 
 /* Only raise/animate the card for input devices that genuinely hover (mouse or trackpad).
    Touch devices fire :hover on tap and then never get a matching hover-out — the pointer
    just lifts away — so a touch tap left the card permanently "raised" until the next
-   unrelated tap somewhere else on the page. On a card that's now a full-size link, that
-   reads as the card being stuck/broken, which is the mobile symptom being reported. */
+   unrelated tap somewhere else on the page, which reads as the card being stuck. */
 @media (hover: hover) and (pointer: fine) {
     .group-card-item:hover {
-        transform: translateY(-3px) translateZ(0);
+        transform: translateY(-3px);
         box-shadow: 0 8px 20px rgba(234, 115, 24, 0.15);
     }
 }
@@ -343,6 +332,18 @@ body {
     padding: 6px 4px 18px 4px;
     margin-bottom: 24px;
     scroll-behavior: smooth;
+    /* This element sets overflow-x, which forces its computed overflow-y to "auto" too
+       (the CSS overflow spec ties them together once either one is non-visible). That in
+       turn makes this a flex item whose *automatic* minimum height is 0 instead of being
+       based on its content — a documented flexbox quirk for any flex item that sets its
+       own overflow. dashboard-main is a fixed-height (100vh) column flex container, so the
+       moment the page's total content grows past 100vh (e.g. the exact instant the success
+       alert below gets inserted after "تحديث الصلاحيات"), the flex-shrink algorithm looks
+       for room to reclaim and finds this row a free target, squeezing it down and clipping
+       the cards' bodies via its own forced overflow-y — header stays visible, everything
+       below it doesn't. flex-shrink: 0 opts this row out of that shrink pass entirely; the
+       page still scrolls as a whole via dashboard-main's own overflow-y. */
+    flex-shrink: 0;
 }
 
     .horizontal-groups-row::-webkit-scrollbar {
@@ -389,6 +390,12 @@ body {
     overflow-y: auto;
     overflow-x: auto;
     max-height: 420px;
+    /* Same flexbox quirk as .horizontal-groups-row above: setting overflow on this element
+       gives it an automatic minimum height of 0 as a flex item, so it's just as exposed to
+       being squeezed toward 0 (clipping the whole table) whenever dashboard-main's content
+       exceeds 100vh. flex-shrink: 0 keeps it at its natural size; its own max-height +
+       overflow-y already do the intended internal scrolling once the table itself is long. */
+    flex-shrink: 0;
 }
 
     .permissions-table-wrapper::-webkit-scrollbar {
@@ -681,6 +688,13 @@ body {
     margin-top: 16px;
     margin-bottom: 20px;
     border-bottom: 1.5px solid rgba(234, 115, 24, 0.2);
+    /* Same class of bug fixed above on .horizontal-groups-row / .permissions-table-wrapper:
+       setting overflow-x here forces the computed overflow-y to "auto" as well regardless of
+       the overflow-y: visible declared above, which makes this a flex item with overflow set
+       on itself — exposed to the automatic-minimum-size-is-zero flex quirk inside
+       dashboard-main's fixed-height column. min-height already gives it a floor, but
+       flex-shrink: 0 removes the shrink pressure entirely rather than relying on the floor. */
+    flex-shrink: 0;
 }
 
 .group-nav-pill {
