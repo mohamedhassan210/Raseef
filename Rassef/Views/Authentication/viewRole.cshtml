@@ -98,6 +98,8 @@
 </head>
 <body>
 
+    <vc:admin-sidebar active="" />
+
     <div class="page-container">
         <!-- الهيدر العلوي -->
         <header class="page-header">
@@ -116,14 +118,9 @@
                     <span>استدعاء الدور (Call Next)</span>
                 </a>
 
-                <!-- زر لوحة الإدارة (Admin Dashboard) -->
-                @if (ViewBag.IsAdmin == true)
-                {
-                    <a asp-controller="Administration" asp-action="Index" class="btn-admin-dashboard">
-                        <i class="fas fa-th-large"></i>
-                        <span>لوحة التحكم</span>
-                    </a>
-                }
+                <!-- زر لوحة الإدارة REMOVED من هنا — أصبح داخل القائمة الجانبية الموحّدة
+                     (AdminSidebarViewComponent)، وكل عنصر فيها بيظهر حسب صلاحية
+                     المستخدم نفسه مش بس للمشرفين. -->
 
                 <!-- زر الرجوع -->
                 <a asp-controller="Authentication" asp-action="AddRoleOrView" class="back-btn">

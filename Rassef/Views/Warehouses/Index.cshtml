@@ -17,18 +17,11 @@
 <body>
     <div class="dashboard-page">
 
-        <partial name="_AdminSidebar" model='"Warehouses"' />
+        <vc:admin-sidebar active="Warehouses" />
 
         <main class="dashboard-main">
 
             <header class="dashboard-header">
-                <button class="mobile-toggle" id="mobileToggle" aria-label="القائمة">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="6"  x2="21" y2="6"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
-                    </svg>
-                </button>
                 <div class="header-right">
                     <h2 class="header-title">إدارة المستودعات</h2>
                     <div class="header-subtitle">
@@ -110,6 +103,5 @@
 
         </main>
     </div>
-    <script src="~/js/sidebarToggle.js" asp-append-version="true"></script>
 </body>
 </html>

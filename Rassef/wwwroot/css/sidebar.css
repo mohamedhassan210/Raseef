@@ -332,14 +332,9 @@ html, body {
     /* !important هنا مقصودة: عشان تبقى القاعدة الحاكمة بغض النظر عن أي
        Media Query تانية بتحاول تعمل نفس الحاجة بأرقام مختلفة في ملفات
        الصفحات المنفصلة (dashboard.css, detailsPages.css, ...) */
-    .dashboard-sidebar {
-        position: fixed !important;
-        top: 0 !important;
-        right: -300px !important;
-        transition: right 0.3s ease-in-out !important;
-    }
-
-        .dashboard-sidebar.active {
-            right: 0 !important;
-        }
 }
+
+/* ملاحظة: قواعد .dashboard-sidebar / .dashboard-sidebar.active اتشالت من هنا —
+   كانت بتتحكم في فتح/قفل السايدبار بطريقة الكلاس القديمة (.active)، ودلوقتي
+   السايدبار بقى Bootstrap Offcanvas حقيقي (.offcanvas/.offcanvas-start) وبيتحكم
+   في حاله بنفسه عن طريق data-bs-toggle، مش عن طريق CSS هنا. */

@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "إضافة موظف";
     Layout = "_SupOrTra";
+    ViewData["ActiveSidebar"] = "Employees";
     var positions = ViewBag.Positions as IEnumerable<Rassef.Models.Entities.Position> ?? new List<Rassef.Models.Entities.Position>();
     var groups = ViewBag.Groups as IEnumerable<Rassef.Models.Identity.UserGroup> ?? new List<Rassef.Models.Identity.UserGroup>();
     var warehouses = ViewBag.Warehouses as IEnumerable<Rassef.Models.Entities.Warehouse> ?? new List<Rassef.Models.Entities.Warehouse>();

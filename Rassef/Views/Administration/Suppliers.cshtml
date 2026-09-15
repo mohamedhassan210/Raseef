@@ -17,14 +17,11 @@
 <body>
     <div class="dashboard-page">
         <!-- SIDEBAR -->
-        <partial name="_AdminSidebar" model='"Suppliers"' />
+        <vc:admin-sidebar active="Suppliers" />
 
         <!-- MAIN CONTENT -->
         <main class="dashboard-main">
             <header class="dashboard-header">
-                <button class="mobile-toggle" id="mobileToggle" aria-label="القائمة">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-                </button>
                 <div class="header-right">
                     <h2 class="header-title">الموردين المسجلين</h2>
                     <div class="header-subtitle">
@@ -323,6 +320,5 @@
         });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="~/js/sidebarToggle.js" asp-append-version="true"></script>
 </body>
 </html>

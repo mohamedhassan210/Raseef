@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "إضافة شاحنة";
     Layout = "_SupOrTra";
+    ViewData["ActiveSidebar"] = "Trucks";
     var truckTypes = ViewBag.TruckTypes as IEnumerable<Rassef.Models.StatusesAndActions.TruckTypes>
                      ?? Enumerable.Empty<Rassef.Models.StatusesAndActions.TruckTypes>();
 }

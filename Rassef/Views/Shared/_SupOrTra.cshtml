@@ -17,6 +17,17 @@
 
     @RenderBody()
 
+    @{
+        // Unified sidebar: every page on this layout gets the same AdminSidebar
+        // (accordion, permission-gated — non-admins just see fewer items, never
+        // a 403 link) that the admin-dashboard pages use. UserSidebarViewComponent
+        // has been removed entirely — this is now the only sidebar in the app.
+        // Set ViewData["ActiveSidebar"] in the page to highlight its menu item;
+        // leave it unset for pages with no matching category (e.g. SupplyOrder).
+        var sidebarActive = ViewData["ActiveSidebar"] as string;
+    }
+    <vc:admin-sidebar active="@(sidebarActive ?? string.Empty)" />
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

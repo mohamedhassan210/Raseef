@@ -503,7 +503,7 @@ namespace Rassef.Controllers
         [PermissionAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SelectWarehouse(int warehouseId)
+        public async Task<IActionResult> SelectWarehouse(int warehouseId, string? returnUrl = null)
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var currentUserId))
@@ -525,7 +525,7 @@ namespace Rassef.Controllers
             if (!isAssigned)
             {
                 TempData["ErrorMessage"] = "لا يمكنك اختيار هذا المخزن.";
-                return RedirectToAction(nameof(AddRoleOrView));
+                return RedirectBackOrToAddRoleOrView(returnUrl);
             }
 
             Response.Cookies.Append("SelectedWarehouseId", warehouseId.ToString(), new CookieOptions
@@ -543,6 +543,23 @@ namespace Rassef.Controllers
             _userRepository.Update(currentUser);
             await _userRepository.SaveChangesAsync();
 
+            return RedirectBackOrToAddRoleOrView(returnUrl);
+        }
+
+        /// <summary>
+        /// The warehouse picker now lives in the unified sidebar (AdminSidebarViewComponent)
+        /// and shows up on dozens of pages across several controllers, not just
+        /// AddRoleOrView — so switching warehouses needs to bring the user back to
+        /// wherever they actually were, not always drop them on AddRoleOrView.
+        /// Url.IsLocalUrl guards against this being turned into an open redirect via a
+        /// tampered "returnUrl" value.
+        /// </summary>
+        private IActionResult RedirectBackOrToAddRoleOrView(string? returnUrl)
+        {
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
             return RedirectToAction(nameof(AddRoleOrView));
         }
         /// <summary>

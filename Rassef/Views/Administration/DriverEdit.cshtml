@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "تعديل سائق";
     Layout = "_SupOrTra";
+    ViewData["ActiveSidebar"] = "Drivers";
     var driverTypes = ViewBag.DriverTypes as IEnumerable<Rassef.Models.StatusesAndActions.DriverTypes>
                       ?? Enumerable.Empty<Rassef.Models.StatusesAndActions.DriverTypes>();
 }

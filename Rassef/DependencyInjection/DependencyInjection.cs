@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Rassef.Common.Services;
+using Rassef.Services;
 
 namespace Rassef.Dependencyinjection
 {
@@ -67,6 +68,8 @@ namespace Rassef.Dependencyinjection
             services.AddScoped<ITicketEngineService, TicketEngineService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddHostedService<ShiftAutoResetBackgroundService>();
+            services.AddHttpContextAccessor();
+            services.AddScoped<IUserPermissionService, UserPermissionService>();
 
             // 5. JWT Settings Configuration
             var jwtSettingsSection = configuration.GetSection("Jwt");

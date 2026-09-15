@@ -27,13 +27,7 @@ namespace Rassef.Filters
         /// Controllers that are exclusively part of the Admin Dashboard.
         /// Regular authenticated users must NOT access these.
         /// </summary>
-        private static readonly HashSet<string> AdminOnlyControllers = new(StringComparer.OrdinalIgnoreCase)
-        {
-            "Administration",
-            "Group",
-            "Shift",
-            "QueueSettings"
-        };
+        
 
         public PermissionAuthorizeFilter(
             string? requiredController,
@@ -115,7 +109,7 @@ namespace Rassef.Filters
                 return;
 
             // 8. Non-admin: block access to admin-only dashboard controllers
-            if (AdminOnlyControllers.Contains(currentController))
+            if (PermissionPolicy.AdminOnlyControllers.Contains(currentController))
             {
                 DenyAccess(context, currentController, currentAction);
                 return;

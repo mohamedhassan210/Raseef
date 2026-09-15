@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "إضافة سائق";
     Layout = "_SupOrTra";
+    ViewData["ActiveSidebar"] = "Drivers";
     var selectedSupplier = Model?.Suppliers?.FirstOrDefault(s => s.Value == Model?.SupplierId?.ToString());
     var displaySupplierName = !string.IsNullOrWhiteSpace(Model?.SupplierName)
         ? Model.SupplierName
