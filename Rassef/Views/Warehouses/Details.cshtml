@@ -12,6 +12,25 @@
 <link rel="stylesheet" href="~/css/addCar.css" asp-append-version="true">
 <link rel="stylesheet" href="~/css/companyCars.css" asp-append-version="true">
 
+<style>
+    /* companyCars.css locks html/body to a fixed 100vh with overflow:hidden,
+           which made sense for that page's own internal .cards-section scroll
+           area but clips this page's content once the department/dock cards
+           grow taller than the viewport. Override just for this page so the
+           whole page scrolls normally instead. */
+    html, body {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    .page-container {
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+</style>
+
 <main class="page-container">
 
     <header class="page-header">
@@ -67,27 +86,16 @@
                     <input type="text" class="form-control custom-input" value="@Model.CreatedByName" readonly>
                 </div>
 
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">الأقسام</label>
-                    @if (Model.AllDepartments != null && Model.AllDepartments.Any())
-                    {
-                        <ul class="list-group">
-                            @foreach (var dept in Model.AllDepartments)
-                            {
-                                <li class="list-group-item @(dept.IsLinked ? "list-group-item-success" : "")">
-                                    @dept.Name
-                                    @if (dept.IsLinked)
-                                    {
-                                        <span class="fw-bold">— مرتبط بهذا المستودع</span>
-                                    }
-                                </li>
-                            }
-                        </ul>
+                <div class="col-12">
+                    @{
+                        var deptCardsViewData = new ViewDataDictionary(ViewData)
+                        {
+                            ["WarehouseId"] = Model.Id,
+                            ["ReturnAction"] = "Details",
+                            ["ReadOnly"] = true
+                        };
                     }
-                    else
-                    {
-                        <input type="text" class="form-control custom-input" value="لا توجد أقسام" readonly>
-                    }
+                    @await Html.PartialAsync("_DepartmentCards", Model.DepartmentCards, deptCardsViewData)
                 </div>
 
                 <div class="col-md-6">

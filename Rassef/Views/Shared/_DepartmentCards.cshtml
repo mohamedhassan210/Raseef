@@ -1,0 +1,116 @@
+﻿@using Rassef.ViewModels.Shared
+@model List<DepartmentCardVM>
+@{
+    // Context passed in from the caller (Warehouses/Details or Warehouses/Edit)
+    // via a ViewDataDictionary, since this partial is shared by both pages.
+    int warehouseId = (int)(ViewData["WarehouseId"] ?? 0);
+    string returnAction = (ViewData["ReturnAction"] as string) ?? "Details";
+    string returnUrl = Url.Action(returnAction, "Warehouses", new { id = warehouseId }) ?? "/";
+
+    // Departments/Docks are only editable from Warehouses/Edit — Details shows
+    // the exact same cards read-only (no +/X buttons), per explicit instruction.
+    bool readOnly = (bool)(ViewData["ReadOnly"] ?? false);
+}
+
+<style>
+    .dept-cards-wrap { display: flex; flex-direction: column; gap: 16px; }
+    .dept-card { border: 1.5px solid #e8c8a8; border-radius: 14px; background: #fffaf5; padding: 16px 18px; position: relative; }
+    .dept-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .dept-card-title { font-weight: 700; font-size: 17px; color: #333; margin: 0; }
+    .dept-card-prefix { font-size: 13px; color: #a86b2c; font-weight: 600; margin-inline-start: 8px; }
+    .card-x-btn { border: none; background: #fde8e8; color: #dc3545; width: 26px; height: 26px; border-radius: 50%; font-weight: 700; line-height: 1; cursor: pointer; flex-shrink: 0; }
+    .card-x-btn:hover { background: #f8b4b4; }
+    .card-add-btn { border: none; background: #fde8cb; color: #a86b2c; width: 26px; height: 26px; border-radius: 50%; font-weight: 700; font-size: 16px; line-height: 1; cursor: pointer; flex-shrink: 0; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+    .card-add-btn:hover { background: #f7d29b; color: #7a4c1f; }
+    .dock-cards-wrap { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+    .dock-card { border: 1px solid #eadbc8; border-radius: 10px; background: #fff; padding: 8px 12px; min-width: 170px; font-size: 13px; position: relative; }
+    .dock-card-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .dock-card-field { color: #555; margin-bottom: 2px; }
+    .dock-card-field b { color: #222; }
+    .empty-hint { color: #999; font-size: 13px; padding: 4px 2px; }
+    .section-add-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+</style>
+
+<div class="dept-cards-section">
+
+    <div class="section-add-row">
+        <label class="form-label fw-bold mb-0">الأقسام</label>
+        @if (!readOnly)
+        {
+            <a class="card-add-btn" title="إضافة قسم جديد"
+               href="@Url.Action("CreateDepartment", "Warehouses", new { warehouseId = warehouseId })">+</a>
+        }
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="dept-cards-wrap">
+            @foreach (var dept in Model)
+            {
+                <div class="dept-card">
+                    <div class="dept-card-head">
+                        <div>
+                            <span class="dept-card-title">@dept.Name</span>
+                            @if (!string.IsNullOrEmpty(dept.Prefix))
+                            {
+                                <span class="dept-card-prefix">(@dept.Prefix)</span>
+                            }
+                        </div>
+                        @if (!readOnly)
+                        {
+                            <div class="d-flex align-items-center gap-2">
+                                <a class="card-add-btn" title="إضافة رصيف لهذا القسم"
+                                   href="@Url.Action("Create", "Dock", new { departmentId = dept.Id, warehouseId = warehouseId, returnUrl = returnUrl })">+</a>
+                                <form asp-action="RemoveDepartmentCard" asp-controller="Warehouses" method="post"
+                                      onsubmit="return confirm('سيتم حذف هذا القسم نهائيًا ولا يمكن التراجع. هل أنت متأكد؟');" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@dept.Id" />
+                                    <input type="hidden" name="warehouseId" value="@warehouseId" />
+                                    <input type="hidden" name="returnAction" value="@returnAction" />
+                                    <button type="submit" class="card-x-btn" title="حذف القسم نهائيًا">✕</button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+
+                    @if (dept.Docks != null && dept.Docks.Any())
+                    {
+                        <div class="dock-cards-wrap">
+                            @foreach (var dock in dept.Docks)
+                            {
+                                <div class="dock-card">
+                                    <div class="dock-card-row">
+                                        <div>
+                                            <div class="dock-card-field"><b>@dock.DockName</b></div>
+                                            <div class="dock-card-field">@dock.DockStatusName</div>
+                                        </div>
+                                        @if (!readOnly)
+                                        {
+                                            <form asp-action="RemoveDockCard" asp-controller="Warehouses" method="post"
+                                                  onsubmit="return confirm('سيتم حذف هذا الرصيف نهائيًا ولا يمكن التراجع. هل أنت متأكد؟');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@dock.Id" />
+                                                <input type="hidden" name="warehouseId" value="@warehouseId" />
+                                                <input type="hidden" name="returnAction" value="@returnAction" />
+                                                <button type="submit" class="card-x-btn" title="حذف الرصيف نهائيًا">✕</button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-hint">لا توجد أرصفة في هذا القسم.</div>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-hint">لا توجد أقسام في هذا المستودع بعد.</div>
+    }
+
+</div>

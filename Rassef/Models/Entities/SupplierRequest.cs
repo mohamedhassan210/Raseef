@@ -6,6 +6,13 @@
         public int TruckId { get; set; }
         public int DriverId { get; set; }
         public int DepartmentId { get; set; }
+
+        // Feature — dock selection: last field on the Create form, chosen after
+        // Department. Required to belong to DepartmentId and not be full/under
+        // maintenance at the time of submission (server-side, see SupplierRequestController).
+        public int DockId { get; set; }
+        public Dock Dock { get; set; }
+
         public int PermitTypeId { get; set; }
         public int CommodityTypeId { get; set; }
         public int RequestStatusId { get; set; }

@@ -79,13 +79,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-
 using Rassef.Filters;
 using Rassef.Models;
 using Rassef.Models.Identity;
-
+using Rassef.Models.StatusesAndActions;
+using Rassef.ViewModels.Department;
+using Rassef.ViewModels.Shared;
 using Rassef.ViewModels.Warehouse;
+using System.Security.Claims;
 
 namespace Rassef.Controllers
 {
@@ -96,18 +97,21 @@ namespace Rassef.Controllers
         private readonly IRepository<Department> _departmentRepository;
         private readonly IRepository<Dock> _dockRepository;
         private readonly IUserRepository _userRepository;   // NEW — needed to resolve CreatedBy
+        private readonly IRepository<DepartmentTypes> _departmentTypeRepository;   // NEW — quick-create department from a warehouse
 
 
         public WarehousesController(
             IRepository<Warehouse> warehouseRepository,
             IRepository<Department> departmentRepository,
             IRepository<Dock> dockRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            IRepository<DepartmentTypes> departmentTypeRepository)
         {
             _warehouseRepository = warehouseRepository;
             _departmentRepository = departmentRepository;
             _dockRepository = dockRepository;
             _userRepository = userRepository;
+            _departmentTypeRepository = departmentTypeRepository;
         }
 
         // ── INDEX ─────────────────────────────────────────────────────────────
@@ -151,22 +155,17 @@ namespace Rassef.Controllers
                 return View(new WarehouseDetailsVM());
             }
 
-            // Read-only view: show every active department/dock, marking the ones
-            // linked to this warehouse — using the existing (previously unused)
-            // GetDepartmentSelectListAsync/GetDockSelectListAsync helpers as the
-            // "all active items" source, per explicit instruction. Not an editable
-            // multi-select — no app-wide precedent exists for that interaction yet.
-            var linkedDepartmentIds = warehouse.Departments?
-                .Where(d => !d.IsDeleted)
-                .Select(d => d.Id)
-                .ToHashSet() ?? new HashSet<int>();
-
+            // Read-only view: docks (physical bays) are still shown as a simple
+            // linked/not-linked list, same as before. Departments are now shown
+            // as cards (each carrying its own Docks as nested mini-cards)
+            // instead of the old flat linked-list — per explicit instruction to
+            // replace "the current way" for departments. This whole card
+            // section is read-only here — add/remove only happens on Edit.
             var linkedDockIds = warehouse.Docks?
                 .Where(d => !d.IsDeleted)
                 .Select(d => d.Id)
                 .ToHashSet() ?? new HashSet<int>();
 
-            var allDepartments = await GetDepartmentSelectListAsync();
             var allDocks = await GetDockSelectListAsync();
 
             var viewModel = new WarehouseDetailsVM
@@ -175,11 +174,7 @@ namespace Rassef.Controllers
                 Name = warehouse.Name,
                 Location = warehouse.Location,
                 CreatedByName = warehouse.CreatedBy?.UserName ?? "غير محدد",
-                AllDepartments = allDepartments.Select(item => new WarehouseLinkedItemVM
-                {
-                    Name = item.Text,
-                    IsLinked = linkedDepartmentIds.Contains(int.Parse(item.Value))
-                }).ToList(),
+                DepartmentCards = BuildDepartmentCards(warehouse),
                 AllDocks = allDocks.Select(item => new WarehouseLinkedItemVM
                 {
                     Name = item.Text,
@@ -247,6 +242,110 @@ namespace Rassef.Controllers
             return View(model);
         }
 
+        // ── CREATE DEPARTMENT (from inside a warehouse) GET ─────────────────────
+        // NEW — quick-create flow, same idea as
+        // SupplierRequest/CreateTruckWithDriver?supplierId=...: launched from the
+        // parent record's page (here, Warehouses/Details) with the parent id in the
+        // route, so the created child is tied to that parent automatically instead
+        // of asking the user to pick it again from a big dropdown.
+        [HttpGet]
+        public async Task<IActionResult> CreateDepartment(int warehouseId)
+        {
+            var warehouse = await FindActiveWarehouseAsync(warehouseId);
+
+            if (warehouse == null)
+            {
+                TempData["ErrorMessage"] = "هذا المستودع غير موجود.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var vm = new CreateDepartmentVM
+            {
+                WarehouseId = warehouse.Id,
+                DepartmentTypes = await GetDepartmentTypeSelectListAsync()
+            };
+
+            ViewBag.WarehouseName = warehouse.Name;
+            return View(vm);
+        }
+
+        // ── CREATE DEPARTMENT (from inside a warehouse) POST ────────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateDepartment(CreateDepartmentVM create)
+        {
+            var warehouse = await FindActiveWarehouseAsync(create.WarehouseId);
+
+            if (warehouse == null)
+            {
+                TempData["ErrorMessage"] = "هذا المستودع غير موجود.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (!ModelState.IsValid)
+            {
+                create.DepartmentTypes = await GetDepartmentTypeSelectListAsync();
+                ViewBag.WarehouseName = warehouse.Name;
+                return View(create);
+            }
+
+            // Same duplicate-name/prefix guards as DepartmentController.Create,
+            // so a department created from here behaves identically to one
+            // created from Department/Create.
+            if (await _departmentRepository.ExistsAsync(x => x.Name == create.Name && !x.IsDeleted))
+            {
+                ModelState.AddModelError(nameof(create.Name), "اسم القسم مسجل بالفعل.");
+                create.DepartmentTypes = await GetDepartmentTypeSelectListAsync();
+                ViewBag.WarehouseName = warehouse.Name;
+                return View(create);
+            }
+            if (await _departmentRepository.ExistsAsync(x => x.Prefix == create.Prefix && !x.IsDeleted))
+            {
+                ModelState.AddModelError(nameof(create.Prefix), "هذا الـ Prefix مستخدم بالفعل.");
+                create.DepartmentTypes = await GetDepartmentTypeSelectListAsync();
+                ViewBag.WarehouseName = warehouse.Name;
+                return View(create);
+            }
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            User? currentUser = null;
+
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var currentUserId))
+            {
+                ModelState.AddModelError("القسم", "تعذر تحديد هوية المستخدم الحالي. يرجى تسجيل الدخول والمحاولة مرة أخرى.");
+            }
+            else
+            {
+                currentUser = await _userRepository.GetByIdAsync(currentUserId);
+                if (currentUser == null)
+                {
+                    ModelState.AddModelError("القسم", "تعذر تحديد هوية المستخدم الحالي. يرجى تسجيل الدخول والمحاولة مرة أخرى.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                create.DepartmentTypes = await GetDepartmentTypeSelectListAsync();
+                ViewBag.WarehouseName = warehouse.Name;
+                return View(create);
+            }
+
+            var department = new Department
+            {
+                Name = create.Name,
+                Prefix = create.Prefix,
+                WarehouseId = warehouse.Id,   // always the warehouse this page was opened from — never trusts a posted value
+                DepartmentTypeId = create.DepartmentTypeId,
+                CreatedBy = currentUser!
+            };
+
+            await _departmentRepository.AddAsync(department);
+            await _departmentRepository.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "تمت إضافة القسم إلى المستودع بنجاح.";
+            return RedirectToAction(nameof(Details), new { id = warehouse.Id });
+        }
+
         // ── EDIT GET ──────────────────────────────────────────────────────────
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
@@ -269,7 +368,12 @@ namespace Rassef.Controllers
             {
                 Id = warehouse.Id,
                 Name = warehouse.Name,
-                Location = warehouse.Location
+                Location = warehouse.Location,
+                // Same department+doc cards shown on Details — per explicit
+                // instruction to show them on Edit too (display-only here;
+                // add/remove goes through their own dedicated actions below,
+                // not through this form's POST).
+                DepartmentCards = BuildDepartmentCards(warehouse)
             };
 
             return View(viewModel);
@@ -283,6 +387,7 @@ namespace Rassef.Controllers
             if (id != model.Id)
             {
                 ModelState.AddModelError("المستودع", "رقم المستودع غير متطابق.");
+                await RepopulateDepartmentCardsAsync(model);
                 return View(model);
             }
 
@@ -299,6 +404,7 @@ namespace Rassef.Controllers
                 if (warehouse == null)
                 {
                     ModelState.AddModelError("المستودع", "هذا المستودع غير موجود.");
+                    await RepopulateDepartmentCardsAsync(model);
                     return View(model);
                 }
 
@@ -312,6 +418,7 @@ namespace Rassef.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            await RepopulateDepartmentCardsAsync(model);
             return View(model);
         }
 
@@ -379,7 +486,95 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // ── REMOVE DEPARTMENT CARD (hard delete, "X" button) ─────────────────
+        // NEW — per explicit instruction: the department card's "X" button
+        // hard-deletes the department (not the app-wide soft delete). Every FK
+        // onto Department is DeleteBehavior.Restrict, so this fails loudly with
+        // a friendly message instead of a raw SQL error if the department still
+        // has docks/docs/tickets/transfer-requests attached.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveDepartmentCard(int id, int warehouseId, string? returnAction)
+        {
+            var department = await _departmentRepository.GetByIdAsync(id);
+
+            if (department == null || department.WarehouseId != warehouseId)
+            {
+                TempData["ErrorMessage"] = "هذا القسم غير موجود.";
+                return RedirectBackToWarehouse(warehouseId, returnAction);
+            }
+
+            try
+            {
+                _departmentRepository.HardDelete(department);
+                await _departmentRepository.SaveChangesAsync();
+                TempData["SuccessMessage"] = "تم حذف القسم نهائيًا.";
+            }
+            catch (DbUpdateException)
+            {
+                TempData["ErrorMessage"] =
+                    "لا يمكن حذف هذا القسم نهائيًا لوجود بيانات مرتبطة به (أرصفة أو طلبات توريد أو تذاكر). " +
+                    "يرجى إزالة تلك الارتباطات أولاً.";
+            }
+
+            return RedirectBackToWarehouse(warehouseId, returnAction);
+        }
+
+        // ── REMOVE DOCK CARD (hard delete, "X" button) ────────────────────────
+        // NEW — same idea as above, but for a Dock (رصيف) nested inside a
+        // department card on the Warehouse Details/Edit pages. Only reachable
+        // from Edit — Details renders these cards read-only (no X/+ buttons) —
+        // but this action stays available regardless of where the form was
+        // rendered, the same as RemoveDepartmentCard above.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveDockCard(int id, int warehouseId, string? returnAction)
+        {
+            var dock = await _dockRepository.GetByIdAsync(id);
+
+            if (dock == null || dock.WarehouseId != warehouseId)
+            {
+                TempData["ErrorMessage"] = "هذا الرصيف غير موجود.";
+                return RedirectBackToWarehouse(warehouseId, returnAction);
+            }
+
+            try
+            {
+                _dockRepository.HardDelete(dock);
+                await _dockRepository.SaveChangesAsync();
+                TempData["SuccessMessage"] = "تم حذف الرصيف نهائيًا.";
+            }
+            catch (DbUpdateException)
+            {
+                TempData["ErrorMessage"] =
+                    "لا يمكن حذف هذا الرصيف نهائيًا لوجود تعيينات مرتبطة به. يرجى إزالة تلك التعيينات أولاً.";
+            }
+
+            return RedirectBackToWarehouse(warehouseId, returnAction);
+        }
+
         // ── PRIVATE HELPERS ───────────────────────────────────────────────────
+
+        /// <summary>
+        /// Sends the user back to whichever page ("Details" or "Edit") the
+        /// card's X button was clicked from. Defaults to Details if not given
+        /// or not recognised, since that's the safer of the two to land on.
+        /// </summary>
+        private IActionResult RedirectBackToWarehouse(int warehouseId, string? returnAction)
+        {
+            var action = returnAction == "Edit" ? "Edit" : "Details";
+            return RedirectToAction(action, new { id = warehouseId });
+        }
+
+        /// <summary>
+        /// Re-fetches and rebuilds DepartmentCards on the Edit VM after a
+        /// validation failure, since the cards aren't part of the posted form.
+        /// </summary>
+        private async Task RepopulateDepartmentCardsAsync(UpdateWarehouseVM model)
+        {
+            var warehouse = await FindActiveWarehouseAsync(model.Id);
+            model.DepartmentCards = warehouse != null ? BuildDepartmentCards(warehouse) : new List<DepartmentCardVM>();
+        }
 
         /// <summary>
         /// Loads a single non-deleted Warehouse with its navigation properties.
@@ -391,9 +586,39 @@ namespace Rassef.Controllers
                 .Where(w => w.Id == id && !w.IsDeleted)
                 .Include(w => w.CreatedBy)
                 .Include(w => w.Departments)
+                    .ThenInclude(d => d.Docks)
+                        .ThenInclude(dk => dk.DockStatus)
                 .Include(w => w.Docks));
 
             return results.FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Builds the department+dock cards shown on Warehouses/Details and
+        /// Warehouses/Edit. Soft-deleted departments/docks are filtered out
+        /// here (in-memory, same convention as the rest of this controller)
+        /// rather than via a filtered Include.
+        /// </summary>
+        private static List<DepartmentCardVM> BuildDepartmentCards(Warehouse warehouse)
+        {
+            return warehouse.Departments
+                .Where(d => !d.IsDeleted)
+                .OrderBy(d => d.Name)
+                .Select(d => new DepartmentCardVM
+                {
+                    Id = d.Id,
+                    Name = d.Name,
+                    Prefix = d.Prefix,
+                    Docks = d.Docks
+                        .Where(dk => !dk.IsDeleted)
+                        .OrderBy(dk => dk.DockName)
+                        .Select(dk => new DockCardVM
+                        {
+                            Id = dk.Id,
+                            DockName = dk.DockName,
+                            DockStatusName = dk.DockStatus?.Name ?? "غير محدد"
+                        }).ToList()
+                }).ToList();
         }
 
         private async Task<IEnumerable<SelectListItem>> GetDepartmentSelectListAsync()
@@ -414,6 +639,15 @@ namespace Rassef.Controllers
 
             return docks.Select(d =>
                 new SelectListItem { Value = d.Id.ToString(), Text = d.DockName });
+        }
+
+        private async Task<IEnumerable<SelectListItem>> GetDepartmentTypeSelectListAsync()
+        {
+            var departmentTypes = await _departmentTypeRepository.GetAllAsync(
+                q => q.Where(t => !t.IsDeleted));
+
+            return departmentTypes.Select(t =>
+                new SelectListItem { Value = t.Id.ToString(), Text = t.Name });
         }
     }
 }

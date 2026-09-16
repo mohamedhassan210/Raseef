@@ -1,0 +1,143 @@
+﻿@model CreateSupplierRequestVM
+@{
+    ViewData["Title"] = "إضافة مستند (طلب مورد)";
+    Layout = "_SupOrTra";
+    ViewData["ActiveSidebar"] = "SupplierRequest";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="~/css/addCar.css" asp-append-version="true">
+<link rel="stylesheet" href="~/css/companyCars.css" asp-append-version="true">
+
+<main class="page-container">
+
+    <header class="page-header">
+        <div class="logo-wrapper header-right">
+            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-Fathalla">
+        </div>
+        <div class="title-wrapper">
+            <h1 class="main-title">إضافة مستند جديد</h1>
+        </div>
+        <div class="logo-wrapper header-left">
+            <img src="~/img/logo.svg" alt="رصيف" class="logo-raseefy">
+        </div>
+    </header>
+
+    <div class="nav-actions-container" style="justify-content: flex-end;">
+        <a href="@(Model.ReturnUrl ?? Url.Action("Index", "SupplierRequest"))" class="action-btn" aria-label="رجوع">
+            رجوع
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </a>
+    </div>
+
+    <section class="form-card mt-3">
+        <form asp-action="Create" asp-controller="SupplierRequest" method="post" class="needs-validation" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ReturnUrl" />
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div style="background-color: #fde8e8; color: #dc3545; padding: 12px 20px; border-radius: 10px; font-weight: 700; margin-bottom: 16px;">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
+
+            <div class="row mb-4 gy-4">
+
+                <div class="col-md-6">
+                    <label asp-for="DepartmentId" class="form-label fw-bold">القسم</label>
+                    <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-control custom-input">
+                        <option value="">اختر القسم</option>
+                    </select>
+                    <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="SupplierId" class="form-label fw-bold">المورد</label>
+                    <select asp-for="SupplierId" asp-items="Model.Suppliers" class="form-control custom-input">
+                        <option value="">اختر المورد</option>
+                    </select>
+                    <span asp-validation-for="SupplierId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="TruckId" class="form-label fw-bold">الشاحنة</label>
+                    <select asp-for="TruckId" asp-items="Model.Trucks" class="form-control custom-input">
+                        <option value="">اختر الشاحنة</option>
+                    </select>
+                    <span asp-validation-for="TruckId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="DriverId" class="form-label fw-bold">السائق</label>
+                    <select asp-for="DriverId" asp-items="Model.Drivers" class="form-control custom-input">
+                        <option value="">اختر السائق</option>
+                    </select>
+                    <span asp-validation-for="DriverId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="DriverPhone" class="form-label fw-bold">رقم هاتف السائق</label>
+                    <input asp-for="DriverPhone" type="text" class="form-control custom-input" placeholder="01xxxxxxxxx">
+                    <span asp-validation-for="DriverPhone" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="PermitTypeId" class="form-label fw-bold">نوع التصريح</label>
+                    <select asp-for="PermitTypeId" asp-items="Model.PermitTypes" class="form-control custom-input">
+                        <option value="">اختر نوع التصريح</option>
+                    </select>
+                    <span asp-validation-for="PermitTypeId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="PermitNumber" class="form-label fw-bold">رقم التصريح</label>
+                    <input asp-for="PermitNumber" type="text" class="form-control custom-input" placeholder="ادخل رقم التصريح">
+                    <span asp-validation-for="PermitNumber" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="CommodityTypeId" class="form-label fw-bold">نوع السلعة</label>
+                    <select asp-for="CommodityTypeId" asp-items="Model.CommodityTypes" class="form-control custom-input">
+                        <option value="">اختر نوع السلعة</option>
+                    </select>
+                    <span asp-validation-for="CommodityTypeId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="RequestStatusId" class="form-label fw-bold">حالة الطلب</label>
+                    <select asp-for="RequestStatusId" asp-items="Model.RequestStatuses" class="form-control custom-input">
+                        <option value="">اختر حالة الطلب</option>
+                    </select>
+                    <span asp-validation-for="RequestStatusId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 d-flex align-items-center">
+                    <div class="form-check">
+                        <input asp-for="IsFood" class="form-check-input" type="checkbox">
+                        <label asp-for="IsFood" class="form-check-label fw-bold">مواد غذائية؟</label>
+                    </div>
+                </div>
+
+            </div>
+
+            <button type="submit" class="w-100 submit-btn mt-2">حفظ</button>
+        </form>
+    </section>
+
+</main>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

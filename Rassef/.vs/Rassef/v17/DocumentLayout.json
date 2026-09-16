@@ -1,0 +1,397 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\common\\repository\\entitiesrepository\\dockrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:common\\repository\\entitiesrepository\\dockrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\common\\repository\\entitiesrepository\\dockassignmentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:common\\repository\\entitiesrepository\\dockassignmentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\common\\repository\\entitiesrepository\\departmentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:common\\repository\\entitiesrepository\\departmentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\common\\repository\\entitiesrepository\\checkoutrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:common\\repository\\entitiesrepository\\checkoutrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\common\\interfaces\\idockrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:common\\interfaces\\idockrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\viewmodels\\dock\\dockdetailsvm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:viewmodels\\dock\\dockdetailsvm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\viewmodels\\dock\\docklistvm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:viewmodels\\dock\\docklistvm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\viewmodels\\dock\\createdockvm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:viewmodels\\dock\\createdockvm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\views\\dock\\update.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:views\\dock\\update.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\views\\dock\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:views\\dock\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\validators\\dockvalidators\\updatedockvmvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:validators\\dockvalidators\\updatedockvmvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\validators\\dockvalidators\\createdockvmvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:validators\\dockvalidators\\createdockvmvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\controllers\\dockcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:controllers\\dockcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\viewmodels\\dock\\updatedockvm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:viewmodels\\dock\\updatedockvm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\viewmodels\\dock\\dockoptionvm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:viewmodels\\dock\\dockoptionvm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\common\\interfaces\\idockassignmentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:common\\interfaces\\idockassignmentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\common\\interfaces\\idockavailabilityservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:common\\interfaces\\idockavailabilityservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\models\\configurations\\dockconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:models\\configurations\\dockconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\models\\entities\\transferrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:models\\entities\\transferrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\models\\entities\\supplierrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:models\\entities\\supplierrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|c:\\users\\sd\\source\\repos\\raseef\\rassef\\models\\entities\\dock.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:models\\entities\\dock.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "DepartmentRepository.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Repository\\EntitiesRepository\\DepartmentRepository.cs",
+              "RelativeDocumentMoniker": "Common\\Repository\\EntitiesRepository\\DepartmentRepository.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Repository\\EntitiesRepository\\DepartmentRepository.cs",
+              "RelativeToolTip": "Common\\Repository\\EntitiesRepository\\DepartmentRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T14:38:37.051Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "CheckOutRepository.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Repository\\EntitiesRepository\\CheckOutRepository.cs",
+              "RelativeDocumentMoniker": "Common\\Repository\\EntitiesRepository\\CheckOutRepository.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Repository\\EntitiesRepository\\CheckOutRepository.cs",
+              "RelativeToolTip": "Common\\Repository\\EntitiesRepository\\CheckOutRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T14:38:35.299Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "DockRepository.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Repository\\EntitiesRepository\\DockRepository.cs",
+              "RelativeDocumentMoniker": "Common\\Repository\\EntitiesRepository\\DockRepository.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Repository\\EntitiesRepository\\DockRepository.cs",
+              "RelativeToolTip": "Common\\Repository\\EntitiesRepository\\DockRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T14:37:19.947Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Update.cshtml",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Views\\Dock\\Update.cshtml",
+              "RelativeDocumentMoniker": "Views\\Dock\\Update.cshtml",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Views\\Dock\\Update.cshtml",
+              "RelativeToolTip": "Views\\Dock\\Update.cshtml",
+              "ViewState": "AgIAABIBAAAAAAAAAAAuwCYBAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-09-16T14:03:01.323Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Create.cshtml",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Views\\Dock\\Create.cshtml",
+              "RelativeDocumentMoniker": "Views\\Dock\\Create.cshtml",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Views\\Dock\\Create.cshtml",
+              "RelativeToolTip": "Views\\Dock\\Create.cshtml",
+              "ViewState": "AgIAAEABAAAAAAAAAAAuwE0BAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-09-16T14:02:47.699Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "DockListVM.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\ViewModels\\Dock\\DockListVM.cs",
+              "RelativeDocumentMoniker": "ViewModels\\Dock\\DockListVM.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\ViewModels\\Dock\\DockListVM.cs",
+              "RelativeToolTip": "ViewModels\\Dock\\DockListVM.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAABCAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T14:01:17.035Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "DockDetailsVM.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\ViewModels\\Dock\\DockDetailsVM.cs",
+              "RelativeDocumentMoniker": "ViewModels\\Dock\\DockDetailsVM.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\ViewModels\\Dock\\DockDetailsVM.cs",
+              "RelativeToolTip": "ViewModels\\Dock\\DockDetailsVM.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwBIAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T14:01:06.411Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "CreateDockVM.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\ViewModels\\Dock\\CreateDockVM.cs",
+              "RelativeDocumentMoniker": "ViewModels\\Dock\\CreateDockVM.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\ViewModels\\Dock\\CreateDockVM.cs",
+              "RelativeToolTip": "ViewModels\\Dock\\CreateDockVM.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAAABcAAABEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T14:00:31.026Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "IDockRepository.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Interfaces\\IDockRepository.cs",
+              "RelativeDocumentMoniker": "Common\\Interfaces\\IDockRepository.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Interfaces\\IDockRepository.cs",
+              "RelativeToolTip": "Common\\Interfaces\\IDockRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T14:00:00.002Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "DockAssignmentRepository.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Repository\\EntitiesRepository\\DockAssignmentRepository.cs",
+              "RelativeDocumentMoniker": "Common\\Repository\\EntitiesRepository\\DockAssignmentRepository.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Repository\\EntitiesRepository\\DockAssignmentRepository.cs",
+              "RelativeToolTip": "Common\\Repository\\EntitiesRepository\\DockAssignmentRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACUAAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T13:50:25.058Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "UpdateDockVMValidator.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Validators\\DockValidators\\UpdateDockVMValidator.cs",
+              "RelativeDocumentMoniker": "Validators\\DockValidators\\UpdateDockVMValidator.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Validators\\DockValidators\\UpdateDockVMValidator.cs",
+              "RelativeToolTip": "Validators\\DockValidators\\UpdateDockVMValidator.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T14:02:19.499Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "CreateDockVMValidator.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Validators\\DockValidators\\CreateDockVMValidator.cs",
+              "RelativeDocumentMoniker": "Validators\\DockValidators\\CreateDockVMValidator.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Validators\\DockValidators\\CreateDockVMValidator.cs",
+              "RelativeToolTip": "Validators\\DockValidators\\CreateDockVMValidator.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T14:02:09.411Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "DockController.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Controllers\\DockController.cs",
+              "RelativeDocumentMoniker": "Controllers\\DockController.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Controllers\\DockController.cs",
+              "RelativeToolTip": "Controllers\\DockController.cs",
+              "ViewState": "AgIAANYBAAAAAAAAAAAAAO0BAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T14:01:31.935Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "UpdateDockVM.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\ViewModels\\Dock\\UpdateDockVM.cs",
+              "RelativeDocumentMoniker": "ViewModels\\Dock\\UpdateDockVM.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\ViewModels\\Dock\\UpdateDockVM.cs",
+              "RelativeToolTip": "ViewModels\\Dock\\UpdateDockVM.cs",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAqwCMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T14:00:52.322Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "Dockoptionvm.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\ViewModels\\Dock\\Dockoptionvm.cs",
+              "RelativeDocumentMoniker": "ViewModels\\Dock\\Dockoptionvm.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\ViewModels\\Dock\\Dockoptionvm.cs",
+              "RelativeToolTip": "ViewModels\\Dock\\Dockoptionvm.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAAABYAAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T13:50:50.1Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "IDockAssignmentRepository.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Interfaces\\IDockAssignmentRepository.cs",
+              "RelativeDocumentMoniker": "Common\\Interfaces\\IDockAssignmentRepository.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Interfaces\\IDockAssignmentRepository.cs",
+              "RelativeToolTip": "Common\\Interfaces\\IDockAssignmentRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T13:50:00.93Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "Idockavailabilityservice.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Interfaces\\Idockavailabilityservice.cs",
+              "RelativeDocumentMoniker": "Common\\Interfaces\\Idockavailabilityservice.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Common\\Interfaces\\Idockavailabilityservice.cs",
+              "RelativeToolTip": "Common\\Interfaces\\Idockavailabilityservice.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAACcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T13:39:42.49Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "DockConfiguration.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Models\\Configurations\\DockConfiguration.cs",
+              "RelativeDocumentMoniker": "Models\\Configurations\\DockConfiguration.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Models\\Configurations\\DockConfiguration.cs",
+              "RelativeToolTip": "Models\\Configurations\\DockConfiguration.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAABsAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T13:32:40.088Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "TransferRequest.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Models\\Entities\\TransferRequest.cs",
+              "RelativeDocumentMoniker": "Models\\Entities\\TransferRequest.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Models\\Entities\\TransferRequest.cs",
+              "RelativeToolTip": "Models\\Entities\\TransferRequest.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAcwBAAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T13:32:28.632Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "SupplierRequest.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Models\\Entities\\SupplierRequest.cs",
+              "RelativeDocumentMoniker": "Models\\Entities\\SupplierRequest.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Models\\Entities\\SupplierRequest.cs",
+              "RelativeToolTip": "Models\\Entities\\SupplierRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T13:32:21.184Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "Dock.cs",
+              "DocumentMoniker": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Models\\Entities\\Dock.cs",
+              "RelativeDocumentMoniker": "Models\\Entities\\Dock.cs",
+              "ToolTip": "C:\\Users\\sd\\source\\repos\\Raseef\\Rassef\\Models\\Entities\\Dock.cs",
+              "RelativeToolTip": "Models\\Entities\\Dock.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T13:32:11.822Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "Microsoft.Common.CurrentVersion.targets",
+              "DocumentMoniker": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\..\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
+              "ToolTip": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
+              "RelativeToolTip": "..\\..\\..\\..\\..\\..\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
+              "ViewState": "AgIAAP8UAAAAAAAAAAAYwBEVAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003801|",
+              "WhenOpened": "2026-09-15T09:23:10.654Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

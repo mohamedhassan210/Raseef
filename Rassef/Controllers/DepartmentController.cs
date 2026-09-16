@@ -107,6 +107,7 @@ using Rassef.Models.Identity;
 using Rassef.Models.StatusesAndActions;
 
 using Rassef.ViewModels.Department;
+using Rassef.ViewModels.Shared;
 
 namespace Rassef.Controllers
 {
@@ -122,17 +123,20 @@ namespace Rassef.Controllers
         private readonly IRepository<Warehouse> _warehouseRepository;
         private readonly IRepository<DepartmentTypes> _departmentTypeRepository;   // NEW — Q5
         private readonly IUserRepository _userRepository;                          // NEW — Q6
+        private readonly IRepository<Dock> _dockRepository;                        // NEW — hard-delete a dock card
 
         public DepartmentController(
             IDepartmentRepository department,
             IRepository<Warehouse> warehouseRepository,
             IRepository<DepartmentTypes> departmentTypeRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            IRepository<Dock> dockRepository)
         {
             _repository = department;
             _warehouseRepository = warehouseRepository;
             _departmentTypeRepository = departmentTypeRepository;
             _userRepository = userRepository;
+            _dockRepository = dockRepository;
         }
 
         // ── INDEX ─────────────────────────────────────────────────────────────
@@ -176,7 +180,8 @@ namespace Rassef.Controllers
                 Id = department.Id,
                 Name = department.Name,
                 WarehouseId = department.WarehouseId,
-                WarehouseName = department.Warehouse?.Name ?? "غير محدد"
+                WarehouseName = department.Warehouse?.Name ?? "غير محدد",
+                Docks = BuildDockCards(department)   // NEW — dock cards on Department/Details
             };
 
             return View(model);
@@ -284,7 +289,8 @@ namespace Rassef.Controllers
                 Name = department.Name,
                 Prefix = department.Prefix,
                 WarehouseId = department.WarehouseId,
-                Warehouses = await GetWarehouseSelectListAsync()
+                Warehouses = await GetWarehouseSelectListAsync(),
+                Docks = BuildDockCards(department)   // NEW — same dock cards shown on Update, per instruction
             };
 
             return View(model);
@@ -298,6 +304,7 @@ namespace Rassef.Controllers
             if (!ModelState.IsValid)
             {
                 model.Warehouses = await GetWarehouseSelectListAsync();
+                await RepopulateDockCardsAsync(model);
                 return View(model);
             }
 
@@ -307,6 +314,7 @@ namespace Rassef.Controllers
             {
                 ModelState.AddModelError("", "القسم المطلوب تعديله غير موجود.");
                 model.Warehouses = await GetWarehouseSelectListAsync();
+                await RepopulateDockCardsAsync(model);
                 return View(model);
             }
 
@@ -316,6 +324,7 @@ namespace Rassef.Controllers
             {
                 ModelState.AddModelError(nameof(model.Name), "اسم القسم مسجل بالفعل.");
                 model.Warehouses = await GetWarehouseSelectListAsync();
+                model.Docks = BuildDockCards(department);
                 return View(model);
             }
             if (await _repository.ExistsAsync(
@@ -323,6 +332,7 @@ namespace Rassef.Controllers
             {
                 ModelState.AddModelError(nameof(model.Prefix), "هذا الـ Prefix مستخدم بالفعل.");
                 model.Warehouses = await GetWarehouseSelectListAsync();
+                model.Docks = BuildDockCards(department);
                 return View(model);
             }
 
@@ -417,7 +427,76 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // ── REMOVE DOCK CARD (hard delete, "X" button) ────────────────────────
+        // NEW — same hard-delete behaviour as WarehousesController.RemoveDockCard,
+        // for the dock cards shown directly on Department/Details and Update.
+        // Only reachable from Update — Details renders these cards read-only.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveDockCard(int id, int departmentId, string? returnAction)
+        {
+            var dock = await _dockRepository.GetByIdAsync(id);
+
+            if (dock == null || dock.DepartmentId != departmentId)
+            {
+                TempData["ErrorMessage"] = "هذا الرصيف غير موجود.";
+                return RedirectBackToDepartment(departmentId, returnAction);
+            }
+
+            try
+            {
+                _dockRepository.HardDelete(dock);
+                await _dockRepository.SaveChangesAsync();
+                TempData["SuccessMessage"] = "تم حذف الرصيف نهائيًا.";
+            }
+            catch (DbUpdateException)
+            {
+                TempData["ErrorMessage"] =
+                    "لا يمكن حذف هذا الرصيف نهائيًا لوجود تعيينات مرتبطة به. يرجى إزالة تلك التعيينات أولاً.";
+            }
+
+            return RedirectBackToDepartment(departmentId, returnAction);
+        }
+
         // ── PRIVATE HELPERS ───────────────────────────────────────────────────
+
+        /// <summary>
+        /// Sends the user back to whichever page ("Details" or "Update") the
+        /// doc card's X button was clicked from.
+        /// </summary>
+        private IActionResult RedirectBackToDepartment(int departmentId, string? returnAction)
+        {
+            var action = returnAction == "Update" ? "Update" : "Details";
+            return RedirectToAction(action, new { id = departmentId });
+        }
+
+        /// <summary>
+        /// Builds the Dock (رصيف) cards shown on Department/Details and
+        /// Update — same card shape used nested inside a department card on
+        /// Warehouses/Details and Edit.
+        /// </summary>
+        private static List<DockCardVM> BuildDockCards(Department department)
+        {
+            return department.Docks
+                .Where(dk => !dk.IsDeleted)
+                .OrderBy(dk => dk.DockName)
+                .Select(dk => new DockCardVM
+                {
+                    Id = dk.Id,
+                    DockName = dk.DockName,
+                    DockStatusName = dk.DockStatus?.Name ?? "غير محدد"
+                }).ToList();
+        }
+
+        /// <summary>
+        /// Re-fetches and rebuilds Docks on the Update VM after a validation
+        /// failure, since the dock cards aren't part of the posted form.
+        /// </summary>
+        private async Task RepopulateDockCardsAsync(UpdateDepartmentVM model)
+        {
+            var department = await FindActiveDepartmentAsync(model.Id);
+            model.Docks = department != null ? BuildDockCards(department) : new List<DockCardVM>();
+        }
 
         /// <summary>
         /// Feature 3 — reads the active warehouse from the "SelectedWarehouseId"
@@ -448,7 +527,8 @@ namespace Rassef.Controllers
                 .Where(d => d.Id == id && !d.IsDeleted)
                 .Include(d => d.Warehouse)
                 .Include(d => d.Docks)
-                .Include(d => d.SupplierRequests));   // for referential guard — see Q1/Q4
+                    .ThenInclude(dk => dk.DockStatus)       // NEW — dock cards' DockStatusName
+                .Include(d => d.SupplierRequests));         // for referential guard only — see Q1/Q4
 
             var department = results.FirstOrDefault();
             if (department == null)

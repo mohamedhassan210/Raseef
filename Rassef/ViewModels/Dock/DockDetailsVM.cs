@@ -1,5 +1,4 @@
-﻿
-namespace Rassef.ViewModels.Dock
+﻿namespace Rassef.ViewModels.Dock
 {
     public class DockDetailsVM
     {
@@ -18,5 +17,17 @@ namespace Rassef.ViewModels.Dock
 
         [Display(Name = "تم الإنشاء بواسطة")]
         public int CreatedBy { get; set; }
+
+        // Feature — dock capacity + maintenance status.
+        [Display(Name = "الحد الأقصى لعدد الشاحنات")]
+        public int MaxTruckCount { get; set; }
+
+        [Display(Name = "في صيانة")]
+        public bool IsUnderMaintenance { get; set; }
+
+        [Display(Name = "الإشغال الحالي")]
+        public int Occupancy { get; set; }
+
+        public bool IsFull => Occupancy >= MaxTruckCount;
     }
 }

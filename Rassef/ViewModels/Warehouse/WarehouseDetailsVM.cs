@@ -1,4 +1,6 @@
-﻿namespace Rassef.ViewModels.Warehouse
+﻿using Rassef.ViewModels.Shared;
+
+namespace Rassef.ViewModels.Warehouse
 {
     public class WarehouseDetailsVM
     {
@@ -13,8 +15,12 @@
         [Display(Name = "تم الإنشاء بواسطة")]
         public string CreatedByName { get; set; } = string.Empty;
 
-        [Display(Name = "الأقسام")]
-        public List<WarehouseLinkedItemVM> AllDepartments { get; set; } = new List<WarehouseLinkedItemVM>();
+        // Card-based departments+docs display — replaces the old AllDepartments
+        // "linked/not linked" list. Each department belongs to exactly one
+        // warehouse (WarehouseId is a required FK), so this is simply
+        // warehouse.Departments rendered as cards, each carrying its own docs
+        // (SupplierRequests) as nested mini-cards.
+        public List<DepartmentCardVM> DepartmentCards { get; set; } = new List<DepartmentCardVM>();
 
         [Display(Name = "الأرصفة")]
         public List<WarehouseLinkedItemVM> AllDocks { get; set; } = new List<WarehouseLinkedItemVM>();

@@ -13,6 +13,23 @@
 <link rel="stylesheet" href="~/css/companyCars.css" asp-append-version="true">
 
 <style>
+    /* companyCars.css locks html/body to a fixed 100vh with overflow:hidden,
+           which made sense for that page's own internal .cards-section scroll
+           area but clips this page's content once the dock cards grow taller
+           than the viewport. Override just for this page so the whole page
+           scrolls normally instead. */
+    html, body {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    .page-container {
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+
     .custom-dropdown { position: relative; width: 100%; font-family: 'IBM Plex Sans Arabic', sans-serif; }
     .custom-dropdown .dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border: 1.5px solid #e8c8a8; border-radius: 12px; background: #fff; cursor: pointer; user-select: none; font-size: 15px; min-height: 44px; }
     .custom-dropdown .dropdown-header:hover { border-color: var(--primary-color, #E67E22); }
@@ -114,6 +131,24 @@
 
             <button type="submit" class="w-100 submit-btn mt-4">حفظ التعديلات</button>
         </form>
+
+        @* NEW — deliberately OUTSIDE the form above: the cards partial renders
+           its own <form> per doc's X/+ action, and nesting a <form> inside
+           another <form> is invalid HTML that browsers handle inconsistently. *@
+        <div class="row mb-4">
+            <div class="col-12">
+                @{
+                    var dockCardsViewData = new ViewDataDictionary(ViewData)
+                    {
+                        ["DepartmentId"] = Model.Id,
+                        ["WarehouseId"] = Model.WarehouseId,
+                        ["ReturnAction"] = "Update",
+                        ["ReadOnly"] = false
+                    };
+                }
+                @await Html.PartialAsync("_DockCards", Model.Docks, dockCardsViewData)
+            </div>
+        </div>
     </section>
 
 </main>

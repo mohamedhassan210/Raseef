@@ -138,9 +138,17 @@ namespace Rassef.Controllers
 
         [HttpGet]
         // Display create page
-        public async Task<IActionResult> Create()
+        // NEW — departmentId/returnUrl let this page be opened as the "+ add
+        // doc" launcher from a department card (Warehouse Details/Edit or
+        // Department Details/Update): preselects the department and, on
+        // success, sends the user back to that card view instead of Index.
+        public async Task<IActionResult> Create(int? departmentId, string? returnUrl)
         {
-            var vm = new CreateSupplierRequestVM();
+            var vm = new CreateSupplierRequestVM
+            {
+                DepartmentId = departmentId ?? 0,
+                ReturnUrl = (returnUrl != null && Url.IsLocalUrl(returnUrl)) ? returnUrl : null
+            };
             return View(await PopulateDropdownsAsync(vm));
         }
 
@@ -191,6 +199,14 @@ namespace Rassef.Controllers
             await _supplierRequestRepository.SaveChangesAsync();
 
             TempData["Success"] = "تم إضافة طلب المورد بنجاح.";
+
+            // NEW — send the user back to the department/warehouse card view
+            // that launched this page, if one was given, instead of Index.
+            if (!string.IsNullOrEmpty(create.ReturnUrl) && Url.IsLocalUrl(create.ReturnUrl))
+            {
+                return Redirect(create.ReturnUrl);
+            }
+
             return RedirectToAction(nameof(Index));
         }
 

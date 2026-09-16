@@ -231,6 +231,21 @@
                     <span asp-validation-for="DockStatusId" class="text-danger"></span>
                 </div>
 
+                <!-- الحد الأقصى لعدد الشاحنات -->
+                <div class="col-md-6">
+                    <label asp-for="MaxTruckCount" class="form-label fw-bold">الحد الأقصى لعدد الشاحنات</label>
+                    <input asp-for="MaxTruckCount" type="number" min="1" class="form-control custom-input" placeholder="مثال: 3" required>
+                    <span asp-validation-for="MaxTruckCount" class="text-danger"></span>
+                </div>
+
+                <!-- في صيانة -->
+                <div class="col-md-6 d-flex align-items-center">
+                    <div class="form-check">
+                        <input asp-for="IsUnderMaintenance" type="checkbox" class="form-check-input">
+                        <label asp-for="IsUnderMaintenance" class="form-check-label fw-bold">في صيانة</label>
+                    </div>
+                </div>
+
             </div>
 
             <button type="submit" class="w-100 submit-btn mt-4">حفظ التعديلات</button>

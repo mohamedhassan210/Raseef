@@ -33,6 +33,12 @@
     [Display(Name = "مواد غذائية؟")]
     public bool IsFood { get; set; }
 
+    // Where to go back to after a successful create — set when this page was
+    // opened from a department's "+ add doc" card button (Warehouse/Department
+    // cards), so the user lands back on that card view instead of the generic
+    // SupplierRequest Index. Round-tripped through the form as a hidden field.
+    public string? ReturnUrl { get; set; }
+
     public IEnumerable<SelectListItem> Suppliers { get; set; } = new List<SelectListItem>();
     public IEnumerable<SelectListItem> Trucks { get; set; } = new List<SelectListItem>();
     public IEnumerable<SelectListItem> Drivers { get; set; } = new List<SelectListItem>();
