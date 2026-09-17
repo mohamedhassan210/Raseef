@@ -45,6 +45,7 @@ global using Rassef.ViewModels.QueueAction;
 global using Rassef.ViewModels.QueueSettings;
 global using Rassef.ViewModels.QueueTicket;
 global using Rassef.ViewModels.RequestStatuses;
+global using Rassef.ViewModels.Shared;
 global using Rassef.ViewModels.Shift;
 global using Rassef.ViewModels.Supplier;
 global using Rassef.ViewModels.SupplyOrderReport;

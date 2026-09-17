@@ -1,0 +1,20 @@
+﻿@model DocCardVM
+@{
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+
+<div class="doc-mini-card">
+    <div class="doc-info">
+        <strong>@Model.SupplierName</strong>
+        <span>@Model.TruckInfo · @Model.DriverName</span>
+        <span>الحالة: @Model.StatusName</span>
+    </div>
+
+    <form asp-action="HardDelete" asp-controller="SupplierRequest" method="post"
+          onsubmit="return confirm('هل أنت متأكد من حذف هذا الطلب نهائياً؟ لا يمكن التراجع عن هذا الإجراء.');">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <input type="hidden" name="returnUrl" value="@returnUrl" />
+        <button type="submit" class="card-remove-btn" title="حذف الطلب نهائياً" aria-label="حذف الطلب نهائياً">✕</button>
+    </form>
+</div>

@@ -1,0 +1,143 @@
+﻿<style>
+    .cards-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .cards-section-header h3 {
+        font-weight: 700;
+        font-size: 18px;
+        margin: 0;
+    }
+
+    .card-add-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--primary-color, #E67E22);
+        color: #fff;
+        font-size: 20px;
+        font-weight: 700;
+        text-decoration: none;
+        line-height: 1;
+        border: none;
+        cursor: pointer;
+    }
+
+        .card-add-btn:hover {
+            filter: brightness(0.95);
+            color: #fff;
+        }
+
+    .card-add-btn-sm {
+        width: 26px;
+        height: 26px;
+        font-size: 16px;
+    }
+
+    .department-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .department-card {
+        border: 1.5px solid #e8c8a8;
+        border-radius: 14px;
+        padding: 14px;
+        background: #fffdfb;
+        position: relative;
+    }
+
+    .department-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+    }
+
+    .department-card-title {
+        font-weight: 700;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    .department-card-prefix {
+        font-size: 13px;
+        color: #888;
+        margin: 0;
+    }
+
+    .card-remove-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #fde8e8;
+        color: #dc3545;
+        border: none;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+        .card-remove-btn:hover {
+            background: #dc3545;
+            color: #fff;
+        }
+
+    .docs-cards-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .doc-mini-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid #f0dcc4;
+        border-radius: 10px;
+        padding: 8px 10px;
+        background: #fff;
+        font-size: 13px;
+    }
+
+    .doc-mini-card .doc-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .doc-mini-card .doc-info strong {
+        font-size: 13.5px;
+    }
+
+    .doc-mini-card .doc-info span {
+        color: #777;
+        font-size: 12px;
+    }
+
+    .empty-docs-text {
+        color: #aaa;
+        font-size: 13px;
+        margin: 6px 0 0;
+    }
+
+    .add-doc-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 8px;
+    }
+</style>

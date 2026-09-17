@@ -3,6 +3,7 @@
     ViewData["Title"] = "إضافة قسم للمستودع";
     Layout = "_SupOrTra";
     ViewData["ActiveSidebar"] = "Warehouses";
+    var warehouseName = ViewBag.WarehouseName as string;
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
@@ -12,6 +13,92 @@
 <link rel="stylesheet" href="~/css/addCar.css" asp-append-version="true">
 <link rel="stylesheet" href="~/css/companyCars.css" asp-append-version="true">
 
+<style>
+    /* Custom dropdown — copied verbatim from Department/Create.cshtml */
+    .custom-dropdown {
+        position: relative;
+        width: 100%;
+        font-family: 'IBM Plex Sans Arabic', sans-serif;
+    }
+
+        .custom-dropdown .dropdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            border: 1.5px solid #e8c8a8;
+            border-radius: 12px;
+            background: #fff;
+            cursor: pointer;
+            user-select: none;
+            font-size: 15px;
+            min-height: 44px;
+        }
+
+            .custom-dropdown .dropdown-header:hover {
+                border-color: var(--primary-color, #E67E22);
+            }
+
+        .custom-dropdown .dropdown-arrow {
+            transition: transform 0.2s;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .custom-dropdown.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .custom-dropdown .dropdown-list {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            left: 0;
+            background: #fff;
+            border: 1.5px solid #e8c8a8;
+            border-radius: 12px;
+            z-index: 200;
+            max-height: 220px;
+            overflow-y: auto;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+        }
+
+        .custom-dropdown.open .dropdown-list {
+            display: block;
+        }
+
+        .custom-dropdown .dropdown-list .dropdown-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 15px;
+            border-bottom: 1px solid #faede2;
+            transition: background 0.15s;
+        }
+
+            .custom-dropdown .dropdown-list .dropdown-item:last-child {
+                border-bottom: none;
+            }
+
+            .custom-dropdown .dropdown-list .dropdown-item:hover {
+                background: #fdf1e7;
+            }
+
+            .custom-dropdown .dropdown-list .dropdown-item.selected {
+                background: #fde8cb;
+                font-weight: 700;
+            }
+
+    .placeholder-color {
+        color: #aaa;
+    }
+
+    .selected-value {
+        color: #333;
+    }
+</style>
+
 <main class="page-container">
 
     <header class="page-header">
@@ -19,7 +106,7 @@
             <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-Fathalla">
         </div>
         <div class="title-wrapper">
-            <h1 class="main-title">إضافة قسم — @ViewBag.WarehouseName</h1>
+            <h1 class="main-title">إضافة قسم للمستودع</h1>
         </div>
         <div class="logo-wrapper header-left">
             <img src="~/img/logo.svg" alt="رصيف" class="logo-raseefy">
@@ -39,6 +126,11 @@
     <section class="form-card mt-3">
         <form asp-action="CreateDepartment" asp-controller="Warehouses" method="post" class="needs-validation" novalidate>
             @Html.AntiForgeryToken()
+
+            @* The department is always tied to the warehouse this page was opened
+               from — it travels as a hidden field, never as an editable dropdown,
+               so the created department can never end up linked to a different
+               warehouse than the one the user is currently viewing. *@
             <input type="hidden" asp-for="WarehouseId" />
 
             @if (!ViewData.ModelState.IsValid)
@@ -53,23 +145,54 @@
 
             <div class="row mb-4 gy-4">
 
+                <!-- المستودع — عرض فقط، ثابت من الصفحة التي فُتحت منها -->
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">المستودع</label>
+                    <input type="text" class="form-control custom-input" value="@warehouseName" readonly>
+                </div>
+
+                <!-- اسم القسم -->
                 <div class="col-md-6">
                     <label asp-for="Name" class="form-label fw-bold">اسم القسم</label>
                     <input asp-for="Name" type="text" class="form-control custom-input" placeholder="ادخل اسم القسم" required>
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
+                <!-- البادئة (Prefix) -->
                 <div class="col-md-6">
-                    <label asp-for="Prefix" class="form-label fw-bold">الاختصار (Prefix)</label>
+                    <label asp-for="Prefix" class="form-label fw-bold">البادئة (Prefix)</label>
                     <input asp-for="Prefix" type="text" class="form-control custom-input" placeholder="مثال: WH-A" required>
                     <span asp-validation-for="Prefix" class="text-danger"></span>
                 </div>
 
+                <!-- نوع القسم — custom single-select dropdown -->
                 <div class="col-md-6">
-                    <label asp-for="DepartmentTypeId" class="form-label fw-bold">نوع القسم</label>
-                    <select asp-for="DepartmentTypeId" asp-items="Model.DepartmentTypes" class="form-control custom-input">
-                        <option value="">اختر نوع القسم</option>
+                    <label class="form-label fw-bold">نوع القسم</label>
+
+                    <!-- hidden native select — synced by setupDropdown() -->
+                    <select id="departmentTypeSelect" name="DepartmentTypeId" class="d-none" required>
+                        <option value="" disabled selected>اختر نوع القسم</option>
+                        @if (Model.DepartmentTypes != null)
+                        {
+                            foreach (var t in Model.DepartmentTypes)
+                            {
+                                <option value="@t.Value" selected="@(t.Value == Model.DepartmentTypeId.ToString())">
+                                    @t.Text
+                                </option>
+                            }
+                        }
                     </select>
+
+                    <!-- styled UI -->
+                    <div class="custom-dropdown" id="departmentTypeDropdown">
+                        <div class="dropdown-header" id="departmentTypeDropdownHeader">
+                            <span class="selected-value placeholder-color" id="departmentTypeSelectedText">اختر نوع القسم</span>
+                            <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#e47925" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="18 15 12 9 6 15"></polyline>
+                            </svg>
+                        </div>
+                        <div class="dropdown-list" id="departmentTypeDropdownList"></div>
+                    </div>
                     <span asp-validation-for="DepartmentTypeId" class="text-danger"></span>
                 </div>
 
@@ -85,4 +208,63 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        // setupDropdown — syncs a styled custom dropdown UI with a hidden native <select>.
+        // Copied from Department/Create.cshtml pattern.
+        function setupDropdown(selectId, dropdownId, headerId, listId, selectedTextId, placeholder) {
+            const select = document.getElementById(selectId);
+            const dropdown = document.getElementById(dropdownId);
+            const header = document.getElementById(headerId);
+            const list = document.getElementById(listId);
+            const selectedText = document.getElementById(selectedTextId);
+
+            if (!select || !dropdown || !header || !list || !selectedText) return;
+
+            Array.from(select.options).forEach(opt => {
+                if (!opt.value) return;   // skip the blank placeholder option
+                const item = document.createElement('div');
+                item.className = 'dropdown-item' + (opt.selected ? ' selected' : '');
+                item.textContent = opt.text;
+                item.dataset.value = opt.value;
+
+                item.addEventListener('click', () => {
+                    select.value = opt.value;
+                    selectedText.textContent = opt.text;
+                    selectedText.classList.remove('placeholder-color');
+                    selectedText.classList.add('selected-value');
+                    list.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    dropdown.classList.remove('open');
+                });
+
+                list.appendChild(item);
+            });
+
+            if (select.value) {
+                const sel = select.options[select.selectedIndex];
+                if (sel && sel.value) {
+                    selectedText.textContent = sel.text;
+                    selectedText.classList.remove('placeholder-color');
+                }
+            }
+
+            header.addEventListener('click', () => dropdown.classList.toggle('open'));
+
+            document.addEventListener('click', e => {
+                if (!dropdown.contains(e.target)) dropdown.classList.remove('open');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupDropdown(
+                'departmentTypeSelect',
+                'departmentTypeDropdown',
+                'departmentTypeDropdownHeader',
+                'departmentTypeDropdownList',
+                'departmentTypeSelectedText',
+                'اختر نوع القسم'
+            );
+        });
+    </script>
 }

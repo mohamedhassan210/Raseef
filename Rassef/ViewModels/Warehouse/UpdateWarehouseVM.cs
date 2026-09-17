@@ -1,6 +1,4 @@
-﻿using Rassef.ViewModels.Shared;
-
-namespace Rassef.ViewModels.Warehouse
+﻿namespace Rassef.ViewModels.Warehouse
 {
     public class UpdateWarehouseVM
     {

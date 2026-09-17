@@ -16,12 +16,6 @@ namespace Rassef.Models.Entities
         public int DepartmentId { get; set; }
         public Department Department { get; set; }
 
-        // Feature — dock selection: last field on the Create form, chosen after
-        // Department. Required to belong to DepartmentId and not be full/under
-        // maintenance at the time of submission (server-side, see TransferRequestController).
-        public int DockId { get; set; }
-        public Dock Dock { get; set; }
-
         public int RequestStatusId { get; set; }
         public RequestStatuses RequestStatus { get; set; }
 

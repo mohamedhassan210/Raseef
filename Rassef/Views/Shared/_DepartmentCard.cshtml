@@ -1,0 +1,40 @@
+﻿@model DepartmentCardVM
+@{
+    var returnUrl = ViewData["ReturnUrl"] as string;
+    var addDocUrl = Url.Action("Create", "SupplierRequest", new { departmentId = Model.Id, returnUrl });
+}
+
+<div class="department-card">
+    <div class="department-card-header">
+        <div>
+            <p class="department-card-title">@Model.Name</p>
+            <p class="department-card-prefix">@Model.Prefix</p>
+        </div>
+
+        <form asp-action="HardDelete" asp-controller="Department" method="post"
+              onsubmit="return confirm('هل أنت متأكد من حذف هذا القسم نهائياً؟ لا يمكن التراجع عن هذا الإجراء.');">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <input type="hidden" name="returnUrl" value="@returnUrl" />
+            <button type="submit" class="card-remove-btn" title="حذف القسم نهائياً" aria-label="حذف القسم نهائياً">✕</button>
+        </form>
+    </div>
+
+    <div class="docs-cards-grid">
+        @if (Model.Docs.Any())
+        {
+            foreach (var doc in Model.Docs)
+            {
+                @await Html.PartialAsync("_DocCard", doc, new ViewDataDictionary(ViewData) { ["ReturnUrl"] = returnUrl })
+            }
+        }
+        else
+        {
+            <p class="empty-docs-text">لا توجد طلبات لهذا القسم بعد.</p>
+        }
+    </div>
+
+    <div class="add-doc-row">
+        <a href="@addDocUrl" class="card-add-btn card-add-btn-sm" title="إضافة طلب توريد لهذا القسم" aria-label="إضافة طلب توريد لهذا القسم">+</a>
+    </div>
+</div>

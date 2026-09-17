@@ -11,25 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="~/css/addCar.css" asp-append-version="true">
 <link rel="stylesheet" href="~/css/companyCars.css" asp-append-version="true">
-
-<style>
-    /* companyCars.css locks html/body to a fixed 100vh with overflow:hidden,
-           which made sense for that page's own internal .cards-section scroll
-           area but clips this page's content once the department cards
-           grow taller than the viewport. Override just for this page so the
-           whole page scrolls normally instead. */
-    html, body {
-        height: auto !important;
-        min-height: 100vh !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-    }
-
-    .page-container {
-        height: auto !important;
-        min-height: 100vh !important;
-    }
-</style>
+@await Html.PartialAsync("_CardsStyle")
 
 <main class="page-container">
 
@@ -90,23 +72,14 @@
 
             <button type="submit" class="w-100 submit-btn mt-4">حفظ التعديلات</button>
         </form>
+    </section>
 
-        @* NEW — deliberately OUTSIDE the form above: the cards partial renders
-           its own <form> per X/+ action, and nesting a <form> inside another
-           <form> is invalid HTML that browsers handle inconsistently. *@
-        <div class="row mb-4">
-            <div class="col-12">
-                @{
-                    var deptCardsViewData = new ViewDataDictionary(ViewData)
-                    {
-                        ["WarehouseId"] = Model.Id,
-                        ["ReturnAction"] = "Edit",
-                        ["ReadOnly"] = false
-                    };
-                }
-                @await Html.PartialAsync("_DepartmentCards", Model.DepartmentCards, deptCardsViewData)
-            </div>
-        </div>
+    <section class="form-card mt-3">
+        @{
+            var warehouseReturnUrl = Context.Request.Path + Context.Request.QueryString;
+            var addDepartmentUrl = Url.Action("CreateDepartment", "Warehouses", new { warehouseId = Model.Id, returnUrl = warehouseReturnUrl });
+        }
+        @await Html.PartialAsync("_DepartmentCardsGrid", Model.DepartmentCards, new ViewDataDictionary(ViewData) { ["AddDepartmentUrl"] = addDepartmentUrl, ["ReturnUrl"] = warehouseReturnUrl })
     </section>
 
 </main>

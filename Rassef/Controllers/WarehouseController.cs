@@ -79,14 +79,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+
 using Rassef.Filters;
 using Rassef.Models;
 using Rassef.Models.Identity;
 using Rassef.Models.StatusesAndActions;
-using Rassef.ViewModels.Department;
-using Rassef.ViewModels.Shared;
+
 using Rassef.ViewModels.Warehouse;
-using System.Security.Claims;
+using Rassef.ViewModels.Department;
 
 namespace Rassef.Controllers
 {
@@ -155,12 +156,11 @@ namespace Rassef.Controllers
                 return View(new WarehouseDetailsVM());
             }
 
-            // Read-only view: docks (physical bays) are still shown as a simple
-            // linked/not-linked list, same as before. Departments are now shown
-            // as cards (each carrying its own Docks as nested mini-cards)
-            // instead of the old flat linked-list — per explicit instruction to
-            // replace "the current way" for departments. This whole card
-            // section is read-only here — add/remove only happens on Edit.
+            // Read-only view: show every active department/dock, marking the ones
+            // linked to this warehouse — using the existing (previously unused)
+            // GetDepartmentSelectListAsync/GetDockSelectListAsync helpers as the
+            // "all active items" source, per explicit instruction. Not an editable
+            // multi-select — no app-wide precedent exists for that interaction yet.
             var linkedDockIds = warehouse.Docks?
                 .Where(d => !d.IsDeleted)
                 .Select(d => d.Id)
@@ -369,10 +369,6 @@ namespace Rassef.Controllers
                 Id = warehouse.Id,
                 Name = warehouse.Name,
                 Location = warehouse.Location,
-                // Same department+doc cards shown on Details — per explicit
-                // instruction to show them on Edit too (display-only here;
-                // add/remove goes through their own dedicated actions below,
-                // not through this form's POST).
                 DepartmentCards = BuildDepartmentCards(warehouse)
             };
 
@@ -387,7 +383,6 @@ namespace Rassef.Controllers
             if (id != model.Id)
             {
                 ModelState.AddModelError("المستودع", "رقم المستودع غير متطابق.");
-                await RepopulateDepartmentCardsAsync(model);
                 return View(model);
             }
 
@@ -404,7 +399,6 @@ namespace Rassef.Controllers
                 if (warehouse == null)
                 {
                     ModelState.AddModelError("المستودع", "هذا المستودع غير موجود.");
-                    await RepopulateDepartmentCardsAsync(model);
                     return View(model);
                 }
 
@@ -418,7 +412,6 @@ namespace Rassef.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            await RepopulateDepartmentCardsAsync(model);
             return View(model);
         }
 
@@ -486,95 +479,7 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ── REMOVE DEPARTMENT CARD (hard delete, "X" button) ─────────────────
-        // NEW — per explicit instruction: the department card's "X" button
-        // hard-deletes the department (not the app-wide soft delete). Every FK
-        // onto Department is DeleteBehavior.Restrict, so this fails loudly with
-        // a friendly message instead of a raw SQL error if the department still
-        // has docks/docs/tickets/transfer-requests attached.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RemoveDepartmentCard(int id, int warehouseId, string? returnAction)
-        {
-            var department = await _departmentRepository.GetByIdAsync(id);
-
-            if (department == null || department.WarehouseId != warehouseId)
-            {
-                TempData["ErrorMessage"] = "هذا القسم غير موجود.";
-                return RedirectBackToWarehouse(warehouseId, returnAction);
-            }
-
-            try
-            {
-                _departmentRepository.HardDelete(department);
-                await _departmentRepository.SaveChangesAsync();
-                TempData["SuccessMessage"] = "تم حذف القسم نهائيًا.";
-            }
-            catch (DbUpdateException)
-            {
-                TempData["ErrorMessage"] =
-                    "لا يمكن حذف هذا القسم نهائيًا لوجود بيانات مرتبطة به (أرصفة أو طلبات توريد أو تذاكر). " +
-                    "يرجى إزالة تلك الارتباطات أولاً.";
-            }
-
-            return RedirectBackToWarehouse(warehouseId, returnAction);
-        }
-
-        // ── REMOVE DOCK CARD (hard delete, "X" button) ────────────────────────
-        // NEW — same idea as above, but for a Dock (رصيف) nested inside a
-        // department card on the Warehouse Details/Edit pages. Only reachable
-        // from Edit — Details renders these cards read-only (no X/+ buttons) —
-        // but this action stays available regardless of where the form was
-        // rendered, the same as RemoveDepartmentCard above.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RemoveDockCard(int id, int warehouseId, string? returnAction)
-        {
-            var dock = await _dockRepository.GetByIdAsync(id);
-
-            if (dock == null || dock.WarehouseId != warehouseId)
-            {
-                TempData["ErrorMessage"] = "هذا الرصيف غير موجود.";
-                return RedirectBackToWarehouse(warehouseId, returnAction);
-            }
-
-            try
-            {
-                _dockRepository.HardDelete(dock);
-                await _dockRepository.SaveChangesAsync();
-                TempData["SuccessMessage"] = "تم حذف الرصيف نهائيًا.";
-            }
-            catch (DbUpdateException)
-            {
-                TempData["ErrorMessage"] =
-                    "لا يمكن حذف هذا الرصيف نهائيًا لوجود تعيينات مرتبطة به. يرجى إزالة تلك التعيينات أولاً.";
-            }
-
-            return RedirectBackToWarehouse(warehouseId, returnAction);
-        }
-
         // ── PRIVATE HELPERS ───────────────────────────────────────────────────
-
-        /// <summary>
-        /// Sends the user back to whichever page ("Details" or "Edit") the
-        /// card's X button was clicked from. Defaults to Details if not given
-        /// or not recognised, since that's the safer of the two to land on.
-        /// </summary>
-        private IActionResult RedirectBackToWarehouse(int warehouseId, string? returnAction)
-        {
-            var action = returnAction == "Edit" ? "Edit" : "Details";
-            return RedirectToAction(action, new { id = warehouseId });
-        }
-
-        /// <summary>
-        /// Re-fetches and rebuilds DepartmentCards on the Edit VM after a
-        /// validation failure, since the cards aren't part of the posted form.
-        /// </summary>
-        private async Task RepopulateDepartmentCardsAsync(UpdateWarehouseVM model)
-        {
-            var warehouse = await FindActiveWarehouseAsync(model.Id);
-            model.DepartmentCards = warehouse != null ? BuildDepartmentCards(warehouse) : new List<DepartmentCardVM>();
-        }
 
         /// <summary>
         /// Loads a single non-deleted Warehouse with its navigation properties.
@@ -586,16 +491,25 @@ namespace Rassef.Controllers
                 .Where(w => w.Id == id && !w.IsDeleted)
                 .Include(w => w.CreatedBy)
                 .Include(w => w.Departments)
-                    .ThenInclude(d => d.Docks)
-                        .ThenInclude(dk => dk.DockStatus)
+                    .ThenInclude(d => d.SupplierRequests)
+                        .ThenInclude(sr => sr.Supplier)
+                .Include(w => w.Departments)
+                    .ThenInclude(d => d.SupplierRequests)
+                        .ThenInclude(sr => sr.Truck)
+                .Include(w => w.Departments)
+                    .ThenInclude(d => d.SupplierRequests)
+                        .ThenInclude(sr => sr.Driver)
+                .Include(w => w.Departments)
+                    .ThenInclude(d => d.SupplierRequests)
+                        .ThenInclude(sr => sr.RequestStatus)
                 .Include(w => w.Docks));
 
             return results.FirstOrDefault();
         }
 
         /// <summary>
-        /// Builds the department+dock cards shown on Warehouses/Details and
-        /// Warehouses/Edit. Soft-deleted departments/docks are filtered out
+        /// Builds the department+doc cards shown on Warehouses/Details and
+        /// Warehouses/Edit. Soft-deleted departments/requests are filtered out
         /// here (in-memory, same convention as the rest of this controller)
         /// rather than via a filtered Include.
         /// </summary>
@@ -609,14 +523,16 @@ namespace Rassef.Controllers
                     Id = d.Id,
                     Name = d.Name,
                     Prefix = d.Prefix,
-                    Docks = d.Docks
-                        .Where(dk => !dk.IsDeleted)
-                        .OrderBy(dk => dk.DockName)
-                        .Select(dk => new DockCardVM
+                    Docs = d.SupplierRequests
+                        .Where(sr => !sr.IsDeleted)
+                        .OrderByDescending(sr => sr.CreatedAT)
+                        .Select(sr => new DocCardVM
                         {
-                            Id = dk.Id,
-                            DockName = dk.DockName,
-                            DockStatusName = dk.DockStatus?.Name ?? "غير محدد"
+                            Id = sr.Id,
+                            SupplierName = sr.Supplier?.Name ?? "غير محدد",
+                            TruckInfo = sr.Truck != null ? $"{sr.Truck.PlateLetter} {sr.Truck.PlateNumber}" : "غير محدد",
+                            DriverName = sr.Driver?.FullName ?? "غير محدد",
+                            StatusName = sr.RequestStatus?.Name ?? "غير محدد"
                         }).ToList()
                 }).ToList();
         }

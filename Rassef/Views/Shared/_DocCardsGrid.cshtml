@@ -1,0 +1,24 @@
+﻿@model List<DocCardVM>
+@{
+    var addDocUrl = ViewData["AddDocUrl"] as string;
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+
+<div class="cards-section-header">
+    <h3>طلبات التوريد المرتبطة بالقسم</h3>
+    <a href="@addDocUrl" class="card-add-btn" title="إضافة طلب توريد" aria-label="إضافة طلب توريد">+</a>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    <div class="docs-cards-grid">
+        @foreach (var doc in Model)
+        {
+            @await Html.PartialAsync("_DocCard", doc, new ViewDataDictionary(ViewData) { ["ReturnUrl"] = returnUrl })
+        }
+    </div>
+}
+else
+{
+    <p class="empty-docs-text">لا توجد طلبات توريد مرتبطة بهذا القسم بعد.</p>
+}

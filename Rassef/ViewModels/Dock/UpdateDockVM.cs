@@ -1,4 +1,6 @@
-﻿namespace Rassef.ViewModels.Dock
+﻿
+
+namespace Rassef.ViewModels.Dock
 {
     public class UpdateDockVM
     {
@@ -25,12 +27,5 @@
 
         // Status DropDown
         public IEnumerable<SelectListItem>? DockStatus { get; set; }
-
-        // Feature — dock capacity + maintenance status.
-        [Display(Name = "الحد الأقصى لعدد الشاحنات")]
-        public int MaxTruckCount { get; set; }
-
-        [Display(Name = "في صيانة")]
-        public bool IsUnderMaintenance { get; set; }
     }
 }

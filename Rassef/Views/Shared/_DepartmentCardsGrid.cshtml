@@ -1,0 +1,24 @@
+﻿@model List<DepartmentCardVM>
+@{
+    var addDepartmentUrl = ViewData["AddDepartmentUrl"] as string;
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+
+<div class="cards-section-header">
+    <h3>الأقسام</h3>
+    <a href="@addDepartmentUrl" class="card-add-btn" title="إضافة قسم" aria-label="إضافة قسم">+</a>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    <div class="department-cards-grid">
+        @foreach (var dept in Model)
+        {
+            @await Html.PartialAsync("_DepartmentCard", dept, new ViewDataDictionary(ViewData) { ["ReturnUrl"] = returnUrl })
+        }
+    </div>
+}
+else
+{
+    <p class="empty-docs-text">لا توجد أقسام لهذا المستودع بعد.</p>
+}

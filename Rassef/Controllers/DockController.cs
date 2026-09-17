@@ -114,20 +114,17 @@ namespace Rassef.Controllers
         private readonly IRepository<Department> _departmentRepo;
         private readonly IRepository<Warehouse> _warehouseRepo;
         private readonly IRepository<DockStatuses> _statusRepo;
-        private readonly IDockAssignmentRepository _dockAssignmentRepository;
 
         public DockController(
             IDockRepository repository,
             IRepository<Department> departmentRepo,
             IRepository<Warehouse> warehouseRepo,
-            IRepository<DockStatuses> statusRepo,
-            IDockAssignmentRepository dockAssignmentRepository)
+            IRepository<DockStatuses> statusRepo)
         {
             _repository = repository;
             _departmentRepo = departmentRepo;
             _warehouseRepo = warehouseRepo;
             _statusRepo = statusRepo;
-            _dockAssignmentRepository = dockAssignmentRepository;
         }
 
         // ── INDEX ─────────────────────────────────────────────────────────────
@@ -152,23 +149,8 @@ namespace Rassef.Controllers
                 DockName = x.DockName,
                 WarehouseName = x.Warehouse?.Name ?? "غير محدد",
                 DepartmentName = x.Department?.Name ?? "غير محدد",
-                DockStatusName = x.DockStatus?.Name ?? "غير محدد",
-                MaxTruckCount = x.MaxTruckCount,
-                IsUnderMaintenance = x.IsUnderMaintenance
+                DockStatusName = x.DockStatus?.Name ?? "غير محدد"
             }).ToList();
-
-            // Feature — dock capacity/maintenance: occupancy isn't a stored column,
-            // so pull it in one extra call and merge it into the list rows for the
-            // "2/5" + "في صيانة" badges (see §3 of the spec).
-            if (dockViewModels.Count > 0)
-            {
-                var options = await _repository.GetDockOptionsAsync(selectedWarehouseId);
-                var occupancyById = options.ToDictionary(o => o.Id, o => o.Occupancy);
-                foreach (var vm in dockViewModels)
-                {
-                    vm.Occupancy = occupancyById.TryGetValue(vm.Id, out var occ) ? occ : 0;
-                }
-            }
 
             return View(dockViewModels);
         }
@@ -194,33 +176,17 @@ namespace Rassef.Controllers
                 WarehouseName = dock.Warehouse?.Name ?? "غير محدد",   // B2 — was .Name (no ?)
                 DockStatusName = dock.DockStatus?.Name ?? "غير محدد",
                 DepartmentName = dock.Department?.Name ?? "غير محدد",
-                CreatedBy = dock.CreatedById,
-                MaxTruckCount = dock.MaxTruckCount,
-                IsUnderMaintenance = dock.IsUnderMaintenance
+                CreatedBy = dock.CreatedById
             };
-
-            // Feature — dock capacity/maintenance: live occupancy for this one dock.
-            var occupancyCounts = await _dockAssignmentRepository.GetActiveOccupancyCountsAsync(new[] { dock.Id });
-            model.Occupancy = occupancyCounts.TryGetValue(dock.Id, out var occ) ? occ : 0;
 
             return View(model);
         }
 
         // ── CREATE GET ────────────────────────────────────────────────────────
-        // departmentId/warehouseId/returnUrl let this page be opened as the
-        // "+ add dock" launcher from a department card (Warehouse Details/Edit
-        // or Department Details/Update): preselects the department/warehouse
-        // and, on success, sends the user back to that card view instead of
-        // Dock/Index — same pattern as SupplierRequestController.Create.
         [HttpGet]
-        public async Task<IActionResult> Create(int? departmentId, int? warehouseId, string? returnUrl)
+        public async Task<IActionResult> Create()
         {
-            var vm = await PopulateCreateDropdownsAsync(new CreateDockVM
-            {
-                DepartmentId = departmentId ?? 0,
-                WarehouseId = warehouseId ?? 0,
-                ReturnUrl = (returnUrl != null && Url.IsLocalUrl(returnUrl)) ? returnUrl : null
-            });
+            var vm = await PopulateCreateDropdownsAsync(new CreateDockVM());
             return View(vm);
         }
 
@@ -261,8 +227,6 @@ namespace Rassef.Controllers
                 DepartmentId = create.DepartmentId,
                 WarehouseId = create.WarehouseId,
                 DockStatusId = create.DockStatusId,
-                MaxTruckCount = create.MaxTruckCount,
-                IsUnderMaintenance = create.IsUnderMaintenance,
                 CreatedById = currentUserId   // Q6 — was never set, caused the FK crash
             };
 
@@ -270,14 +234,6 @@ namespace Rassef.Controllers
             await _repository.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "تمت إضافة الرصيف بنجاح.";
-
-            // NEW — send the user back to the department/warehouse card view
-            // that launched this page, if one was given, instead of Index.
-            if (!string.IsNullOrEmpty(create.ReturnUrl) && Url.IsLocalUrl(create.ReturnUrl))
-            {
-                return Redirect(create.ReturnUrl);
-            }
-
             return RedirectToAction(nameof(Index));
         }
 
@@ -299,9 +255,7 @@ namespace Rassef.Controllers
                 DockName = dock.DockName,
                 DepartmentId = dock.DepartmentId,
                 WarehouseId = dock.WarehouseId,
-                DockStatusId = dock.DockStatusId,
-                MaxTruckCount = dock.MaxTruckCount,
-                IsUnderMaintenance = dock.IsUnderMaintenance
+                DockStatusId = dock.DockStatusId
             };
 
             vm = await PopulateUpdateDropdownsAsync(vm);
@@ -343,8 +297,6 @@ namespace Rassef.Controllers
             dock.DepartmentId = updateVm.DepartmentId;
             dock.WarehouseId = updateVm.WarehouseId;
             dock.DockStatusId = updateVm.DockStatusId;
-            dock.MaxTruckCount = updateVm.MaxTruckCount;
-            dock.IsUnderMaintenance = updateVm.IsUnderMaintenance;
 
             _repository.Update(dock);
             await _repository.SaveChangesAsync();
@@ -372,9 +324,7 @@ namespace Rassef.Controllers
                 DockName = dock.DockName,
                 DepartmentName = dock.Department?.Name ?? "غير محدد",
                 WarehouseName = dock.Warehouse?.Name ?? "غير محدد",
-                DockStatusName = dock.DockStatus?.Name ?? "غير محدد",
-                MaxTruckCount = dock.MaxTruckCount,
-                IsUnderMaintenance = dock.IsUnderMaintenance
+                DockStatusName = dock.DockStatus?.Name ?? "غير محدد"
             };
 
             return View(vm);

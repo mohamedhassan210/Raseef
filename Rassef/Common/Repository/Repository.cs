@@ -58,9 +58,6 @@ namespace Rassef.Common.Repository
         public void Update(T entity)
             => _dbSet.Update(entity);
 
-        public void HardDelete(T entity)
-            => _dbSet.Remove(entity);
-
         public async Task<int> SaveChangesAsync()
             => await _db.SaveChangesAsync();
 

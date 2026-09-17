@@ -1,6 +1,6 @@
-﻿@model CreateSupplierRequestVM
+﻿@model UpdateSupplierRequestVM
 @{
-    ViewData["Title"] = "إضافة طلب توريد";
+    ViewData["Title"] = "تعديل طلب توريد";
     Layout = "_SupOrTra";
     ViewData["ActiveSidebar"] = "SupplierRequests";
 }
@@ -37,7 +37,7 @@
             <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-Fathalla">
         </div>
         <div class="title-wrapper">
-            <h1 class="main-title">إضافة طلب توريد</h1>
+            <h1 class="main-title">تعديل طلب توريد</h1>
         </div>
         <div class="logo-wrapper header-left">
             <img src="~/img/logo.svg" alt="رصيف" class="logo-raseefy">
@@ -45,7 +45,7 @@
     </header>
 
     <div class="nav-actions-container" style="justify-content: flex-end;">
-        <a href="@(string.IsNullOrWhiteSpace(Model.ReturnUrl) ? Url.Action("Index", "SupplierRequest") : Model.ReturnUrl)" class="action-btn" aria-label="رجوع">
+        <a href="@Url.Action("Index", "SupplierRequest")" class="action-btn" aria-label="رجوع">
             رجوع
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -55,8 +55,9 @@
     </div>
 
     <section class="form-card mt-3">
-        <form asp-action="Create" asp-controller="SupplierRequest" method="post" class="needs-validation" novalidate>
+        <form asp-action="Update" asp-controller="SupplierRequest" method="post" class="needs-validation" novalidate>
             @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
 
             @if (!ViewData.ModelState.IsValid)
             {
@@ -68,30 +69,16 @@
                 </div>
             }
 
-            <input type="hidden" asp-for="ReturnUrl" />
-
             <div class="row mb-4 gy-4">
 
                 @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("SupplierId", "المورد", Model.Suppliers, Model.SupplierId, "اختر المورد"))
                 @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("TruckId", "الشاحنة", Model.Trucks, Model.TruckId, "اختر الشاحنة"))
                 @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("DriverId", "السائق", Model.Drivers, Model.DriverId, "اختر السائق"))
 
-                @if (ViewBag.LockedDepartmentId != null)
-                {
-                    @* Opened from a department card's "+" button — the department is
-                       fixed to that card, shown read-only instead of a pickable dropdown. *@
-                    var lockedDeptName = Model.Departments.FirstOrDefault(d => d.Value == Model.DepartmentId.ToString())?.Text;
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">القسم</label>
-                        <input type="text" class="form-control custom-input" value="@lockedDeptName" readonly>
-                        <input type="hidden" asp-for="DepartmentId" />
-                    </div>
-                }
-                else
-                {
-                    <!-- القسم — مفلتر تلقائياً حسب المستودع الحالي المختار (SelectedWarehouseId) -->
-                    @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("DepartmentId", "القسم", Model.Departments, Model.DepartmentId, "اختر القسم"))
-                }
+                @* القسم — نفس فلترة المستودع المستخدمة في صفحة "إضافة طلب توريد" (docs create):
+                   القائمة تأتي من GetScopedDepartmentsAsync في الـ Controller، وتقتصر تلقائياً
+                   على أقسام المستودع المختار حالياً (SelectedWarehouseId) بنفس منطق الإنشاء تماماً. *@
+                @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("DepartmentId", "القسم", Model.Departments, Model.DepartmentId, "اختر القسم"))
 
                 @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("PermitTypeId", "نوع التصريح", Model.PermitTypes, Model.PermitTypeId, "اختر نوع التصريح"))
                 @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("CommodityTypeId", "نوع السلعة", Model.CommodityTypes, Model.CommodityTypeId, "اختر نوع السلعة"))
@@ -114,18 +101,18 @@
                     <div class="d-flex mt-2 custom-radio-group justify-content-start gap-4">
                         <div class="form-check custom-radio-wrapper">
                             <label class="form-check-label" for="isFoodNo">لا</label>
-                            <input class="form-check-input custom-radio" type="radio" asp-for="IsFood" id="isFoodNo" value="false" checked>
+                            <input class="form-check-input custom-radio" type="radio" asp-for="IsFood" id="isFoodNo" value="false" checked="@(!Model.IsFood)">
                         </div>
                         <div class="form-check custom-radio-wrapper">
                             <label class="form-check-label" for="isFoodYes">نعم</label>
-                            <input class="form-check-input custom-radio" type="radio" asp-for="IsFood" id="isFoodYes" value="true">
+                            <input class="form-check-input custom-radio" type="radio" asp-for="IsFood" id="isFoodYes" value="true" checked="@Model.IsFood">
                         </div>
                     </div>
                 </div>
 
             </div>
 
-            <button type="submit" class="w-100 submit-btn mt-4">إضافة طلب التوريد</button>
+            <button type="submit" class="w-100 submit-btn mt-4">حفظ التعديلات</button>
         </form>
     </section>
 
@@ -137,8 +124,6 @@
     }
 
     <script>
-        // setupDropdown — syncs a styled custom dropdown UI with a hidden native <select>.
-        // Copied from Department/Create.cshtml pattern; reused here once per field.
         function setupDropdown(selectId, dropdownId, headerId, listId, selectedTextId) {
             const select = document.getElementById(selectId);
             const dropdown = document.getElementById(dropdownId);

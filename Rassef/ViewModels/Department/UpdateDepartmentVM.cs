@@ -1,6 +1,4 @@
-﻿using Rassef.ViewModels.Shared;
-
-namespace Rassef.ViewModels.Department
+﻿namespace Rassef.ViewModels.Department
 {
     public class UpdateDepartmentVM
     {
@@ -18,8 +16,8 @@ namespace Rassef.ViewModels.Department
         // DropDown
         public IEnumerable<SelectListItem>? Warehouses { get; set; }
 
-        // Same dock cards shown on Department/Details — displayed on the
+        // Same doc cards shown on Department/Details — displayed on the
         // Update page too, per request.
-        public List<DockCardVM> Docks { get; set; } = new List<DockCardVM>();
+        public List<DocCardVM> Docs { get; set; } = new List<DocCardVM>();
     }
 }

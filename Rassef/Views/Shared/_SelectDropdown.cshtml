@@ -1,0 +1,43 @@
+﻿@model SelectDropdownVM
+@{
+    var selectedText = Model.Items.FirstOrDefault(i => Model.SelectedValue.HasValue && i.Value == Model.SelectedValue.Value.ToString());
+    var hasSelection = selectedText != null;
+}
+
+<div class="col-md-6">
+    <label class="form-label fw-bold">@Model.Label</label>
+
+    <!-- hidden native select — synced by setupDropdown() in the parent view -->
+    <select id="@(Model.FieldName)Select" name="@Model.FieldName" class="d-none" @(Model.Required ? "required" : "")>
+        <option value="" disabled selected="@(!hasSelection)">@Model.Placeholder</option>
+        @foreach (var item in Model.Items)
+        {
+            <option value="@item.Value" selected="@(hasSelection && item.Value == Model.SelectedValue!.Value.ToString())">
+                @item.Text
+            </option>
+        }
+    </select>
+
+    <!-- styled UI -->
+    <div class="custom-dropdown" id="@(Model.FieldName)Dropdown">
+        <div class="dropdown-header" id="@(Model.FieldName)DropdownHeader">
+            <span class="selected-value @(hasSelection ? "" : "placeholder-color")" id="@(Model.FieldName)SelectedText">
+                @(hasSelection ? selectedText!.Text : Model.Placeholder)
+            </span>
+            <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#e47925" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+        </div>
+        <div class="dropdown-list" id="@(Model.FieldName)DropdownList">
+            @if (!Model.Items.Any())
+            {
+                <div class="dropdown-item disabled text-muted">لا توجد عناصر متاحة</div>
+            }
+        </div>
+    </div>
+    @* Manual equivalent of asp-validation-for — a partial's Model is SelectDropdownVM,
+       not the parent form's model, so the tag helper (which needs a ModelExpression)
+       can't be used here. This produces the same markup/behaviour jquery.validate.unobtrusive
+       already wires up for every other field in these forms. *@
+    <span class="text-danger field-validation-valid" data-valmsg-for="@Model.FieldName" data-valmsg-replace="true"></span>
+</div>

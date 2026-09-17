@@ -23,18 +23,6 @@
             builder.HasOne(d => d.CreatedBy)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
-
-            // Feature — dock capacity + maintenance status.
-            builder.Property(d => d.MaxTruckCount)
-                   .IsRequired();
-
-            builder.Property(d => d.IsUnderMaintenance)
-                   .IsRequired()
-                   .HasDefaultValue(false);
-
-            builder.ToTable(t => t.HasCheckConstraint(
-                "CK_Docks_MaxTruckCount_Positive",
-                "[MaxTruckCount] >= 1"));
         }
     }
 }

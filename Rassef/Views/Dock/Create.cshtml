@@ -124,7 +124,6 @@
     <section class="form-card mt-3">
         <form asp-action="Create" asp-controller="Dock" method="post" class="needs-validation" novalidate>
             @Html.AntiForgeryToken()
-            <input type="hidden" asp-for="ReturnUrl" />
 
             @if (!ViewData.ModelState.IsValid)
             {
@@ -149,12 +148,12 @@
                 <div class="col-md-6">
                     <label class="form-label fw-bold">المستودع</label>
                     <select id="warehouseSelect" name="WarehouseId" class="d-none" required>
-                        <option value="" disabled>اختر المستودع</option>
+                        <option value="" disabled selected>اختر المستودع</option>
                         @if (Model.Warehouses != null)
                         {
                             foreach (var w in Model.Warehouses)
                             {
-                                <option value="@w.Value" selected="@(Model.WarehouseId > 0 && w.Value == Model.WarehouseId.ToString())">@w.Text</option>
+                                <option value="@w.Value">@w.Text</option>
                             }
                         }
                     </select>
@@ -172,7 +171,7 @@
                 <div class="col-md-6">
                     <label class="form-label fw-bold">القسم</label>
                     <select id="departmentSelect" name="DepartmentId" class="d-none" required>
-                        <option value="" disabled>اختر القسم</option>
+                        <option value="" disabled selected>اختر القسم</option>
                         @if (Model.Departments != null)
                         {
                             foreach (var d in Model.Departments)
@@ -182,7 +181,7 @@
                                 && Model.DepartmentWarehouseMap.TryGetValue(deptId, out var whId))
                                 ? whId.ToString()
                                 : "";
-                                <option value="@d.Value" data-warehouse="@deptWarehouseId" selected="@(Model.DepartmentId > 0 && d.Value == Model.DepartmentId.ToString())">@d.Text</option>
+                                <option value="@d.Value" data-warehouse="@deptWarehouseId">@d.Text</option>
                             }
                         }
                     </select>
@@ -219,21 +218,6 @@
                         <div class="dropdown-list" id="statusDropdownList"></div>
                     </div>
                     <span asp-validation-for="DockStatusId" class="text-danger"></span>
-                </div>
-
-                <!-- الحد الأقصى لعدد الشاحنات -->
-                <div class="col-md-6">
-                    <label asp-for="MaxTruckCount" class="form-label fw-bold">الحد الأقصى لعدد الشاحنات</label>
-                    <input asp-for="MaxTruckCount" type="number" min="1" class="form-control custom-input" placeholder="مثال: 3" required>
-                    <span asp-validation-for="MaxTruckCount" class="text-danger"></span>
-                </div>
-
-                <!-- في صيانة -->
-                <div class="col-md-6 d-flex align-items-center">
-                    <div class="form-check">
-                        <input asp-for="IsUnderMaintenance" type="checkbox" class="form-check-input">
-                        <label asp-for="IsUnderMaintenance" class="form-check-label fw-bold">في صيانة</label>
-                    </div>
                 </div>
 
             </div>

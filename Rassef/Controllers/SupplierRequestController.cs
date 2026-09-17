@@ -21,6 +21,7 @@ namespace Rassef.Controllers
         private readonly IRepository<Shift> _shiftRepository;
         private readonly IRepository<DriverTypes> _driverTypeRepository;
         private readonly ITicketEngineService _ticketEngineService;
+        private readonly ApplicationDbContext _context;   // NEW — needed for a true hard delete (IRepository<T>.Remove is a soft-delete wrapper)
 
         public SupplierRequestController(
             ISupplierRequestRepository supplierRequestRepository,
@@ -38,7 +39,8 @@ namespace Rassef.Controllers
             IRepository<TicketStatuses> ticketStatusRepository,
             IRepository<QueueSettings> queueSettingsRepository,
             IRepository<Shift> shiftRepository,
-            ITicketEngineService ticketEngineService)
+            ITicketEngineService ticketEngineService,
+            ApplicationDbContext context)
         {
             _supplierRequestRepository = supplierRequestRepository;
             _supplierRepository = supplierRepository;
@@ -56,7 +58,56 @@ namespace Rassef.Controllers
             _queueSettingsRepository = queueSettingsRepository;
             _shiftRepository = shiftRepository;
             _ticketEngineService = ticketEngineService;
+            _context = context;
         }
+
+        // ── HARD DELETE (card "X" button) ───────────────────────────────────────
+        // Permanent removal, distinct from the existing soft-delete Delete/
+        // DeleteConfirmed pair. Guarded against QueueTickets (DeleteBehavior.
+        // Restrict), both with an up-front check and a try/catch safety net.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> HardDelete(int id, string? returnUrl)
+        {
+            var request = await _context.SupplierRequests
+                .Include(r => r.QueueTickets)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (request == null)
+            {
+                TempData["ErrorMessage"] = "طلب التوريد غير موجود.";
+                return RedirectBackOr(returnUrl, nameof(Index));
+            }
+
+            if (request.QueueTickets?.Any() == true)
+            {
+                TempData["ErrorMessage"] = "لا يمكن حذف هذا الطلب نهائياً لأنه مرتبط بتذاكر انتظار. يرجى إزالتها أولاً.";
+                return RedirectBackOr(returnUrl, nameof(Index));
+            }
+
+            try
+            {
+                _context.SupplierRequests.Remove(request);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "تم حذف طلب التوريد نهائياً.";
+            }
+            catch (DbUpdateException)
+            {
+                TempData["ErrorMessage"] = "تعذر حذف الطلب نهائياً لوجود بيانات مرتبطة به.";
+            }
+
+            return RedirectBackOr(returnUrl, nameof(Index));
+        }
+
+        private IActionResult RedirectBackOr(string? returnUrl, string fallbackAction)
+        {
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+            return RedirectToAction(fallbackAction);
+        }
+
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -138,17 +189,23 @@ namespace Rassef.Controllers
 
         [HttpGet]
         // Display create page
-        // NEW — departmentId/returnUrl let this page be opened as the "+ add
-        // doc" launcher from a department card (Warehouse Details/Edit or
-        // Department Details/Update): preselects the department and, on
-        // success, sends the user back to that card view instead of Index.
         public async Task<IActionResult> Create(int? departmentId, string? returnUrl)
         {
             var vm = new CreateSupplierRequestVM
             {
-                DepartmentId = departmentId ?? 0,
-                ReturnUrl = (returnUrl != null && Url.IsLocalUrl(returnUrl)) ? returnUrl : null
+                ReturnUrl = returnUrl
             };
+
+            if (departmentId.HasValue)
+            {
+                // Opened from a department card's "+" button — lock the
+                // department to that card instead of asking the user to pick
+                // it again (same idea as Warehouses/CreateDepartment locking
+                // WarehouseId to the warehouse the page was opened from).
+                vm.DepartmentId = departmentId.Value;
+                ViewBag.LockedDepartmentId = departmentId.Value;
+            }
+
             return View(await PopulateDropdownsAsync(vm));
         }
 
@@ -160,6 +217,10 @@ namespace Rassef.Controllers
         {
             if (!ModelState.IsValid)
             {
+                if (create.DepartmentId > 0)
+                {
+                    ViewBag.LockedDepartmentId = create.DepartmentId;
+                }
                 return View(await PopulateDropdownsAsync(create));
             }
 
@@ -200,13 +261,10 @@ namespace Rassef.Controllers
 
             TempData["Success"] = "تم إضافة طلب المورد بنجاح.";
 
-            // NEW — send the user back to the department/warehouse card view
-            // that launched this page, if one was given, instead of Index.
-            if (!string.IsNullOrEmpty(create.ReturnUrl) && Url.IsLocalUrl(create.ReturnUrl))
+            if (!string.IsNullOrWhiteSpace(create.ReturnUrl) && Url.IsLocalUrl(create.ReturnUrl))
             {
                 return Redirect(create.ReturnUrl);
             }
-
             return RedirectToAction(nameof(Index));
         }
 

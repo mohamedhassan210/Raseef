@@ -244,6 +244,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUG9zaXRpb25cRGVsZXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/sd/Source/Repos/Raseef/Rassef/Views/Position/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUG9zaXRpb25cRGV0YWlscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/sd/Source/Repos/Raseef/Rassef/Views/Position/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUG9zaXRpb25cRWRpdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -276,16 +280,40 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9BZG1pblNpZGViYXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/sd/Source/Repos/Raseef/Rassef/Views/Shared/_CardsStyle.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9DYXJkc1N0eWxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/sd/Source/Repos/Raseef/Rassef/Views/Shared/_DepartmentCard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9EZXBhcnRtZW50Q2FyZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/sd/Source/Repos/Raseef/Rassef/Views/Shared/_DepartmentCards.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9EZXBhcnRtZW50Q2FyZHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/sd/Source/Repos/Raseef/Rassef/Views/Shared/_DepartmentCardsGrid.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9EZXBhcnRtZW50Q2FyZHNHcmlkLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/sd/Source/Repos/Raseef/Rassef/Views/Shared/_DocCard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Eb2NDYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/sd/Source/Repos/Raseef/Rassef/Views/Shared/_DocCards.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Eb2NDYXJkcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/sd/Source/Repos/Raseef/Rassef/Views/Shared/_DocCardsGrid.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Eb2NDYXJkc0dyaWQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/sd/Source/Repos/Raseef/Rassef/Views/Shared/_DockCards.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Eb2NrQ2FyZHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/sd/Source/Repos/Raseef/Rassef/Views/Shared/_SelectDropdown.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9TZWxlY3REcm9wZG93bi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/sd/Source/Repos/Raseef/Rassef/Views/Shared/_SupOrTra.cshtml]
@@ -306,6 +334,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/sd/Source/Repos/Raseef/Rassef/Views/SupplierRequest/CreateTruckWithDriver.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwcGxpZXJSZXF1ZXN0XENyZWF0ZVRydWNrV2l0aERyaXZlci5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/sd/Source/Repos/Raseef/Rassef/Views/SupplierRequest/Update.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwcGxpZXJSZXF1ZXN0XFVwZGF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/sd/Source/Repos/Raseef/Rassef/Views/Supplier/Create.cshtml]
