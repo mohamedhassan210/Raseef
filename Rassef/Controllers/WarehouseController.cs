@@ -479,6 +479,53 @@ namespace Rassef.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // ── REMOVE DEPARTMENT CARD (from Warehouses/Edit) ───────────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveDepartmentCard(int id, int warehouseId, string returnAction)
+        {
+            var department = await _departmentRepository.GetByIdAsync(id);
+
+            if (department == null || department.IsDeleted)
+            {
+                TempData["ErrorMessage"] = "هذا القسم غير موجود بالفعل.";
+                return RedirectToAction(SafeReturnAction(returnAction), new { id = warehouseId });
+            }
+
+            _departmentRepository.Remove(department);
+            await _departmentRepository.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "تم حذف القسم بنجاح.";
+            return RedirectToAction(SafeReturnAction(returnAction), new { id = warehouseId });
+        }
+
+        // ── REMOVE DOCK CARD (from Warehouses/Edit) ──────────────────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveDockCard(int id, int warehouseId, string returnAction)
+        {
+            var dock = await _dockRepository.GetByIdAsync(id);
+
+            if (dock == null || dock.IsDeleted)
+            {
+                TempData["ErrorMessage"] = "هذا الرصيف غير موجود بالفعل.";
+                return RedirectToAction(SafeReturnAction(returnAction), new { id = warehouseId });
+            }
+
+            _dockRepository.Remove(dock);
+            await _dockRepository.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "تم حذف الرصيف بنجاح.";
+            return RedirectToAction(SafeReturnAction(returnAction), new { id = warehouseId });
+        }
+
+        /// <summary>
+        /// The view posts "Details" or "Edit" back as a plain string — never trust
+        /// it blindly as a redirect target, restrict it to the two known actions.
+        /// </summary>
+        private static string SafeReturnAction(string? returnAction)
+            => returnAction == "Edit" ? "Edit" : "Details";
+
         // ── PRIVATE HELPERS ───────────────────────────────────────────────────
 
         /// <summary>
@@ -502,6 +549,9 @@ namespace Rassef.Controllers
                 .Include(w => w.Departments)
                     .ThenInclude(d => d.SupplierRequests)
                         .ThenInclude(sr => sr.RequestStatus)
+                .Include(w => w.Departments)
+                    .ThenInclude(d => d.Docks)
+                        .ThenInclude(dk => dk.DockStatus)
                 .Include(w => w.Docks));
 
             return results.FirstOrDefault();
@@ -533,6 +583,15 @@ namespace Rassef.Controllers
                             TruckInfo = sr.Truck != null ? $"{sr.Truck.PlateLetter} {sr.Truck.PlateNumber}" : "غير محدد",
                             DriverName = sr.Driver?.FullName ?? "غير محدد",
                             StatusName = sr.RequestStatus?.Name ?? "غير محدد"
+                        }).ToList(),
+                    Docks = d.Docks
+                        .Where(dk => !dk.IsDeleted)
+                        .OrderBy(dk => dk.DockName)
+                        .Select(dk => new DockCardVM
+                        {
+                            Id = dk.Id,
+                            DockName = dk.DockName,
+                            DockStatusName = dk.DockStatus?.Name ?? "غير محدد"
                         }).ToList()
                 }).ToList();
         }

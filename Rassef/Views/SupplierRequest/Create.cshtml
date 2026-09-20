@@ -97,6 +97,10 @@
                 @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("CommodityTypeId", "نوع السلعة", Model.CommodityTypes, Model.CommodityTypeId, "اختر نوع السلعة"))
                 @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("RequestStatusId", "حالة الطلب", Model.RequestStatuses, Model.RequestStatusId, "اختر حالة الطلب"))
 
+                <!-- الرصيف — بيتفلتر تلقائياً حسب القسم المختار فوق، ويتعطل
+                     أي رصيف ممتلئ أو تحت الصيانة -->
+                @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("DockId", "الرصيف (اختياري)", new List<SelectListItem>(), Model.DockId, "اختر القسم الأول", required: false))
+
                 <div class="col-md-6">
                     <label asp-for="DriverPhone" class="form-label fw-bold">رقم هاتف السائق</label>
                     <input asp-for="DriverPhone" type="tel" class="form-control custom-input" placeholder="ادخل رقم هاتف السائق" maxlength="11" dir="rtl">
@@ -137,6 +141,22 @@
     }
 
     <script>
+        // بيانات كل الأرصفة (كل الأقسام) مع سعتها وحالتها الحالية — بتوصل
+        // مرة واحدة مع الصفحة، وبتتفلتر في المتصفح حسب القسم المختار بدل
+        // ما نعمل Request جديد لكل تغيير في القسم.
+        window.allDocks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            Model.AllDocks.Select(d => new {
+                id = d.Id,
+                name = d.DockName,
+                departmentId = d.DepartmentId,
+                occupancy = d.Occupancy,
+                maxTruckCount = d.MaxTruckCount,
+                isUnderMaintenance = d.IsUnderMaintenance,
+                isSelectable = d.IsSelectable,
+                disabledReasonLabel = d.DisabledReasonLabel
+            })
+        ));
+
         // setupDropdown — syncs a styled custom dropdown UI with a hidden native <select>.
         // Copied from Department/Create.cshtml pattern; reused here once per field.
         function setupDropdown(selectId, dropdownId, headerId, listId, selectedTextId) {
@@ -163,6 +183,7 @@
                     list.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
                     item.classList.add('selected');
                     dropdown.classList.remove('open');
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
                 });
 
                 list.appendChild(item);
@@ -183,8 +204,94 @@
             });
         }
 
+        // بيعيد بناء قائمة الأرصفة (الـ <select> المخفي + القائمة المنسدلة
+        // المصممة) حسب القسم المختار، ويعطّل (Dim) أي رصيف ممتلئ أو تحت
+        // الصيانة بدل ما يمسحه من القائمة خالص.
+        function refreshDocks(departmentId) {
+            const select = document.getElementById('DockIdSelect');
+            const list = document.getElementById('DockIdDropdownList');
+            const selectedText = document.getElementById('DockIdSelectedText');
+            if (!select || !list || !selectedText) return;
+
+            const previouslySelected = select.value;
+            select.innerHTML = '';
+            list.innerHTML = '';
+
+            const placeholderOpt = document.createElement('option');
+            placeholderOpt.value = '';
+            placeholderOpt.disabled = true;
+            placeholderOpt.textContent = 'بدون رصيف محدد';
+            select.appendChild(placeholderOpt);
+
+            const docks = (window.allDocks || []).filter(d => String(d.departmentId) === String(departmentId));
+
+            if (!departmentId) {
+                selectedText.textContent = 'اختر القسم الأول';
+                selectedText.classList.add('placeholder-color');
+                selectedText.classList.remove('selected-value');
+                select.value = '';
+                return;
+            }
+
+            if (docks.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'dropdown-item disabled text-muted';
+                empty.textContent = 'لا توجد أرصفة لهذا القسم';
+                list.appendChild(empty);
+            }
+
+            let stillValid = false;
+
+            docks.forEach(dock => {
+                const opt = document.createElement('option');
+                opt.value = dock.id;
+                opt.textContent = dock.name + dock.disabledReasonLabel;
+                if (!dock.isSelectable) opt.disabled = true;
+                select.appendChild(opt);
+
+                const item = document.createElement('div');
+                item.className = 'dropdown-item' + (dock.isSelectable ? '' : ' disabled');
+                item.textContent = dock.name + ' — ' + dock.occupancy + '/' + dock.maxTruckCount + dock.disabledReasonLabel;
+                item.dataset.value = dock.id;
+
+                if (dock.isSelectable) {
+                    item.addEventListener('click', () => {
+                        select.value = dock.id;
+                        selectedText.textContent = dock.name;
+                        selectedText.classList.remove('placeholder-color');
+                        selectedText.classList.add('selected-value');
+                        list.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
+                        item.classList.add('selected');
+                        document.getElementById('DockIdDropdown')?.classList.remove('open');
+                    });
+
+                    if (String(dock.id) === String(previouslySelected)) {
+                        stillValid = true;
+                        item.classList.add('selected');
+                    }
+                }
+
+                list.appendChild(item);
+            });
+
+            if (stillValid) {
+                select.value = previouslySelected;
+                const match = docks.find(d => String(d.id) === String(previouslySelected));
+                if (match) {
+                    selectedText.textContent = match.name;
+                    selectedText.classList.remove('placeholder-color');
+                    selectedText.classList.add('selected-value');
+                }
+            } else {
+                select.value = '';
+                selectedText.textContent = 'بدون رصيف محدد';
+                selectedText.classList.add('placeholder-color');
+                selectedText.classList.remove('selected-value');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            ['SupplierId', 'TruckId', 'DriverId', 'DepartmentId', 'PermitTypeId', 'CommodityTypeId', 'RequestStatusId']
+            ['SupplierId', 'TruckId', 'DriverId', 'DepartmentId', 'PermitTypeId', 'CommodityTypeId', 'RequestStatusId', 'DockId']
                 .forEach(field => setupDropdown(
                     field + 'Select',
                     field + 'Dropdown',
@@ -192,6 +299,18 @@
                     field + 'DropdownList',
                     field + 'SelectedText'
                 ));
+
+            // القسم مقفول (اتفتحت الصفحة من زرار "+" في كارت قسم مُحدَّد) —
+            // مفيش Dropdown أصلاً، القيمة جاية من Hidden Input ثابت
+            const lockedDepartmentInput = document.querySelector('input[type="hidden"][name="DepartmentId"]');
+            const departmentSelect = document.getElementById('DepartmentIdSelect');
+
+            if (departmentSelect) {
+                departmentSelect.addEventListener('change', () => refreshDocks(departmentSelect.value));
+                refreshDocks(departmentSelect.value);
+            } else if (lockedDepartmentInput) {
+                refreshDocks(lockedDepartmentInput.value);
+            }
         });
     </script>
 }

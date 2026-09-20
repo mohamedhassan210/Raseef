@@ -17,6 +17,7 @@ namespace Rassef.Controllers
         private readonly IUserRepository _userRepository;
         private readonly ITicketEngineService _ticketEngineService;
         private readonly Microsoft.Extensions.Options.IOptions<Rassef.Models.Options.PrinterSettings> _printerSettings;
+        private readonly Rassef.Common.Interfaces.IDockAvailabilityService _dockAvailabilityService;
 
         public DriverController(
             IDriverRepository repository,
@@ -31,7 +32,8 @@ namespace Rassef.Controllers
             IRepository<RequestStatuses> requestStatusRepository,
             IUserRepository userRepository,
             ITicketEngineService ticketEngineService,
-            Microsoft.Extensions.Options.IOptions<Rassef.Models.Options.PrinterSettings> printerSettings)
+            Microsoft.Extensions.Options.IOptions<Rassef.Models.Options.PrinterSettings> printerSettings,
+            Rassef.Common.Interfaces.IDockAvailabilityService dockAvailabilityService)
         {
             _driverRepository = repository;
             _supplierRepository = supplierRepository;
@@ -46,6 +48,7 @@ namespace Rassef.Controllers
             _userRepository = userRepository;
             _ticketEngineService = ticketEngineService;
             _printerSettings = printerSettings;
+            _dockAvailabilityService = dockAvailabilityService;
         }
 
         // Get All Drivers
@@ -61,14 +64,14 @@ namespace Rassef.Controllers
 
             var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
 
-            // CHANGED (this pass) — added .Include(d => d.DeiverType) and a
-            // DeiverType?.Code == 1 filter, per explicit instruction: this picker
-            // should only offer drivers whose DriverTypes.Code is 1.
+            // CORRECTED (per explicit instruction from the project owner): this picker
+            // (existing-truck path of the supplier request flow) should only offer
+            // EXTERNAL drivers — DriverTypes.Code == 2 — not code == 1.
             var drivers = await _driverRepository.GetAllAsync(query =>
                 query.Include(d => d.DeiverType));
 
             var driverList = drivers
-                .Where(d => !activeDriverIds.Contains(d.Id) && d.DeiverType?.Code == 1)
+                .Where(d => !activeDriverIds.Contains(d.Id) && d.DeiverType?.Code == 2)
                 .Select(d => new DriverListVM
                 {
                     Id = d.Id,
@@ -87,6 +90,19 @@ namespace Rassef.Controllers
             ViewBag.SupplierId = supplierId;
             var depts = await GetScopedDepartmentsAsync();
             ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
+
+            var docks = await _dockAvailabilityService.GetAllDocksAsync();
+            ViewBag.AllDocks = docks.Select(d => new
+            {
+                id = d.Id,
+                name = d.DockName,
+                departmentId = d.DepartmentId,
+                occupancy = d.Occupancy,
+                maxTruckCount = d.MaxTruckCount,
+                isUnderMaintenance = d.IsUnderMaintenance,
+                isSelectable = !d.IsUnderMaintenance && d.Occupancy < d.MaxTruckCount,
+                disabledReasonLabel = d.IsUnderMaintenance ? " (تحت الصيانة)" : (d.Occupancy >= d.MaxTruckCount ? " (ممتلئ)" : "")
+            }).ToList();
 
             return View(driverList);
         }
@@ -338,6 +354,19 @@ namespace Rassef.Controllers
             var departments = await GetScopedDepartmentsAsync();
             ViewBag.Departments = departments.Select(d => new { id = d.Id, name = d.Name }).ToList();
 
+            var docks = await _dockAvailabilityService.GetAllDocksAsync();
+            ViewBag.AllDocks = docks.Select(d => new
+            {
+                id = d.Id,
+                name = d.DockName,
+                departmentId = d.DepartmentId,
+                occupancy = d.Occupancy,
+                maxTruckCount = d.MaxTruckCount,
+                isUnderMaintenance = d.IsUnderMaintenance,
+                isSelectable = !d.IsUnderMaintenance && d.Occupancy < d.MaxTruckCount,
+                disabledReasonLabel = d.IsUnderMaintenance ? " (تحت الصيانة)" : (d.Occupancy >= d.MaxTruckCount ? " (ممتلئ)" : "")
+            }).ToList();
+
             return View(model);
         }
 
@@ -585,6 +614,19 @@ namespace Rassef.Controllers
             var depts = await GetScopedDepartmentsAsync();
             ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
 
+            var docks = await _dockAvailabilityService.GetAllDocksAsync();
+            ViewBag.AllDocks = docks.Select(d => new
+            {
+                id = d.Id,
+                name = d.DockName,
+                departmentId = d.DepartmentId,
+                occupancy = d.Occupancy,
+                maxTruckCount = d.MaxTruckCount,
+                isUnderMaintenance = d.IsUnderMaintenance,
+                isSelectable = !d.IsUnderMaintenance && d.Occupancy < d.MaxTruckCount,
+                disabledReasonLabel = d.IsUnderMaintenance ? " (تحت الصيانة)" : (d.Occupancy >= d.MaxTruckCount ? " (ممتلئ)" : "")
+            }).ToList();
+
             return View(driverList);
         }
 
@@ -743,6 +785,16 @@ namespace Rassef.Controllers
                 return BadRequest(new { success = false, message = "بيانات إعداد النظام غير مكتملة (نوع التصريح / نوع البضاعة / حالة الطلب)." });
             }
 
+            // فحص الرصيف المختار (لو المستخدم اختار واحد)
+            if (dto.DockId.HasValue && dto.DockId.Value > 0)
+            {
+                var (isValid, errorMessage) = await _dockAvailabilityService.ValidateDockSelectionAsync(dto.DockId.Value, dto.DepartmentId);
+                if (!isValid)
+                {
+                    return BadRequest(new { success = false, message = errorMessage ?? "الرصيف المختار غير متاح." });
+                }
+            }
+
             var supplierRequest = new SupplierRequest
             {
                 SupplierId = supplier.Id,
@@ -752,6 +804,7 @@ namespace Rassef.Controllers
                 PermitTypeId = defaultPermit.Id,
                 CommodityTypeId = defaultCommodity.Id,
                 RequestStatusId = defaultStatus.Id,
+                DockId = dto.DockId is > 0 ? dto.DockId : null,
                 CreatedBy = currentUser
             };
 

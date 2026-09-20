@@ -23,6 +23,12 @@ namespace Rassef.Common.Repository.EntitiesRepository
                 .Include(d => d.SupplierRequests)
                 .FirstOrDefaultAsync(d => d.Id == id);
         }
+        public async Task<IEnumerable<Driver?>> GetDriversWithTypeAsync()
+        {
+            return await _context.Drivers
+                .Include(d => d.DeiverType)
+                .ToListAsync();
+        }
         public async Task<IEnumerable<Driver>> GetDriversBySupplierIdAsync(int supplierId)
         {
             return await _context.Drivers

@@ -32,6 +32,64 @@ document.addEventListener('DOMContentLoaded', () => {
     const deptErrorMsg = document.getElementById('dept-error-msg');
     let selectedDepartmentValue = null;
 
+    // Custom Dropdown Elements (Dock) — اختياري، بيتفلتر حسب القسم المختار
+    const dockDropdownContainer = document.getElementById('dock-dropdown-container');
+    const dockDropdownHeader = document.getElementById('dock-dropdown-header');
+    const dockSelectedValue = document.getElementById('dock-selected-value');
+    const dockDropdownList = document.getElementById('dock-dropdown-list');
+    let selectedDockValue = null;
+
+    const refreshDockOptions = (departmentId) => {
+        if (!dockDropdownList) return;
+
+        selectedDockValue = null;
+        dockDropdownList.innerHTML = '';
+        dockSelectedValue.textContent = 'بدون رصيف محدد';
+        dockSelectedValue.classList.add('text-muted');
+
+        if (!departmentId) {
+            dockSelectedValue.textContent = 'اختار القسم أولاً';
+            return;
+        }
+
+        const docks = (window.allDocks || []).filter(d => String(d.departmentId) === String(departmentId));
+
+        if (docks.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'dropdown-item disabled text-muted';
+            empty.textContent = 'لا توجد أرصفة لهذا القسم';
+            dockDropdownList.appendChild(empty);
+            return;
+        }
+
+        docks.forEach(dock => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item' + (dock.isSelectable ? '' : ' disabled');
+            item.textContent = dock.name + ' — ' + dock.occupancy + '/' + dock.maxTruckCount + dock.disabledReasonLabel;
+
+            if (dock.isSelectable) {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectedDockValue = { id: dock.id, name: dock.name };
+                    dockSelectedValue.textContent = dock.name;
+                    dockSelectedValue.classList.remove('text-muted');
+                    dockDropdownList.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    dockDropdownContainer.classList.remove('open');
+                });
+            }
+
+            dockDropdownList.appendChild(item);
+        });
+    };
+
+    if (dockDropdownHeader) {
+        dockDropdownHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dockDropdownContainer.classList.toggle('open');
+        });
+    }
+
     // ==========================================
     // 2. Search & Filter Logic 
     // ==========================================
@@ -113,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const deptItems = document.querySelectorAll('#dept-dropdown-list .dropdown-item');
                 deptItems.forEach(i => i.classList.remove('selected'));
                 deptDropdownContainer.classList.remove('open');
+                refreshDockOptions(null);
 
                 localStorage.setItem('pendingDriver', JSON.stringify({
                     name: driverName,
@@ -171,6 +230,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 deptDropdownContainer.classList.remove('open');
                 deptDropdownHeader.classList.remove('error');
                 deptErrorMsg.style.display = 'none';
+
+                refreshDockOptions(selectedDepartmentValue.id);
             });
         });
 
@@ -245,7 +306,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 supplierId: parseInt(window.pageData?.supplierId) || 0,
                 truckId: parseInt(window.pageData?.truckId) || 0,
                 driverId: parseInt(pendingData.driverId || pendingData.id || pendingData.nationalId) || 0,
-                departmentId: selectedDepartmentValue ? selectedDepartmentValue.id : 0
+                departmentId: selectedDepartmentValue ? selectedDepartmentValue.id : 0,
+                dockId: selectedDockValue ? selectedDockValue.id : null
             };
 
             let ticketInfo = null;

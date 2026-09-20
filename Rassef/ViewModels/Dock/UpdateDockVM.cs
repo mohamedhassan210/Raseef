@@ -27,5 +27,12 @@ namespace Rassef.ViewModels.Dock
 
         // Status DropDown
         public IEnumerable<SelectListItem>? DockStatus { get; set; }
+
+        [Display(Name = "أقصى عدد شاحنات")]
+        [Range(1, 100, ErrorMessage = "أقصى عدد شاحنات لازم يكون رقم من 1 إلى 100.")]
+        public int MaxTruckCount { get; set; } = 1;
+
+        [Display(Name = "تحت الصيانة؟")]
+        public bool IsUnderMaintenance { get; set; }
     }
 }

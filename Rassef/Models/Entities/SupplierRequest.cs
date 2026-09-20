@@ -14,6 +14,17 @@
         public string PermitNumber { get; set; } = string.Empty;
         public bool IsFood { get; set; }
         public User CreatedBy { get; set; }
+
+        // Feature — الرصيف اللي المستخدم اختاره وقت إنشاء الطلب (اختياري)
+        public int? DockId { get; set; }
+        public Dock? Dock { get; set; }
+
+        // Feature — الموظف اللي عمل "استدعاء الدور التالي" (Call Next) في
+        // CallStation لهذا الطلب. بيتسجل تلقائياً وقت الاستدعاء، مش وقت
+        // إنشاء الطلب.
+        public int? CallerId { get; set; }
+        public User? Caller { get; set; }
+
         public Supplier Supplier { get; set; }
         public Truck Truck { get; set; }
         public Driver Driver { get; set; }

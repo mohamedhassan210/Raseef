@@ -21,6 +21,7 @@ namespace Rassef.Controllers
         private readonly IRepository<Shift> _shiftRepository;
         private readonly IRepository<DriverTypes> _driverTypeRepository;
         private readonly ITicketEngineService _ticketEngineService;
+        private readonly Rassef.Common.Interfaces.IDockAvailabilityService _dockAvailabilityService;
         private readonly ApplicationDbContext _context;   // NEW — needed for a true hard delete (IRepository<T>.Remove is a soft-delete wrapper)
 
         public SupplierRequestController(
@@ -40,6 +41,7 @@ namespace Rassef.Controllers
             IRepository<QueueSettings> queueSettingsRepository,
             IRepository<Shift> shiftRepository,
             ITicketEngineService ticketEngineService,
+            Rassef.Common.Interfaces.IDockAvailabilityService dockAvailabilityService,
             ApplicationDbContext context)
         {
             _supplierRequestRepository = supplierRequestRepository;
@@ -58,6 +60,7 @@ namespace Rassef.Controllers
             _queueSettingsRepository = queueSettingsRepository;
             _shiftRepository = shiftRepository;
             _ticketEngineService = ticketEngineService;
+            _dockAvailabilityService = dockAvailabilityService;
             _context = context;
         }
 
@@ -240,6 +243,18 @@ namespace Rassef.Controllers
                 return View(await PopulateDropdownsAsync(create));
             }
 
+            // فحص الرصيف المختار (لو المستخدم اختار واحد) — ما ينفعش يكون
+            // تحت الصيانة أو ممتلئ أو من قسم تاني غير اللي اتحدد.
+            if (create.DockId.HasValue && create.DockId.Value > 0)
+            {
+                var (isValid, errorMessage) = await _dockAvailabilityService.ValidateDockSelectionAsync(create.DockId.Value, create.DepartmentId);
+                if (!isValid)
+                {
+                    ModelState.AddModelError(nameof(create.DockId), errorMessage ?? "الرصيف المختار غير متاح.");
+                    return View(await PopulateDropdownsAsync(create));
+                }
+            }
+
             var request = new SupplierRequest
             {
                 SupplierId = create.SupplierId,
@@ -253,6 +268,7 @@ namespace Rassef.Controllers
                 DriverPhone = create.DriverPhone,
                 PermitNumber = create.PermitNumber,
                 IsFood = create.IsFood,
+                DockId = create.DockId is > 0 ? create.DockId : null,
                 CreatedBy = currentUser
             };
 
@@ -425,8 +441,11 @@ namespace Rassef.Controllers
             // recently added drivers globally, excluding anyone with an active (incomplete)
             // ticket. GetDriversBySupplierIdAsync itself is untouched — it's still used by
             // ReloadTruckWithDriverDataAsync for the POST action, which is out of scope here.
+            // Feature — نفس قاعدة الفلترة المستخدمة في باقي فلو التوريد:
+            // بس سائقين خارجيين (DriverTypes.Code == 2)
             var recentDriverEntities = (await _driverRepository.GetAllAsync(q => q
-                .Where(d => !d.IsDeleted && !activeDriverIds.Contains(d.Id))
+                .Include(d => d.DeiverType)
+                .Where(d => !d.IsDeleted && !activeDriverIds.Contains(d.Id) && d.DeiverType.Code == 2)
                 .OrderByDescending(d => d.CreatedAT)
                 .ThenByDescending(d => d.Id)
                 .Take(6))).ToList();
@@ -453,11 +472,18 @@ namespace Rassef.Controllers
 
             int initialDriverId = selectedDriverId ?? (supplierDrivers.Any() ? int.Parse(supplierDrivers.First().Value) : 0);
 
+            // Bug fix — كان بياخد أول نوع شاحنة في القائمة (غالباً "داخلي")
+            // بدل النوع "خارجي" (Code == 2) المفروض يبقى الافتراضي في فلو
+            // التوريد
+            var defaultExternalTruckType = allTruckTypes.FirstOrDefault(t => t.TruckTypeCode == 2)
+                ?? allTruckTypes.FirstOrDefault();
+
             var model = new TruckWithDriverVM
             {
                 SupId = supplierId,
                 DriverId = initialDriverId,
                 Drivers = supplierDrivers,
+                TruckTypeId = defaultExternalTruckType?.Id ?? 0,
                 TruckTypes = allTruckTypes
                     .Select(t => new SelectListItem
                     {
@@ -472,6 +498,17 @@ namespace Rassef.Controllers
                 Value = d.Id.ToString(),
                 Text = d.Name
             }).ToList();
+
+            var allDocksInfo = await _dockAvailabilityService.GetAllDocksAsync();
+            model.AllDocks = allDocksInfo.Select(d => new Rassef.ViewModels.Dock.DockOptionVM
+            {
+                Id = d.Id,
+                DockName = d.DockName,
+                DepartmentId = d.DepartmentId,
+                IsUnderMaintenance = d.IsUnderMaintenance,
+                Occupancy = d.Occupancy,
+                MaxTruckCount = d.MaxTruckCount
+            });
 
             // 4. إرسال اسم المورد الحالي وقائمة الموردين/الشركات للـ View
             ViewBag.SupplierName = supplier.Name;
@@ -499,7 +536,8 @@ namespace Rassef.Controllers
             if (string.IsNullOrWhiteSpace(term))
             {
                 drivers = await _driverRepository.GetAllAsync(q => q
-                    .Where(d => !d.IsDeleted && !activeDriverIds.Contains(d.Id))
+                    .Include(d => d.DeiverType)
+                    .Where(d => !d.IsDeleted && !activeDriverIds.Contains(d.Id) && d.DeiverType.Code == 2)
                     .OrderByDescending(d => d.CreatedAT)
                     .ThenByDescending(d => d.Id)
                     .Take(6));
@@ -508,7 +546,8 @@ namespace Rassef.Controllers
             {
                 var trimmedTerm = term.Trim();
                 drivers = await _driverRepository.GetAllAsync(q => q
-                    .Where(d => !d.IsDeleted && !activeDriverIds.Contains(d.Id) &&
+                    .Include(d => d.DeiverType)
+                    .Where(d => !d.IsDeleted && !activeDriverIds.Contains(d.Id) && d.DeiverType.Code == 2 &&
                         (d.FullName.Contains(trimmedTerm) ||
                          d.Phone.Contains(trimmedTerm) ||
                          d.NationalId.Contains(trimmedTerm)))
@@ -537,7 +576,8 @@ namespace Rassef.Controllers
             if (create.TruckTypeId <= 0)
             {
                 var allTruckTypes = await _truckTypeRepository.GetAllAsync();
-                var defaultType = allTruckTypes.FirstOrDefault();
+                var defaultType = allTruckTypes.FirstOrDefault(t => t.TruckTypeCode == 2)
+                    ?? allTruckTypes.FirstOrDefault();
 
                 if (defaultType == null)
                 {
@@ -615,7 +655,8 @@ namespace Rassef.Controllers
                     // would throw the same FK-constraint 500 if DriverTypes has no row
                     // with Id == 1. Now surfaced as a clean validation error instead.
                     var allDriverTypes = await _driverTypeRepository.GetAllAsync();
-                    var defaultDriverType = allDriverTypes.FirstOrDefault();
+                    var defaultDriverType = allDriverTypes.FirstOrDefault(t => t.Code == 2)
+                        ?? allDriverTypes.FirstOrDefault();
 
                     if (defaultDriverType == null)
                     {
@@ -698,6 +739,18 @@ namespace Rassef.Controllers
             }
             int targetDepartmentId = create.DepartmentId.Value;
 
+            // Feature — فحص الرصيف المختار (لو المستخدم اختار واحد)
+            if (create.DockId.HasValue && create.DockId.Value > 0)
+            {
+                var (isValid, errorMessage) = await _dockAvailabilityService.ValidateDockSelectionAsync(create.DockId.Value, targetDepartmentId);
+                if (!isValid)
+                {
+                    ModelState.AddModelError(nameof(create.DockId), errorMessage ?? "الرصيف المختار غير متاح.");
+                    await ReloadTruckWithDriverDataAsync(create);
+                    return View(create);
+                }
+            }
+
             // CHANGED: was `?? 1` for all three of these — the exact hardcoded FK
             // fallback that caused the FK_SupplierRequests_RequestStatuses_RequestStatusId
             // violation in your error report. Now fails cleanly instead of inserting a
@@ -725,6 +778,7 @@ namespace Rassef.Controllers
                 PermitTypeId = defaultPermit.Id,
                 CommodityTypeId = defaultCommodity.Id,
                 RequestStatusId = defaultStatus.Id,
+                DockId = create.DockId is > 0 ? create.DockId : null,
                 CreatedBy = currentUser
             };
 
@@ -762,6 +816,17 @@ namespace Rassef.Controllers
                 createVm.PermitTypes = permitTypes.Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name });
                 createVm.CommodityTypes = commodityTypes.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });
                 createVm.RequestStatuses = requestStatuses.Select(r => new SelectListItem { Value = r.Id.ToString(), Text = r.Name });
+
+                var allDocks = await _dockAvailabilityService.GetAllDocksAsync();
+                createVm.AllDocks = allDocks.Select(d => new Rassef.ViewModels.Dock.DockOptionVM
+                {
+                    Id = d.Id,
+                    DockName = d.DockName,
+                    DepartmentId = d.DepartmentId,
+                    IsUnderMaintenance = d.IsUnderMaintenance,
+                    Occupancy = d.Occupancy,
+                    MaxTruckCount = d.MaxTruckCount
+                });
             }
             else if (vm is UpdateSupplierRequestVM updateVm)
             {
@@ -834,22 +899,26 @@ namespace Rassef.Controllers
 
             var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
 
-            var supplierDriversEntities = (await _driverRepository.GetDriversBySupplierIdAsync(create.SupId)).ToList();
-            if (create.DriverId > 0 && !supplierDriversEntities.Any(d => d.Id == create.DriverId))
+            // Feature — نفس منطق GET: أحدث السائقين الخارجيين (Code == 2) بس،
+            // بدل الاعتماد على GetDriversBySupplierIdAsync (مفيش FK حقيقي
+            // بين Supplier والسائق أصلاً)
+            var recentDriverEntities = (await _driverRepository.GetAllAsync(q => q
+                .Include(d => d.DeiverType)
+                .Where(d => !d.IsDeleted && !activeDriverIds.Contains(d.Id) && d.DeiverType.Code == 2)
+                .OrderByDescending(d => d.CreatedAT)
+                .ThenByDescending(d => d.Id)
+                .Take(6))).ToList();
+
+            if (create.DriverId > 0 && !recentDriverEntities.Any(d => d.Id == create.DriverId))
             {
                 var selDriver = await _driverRepository.GetByIdAsync(create.DriverId);
                 if (selDriver != null)
                 {
-                    supplierDriversEntities.Add(selDriver);
+                    recentDriverEntities.Add(selDriver);
                 }
             }
 
-            // استبعاد السائقين الذين لديهم أدوار نشطة
-            supplierDriversEntities = supplierDriversEntities
-                .Where(d => !activeDriverIds.Contains(d.Id) || d.Id == create.DriverId)
-                .ToList();
-
-            create.Drivers = supplierDriversEntities
+            create.Drivers = recentDriverEntities
                 .Select(d => new SelectListItem
                 {
                     Value = d.Id.ToString(),
@@ -864,6 +933,17 @@ namespace Rassef.Controllers
                     Value = t.Id.ToString(),
                     Text = t.Name
                 }).ToList();
+
+            var allDocksInfo = await _dockAvailabilityService.GetAllDocksAsync();
+            create.AllDocks = allDocksInfo.Select(d => new Rassef.ViewModels.Dock.DockOptionVM
+            {
+                Id = d.Id,
+                DockName = d.DockName,
+                DepartmentId = d.DepartmentId,
+                IsUnderMaintenance = d.IsUnderMaintenance,
+                Occupancy = d.Occupancy,
+                MaxTruckCount = d.MaxTruckCount
+            });
         }
 
         private async Task<(HashSet<int> ActiveDriverIds, HashSet<int> ActiveTruckIds)> GetActiveDriverAndTruckIdsAsync()

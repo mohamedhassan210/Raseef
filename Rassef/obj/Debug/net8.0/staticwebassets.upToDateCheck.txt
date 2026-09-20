@@ -31,6 +31,7 @@ wwwroot\css\updateTruck.css
 wwwroot\css\viewRole.css
 wwwroot\favicon.ico
 wwwroot\images\07687f2f-6305-4daf-bd2f-0319794dfea7_images.jfif
+wwwroot\images\2ca598be-955c-41a8-8bb6-6338a64ae3fd_Gemini_Generated_Image_i4d7vhi4d7vhi4d7.jfif
 wwwroot\images\4fb93f8a-717b-4af6-8c92-4b3ed9ba6a60_images.jfif
 wwwroot\images\60986d9b-09cb-4b71-b513-25f581a3a541_30101280202393.JPG
 wwwroot\images\76fb323b-d15c-4f33-b423-d2dd9201c163_Annotation 2026-04-30 133451.png
@@ -55,7 +56,6 @@ wwwroot\img\Login back.png
 wwwroot\img\logo light.svg
 wwwroot\img\logo.svg
 wwwroot\img\خلفية الموردين.png
-wwwroot\js\addCar.js
 wwwroot\js\addDriver.js
 wwwroot\js\addDriverTransfer.js
 wwwroot\js\AddEmployee.js
@@ -140,3 +140,4 @@ wwwroot\lib\jquery\dist\jquery.js
 wwwroot\lib\jquery\dist\jquery.min.js
 wwwroot\lib\jquery\dist\jquery.min.map
 wwwroot\lib\jquery\LICENSE.txt
+wwwroot\js\addCar.js

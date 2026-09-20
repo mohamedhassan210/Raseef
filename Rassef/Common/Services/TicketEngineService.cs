@@ -12,6 +12,9 @@ namespace Rassef.Common.Services
         private readonly IDockRepository _dockRepository;
         private readonly IDockAssignmentRepository _dockAssignmentRepository;
         private readonly IUserRepository _userRepository;
+        private readonly ISupplierRequestRepository _supplierRequestRepository;
+        private readonly ITransferRequestRepository _transferRequestRepository;
+        private readonly Rassef.Common.Interfaces.IDockAvailabilityService _dockAvailabilityService;
         private readonly Microsoft.AspNetCore.SignalR.IHubContext<Rassef.Hubs.QueueHub> _hubContext;
 
         // Concurrency Guard: منع أي Race Condition أثناء استدعاء الأدوار أو توليد التذاكر المتزامنة
@@ -26,6 +29,9 @@ namespace Rassef.Common.Services
             IDockRepository dockRepository,
             IDockAssignmentRepository dockAssignmentRepository,
             IUserRepository userRepository,
+            ISupplierRequestRepository supplierRequestRepository,
+            ITransferRequestRepository transferRequestRepository,
+            Rassef.Common.Interfaces.IDockAvailabilityService dockAvailabilityService,
             Microsoft.AspNetCore.SignalR.IHubContext<Rassef.Hubs.QueueHub> hubContext)
         {
             _departmentRepository = departmentRepository;
@@ -36,7 +42,41 @@ namespace Rassef.Common.Services
             _dockRepository = dockRepository;
             _dockAssignmentRepository = dockAssignmentRepository;
             _userRepository = userRepository;
+            _supplierRequestRepository = supplierRequestRepository;
+            _transferRequestRepository = transferRequestRepository;
+            _dockAvailabilityService = dockAvailabilityService;
             _hubContext = hubContext;
+        }
+
+        /// <summary>
+        /// بيسجل موظف الاستدعاء (CallerId) على طلب التوريد أو التحويل المرتبط
+        /// بالتذكرة اللي لسه اتنادى عليها دلوقتي — يُستدعى فقط لحظة "استدعاء
+        /// الدور التالي"، مش وقت إنشاء الطلب نفسه.
+        /// </summary>
+        private async Task RecordCallerAsync(QueueTicket ticket, int callerUserId)
+        {
+            if (ticket.SupplierRequestId.HasValue)
+            {
+                var sr = await _supplierRequestRepository.GetByIdAsync(ticket.SupplierRequestId.Value);
+                if (sr != null)
+                {
+                    sr.CallerId = callerUserId;
+                    sr.MarkAsUpdated();
+                    _supplierRequestRepository.Update(sr);
+                    await _supplierRequestRepository.SaveChangesAsync();
+                }
+            }
+            else if (ticket.TransferRequestId.HasValue)
+            {
+                var tr = await _transferRequestRepository.GetByIdAsync(ticket.TransferRequestId.Value);
+                if (tr != null)
+                {
+                    tr.CallerId = callerUserId;
+                    tr.MarkAsUpdated();
+                    _transferRequestRepository.Update(tr);
+                    await _transferRequestRepository.SaveChangesAsync();
+                }
+            }
         }
 
         /// <summary>
@@ -241,16 +281,39 @@ namespace Rassef.Common.Services
                 await _ticketRepository.AddAsync(queueTicket);
                 await _ticketRepository.SaveChangesAsync();
 
-                // Assign to an available dock if one exists for the department
+                // تحديد الرصيف: أولوية للرصيف اللي المستخدم اختاره وقت إنشاء
+                // الطلب (لو لسه متاح: مش ممتلئ ومش تحت الصيانة)، وإلا أول
+                // رصيف متاح فعلياً في القسم. قبل كده كانت الدالة بتاخد أول
+                // رصيف في القسم على طول من غير ما تتأكد من حالته أو تاخد
+                // بالها من اختيار المستخدم خالص.
                 string dockName = $"{prefix}1";
-                var allDocks = await _dockRepository.GetAllAsync();
-                var availableDock = allDocks.FirstOrDefault(d => d.DepartmentId == departmentId);
-                if (availableDock != null)
+
+                int? preferredDockId = null;
+                if (supplierRequestId.HasValue)
                 {
-                    dockName = availableDock.DockName;
+                    var sr = await _supplierRequestRepository.GetByIdAsync(supplierRequestId.Value);
+                    preferredDockId = sr?.DockId;
+                }
+                else if (transferRequestId.HasValue)
+                {
+                    var tr = await _transferRequestRepository.GetByIdAsync(transferRequestId.Value);
+                    preferredDockId = tr?.DockId;
+                }
+
+                var departmentDocks = await _dockAvailabilityService.GetDocksForDepartmentAsync(departmentId);
+
+                var chosenDock = preferredDockId.HasValue
+                    ? departmentDocks.FirstOrDefault(d => d.Id == preferredDockId.Value && !d.IsUnderMaintenance && !d.IsFull)
+                    : null;
+
+                chosenDock ??= departmentDocks.FirstOrDefault(d => !d.IsUnderMaintenance && !d.IsFull);
+
+                if (chosenDock != null)
+                {
+                    dockName = chosenDock.DockName;
                     var dockAssignment = new DockAssignment
                     {
-                        DockId = availableDock.Id,
+                        DockId = chosenDock.Id,
                         TicketId = queueTicket.Id,
                         AssignedAt = DateTimeOffset.Now,
                         CreatedBy = currentUser!
@@ -434,6 +497,9 @@ namespace Rassef.Common.Services
                         _ticketRepository.Update(ticketToUpdate);
                         await _ticketRepository.SaveChangesAsync();
                     }
+
+                    // تسجيل الموظف اللي عمل الاستدعاء على طلب التوريد/التحويل المرتبط
+                    await RecordCallerAsync(nextTicket, userId);
 
                     var dockAssignment = nextTicket.DockAssignments?.OrderByDescending(x => x.AssignedAt).FirstOrDefault();
                     string truckPlate = nextTicket.SupplierRequest?.Truck != null

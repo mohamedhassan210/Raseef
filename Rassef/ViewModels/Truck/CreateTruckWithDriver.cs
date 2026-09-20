@@ -22,6 +22,12 @@ namespace Rassef.Models.ViewModels.Truck
         public int SupId { get; set; }
         public int? DepartmentId { get; set; }
 
+        [Display(Name = "الرصيف")]
+        public int? DockId { get; set; }
+
+        public IEnumerable<Rassef.ViewModels.Dock.DockOptionVM> AllDocks { get; set; }
+            = new List<Rassef.ViewModels.Dock.DockOptionVM>();
+
         public string? NewDriverName { get; set; }
         public string? NewDriverNationalId { get; set; }
         public string? NewDriverPhone { get; set; }

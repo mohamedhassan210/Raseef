@@ -114,17 +114,20 @@ namespace Rassef.Controllers
         private readonly IRepository<Department> _departmentRepo;
         private readonly IRepository<Warehouse> _warehouseRepo;
         private readonly IRepository<DockStatuses> _statusRepo;
+        private readonly Rassef.Common.Interfaces.IDockAvailabilityService _dockAvailabilityService;
 
         public DockController(
             IDockRepository repository,
             IRepository<Department> departmentRepo,
             IRepository<Warehouse> warehouseRepo,
-            IRepository<DockStatuses> statusRepo)
+            IRepository<DockStatuses> statusRepo,
+            Rassef.Common.Interfaces.IDockAvailabilityService dockAvailabilityService)
         {
             _repository = repository;
             _departmentRepo = departmentRepo;
             _warehouseRepo = warehouseRepo;
             _statusRepo = statusRepo;
+            _dockAvailabilityService = dockAvailabilityService;
         }
 
         // ── INDEX ─────────────────────────────────────────────────────────────
@@ -151,6 +154,19 @@ namespace Rassef.Controllers
                 DepartmentName = x.Department?.Name ?? "غير محدد",
                 DockStatusName = x.DockStatus?.Name ?? "غير محدد"
             }).ToList();
+
+            // Feature — إضافة السعة/الإشغال/حالة الصيانة الفعلية لكل رصيف
+            var availability = await _dockAvailabilityService.GetAllDocksAsync(selectedWarehouseId);
+            var availabilityById = availability.ToDictionary(a => a.Id);
+            foreach (var vm in dockViewModels)
+            {
+                if (availabilityById.TryGetValue(vm.Id, out var info))
+                {
+                    vm.MaxTruckCount = info.MaxTruckCount;
+                    vm.Occupancy = info.Occupancy;
+                    vm.IsUnderMaintenance = info.IsUnderMaintenance;
+                }
+            }
 
             return View(dockViewModels);
         }
@@ -227,6 +243,8 @@ namespace Rassef.Controllers
                 DepartmentId = create.DepartmentId,
                 WarehouseId = create.WarehouseId,
                 DockStatusId = create.DockStatusId,
+                MaxTruckCount = create.MaxTruckCount,
+                IsUnderMaintenance = create.IsUnderMaintenance,
                 CreatedById = currentUserId   // Q6 — was never set, caused the FK crash
             };
 
@@ -255,7 +273,9 @@ namespace Rassef.Controllers
                 DockName = dock.DockName,
                 DepartmentId = dock.DepartmentId,
                 WarehouseId = dock.WarehouseId,
-                DockStatusId = dock.DockStatusId
+                DockStatusId = dock.DockStatusId,
+                MaxTruckCount = dock.MaxTruckCount,
+                IsUnderMaintenance = dock.IsUnderMaintenance
             };
 
             vm = await PopulateUpdateDropdownsAsync(vm);
@@ -297,6 +317,8 @@ namespace Rassef.Controllers
             dock.DepartmentId = updateVm.DepartmentId;
             dock.WarehouseId = updateVm.WarehouseId;
             dock.DockStatusId = updateVm.DockStatusId;
+            dock.MaxTruckCount = updateVm.MaxTruckCount;
+            dock.IsUnderMaintenance = updateVm.IsUnderMaintenance;
 
             _repository.Update(dock);
             await _repository.SaveChangesAsync();

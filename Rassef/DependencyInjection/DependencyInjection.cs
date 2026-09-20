@@ -50,6 +50,7 @@ namespace Rassef.Dependencyinjection
             services.AddScoped<IDepartmentRepository, DepartmentRepository>();
             services.AddScoped<IDockAssignmentRepository, DockAssignmentRepository>();
             services.AddScoped<IDockRepository, DockRepository>();
+            services.AddScoped<Rassef.Common.Interfaces.IDockAvailabilityService, Rassef.Common.Services.DockAvailabilityService>();
             services.AddScoped<IDriverRepository, DriverRepository>();
             services.AddScoped<IQueueActionRepository, QueueActionRepository>();
             services.AddScoped<IQueueTicketRepository, QueueTicketRepository>();

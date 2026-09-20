@@ -66,6 +66,7 @@
                             <th>المستودع</th>
                             <th>القسم</th>
                             <th>الحالة</th>
+                            <th>السعة</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -78,7 +79,22 @@
                                     <td>@dock.DockName</td>
                                     <td>@dock.WarehouseName</td>
                                     <td>@dock.DepartmentName</td>
-                                    <td>@dock.DockStatusName</td>
+                                    <td>
+                                        @dock.DockStatusName
+                                        @if (dock.IsUnderMaintenance)
+                                        {
+                                            <span class="badge" style="background:#f8d7da;color:#842029;margin-right:6px;">تحت الصيانة</span>
+                                        }
+                                        else if (dock.IsFull)
+                                        {
+                                            <span class="badge" style="background:#fff3cd;color:#664d03;margin-right:6px;">ممتلئ</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge" style="background:#d1e7dd;color:#0f5132;margin-right:6px;">جاهز</span>
+                                        }
+                                    </td>
+                                    <td>@dock.Occupancy / @dock.MaxTruckCount</td>
                                     <td>
                                         <a href="@Url.Action("Details", "Dock", new { id = dock.Id })"
                                            class="btn-table-details" style="text-decoration: none;">
@@ -92,7 +108,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="5" class="empty-state">لا توجد أرصفة مسجلة حتى الآن</td>
+                                <td colspan="6" class="empty-state">لا توجد أرصفة مسجلة حتى الآن</td>
                             </tr>
                         }
                     </tbody>

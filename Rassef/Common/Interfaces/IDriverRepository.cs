@@ -2,6 +2,8 @@
 {
     public interface IDriverRepository : IRepository<Driver>
     {
+        Task<IEnumerable<Driver?>> GetDriversWithTypeAsync();
+
         Task<Driver?> GetDriverWithRequestsAsync(int id);
         Task<Driver?> GetDriverWithCreatedByAsync(int id);
         Task<bool> HasRequestsAsync(int driverId);

@@ -10,6 +10,12 @@ namespace Rassef.ViewModels.TransferRequest
 
         public IEnumerable<SelectListItem> Departments { get; set; } = Enumerable.Empty<SelectListItem>();
 
+        // الرصيف — بيتفلتر حسب القسم المختار فوق (اختياري)
+        [Display(Name = "الرصيف")]
+        public int? DockId { get; set; }
+
+        public IEnumerable<Rassef.ViewModels.Dock.DockOptionVM> AllDocks { get; set; } = new List<Rassef.ViewModels.Dock.DockOptionVM>();
+
 
         // 2. نوع الإذن (Radio Button: خروج / دخول)
         [Display(Name = "نوع الإذن")]

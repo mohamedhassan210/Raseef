@@ -11,5 +11,6 @@
         public string Name { get; set; } = string.Empty;
         public string Prefix { get; set; } = string.Empty;
         public List<DocCardVM> Docs { get; set; } = new List<DocCardVM>();
+        public List<DockCardVM> Docks { get; set; } = new List<DockCardVM>();
     }
 }

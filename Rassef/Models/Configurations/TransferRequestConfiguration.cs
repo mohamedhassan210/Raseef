@@ -48,6 +48,16 @@ namespace Rassef.Configurations
             builder.HasOne(tr => tr.CreatedBy)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(tr => tr.Dock)
+                   .WithMany()
+                   .HasForeignKey(tr => tr.DockId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(tr => tr.Caller)
+                   .WithMany()
+                   .HasForeignKey(tr => tr.CallerId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

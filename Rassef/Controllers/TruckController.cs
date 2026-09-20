@@ -17,6 +17,7 @@
         private readonly IRepository<Dock> _dockRepository;
         private readonly IRepository<DockAssignment> _dockAssignmentRepository;
         private readonly ITicketEngineService _ticketEngineService;
+        private readonly Rassef.Common.Interfaces.IDockAvailabilityService _dockAvailabilityService;
 
         public TruckController(
             ITruckRepository truckRepository,
@@ -33,7 +34,8 @@
             IRepository<PermitTypes> permitTypeRepository,
             IRepository<Dock> dockRepository,
             IRepository<DockAssignment> dockAssignmentRepository,
-            ITicketEngineService ticketEngineService)
+            ITicketEngineService ticketEngineService,
+            Rassef.Common.Interfaces.IDockAvailabilityService dockAvailabilityService)
         {
             _truckRepository = truckRepository;
             _truckTypeRepository = truckTypeRepository;
@@ -50,6 +52,7 @@
             _dockRepository = dockRepository;
             _dockAssignmentRepository = dockAssignmentRepository;
             _ticketEngineService = ticketEngineService;
+            _dockAvailabilityService = dockAvailabilityService;
         }
 
         [HttpGet]
@@ -65,11 +68,11 @@
 
             var trucksrepo = await _truckRepository.GetTruckWithTypeName();
 
-            // FIXED — was filtering TruckTypeCode == 2, which put transfer-flow trucks in the
-            // supplier picker. Supplier request flow should only offer trucks with code == 1;
-            // transfer flow (MainTraDrivers) already correctly uses code == 2.
+            // CORRECTED (per explicit instruction from the project owner):
+            // the supplier request flow only offers EXTERNAL trucks — TruckTypeCode == 2 —
+            // not code == 1. A prior pass had this backwards.
             var supplierTrucks = trucksrepo
-                .Where(x => !activeTruckIds.Contains(x.Id) && x.TruckType?.TruckTypeCode == 1)
+                .Where(x => !activeTruckIds.Contains(x.Id) && x.TruckType?.TruckTypeCode == 2)
                 .Select(x => new TruckListVM
                 {
                     Id = x.Id,
@@ -600,6 +603,16 @@
                 return BadRequest(new { success = false, message = "بيانات إعداد النظام غير مكتملة (نوع التصريح / حالة الطلب)." });
             }
 
+            // فحص الرصيف المختار (لو المستخدم اختار واحد)
+            if (dto.DockId.HasValue && dto.DockId.Value > 0)
+            {
+                var (isValid, errorMessage) = await _dockAvailabilityService.ValidateDockSelectionAsync(dto.DockId.Value, dto.DepartmentId);
+                if (!isValid)
+                {
+                    return BadRequest(new { success = false, message = errorMessage ?? "الرصيف المختار غير متاح." });
+                }
+            }
+
             var allTransfers = await _transferRequestRepository.GetAllAsync();
             int nextAvizNumber = allTransfers.Count() + 1;
             string avizNumber = $"AVIZ-{nextAvizNumber:D4}";
@@ -613,6 +626,7 @@
                 PermitNumber = $"PER-TR-{DateTime.Now.Ticks % 100000}",
                 AvizNumber = avizNumber,
                 RequestStatusId = defaultStatus.Id,
+                DockId = dto.DockId is > 0 ? dto.DockId : null,
                 CreatedById = currentUser.Id.ToString(),
                 CreatedBy = currentUser
             };

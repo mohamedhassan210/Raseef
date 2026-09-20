@@ -12,6 +12,13 @@
     [Display(Name = "القسم")]
     public int DepartmentId { get; set; }
 
+    [Display(Name = "الرصيف")]
+    public int? DockId { get; set; }
+
+    // كل الأرصفة (كل الأقسام) بسعتها وحالتها الحالية — بيتفلتروا في المتصفح
+    // حسب القسم المختار، بدل عمل Request جديد لكل تغيير في القسم.
+    public IEnumerable<Rassef.ViewModels.Dock.DockOptionVM> AllDocks { get; set; } = new List<Rassef.ViewModels.Dock.DockOptionVM>();
+
     [Display(Name = "نوع التصريح")]
     public int PermitTypeId { get; set; }
 

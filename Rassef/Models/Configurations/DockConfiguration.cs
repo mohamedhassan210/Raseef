@@ -20,6 +20,14 @@
                    .HasForeignKey(d => d.DockStatusId)
                    .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Property(d => d.MaxTruckCount)
+                   .IsRequired()
+                   .HasDefaultValue(1);
+
+            builder.Property(d => d.IsUnderMaintenance)
+                   .IsRequired()
+                   .HasDefaultValue(false);
+
             builder.HasOne(d => d.CreatedBy)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);

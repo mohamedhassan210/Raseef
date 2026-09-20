@@ -17,5 +17,16 @@ namespace Rassef.ViewModels.Dock
 
         [Display(Name = "حالة الرصيف")]
         public string DockStatusName { get; set; } = string.Empty;
+
+        [Display(Name = "أقصى عدد شاحنات")]
+        public int MaxTruckCount { get; set; }
+
+        [Display(Name = "العدد الحالي")]
+        public int Occupancy { get; set; }
+
+        [Display(Name = "تحت الصيانة؟")]
+        public bool IsUnderMaintenance { get; set; }
+
+        public bool IsFull => Occupancy >= MaxTruckCount;
     }
 }

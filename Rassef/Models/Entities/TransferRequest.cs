@@ -22,6 +22,16 @@ namespace Rassef.Models.Entities
         public string CreatedById { get; set; } = string.Empty;
         public User CreatedBy { get; set; }
 
+        // Feature — الرصيف اللي المستخدم اختاره وقت إنشاء الطلب (اختياري)
+        public int? DockId { get; set; }
+        public Dock? Dock { get; set; }
+
+        // Feature — الموظف اللي عمل "استدعاء الدور التالي" (Call Next) في
+        // CallStation لهذا الطلب. بيتسجل تلقائياً وقت الاستدعاء، مش وقت
+        // إنشاء الطلب.
+        public int? CallerId { get; set; }
+        public User? Caller { get; set; }
+
         public ICollection<QueueTicket> QueueTickets { get; set; } = new HashSet<QueueTicket>();
 
     }

@@ -231,6 +231,28 @@
                     <span asp-validation-for="DockStatusId" class="text-danger"></span>
                 </div>
 
+                <!-- أقصى عدد شاحنات (السعة) -->
+                <div class="col-md-6">
+                    <label asp-for="MaxTruckCount" class="form-label fw-bold">أقصى عدد شاحنات</label>
+                    <input asp-for="MaxTruckCount" type="number" min="1" max="100" class="form-control custom-input" placeholder="مثال: 2">
+                    <span asp-validation-for="MaxTruckCount" class="text-danger"></span>
+                </div>
+
+                <!-- تحت الصيانة -->
+                <div class="col-md-6">
+                    <label class="form-label fw-bold d-block">تحت الصيانة؟</label>
+                    <div class="d-flex mt-2 custom-radio-group justify-content-start gap-4">
+                        <div class="form-check custom-radio-wrapper">
+                            <label class="form-check-label" for="maintenanceNo">لا</label>
+                            <input class="form-check-input custom-radio" type="radio" asp-for="IsUnderMaintenance" id="maintenanceNo" value="false" checked="@(!Model.IsUnderMaintenance)">
+                        </div>
+                        <div class="form-check custom-radio-wrapper">
+                            <label class="form-check-label" for="maintenanceYes">نعم</label>
+                            <input class="form-check-input custom-radio" type="radio" asp-for="IsUnderMaintenance" id="maintenanceYes" value="true" checked="@(Model.IsUnderMaintenance)">
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <button type="submit" class="w-100 submit-btn mt-4">حفظ التعديلات</button>

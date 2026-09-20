@@ -1,295 +1,52 @@
-@* @model Rassef.ViewModels.TransferRequest.CreateTransferRequestVM
-
+@model CreateTransferRequestVM
 @{
-    ViewData["Title"] = "إنهاء الإعداد";
-
-}
-
-<style>
-    /* الحاوية الرئيسية للشاشة */
-    .setup-wrapper {
-        direction: rtl;
-        max-width: 850px;
-        margin: 20px auto;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    /* الهيدر العلوي */
-    .setup-header {
-        position: relative;
-        text-align: center;
-        margin-bottom: 25px;
-    }
-
-    .setup-title {
-        font-size: 32px;
-        font-weight: 800;
-        color: #222;
-        margin: 0;
-    }
-
-    .back-link {
-        position: absolute;
-        right: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        border: 1.5px solid #e87a38;
-        color: #e87a38;
-        background: transparent;
-        padding: 6px 18px;
-        border-radius: 20px;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s ease;
-    }
-
-        .back-link:hover {
-            background-color: #e87a38;
-            color: #fff;
-        }
-
-    /* الكارت الأبيض الداخلي */
-    .setup-card {
-        background-color: #fffaf7;
-        border: 1.5px solid #f2cfb9;
-        border-radius: 20px;
-        padding: 35px 40px;
-        box-shadow: 0 4px 15px rgba(232, 122, 56, 0.05);
-    }
-
-    .form-label-custom {
-        font-weight: 700;
-        color: #333;
-        font-size: 16px;
-        margin-bottom: 8px;
-        display: block;
-    }
-
-    /* حقول المدخلات والـ Select */
-    .input-custom, .select-custom {
-        width: 100%;
-        padding: 10px 16px;
-        border: 1.5px solid #e87a38;
-        border-radius: 10px;
-        background-color: #fffdfb;
-        font-size: 14px;
-        color: #333;
-        outline: none;
-        height: 46px;
-    }
-
-        .input-custom::placeholder {
-            color: #b8b8b8;
-        }
-
-    .select-wrapper {
-        position: relative;
-    }
-
-    .select-custom {
-        padding-left: 36px;
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        cursor: pointer;
-        color: #b8b8b8; /* القيمة الافتراضية */
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23e87a38' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='18 15 12 9 6 15'%3E%3C/polyline%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: left 14px center;
-    }
-
-        .select-custom:valid {
-            color: #333;
-        }
-
-    /* تنسيق أزرار Radio (نوع الإذن) */
-    .radio-group {
-        display: flex;
-        align-items: center;
-        gap: 30px;
-        height: 46px;
-    }
-
-    .radio-option {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        font-size: 15px;
-        font-weight: 600;
-        color: #333;
-    }
-
-        .radio-option input[type="radio"] {
-            accent-color: #e87a38;
-            width: 18px;
-            height: 18px;
-            margin: 0;
-            cursor: pointer;
-        }
-
-    /* زر العرض الرئيسي (إنهاء الإعداد) */
-    .submit-btn-custom {
-        width: 100%;
-        background-color: #e87a38;
-        color: #ffffff;
-        border: none;
-        border-radius: 12px;
-        padding: 14px;
-        font-size: 20px;
-        font-weight: 800;
-        cursor: pointer;
-        margin-top: 25px;
-        transition: background-color 0.2s ease;
-    }
-
-        .submit-btn-custom:hover {
-            background-color: #d16423;
-        }
-    /* منع طفوح العناصر خارج الكارت */
-    .setup-card {
-        overflow: hidden; /* يضمن عدم خروج أي عنصر خارج الحدود */
-        position: relative;
-    }
-
-    /* ضبط مجموعة الـ Radio لتعمل Flex مع إمكانية التجميع في أكثر من سطر */
-    .radio-group {
-        display: flex;
-        flex-wrap: wrap; /* يسمح بنزول الخيارات للسطر التالي عند ازدحام الشاشة */
-        gap: 15px 20px; /* مسافة بين العناصر أفقيًا ورأسيًا */
-        align-items: center;
-        margin-top: 10px;
-    }
-
-    .radio-option {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        white-space: nowrap; /* يمنع انكسار النص داخل الخيار الواحد */
-        cursor: pointer;
-        font-size: 14px;
-        color: #333;
-    }
-
-    /* التأكد من إعطاء مسافة راسية كافية بين الحقول حتى لا تتداخل */
-    .form-group-container {
-        margin-bottom: 20px;
-    }
-</style>
-
-<div class="setup-wrapper">
-    <!-- الهيدر -->
-    <div class="setup-header">
-        <a href="javascript:history.back()" class="back-link">
-            <span>&rarr;</span> خطوة للخلف
-        </a>
-        <h2 class="setup-title">إنهاء الإعداد</h2>
-    </div>
-
-    <form asp-action="Create" method="post">
-        @Html.AntiForgeryToken()
-
-        <!-- الحقول الخفية للبيانات الممررة -->
-
-        <div class="setup-card">
-            <!-- الصف الأول: تحديد القسم ورقم الإذن -->
-            <div class="row g-4 mb-3">
-                <div class="col-md-6">
-                    <label asp-for="DepartmentId" class="form-label-custom">تحديد القسم</label>
-                    <div class="select-wrapper">
-                        <select asp-for="DepartmentId" asp-items="Model.Departments" class="select-custom" required>
-                            <option value="" disabled selected hidden>ادخل القسم</option>
-                        </select>
-                    </div>
-
-                    <span asp-validation-for="DepartmentId" class="text-danger small"></span>
-                </div>
-
-                <div class="col-md-6">
-                    <label asp-for="PermitNumber" class="form-label-custom">رقم الإذن</label>
-                    <input asp-for="PermitNumber" class="input-custom" placeholder="ادخل رقم الإذن" />
-                    <span asp-validation-for="PermitNumber" class="text-danger small"></span>
-                </div>
-            </div>
-
-            <!-- الصف الثاني: نوع الإذن ورقم الأفيز -->
-            <!-- قسم نوع الإذن في سطر منفصل لحماية التصميم من التداخل -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <label class="form-label-custom">نوع الإذن</label>
-                    <div class="radio-group">
-                        @if (Model.PermitTypes != null && Model.PermitTypes.Any())
-                        {
-                            @foreach (var type in Model.PermitTypes)
-                            {
-                                <label class="radio-option">
-                                    <input type="radio" asp-for="PermitTypeId" value="@type.Value" />
-                                    <span>@type.Text</span>
-                                </label>
-                            }
-                        }
-                    </div>
-                    <span asp-validation-for="PermitTypeId" class="text-danger small"></span>
-                </div>
-            </div>
-
-            <!-- سطر رقم الأفيز منفصل تماماً أسفله -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label asp-for="AvizNumber" class="form-label-custom">رقم الأفيز</label>
-                    <input asp-for="AvizNumber" class="input-custom" placeholder="ادخل رقم الأفيز" />
-                    <span asp-validation-for="AvizNumber" class="text-danger small"></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- زر إنهاء الإعداد -->
-        <button type="submit" class="submit-btn-custom">إنهاء الإعداد</button>
-    </form>
-</div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-} *@
-
-﻿@{
-    ViewData["Title"] = "إنهاء الإعداد";
+    ViewData["Title"] = "إضافة طلب تحويل";
     Layout = "_SupOrTra";
     ViewData["ActiveSidebar"] = "TransferRequests";
 }
 
-@model Rassef.ViewModels.TransferRequest.CreateTransferRequestVM
-@section Styles {
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="~/css/addCar.css" asp-append-version="true">
+<link rel="stylesheet" href="~/css/companyCars.css" asp-append-version="true">
 
-    <!-- استدعاء ملفات الـ CSS -->
-    <link rel="stylesheet" href="~/css/companyDrivers.css" asp-append-version="true">
-    <link rel="stylesheet" href="~/css/finishSetup.css" asp-append-version="true">
-}
+<style>
+    /* Custom dropdown — copied verbatim from SupplierRequest/Create.cshtml */
+    .custom-dropdown { position: relative; width: 100%; font-family: 'IBM Plex Sans Arabic', sans-serif; }
+    .custom-dropdown .dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border: 1.5px solid #e8c8a8; border-radius: 12px; background: #fff; cursor: pointer; user-select: none; font-size: 15px; min-height: 44px; }
+    .custom-dropdown .dropdown-header:hover { border-color: var(--primary-color, #E67E22); }
+    .custom-dropdown .dropdown-arrow { transition: transform 0.2s; width: 18px; height: 18px; flex-shrink: 0; }
+    .custom-dropdown.open .dropdown-arrow { transform: rotate(180deg); }
+    .custom-dropdown .dropdown-list { display: none; position: absolute; top: calc(100% + 4px); right: 0; left: 0; background: #fff; border: 1.5px solid #e8c8a8; border-radius: 12px; z-index: 200; max-height: 220px; overflow-y: auto; box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
+    .custom-dropdown.open .dropdown-list { display: block; }
+    .custom-dropdown .dropdown-list .dropdown-item { padding: 10px 16px; cursor: pointer; font-size: 15px; border-bottom: 1px solid #faede2; transition: background 0.15s; }
+    .custom-dropdown .dropdown-list .dropdown-item:last-child { border-bottom: none; }
+    .custom-dropdown .dropdown-list .dropdown-item:hover { background: #fdf1e7; }
+    .custom-dropdown .dropdown-list .dropdown-item.selected { background: #fde8cb; font-weight: 700; }
+    .custom-dropdown .dropdown-list .dropdown-item.disabled { cursor: default; color: #aaa; }
+    .placeholder-color { color: #aaa; }
+    .selected-value    { color: #333; }
+</style>
 
 <main class="page-container">
+
     <header class="page-header">
         <div class="logo-wrapper header-right">
-            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-Fathalla" onerror="this.src='https://via.placeholder.com/120x60?text=Fathalla'">
+            <img src="~/img/fathallah logo.svg" alt="فتح الله" class="brand-Fathalla">
         </div>
         <div class="title-wrapper">
-            <h1 class="main-title">إنهاء الإعداد</h1>
+            <h1 class="main-title">إضافة طلب تحويل</h1>
         </div>
         <div class="logo-wrapper header-left">
-            <img src="~/img/logo.svg" alt="رصيفي" class="logo-raseefy" onerror="this.src='https://via.placeholder.com/120x60?text=Raseefy'">
+            <img src="~/img/logo.svg" alt="رصيف" class="logo-raseefy">
         </div>
     </header>
 
     <div class="nav-actions-container" style="justify-content: flex-end;">
-        <a href="@Url.Action("TransferDrivers", "Driver")" class="action-btn" aria-label="خطوة للخلف">
-            خطوة للخلف
+        <a href="@Url.Action("Index", "TransferRequest")" class="action-btn" aria-label="رجوع">
+            رجوع
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
@@ -297,125 +54,222 @@
         </a>
     </div>
 
-    <section class="form-card-wide mt-3">
-        @if (ViewBag.SuccessMessage != null)
-        {
-            <div class="alert alert-success text-center fw-bold mb-4">
-                @ViewBag.SuccessMessage
-            </div>
-        }
+    <section class="form-card mt-3">
+        <form asp-action="Create" asp-controller="TransferRequest" method="post" class="needs-validation" novalidate>
+            @Html.AntiForgeryToken()
 
-        <form id="finishSetupForm" asp-action="FinishSetup" method="post" class="needs-validation" novalidate>
-            <div class="row mb-5 gy-4 form-inner-row">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div style="background-color: #fde8e8; color: #dc3545; padding: 12px 20px; border-radius: 10px; font-weight: 700; margin-bottom: 16px;">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
 
-                <!-- العمود الأيمن (Right Column) -->
-                <div class="col-md-6 order-md-1 d-flex flex-column gap-4 px-4">
+            <div class="row mb-4 gy-4">
 
-                    <!-- تحديد القسم -->
-                    <div>
-                        <label class="form-label fw-bold form-label-custom">تحديد القسم</label>
-                        <div class="position-relative">
-                            <input type="hidden" id="departmentInput" required>
-                            <div class="custom-dropdown w-100" id="deptDropdownContainer">
-                                <div class="dropdown-header input-style" id="deptDropdownHeader">
-                                    <span class="selected-value text-muted" id="deptSelectedValue">ادخل القسم</span>
-                                    <svg class="dropdown-arrow-custom" viewBox="0 0 24 24" fill="none" stroke="#EB842D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="18 15 12 9 6 15"></polyline>
-                                    </svg>
-                                </div>
-                                <div class="dropdown-list" id="deptDropdownList">
-                                    <div class="dropdown-item" data-value="قسم الاستلام">قسم الاستلام</div>
-                                    <div class="dropdown-item" data-value="قسم المخازن">قسم المخازن</div>
-                                    <div class="dropdown-item" data-value="قسم التوزيع">قسم التوزيع</div>
-                                    <div class="dropdown-item" data-value="قسم المبيعات">قسم المبيعات</div>
-                                </div>
-                            </div>
-                            <div class="invalid-feedback text-center mt-2" id="deptErrorMsg">يرجى اختيار القسم.</div>
-                        </div>
-                    </div>
+                <!-- القسم -->
+                @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("DepartmentId", "القسم", Model.Departments, Model.DepartmentId, "اختر القسم"))
 
-                    <!-- نوع الإذن -->
-                    <!-- نوع الإذن -->
-                    <div>
-                        <label class="form-label fw-bold form-label-custom">نوع الإذن</label>
+                <!-- الرصيف — بيتفلتر تلقائياً حسب القسم المختار فوق، ويتعطل
+                     أي رصيف ممتلئ أو تحت الصيانة -->
+                @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("DockId", "الرصيف (اختياري)", new List<SelectListItem>(), Model.DockId, "اختر القسم الأول", required: false))
 
-                        <div class="d-flex align-items-center justify-content-center gap-5 mt-2 radio-group-custom">
+                @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("PermitTypeId", "نوع الإذن", Model.PermitTypes, Model.PermitTypeId, "اختر نوع الإذن"))
+                @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("TruckId", "الشاحنة", Model.Trucks, Model.TruckId, "اختر الشاحنة", required: false))
+                @await Html.PartialAsync("_SelectDropdown", new SelectDropdownVM("DriverId", "السائق", Model.Drivers, Model.DriverId, "اختر السائق", required: false))
 
-                            <!-- خروج -->
-                            <label class="custom-radio-container">
-                                خروج
-                                <input type="radio"
-                                       name="PermissionType"
-                                       value="خروج"
-                                       id="typeOut"
-                                       checked
-                                       required>
-                                <span class="radio-checkmark"></span>
-                            </label>
-
-                            <!-- دخول -->
-                            <label class="custom-radio-container">
-                                دخول
-                                <input type="radio"
-                                       name="PermissionType"
-                                       value="دخول"
-                                       id="typeIn"
-                                       required>
-                                <span class="radio-checkmark"></span>
-                            </label>
-
-                        </div>
-
-                        <div class="invalid-feedback text-center mt-2" id="typeErrorMsg">
-                            يرجى اختيار نوع الإذن.
-                        </div>
-                    </div>
-
+                <div class="col-md-6">
+                    <label asp-for="PermitNumber" class="form-label fw-bold">رقم الإذن</label>
+                    <input asp-for="PermitNumber" type="text" class="form-control custom-input" placeholder="سيُنشأ تلقائياً لو تُرك فارغاً">
+                    <span asp-validation-for="PermitNumber" class="text-danger"></span>
                 </div>
 
-                <!-- العمود الأيسر (Left Column) -->
-                <div class="col-md-6 order-md-2 d-flex flex-column gap-4 px-4 border-start-custom">
-
-                    <!-- رقم الإذن -->
-                    <div>
-                        <label class="form-label fw-bold form-label-custom">رقم الإذن</label>
-                        <div class="position-relative">
-                            <input type="text"
-                                   class="form-control custom-input input-style text-center"
-                                   id="permissionNumber"
-                                   placeholder="ادخل رقم الإذن"
-                                   required>
-                            <div class="invalid-feedback text-center mt-2">يرجى إدخال رقم الإذن.</div>
-                        </div>
-                    </div>
-
-                    <!-- رقم الأفيز -->
-                    <div>
-                        <label class="form-label fw-bold form-label-custom">رقم الأفِيز</label>
-                        <div class="position-relative">
-                            <input type="text"
-                                   class="form-control custom-input input-style text-center"
-                                   id="licenseNumber"
-                                   placeholder="ادخل رقم الأفيز"
-                                   required>
-                            <div class="invalid-feedback text-center mt-2">يرجى إدخال رقم الأفيز.</div>
-                        </div>
-                    </div>
-
+                <div class="col-md-6">
+                    <label asp-for="AvizNumber" class="form-label fw-bold">رقم الأفيز</label>
+                    <input asp-for="AvizNumber" type="text" class="form-control custom-input" placeholder="سيُنشأ تلقائياً لو تُرك فارغاً">
+                    <span asp-validation-for="AvizNumber" class="text-danger"></span>
                 </div>
+
             </div>
 
-            <button type="submit" class="w-100 submit-btn-large mt-2" id="submitBtn">إنهاء الإعداد</button>
+            <button type="submit" class="w-100 submit-btn mt-4">إضافة طلب التحويل</button>
         </form>
     </section>
+
 </main>
 
 @section Scripts {
-    <script>
-        window.appRoutes = {
-            transferDrivers: '@Url.Action("TransferDrivers", "Driver")'
-        };
-    </script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 
-    <script src="~/js/finishSetup.js" asp-append-version="true"></script>
+    <script>
+        // بيانات كل الأرصفة (كل الأقسام) مع سعتها وحالتها الحالية — بتوصل
+        // مرة واحدة مع الصفحة، وبتتفلتر في المتصفح حسب القسم المختار بدل
+        // ما نعمل Request جديد لكل تغيير في القسم.
+        window.allDocks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            Model.AllDocks.Select(d => new {
+                id = d.Id,
+                name = d.DockName,
+                departmentId = d.DepartmentId,
+                occupancy = d.Occupancy,
+                maxTruckCount = d.MaxTruckCount,
+                isUnderMaintenance = d.IsUnderMaintenance,
+                isSelectable = d.IsSelectable,
+                disabledReasonLabel = d.DisabledReasonLabel
+            })
+        ));
+
+        // setupDropdown — syncs a styled custom dropdown UI with a hidden native <select>.
+        // نفس الدالة بالظبط من SupplierRequest/Create.cshtml.
+        function setupDropdown(selectId, dropdownId, headerId, listId, selectedTextId) {
+            const select = document.getElementById(selectId);
+            const dropdown = document.getElementById(dropdownId);
+            const header = document.getElementById(headerId);
+            const list = document.getElementById(listId);
+            const selectedText = document.getElementById(selectedTextId);
+
+            if (!select || !dropdown || !header || !list || !selectedText) return;
+
+            Array.from(select.options).forEach(opt => {
+                if (!opt.value) return;
+                const item = document.createElement('div');
+                item.className = 'dropdown-item' + (opt.selected ? ' selected' : '');
+                item.textContent = opt.text;
+                item.dataset.value = opt.value;
+
+                item.addEventListener('click', () => {
+                    select.value = opt.value;
+                    selectedText.textContent = opt.text;
+                    selectedText.classList.remove('placeholder-color');
+                    selectedText.classList.add('selected-value');
+                    list.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    dropdown.classList.remove('open');
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+
+                list.appendChild(item);
+            });
+
+            if (select.value) {
+                const sel = select.options[select.selectedIndex];
+                if (sel && sel.value) {
+                    selectedText.textContent = sel.text;
+                    selectedText.classList.remove('placeholder-color');
+                }
+            }
+
+            header.addEventListener('click', () => dropdown.classList.toggle('open'));
+
+            document.addEventListener('click', e => {
+                if (!dropdown.contains(e.target)) dropdown.classList.remove('open');
+            });
+        }
+
+        // بيعيد بناء قائمة الأرصفة حسب القسم المختار، ويعطّل (Dim) أي رصيف
+        // ممتلئ أو تحت الصيانة بدل ما يمسحه من القائمة خالص.
+        function refreshDocks(departmentId) {
+            const select = document.getElementById('DockIdSelect');
+            const list = document.getElementById('DockIdDropdownList');
+            const selectedText = document.getElementById('DockIdSelectedText');
+            if (!select || !list || !selectedText) return;
+
+            const previouslySelected = select.value;
+            select.innerHTML = '';
+            list.innerHTML = '';
+
+            const placeholderOpt = document.createElement('option');
+            placeholderOpt.value = '';
+            placeholderOpt.disabled = true;
+            placeholderOpt.textContent = 'بدون رصيف محدد';
+            select.appendChild(placeholderOpt);
+
+            const docks = (window.allDocks || []).filter(d => String(d.departmentId) === String(departmentId));
+
+            if (!departmentId) {
+                selectedText.textContent = 'اختر القسم الأول';
+                selectedText.classList.add('placeholder-color');
+                selectedText.classList.remove('selected-value');
+                select.value = '';
+                return;
+            }
+
+            if (docks.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'dropdown-item disabled text-muted';
+                empty.textContent = 'لا توجد أرصفة لهذا القسم';
+                list.appendChild(empty);
+            }
+
+            let stillValid = false;
+
+            docks.forEach(dock => {
+                const opt = document.createElement('option');
+                opt.value = dock.id;
+                opt.textContent = dock.name + dock.disabledReasonLabel;
+                if (!dock.isSelectable) opt.disabled = true;
+                select.appendChild(opt);
+
+                const item = document.createElement('div');
+                item.className = 'dropdown-item' + (dock.isSelectable ? '' : ' disabled');
+                item.textContent = dock.name + ' — ' + dock.occupancy + '/' + dock.maxTruckCount + dock.disabledReasonLabel;
+                item.dataset.value = dock.id;
+
+                if (dock.isSelectable) {
+                    item.addEventListener('click', () => {
+                        select.value = dock.id;
+                        selectedText.textContent = dock.name;
+                        selectedText.classList.remove('placeholder-color');
+                        selectedText.classList.add('selected-value');
+                        list.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
+                        item.classList.add('selected');
+                        document.getElementById('DockIdDropdown')?.classList.remove('open');
+                    });
+
+                    if (String(dock.id) === String(previouslySelected)) {
+                        stillValid = true;
+                        item.classList.add('selected');
+                    }
+                }
+
+                list.appendChild(item);
+            });
+
+            if (stillValid) {
+                select.value = previouslySelected;
+                const match = docks.find(d => String(d.id) === String(previouslySelected));
+                if (match) {
+                    selectedText.textContent = match.name;
+                    selectedText.classList.remove('placeholder-color');
+                    selectedText.classList.add('selected-value');
+                }
+            } else {
+                select.value = '';
+                selectedText.textContent = 'بدون رصيف محدد';
+                selectedText.classList.add('placeholder-color');
+                selectedText.classList.remove('selected-value');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            ['DepartmentId', 'DockId', 'PermitTypeId', 'TruckId', 'DriverId']
+                .forEach(field => setupDropdown(
+                    field + 'Select',
+                    field + 'Dropdown',
+                    field + 'DropdownHeader',
+                    field + 'DropdownList',
+                    field + 'SelectedText'
+                ));
+
+            const departmentSelect = document.getElementById('DepartmentIdSelect');
+            if (departmentSelect) {
+                departmentSelect.addEventListener('change', () => refreshDocks(departmentSelect.value));
+                refreshDocks(departmentSelect.value);
+            }
+        });
+    </script>
 }

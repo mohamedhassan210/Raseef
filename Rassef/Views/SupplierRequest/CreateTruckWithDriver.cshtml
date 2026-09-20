@@ -98,7 +98,7 @@
                     </div>
                     @if (Model?.TruckTypes != null && Model.TruckTypes.Any())
                     {
-                        <input type="hidden" asp-for="TruckTypeId" value="@Model.TruckTypes.First().Value" />
+                        <input type="hidden" asp-for="TruckTypeId" />
                     }
                 </div>
 
@@ -302,6 +302,17 @@
                     يرجى اختيار القسم للمتابعة.
                 </div>
             </div>
+
+            <!-- الرصيف (اختياري) — بيتفلتر تلقائياً حسب القسم المختار فوق -->
+            <div class="custom-dropdown mt-3" id="dock-dropdown-container">
+                <div class="dropdown-header" id="dock-dropdown-header">
+                    <span class="selected-value text-muted" id="dock-selected-value">اختر القسم أولاً</span>
+                    <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#EB842D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="dropdown-list" id="dock-dropdown-list"></div>
+            </div>
         </div>
 
         <div class="modal-actions mt-4" style="margin-top: 32px !important;">
@@ -372,6 +383,19 @@
         truckIndex: '@Url.Action("Index", "Truck", new { supplierId = Model?.SupId })',
         receiptPage: '@Url.Action("Recript", "Driver")'
     };
+
+    window.allDocks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.AllDocks.Select(d => new {
+            id = d.Id,
+            name = d.DockName,
+            departmentId = d.DepartmentId,
+            occupancy = d.Occupancy,
+            maxTruckCount = d.MaxTruckCount,
+            isUnderMaintenance = d.IsUnderMaintenance,
+            isSelectable = d.IsSelectable,
+            disabledReasonLabel = d.DisabledReasonLabel
+        })
+    ));
 </script>
 
 <script src="~/js/addCar.js" asp-append-version="true"></script>

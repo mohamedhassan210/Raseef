@@ -14,6 +14,7 @@ namespace Rassef.Controllers
         private readonly ITicketEngineService _ticketEngineService;
         private readonly IUserRepository _userRepository;
         private readonly IRepository<QueueTicket> _ticketRepository;
+        private readonly Rassef.Common.Interfaces.IDockAvailabilityService _dockAvailabilityService;
 
         public TransferRequestController(
             ITransferRequestRepository repository,
@@ -24,7 +25,8 @@ namespace Rassef.Controllers
             IRequestStatusRepository requestStatusRepository,
             ITicketEngineService ticketEngineService,
             IUserRepository userRepository,
-            IRepository<QueueTicket> ticketRepository)
+            IRepository<QueueTicket> ticketRepository,
+            Rassef.Common.Interfaces.IDockAvailabilityService dockAvailabilityService)
         {
             _repository = repository;
             _truckRepository = truckRepository;
@@ -35,6 +37,7 @@ namespace Rassef.Controllers
             _ticketEngineService = ticketEngineService;
             _userRepository = userRepository;
             _ticketRepository = ticketRepository;
+            _dockAvailabilityService = dockAvailabilityService;
         }
 
         private async Task LoadSelectListsAsync(CreateTransferRequestVM model)
@@ -71,6 +74,17 @@ namespace Rassef.Controllers
             {
                 Value = d.Id.ToString(),
                 Text = d.FullName
+            });
+
+            var allDocks = await _dockAvailabilityService.GetAllDocksAsync();
+            model.AllDocks = allDocks.Select(d => new Rassef.ViewModels.Dock.DockOptionVM
+            {
+                Id = d.Id,
+                DockName = d.DockName,
+                DepartmentId = d.DepartmentId,
+                IsUnderMaintenance = d.IsUnderMaintenance,
+                Occupancy = d.Occupancy,
+                MaxTruckCount = d.MaxTruckCount
             });
         }
 
@@ -199,6 +213,17 @@ namespace Rassef.Controllers
                 return View(model);
             }
 
+            if (model.DockId.HasValue && model.DockId.Value > 0)
+            {
+                var (isValid, errorMessage) = await _dockAvailabilityService.ValidateDockSelectionAsync(model.DockId.Value, model.DepartmentId);
+                if (!isValid)
+                {
+                    ModelState.AddModelError(nameof(model.DockId), errorMessage ?? "الرصيف المختار غير متاح.");
+                    await LoadSelectListsAsync(model);
+                    return View(model);
+                }
+            }
+
             var request = new TransferRequest
             {
                 AvizNumber = !string.IsNullOrWhiteSpace(model.AvizNumber) ? model.AvizNumber : $"AVIZ-{DateTime.Now.Ticks % 10000:D4}",
@@ -208,6 +233,7 @@ namespace Rassef.Controllers
                 DepartmentId = model.DepartmentId,
                 PermitTypeId = model.PermitTypeId > 0 ? model.PermitTypeId : 1,
                 RequestStatusId = 1,
+                DockId = model.DockId is > 0 ? model.DockId : null,
                 CreatedById = currentUserId.ToString(),
                 CreatedBy = currentUser!
             };
