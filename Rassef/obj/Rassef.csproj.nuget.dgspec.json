@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "X:\\Repos\\Rassef\\Rassef.csproj": {}
+    "C:\\Users\\DELL\\Source\\Repos\\Raseef\\Rassef\\Rassef.csproj": {}
   },
   "projects": {
-    "X:\\Repos\\Rassef\\Rassef.csproj": {
+    "C:\\Users\\DELL\\Source\\Repos\\Raseef\\Rassef\\Rassef.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "X:\\Repos\\Rassef\\Rassef.csproj",
+        "projectUniqueName": "C:\\Users\\DELL\\Source\\Repos\\Raseef\\Rassef\\Rassef.csproj",
         "projectName": "Rassef",
-        "projectPath": "X:\\Repos\\Rassef\\Rassef.csproj",
-        "packagesPath": "C:\\Users\\m.eldokany\\.nuget\\packages\\",
-        "outputPath": "X:\\Repos\\Rassef\\obj\\",
+        "projectPath": "C:\\Users\\DELL\\Source\\Repos\\Raseef\\Rassef\\Rassef.csproj",
+        "packagesPath": "C:\\Users\\DELL\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\DELL\\Source\\Repos\\Raseef\\Rassef\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\m.eldokany\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\DELL\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -44,7 +44,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.100"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
@@ -126,7 +126,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.307/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
