@@ -316,6 +316,14 @@ namespace Rassef.Common.Services
                         DockId = chosenDock.Id,
                         TicketId = queueTicket.Id,
                         AssignedAt = DateTimeOffset.Now,
+                        // Bug fix — كانت بتفضل على قيمتها الافتراضية (سنة
+                        // 0001) وهي مش بتتحسب "نشطة" أبداً في حساب السعة
+                        // (Occupancy)، لأن الشرط المستخدم في كل حتة تانية
+                        // هو FinishedAt > الوقت الحالي. هنا بنحطها بعيدة في
+                        // المستقبل عشان تفضل "نشطة" لحد ما الدور يخلص فعلياً
+                        // (TicketEngineService بيقفلها وقتها ويحط الوقت
+                        // الحقيقي بدلها).
+                        FinishedAt = DateTimeOffset.MaxValue,
                         CreatedBy = currentUser!
                     };
                     await _dockAssignmentRepository.AddAsync(dockAssignment);
@@ -484,6 +492,30 @@ namespace Rassef.Common.Services
                     await _ticketRepository.SaveChangesAsync();
                 }
 
+                // Bug fix — كان بيقفل الدور القديم بس مش بيفرّغ الرصيف
+                // المرتبط بيه، فالسعة (Occupancy) كانت بتفضل زي ما هي حتى
+                // بعد ما الشاحنة تخرج فعلياً. دلوقتي بنقفل أي DockAssignment
+                // لسه نشط لكل دور بيتقفل هنا (FinishedAt = دلوقتي).
+                if (currentInProgressTickets.Any())
+                {
+                    var finishedTicketIds = currentInProgressTickets.Select(t => t.Id).ToList();
+                    var now = DateTimeOffset.Now;
+                    var openAssignments = await _dockAssignmentRepository.GetAllAsync(
+                        query => query.Where(a => !a.IsDeleted && finishedTicketIds.Contains(a.TicketId) && a.FinishedAt > now));
+
+                    foreach (var assignment in openAssignments)
+                    {
+                        assignment.FinishedAt = now;
+                        assignment.MarkAsUpdated();
+                        _dockAssignmentRepository.Update(assignment);
+                    }
+
+                    if (openAssignments.Any())
+                    {
+                        await _dockAssignmentRepository.SaveChangesAsync();
+                    }
+                }
+
                 // 2. فحص استدعاء الدور التالي من قائمة الانتظار
                 if (waitingTickets.Any())
                 {
@@ -584,6 +616,25 @@ namespace Rassef.Common.Services
                 if (norm.Contains("مكتمل") || norm.Contains("تم") || norm.Contains("خروج") || norm.Contains("منتهي"))
                 {
                     ticketToUpdate.ExitTime = DateTimeOffset.Now;
+
+                    // Bug fix — نفس إصلاح CallNextTicketAsync: لازم نفرّغ
+                    // الرصيف المرتبط بالتذكرة لما هي كمان تتقفل من هنا
+                    // (زي مسار تسجيل الخروج من ExitGate)
+                    var now = DateTimeOffset.Now;
+                    var openAssignments = await _dockAssignmentRepository.GetAllAsync(
+                        query => query.Where(a => !a.IsDeleted && a.TicketId == ticketId && a.FinishedAt > now));
+
+                    foreach (var assignment in openAssignments)
+                    {
+                        assignment.FinishedAt = now;
+                        assignment.MarkAsUpdated();
+                        _dockAssignmentRepository.Update(assignment);
+                    }
+
+                    if (openAssignments.Any())
+                    {
+                        await _dockAssignmentRepository.SaveChangesAsync();
+                    }
                 }
                 else if (norm.Contains("جاري") || norm.Contains("تنفيذ") || norm.Contains("تشغيل"))
                 {

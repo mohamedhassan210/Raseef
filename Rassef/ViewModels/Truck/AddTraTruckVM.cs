@@ -18,6 +18,9 @@ namespace Rassef.ViewModels.Truck
         public string? NewDriverPhone { get; set; }
 
         public int? DepartmentId { get; set; }
+        public int? DockId { get; set; }
+        public IEnumerable<Rassef.ViewModels.Dock.DockOptionVM> AllDocks { get; set; }
+            = new List<Rassef.ViewModels.Dock.DockOptionVM>();
 
         public IEnumerable<SelectListItem> Suppliers { get; set; } = new HashSet<SelectListItem>();
         public IEnumerable<SelectListItem> Drivers { get; set; } = new HashSet<SelectListItem>();

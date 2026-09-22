@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmTruck = document.getElementById('confirm-truck');
     const confirmDriverName = document.getElementById('confirm-driver-name');
     const confirmDriverdep = document.getElementById('confirm-driver-dep');
+    const confirmDriverDock = document.getElementById('confirm-driver-dock');
     const ticketNumberDisplay = document.getElementById('ticket-number');
 
     const deptDropdownContainer = document.getElementById('dept-dropdown-container');
@@ -332,11 +333,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     };
 
-    const populateConfirmationData = (departmentName = "غير متوفر") => {
+    const populateConfirmationData = (departmentName = "غير متوفر", dockName = "بدون رصيف محدد") => {
         if (confirmCompany) confirmCompany.textContent = pendingTruckInfo.company || "غير متوفر";
         if (confirmTruck) confirmTruck.textContent = pendingTruckInfo.truckPlate || "غير متوفر";
         if (confirmDriverName) confirmDriverName.textContent = pendingTruckInfo.driverName || "غير محدد";
         if (confirmDriverdep) confirmDriverdep.textContent = departmentName;
+        if (confirmDriverDock) confirmDriverDock.textContent = dockName;
     };
 
     // ==========================================
@@ -388,7 +390,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     return;
                 }
-                populateConfirmationData(selectedDepartmentValue.name);
+                if (!selectedDockValue) {
+                    if (dockDropdownHeader) {
+                        dockDropdownHeader.classList.add('error');
+                        dockDropdownHeader.style.animation = 'shake 0.4s';
+                        setTimeout(() => dockDropdownHeader.style.animation = '', 400);
+                    }
+                    return;
+                }
+                populateConfirmationData(selectedDepartmentValue.name, selectedDockValue.name);
                 showConfirmationModal(confirmModal);
             });
         }

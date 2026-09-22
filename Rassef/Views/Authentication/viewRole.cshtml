@@ -287,6 +287,17 @@
                                 </div>
                             </div>
 
+                            @if (statusDisplay == "إنتظار")
+                            {
+                                <!-- 8. تفاصيل (إعادة طباعة الإيصال) — تظهر بس للأدوار في الانتظار -->
+                                <div class="card-col col-actions">
+                                    <a href="@Url.Action("Recript", "Driver", new { ticketId = ticket.Id })"
+                                       class="btn-role-details" title="تفاصيل / إعادة طباعة الإيصال">
+                                        تفاصيل
+                                    </a>
+                                </div>
+                            }
+
                         </div>
                     }
                 }

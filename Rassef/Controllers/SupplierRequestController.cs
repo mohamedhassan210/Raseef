@@ -422,7 +422,7 @@ namespace Rassef.Controllers
         }
         // special acitons 
         [HttpGet]
-        public async Task<IActionResult> CreateTruckWithDriver(int supplierId, int? selectedDriverId, bool autoOpenModal = false)
+        public async Task<IActionResult> CreateTruckWithDriver(int supplierId, int? selectedDriverId, bool autoOpenModal = false, int? departmentId = null, int? dockId = null)
         {
             ViewBag.AutoOpenModal = autoOpenModal;
             // 1. التحقق من وجود المورد
@@ -484,6 +484,8 @@ namespace Rassef.Controllers
                 DriverId = initialDriverId,
                 Drivers = supplierDrivers,
                 TruckTypeId = defaultExternalTruckType?.Id ?? 0,
+                DepartmentId = departmentId,
+                DockId = dockId,
                 TruckTypes = allTruckTypes
                     .Select(t => new SelectListItem
                     {
@@ -739,8 +741,14 @@ namespace Rassef.Controllers
             }
             int targetDepartmentId = create.DepartmentId.Value;
 
-            // Feature — فحص الرصيف المختار (لو المستخدم اختار واحد)
-            if (create.DockId.HasValue && create.DockId.Value > 0)
+            // الرصيف بقى إجباري
+            if (!create.DockId.HasValue || create.DockId.Value <= 0)
+            {
+                ModelState.AddModelError(nameof(create.DockId), "يرجى اختيار الرصيف للمتابعة.");
+                await ReloadTruckWithDriverDataAsync(create);
+                return View(create);
+            }
+
             {
                 var (isValid, errorMessage) = await _dockAvailabilityService.ValidateDockSelectionAsync(create.DockId.Value, targetDepartmentId);
                 if (!isValid)

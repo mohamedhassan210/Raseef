@@ -17,425 +17,425 @@ build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = Rassef
 build_property.RootNamespace = Rassef
-build_property.ProjectDir = C:\Users\DELL\Source\Repos\Raseef\Rassef\
+build_property.ProjectDir = X:\Repos\Rassef\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\DELL\Source\Repos\Raseef\Rassef
+build_property.MSBuildProjectDirectory = X:\Repos\Rassef
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/ChangePassword.cshtml]
+[X:/Repos/Rassef/Views/Administration/ChangePassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cQ2hhbmdlUGFzc3dvcmQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/Create.cshtml]
+[X:/Repos/Rassef/Views/Administration/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/Details.cshtml]
+[X:/Repos/Rassef/Views/Administration/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/DriverDetails.cshtml]
+[X:/Repos/Rassef/Views/Administration/DriverDetails.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cRHJpdmVyRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/DriverEdit.cshtml]
+[X:/Repos/Rassef/Views/Administration/DriverEdit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cRHJpdmVyRWRpdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/DriversIndex.cshtml]
+[X:/Repos/Rassef/Views/Administration/DriversIndex.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cRHJpdmVyc0luZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/Edit.cshtml]
+[X:/Repos/Rassef/Views/Administration/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cRWRpdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/Index.cshtml]
+[X:/Repos/Rassef/Views/Administration/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/SupplierDetails.cshtml]
+[X:/Repos/Rassef/Views/Administration/SupplierDetails.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cU3VwcGxpZXJEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/SupplierRequests.cshtml]
+[X:/Repos/Rassef/Views/Administration/SupplierRequests.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cU3VwcGxpZXJSZXF1ZXN0cy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/Suppliers.cshtml]
+[X:/Repos/Rassef/Views/Administration/Suppliers.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cU3VwcGxpZXJzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/TransferRequests.cshtml]
+[X:/Repos/Rassef/Views/Administration/TransferRequests.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cVHJhbnNmZXJSZXF1ZXN0cy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/TruckCreate.cshtml]
+[X:/Repos/Rassef/Views/Administration/TruckCreate.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cVHJ1Y2tDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/TruckDetails.cshtml]
+[X:/Repos/Rassef/Views/Administration/TruckDetails.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cVHJ1Y2tEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/TruckEdit.cshtml]
+[X:/Repos/Rassef/Views/Administration/TruckEdit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cVHJ1Y2tFZGl0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Administration/TrucksIndex.cshtml]
+[X:/Repos/Rassef/Views/Administration/TrucksIndex.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5pc3RyYXRpb25cVHJ1Y2tzSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Authentication/AccessDenied.cshtml]
+[X:/Repos/Rassef/Views/Authentication/AccessDenied.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aGVudGljYXRpb25cQWNjZXNzRGVuaWVkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Authentication/AddRoleOrView.cshtml]
+[X:/Repos/Rassef/Views/Authentication/AddRoleOrView.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aGVudGljYXRpb25cQWRkUm9sZU9yVmlldy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Authentication/ChangeInitialPassword.cshtml]
+[X:/Repos/Rassef/Views/Authentication/ChangeInitialPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aGVudGljYXRpb25cQ2hhbmdlSW5pdGlhbFBhc3N3b3JkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Authentication/Intro.cshtml]
+[X:/Repos/Rassef/Views/Authentication/Intro.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aGVudGljYXRpb25cSW50cm8uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Authentication/Login.cshtml]
+[X:/Repos/Rassef/Views/Authentication/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aGVudGljYXRpb25cTG9naW4uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Authentication/SupOrTra.cshtml]
+[X:/Repos/Rassef/Views/Authentication/SupOrTra.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aGVudGljYXRpb25cU3VwT3JUcmEuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Authentication/viewRole.cshtml]
+[X:/Repos/Rassef/Views/Authentication/viewRole.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aGVudGljYXRpb25cdmlld1JvbGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Department/Create.cshtml]
+[X:/Repos/Rassef/Views/Department/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGVwYXJ0bWVudFxDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Department/Delete.cshtml]
+[X:/Repos/Rassef/Views/Department/Delete.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGVwYXJ0bWVudFxEZWxldGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Department/Details.cshtml]
+[X:/Repos/Rassef/Views/Department/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGVwYXJ0bWVudFxEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Department/Index.cshtml]
+[X:/Repos/Rassef/Views/Department/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGVwYXJ0bWVudFxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Department/Update.cshtml]
+[X:/Repos/Rassef/Views/Department/Update.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGVwYXJ0bWVudFxVcGRhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Dock/Create.cshtml]
+[X:/Repos/Rassef/Views/Dock/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9ja1xDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Dock/Delete.cshtml]
+[X:/Repos/Rassef/Views/Dock/Delete.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9ja1xEZWxldGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Dock/Details.cshtml]
+[X:/Repos/Rassef/Views/Dock/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9ja1xEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Dock/Index.cshtml]
+[X:/Repos/Rassef/Views/Dock/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9ja1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Dock/Update.cshtml]
+[X:/Repos/Rassef/Views/Dock/Update.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9ja1xVcGRhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/DriverType/Create.cshtml]
+[X:/Repos/Rassef/Views/DriverType/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRHJpdmVyVHlwZVxDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/DriverType/Delete.cshtml]
+[X:/Repos/Rassef/Views/DriverType/Delete.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRHJpdmVyVHlwZVxEZWxldGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/DriverType/Details.cshtml]
+[X:/Repos/Rassef/Views/DriverType/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRHJpdmVyVHlwZVxEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/DriverType/Index.cshtml]
+[X:/Repos/Rassef/Views/DriverType/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRHJpdmVyVHlwZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/DriverType/Update.cshtml]
+[X:/Repos/Rassef/Views/DriverType/Update.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRHJpdmVyVHlwZVxVcGRhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Driver/addDriverTransfer.cshtml]
+[X:/Repos/Rassef/Views/Driver/addDriverTransfer.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRHJpdmVyXGFkZERyaXZlclRyYW5zZmVyLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Driver/Create.cshtml]
+[X:/Repos/Rassef/Views/Driver/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRHJpdmVyXENyZWF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Driver/Index.cshtml]
+[X:/Repos/Rassef/Views/Driver/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRHJpdmVyXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Driver/LiveStatus.cshtml]
+[X:/Repos/Rassef/Views/Driver/LiveStatus.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRHJpdmVyXExpdmVTdGF0dXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Driver/Recript.cshtml]
+[X:/Repos/Rassef/Views/Driver/Recript.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRHJpdmVyXFJlY3JpcHQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Driver/TransferDrivers.cshtml]
+[X:/Repos/Rassef/Views/Driver/TransferDrivers.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRHJpdmVyXFRyYW5zZmVyRHJpdmVycy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Driver/Update.cshtml]
+[X:/Repos/Rassef/Views/Driver/Update.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRHJpdmVyXFVwZGF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Group/AddGroup.cshtml]
+[X:/Repos/Rassef/Views/Group/AddGroup.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3JvdXBcQWRkR3JvdXAuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Group/GroupDetails.cshtml]
+[X:/Repos/Rassef/Views/Group/GroupDetails.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3JvdXBcR3JvdXBEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Group/GroupManagment.cshtml]
+[X:/Repos/Rassef/Views/Group/GroupManagment.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3JvdXBcR3JvdXBNYW5hZ21lbnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Group/ManagePermissions.cshtml]
+[X:/Repos/Rassef/Views/Group/ManagePermissions.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3JvdXBcTWFuYWdlUGVybWlzc2lvbnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Group/MangeRolesIndex.cshtml]
+[X:/Repos/Rassef/Views/Group/MangeRolesIndex.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3JvdXBcTWFuZ2VSb2xlc0luZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Group/MangeTypeDetails.cshtml]
+[X:/Repos/Rassef/Views/Group/MangeTypeDetails.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3JvdXBcTWFuZ2VUeXBlRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Group/MangeTypesIndex.cshtml]
+[X:/Repos/Rassef/Views/Group/MangeTypesIndex.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3JvdXBcTWFuZ2VUeXBlc0luZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Position/Create.cshtml]
+[X:/Repos/Rassef/Views/Position/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUG9zaXRpb25cQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Position/Delete.cshtml]
+[X:/Repos/Rassef/Views/Position/Delete.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUG9zaXRpb25cRGVsZXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Position/Details.cshtml]
+[X:/Repos/Rassef/Views/Position/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUG9zaXRpb25cRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Position/Edit.cshtml]
+[X:/Repos/Rassef/Views/Position/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUG9zaXRpb25cRWRpdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Position/Index.cshtml]
+[X:/Repos/Rassef/Views/Position/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUG9zaXRpb25cSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/QueueTicket/CallStation.cshtml]
+[X:/Repos/Rassef/Views/QueueTicket/CallStation.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVldWVUaWNrZXRcQ2FsbFN0YXRpb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/QueueTicket/ExitGate.cshtml]
+[X:/Repos/Rassef/Views/QueueTicket/ExitGate.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVldWVUaWNrZXRcRXhpdEdhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/QueueTicket/LiveQueue.cshtml]
+[X:/Repos/Rassef/Views/QueueTicket/LiveQueue.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVldWVUaWNrZXRcTGl2ZVF1ZXVlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/Components/AdminSidebar/Default.cshtml]
+[X:/Repos/Rassef/Views/Shared/Components/AdminSidebar/Default.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXENvbXBvbmVudHNcQWRtaW5TaWRlYmFyXERlZmF1bHQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/Components/UserSidebar/Default.cshtml]
+[X:/Repos/Rassef/Views/Shared/Components/UserSidebar/Default.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXENvbXBvbmVudHNcVXNlclNpZGViYXJcRGVmYXVsdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/_AdminSidebar.cshtml]
+[X:/Repos/Rassef/Views/Shared/_AdminSidebar.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9BZG1pblNpZGViYXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/_CardsStyle.cshtml]
+[X:/Repos/Rassef/Views/Shared/_CardsStyle.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9DYXJkc1N0eWxlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/_DepartmentCard.cshtml]
+[X:/Repos/Rassef/Views/Shared/_DepartmentCard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9EZXBhcnRtZW50Q2FyZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/_DepartmentCards.cshtml]
+[X:/Repos/Rassef/Views/Shared/_DepartmentCards.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9EZXBhcnRtZW50Q2FyZHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/_DepartmentCardsGrid.cshtml]
+[X:/Repos/Rassef/Views/Shared/_DepartmentCardsGrid.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9EZXBhcnRtZW50Q2FyZHNHcmlkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/_DocCard.cshtml]
+[X:/Repos/Rassef/Views/Shared/_DocCard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Eb2NDYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/_DocCards.cshtml]
+[X:/Repos/Rassef/Views/Shared/_DocCards.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Eb2NDYXJkcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/_DocCardsGrid.cshtml]
+[X:/Repos/Rassef/Views/Shared/_DocCardsGrid.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Eb2NDYXJkc0dyaWQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/_DockCards.cshtml]
+[X:/Repos/Rassef/Views/Shared/_DockCards.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Eb2NrQ2FyZHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/_SelectDropdown.cshtml]
+[X:/Repos/Rassef/Views/Shared/_SelectDropdown.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9TZWxlY3REcm9wZG93bi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/_SupOrTra.cshtml]
+[X:/Repos/Rassef/Views/Shared/_SupOrTra.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9TdXBPclRyYS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/_ValidationScriptsPartial.cshtml]
+[X:/Repos/Rassef/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shift/Index.cshtml]
+[X:/Repos/Rassef/Views/Shift/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hpZnRcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/SupplierRequest/Create.cshtml]
+[X:/Repos/Rassef/Views/SupplierRequest/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwcGxpZXJSZXF1ZXN0XENyZWF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/SupplierRequest/CreateTruckWithDriver.cshtml]
+[X:/Repos/Rassef/Views/SupplierRequest/CreateTruckWithDriver.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwcGxpZXJSZXF1ZXN0XENyZWF0ZVRydWNrV2l0aERyaXZlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/SupplierRequest/Update.cshtml]
+[X:/Repos/Rassef/Views/SupplierRequest/Update.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwcGxpZXJSZXF1ZXN0XFVwZGF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Supplier/Create.cshtml]
+[X:/Repos/Rassef/Views/Supplier/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwcGxpZXJcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Supplier/Edit.cshtml]
+[X:/Repos/Rassef/Views/Supplier/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwcGxpZXJcRWRpdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Supplier/Index.cshtml]
+[X:/Repos/Rassef/Views/Supplier/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwcGxpZXJcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/SupplyOrder/Index.cshtml]
+[X:/Repos/Rassef/Views/SupplyOrder/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwcGx5T3JkZXJcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/TransferRequest/Create.cshtml]
+[X:/Repos/Rassef/Views/TransferRequest/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJhbnNmZXJSZXF1ZXN0XENyZWF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/TransferRequest/Index.cshtml]
+[X:/Repos/Rassef/Views/TransferRequest/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJhbnNmZXJSZXF1ZXN0XEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/TruckTypes/Create.cshtml]
+[X:/Repos/Rassef/Views/TruckTypes/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJ1Y2tUeXBlc1xDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/TruckTypes/Delete.cshtml]
+[X:/Repos/Rassef/Views/TruckTypes/Delete.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJ1Y2tUeXBlc1xEZWxldGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/TruckTypes/Details.cshtml]
+[X:/Repos/Rassef/Views/TruckTypes/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJ1Y2tUeXBlc1xEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/TruckTypes/Index.cshtml]
+[X:/Repos/Rassef/Views/TruckTypes/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJ1Y2tUeXBlc1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/TruckTypes/Update.cshtml]
+[X:/Repos/Rassef/Views/TruckTypes/Update.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJ1Y2tUeXBlc1xVcGRhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Truck/AddTraDriver.cshtml]
+[X:/Repos/Rassef/Views/Truck/AddTraDriver.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJ1Y2tcQWRkVHJhRHJpdmVyLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Truck/Create.cshtml]
+[X:/Repos/Rassef/Views/Truck/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJ1Y2tcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Truck/Edit.cshtml]
+[X:/Repos/Rassef/Views/Truck/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJ1Y2tcRWRpdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Truck/Index.cshtml]
+[X:/Repos/Rassef/Views/Truck/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJ1Y2tcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Truck/MainTraDrivers.cshtml]
+[X:/Repos/Rassef/Views/Truck/MainTraDrivers.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJ1Y2tcTWFpblRyYURyaXZlcnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Warehouses/Create.cshtml]
+[X:/Repos/Rassef/Views/Warehouses/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlc1xDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Warehouses/CreateDepartment.cshtml]
+[X:/Repos/Rassef/Views/Warehouses/CreateDepartment.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlc1xDcmVhdGVEZXBhcnRtZW50LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Warehouses/Delete.cshtml]
+[X:/Repos/Rassef/Views/Warehouses/Delete.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlc1xEZWxldGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Warehouses/Details.cshtml]
+[X:/Repos/Rassef/Views/Warehouses/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlc1xEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Warehouses/Edit.cshtml]
+[X:/Repos/Rassef/Views/Warehouses/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlc1xFZGl0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Warehouses/Index.cshtml]
+[X:/Repos/Rassef/Views/Warehouses/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlc1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/_ViewImports.cshtml]
+[X:/Repos/Rassef/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/_ViewStart.cshtml]
+[X:/Repos/Rassef/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/DELL/Source/Repos/Raseef/Rassef/Views/Shared/_Layout.cshtml]
+[X:/Repos/Rassef/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-ya4nzjoaff

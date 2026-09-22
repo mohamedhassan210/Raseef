@@ -36,6 +36,67 @@ document.addEventListener('DOMContentLoaded', () => {
     const deptDropdownList = document.getElementById('dept-dropdown-list');
     const deptErrorMsg = document.getElementById('dept-error-msg');
 
+    // الرصيف (لازم تختاره) — بيتفلتر حسب القسم المختار
+    const dockDropdownContainer = document.getElementById('dock-dropdown-container');
+    const dockDropdownHeader = document.getElementById('dock-dropdown-header');
+    const dockSelectedValue = document.getElementById('dock-selected-value');
+    const dockDropdownList = document.getElementById('dock-dropdown-list');
+    const confirmDriverDock = document.getElementById('confirm-driver-dock');
+    let selectedDockValue = null;
+
+    const refreshDockOptions = (departmentId) => {
+        if (!dockDropdownList) return;
+
+        selectedDockValue = null;
+        dockDropdownList.innerHTML = '';
+        if (dockSelectedValue) {
+            dockSelectedValue.textContent = 'بدون رصيف محدد';
+            dockSelectedValue.classList.add('text-muted');
+        }
+
+        if (!departmentId) {
+            if (dockSelectedValue) dockSelectedValue.textContent = 'اختار القسم أولاً';
+            return;
+        }
+
+        const docks = (window.allDocks || []).filter(d => String(d.departmentId) === String(departmentId));
+
+        if (docks.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'dropdown-item disabled text-muted';
+            empty.textContent = 'لا توجد أرصفة لهذا القسم';
+            dockDropdownList.appendChild(empty);
+            return;
+        }
+
+        docks.forEach(dock => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item' + (dock.isSelectable ? '' : ' disabled');
+            item.textContent = dock.name + ' — ' + dock.occupancy + '/' + dock.maxTruckCount + dock.disabledReasonLabel;
+
+            if (dock.isSelectable) {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectedDockValue = { id: dock.id, name: dock.name };
+                    dockSelectedValue.textContent = dock.name;
+                    dockSelectedValue.classList.remove('text-muted');
+                    dockDropdownList.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    dockDropdownContainer.classList.remove('open');
+                });
+            }
+
+            dockDropdownList.appendChild(item);
+        });
+    };
+
+    if (dockDropdownHeader) {
+        dockDropdownHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dockDropdownContainer.classList.toggle('open');
+        });
+    }
+
     let selectedDepartmentValue = null;
     let pendingDriverInfo = {};
 
@@ -129,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     };
 
-    const populateConfirmationData = (departmentName = "غير متوفر") => {
+    const populateConfirmationData = (departmentName = "غير متوفر", dockName = "بدون رصيف محدد") => {
         // تحديد اسم الشركة المختار
         let selectedCompanyName = "غير متوفر";
         if (!companyStaticView.classList.contains('d-none')) {
@@ -144,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmDriverName.textContent = pendingDriverInfo.name || "غير متوفر";
         confirmDriverId.textContent = pendingDriverInfo.nationalId || "غير متوفر";
         confirmDriverdep.textContent = departmentName;
+        if (confirmDriverDock) confirmDriverDock.textContent = dockName;
     };
 
     // ============================================
@@ -192,6 +254,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 deptDropdownContainer.classList.remove('open');
                 deptDropdownHeader.classList.remove('error');
                 deptErrorMsg.style.display = 'none';
+
+                refreshDockOptions(selectedDepartmentValue.id);
             });
         });
 
@@ -204,7 +268,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(() => deptDropdownHeader.style.animation = '', 400);
                     return;
                 }
-                populateConfirmationData(selectedDepartmentValue.name);
+                // الرصيف بقى إجباري برضه
+                if (!selectedDockValue) {
+                    if (dockDropdownHeader) {
+                        dockDropdownHeader.classList.add('error');
+                        dockDropdownHeader.style.animation = 'shake 0.4s';
+                        setTimeout(() => dockDropdownHeader.style.animation = '', 400);
+                    }
+                    return;
+                }
+                populateConfirmationData(selectedDepartmentValue.name, selectedDockValue.name);
                 showConfirmationModal(confirmModal);
             });
         }
@@ -237,6 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (deptDropdownHeader) deptDropdownHeader.classList.remove('error');
         if (deptErrorMsg) deptErrorMsg.style.display = 'none';
         document.querySelectorAll('#dept-dropdown-list .dropdown-item').forEach(i => i.classList.remove('selected'));
+        refreshDockOptions(null);
 
         showConfirmationModal(deptModal);
     };
@@ -270,6 +344,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     hiddenDeptInput.name = 'DepartmentId';
                     hiddenDeptInput.value = selectedDepartmentValue.id;
                     form.appendChild(hiddenDeptInput);
+                }
+
+                if (selectedDockValue) {
+                    const hiddenDockInput = document.createElement('input');
+                    hiddenDockInput.type = 'hidden';
+                    hiddenDockInput.name = 'DockId';
+                    hiddenDockInput.value = selectedDockValue.id;
+                    form.appendChild(hiddenDockInput);
                 }
 
                 // تغيير نص الزر

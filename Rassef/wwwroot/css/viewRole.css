@@ -267,8 +267,8 @@ body {
     border-radius: 14px;
     padding: 12px 24px;
     display: grid;
-    /* ����� ��� 7 ����� �������� ����� �� ������ */
-    grid-template-columns: 80px 110px 1.4fr 1fr 100px 1.1fr 110px;
+    /* ثمانية أعمدة: 7 بيانات + عمود الإجراء (تفاصيل) الظاهر بس للانتظار */
+    grid-template-columns: 80px 110px 1.4fr 1fr 100px 1.1fr 110px 100px;
     align-items: center;
     column-gap: 16px;
     transition: transform 0.2s ease, border-color 0.2s ease;
@@ -333,6 +333,33 @@ body {
     gap: 10px;
     min-width: 0;
 }
+
+/* Column 8: تفاصيل / إعادة طباعة الإيصال (الانتظار بس) */
+.card-col.col-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-role-details {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 10px;
+    background-color: var(--orange-primary);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: opacity 0.2s ease;
+}
+
+    .btn-role-details:hover {
+        opacity: 0.85;
+        color: #fff;
+    }
 
 .col-icon {
     font-size: 1.3rem;

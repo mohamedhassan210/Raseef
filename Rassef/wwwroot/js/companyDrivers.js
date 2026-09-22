@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmTruck = document.getElementById('confirm-truck');
     const confirmDriverName = document.getElementById('confirm-driver-name');
     const confirmDriverdep = document.getElementById('confirm-driver-dep');
+    const confirmDriverDock = document.getElementById('confirm-driver-dock');
     const ticketNumberDisplay = document.getElementById('ticket-number');
 
     // Custom Dropdown Elements (Department)
@@ -144,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     };
 
-    const populateConfirmationData = (driverName, departmentName = "غير متوفر") => {
+    const populateConfirmationData = (driverName, departmentName = "غير متوفر", dockName = "بدون رصيف محدد") => {
         const company = window.pageData?.companyName || "غير محدد";
         const truck = window.pageData?.truckName || "غير محدد";
 
@@ -152,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmTruck.textContent = truck;
         confirmDriverName.textContent = driverName;
         confirmDriverdep.textContent = departmentName;
+        if (confirmDriverDock) confirmDriverDock.textContent = dockName;
     };
 
     const attachSelectionEvents = () => {
@@ -241,12 +243,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 deptErrorMsg.style.display = 'block';
                 return;
             }
+            if (!selectedDockValue) {
+                if (dockDropdownHeader) dockDropdownHeader.classList.add('error');
+                return;
+            }
 
             const pendingData = JSON.parse(localStorage.getItem('pendingDriver')) || {};
             pendingData.department = selectedDepartmentValue;
             localStorage.setItem('pendingDriver', JSON.stringify(pendingData));
 
-            populateConfirmationData(pendingData.name, pendingData.department.name);
+            populateConfirmationData(pendingData.name, pendingData.department.name, selectedDockValue.name);
             showConfirmationModal(confirmModal);
         });
     };

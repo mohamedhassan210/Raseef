@@ -21,6 +21,11 @@
         [Display(Name = "رقم الشاحنة")]
         public int? TruckId { get; set; }
 
+        // القسم والرصيف اللي المستخدم اختارهم في مودال "اختار القسم" —
+        // بيتمروا لصفحة إنشاء الشاحنة عشان يبقوا مُختارين مسبقاً هناك
+        public int? DepartmentId { get; set; }
+        public int? DockId { get; set; }
+
 
         public IEnumerable<SelectListItem> Suppliers { get; set; }
             = new HashSet<SelectListItem>();

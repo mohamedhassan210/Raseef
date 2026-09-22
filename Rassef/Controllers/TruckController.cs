@@ -14,6 +14,7 @@
         private readonly IRepository<TicketStatuses> _ticketStatusRepository;
         private readonly IRepository<RequestStatuses> _requestStatusRepository;
         private readonly IRepository<PermitTypes> _permitTypeRepository;
+        private readonly IRepository<DriverTypes> _driverTypeRepository;
         private readonly IRepository<Dock> _dockRepository;
         private readonly IRepository<DockAssignment> _dockAssignmentRepository;
         private readonly ITicketEngineService _ticketEngineService;
@@ -32,6 +33,7 @@
             IRepository<TicketStatuses> ticketStatusRepository,
             IRepository<RequestStatuses> requestStatusRepository,
             IRepository<PermitTypes> permitTypeRepository,
+            IRepository<DriverTypes> driverTypeRepository,
             IRepository<Dock> dockRepository,
             IRepository<DockAssignment> dockAssignmentRepository,
             ITicketEngineService ticketEngineService,
@@ -49,6 +51,7 @@
             _ticketStatusRepository = ticketStatusRepository;
             _requestStatusRepository = requestStatusRepository;
             _permitTypeRepository = permitTypeRepository;
+            _driverTypeRepository = driverTypeRepository;
             _dockRepository = dockRepository;
             _dockAssignmentRepository = dockAssignmentRepository;
             _ticketEngineService = ticketEngineService;
@@ -357,10 +360,12 @@
         public async Task<IActionResult> MainTraDrivers()
         {
             var (_, activeTruckIds) = await GetActiveDriverAndTruckIdsAsync();
-            var allTrucks = await _truckRepository.GetAllAsync();
+            var allTrucks = await _truckRepository.GetAllAsync(query => query.Include(t => t.TruckType));
 
+            // فلو التحويل بيعرض شاحنات داخلية بس — TruckTypeCode == 1
+            // (النوع == 2 ده بتاع فلو التوريد الخارجي)
             var truckList = allTrucks
-                .Where(d => !activeTruckIds.Contains(d.Id))
+                .Where(d => !activeTruckIds.Contains(d.Id) && d.TruckType?.TruckTypeCode == 1)
                 .Select(d => new TruckListVM
                 {
                     Id = d.Id,
@@ -383,8 +388,9 @@
             var suppliers = await GetSuppliersAsync();
             var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
 
-            var allDrivers = await _driverRepository.GetAllAsync();
-            var availableDrivers = allDrivers.Where(d => !activeDriverIds.Contains(d.Id)).ToList();
+            // فلو التحويل بيعرض سواقين داخليين بس — DriverTypes.Code == 1
+            var allDrivers = await _driverRepository.GetAllAsync(query => query.Include(d => d.DeiverType));
+            var availableDrivers = allDrivers.Where(d => !activeDriverIds.Contains(d.Id) && d.DeiverType?.Code == 1).ToList();
             var driversList = availableDrivers.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.FullName }).ToList();
 
             string? supplierName = null;
@@ -402,6 +408,20 @@
                 Suppliers = suppliers,
                 Drivers = driversList
             };
+
+            var allDocksInfo = await _dockAvailabilityService.GetAllDocksAsync();
+            model.AllDocks = allDocksInfo.Select(d => new Rassef.ViewModels.Dock.DockOptionVM
+            {
+                Id = d.Id,
+                DockName = d.DockName,
+                DepartmentId = d.DepartmentId,
+                IsUnderMaintenance = d.IsUnderMaintenance,
+                Occupancy = d.Occupancy,
+                MaxTruckCount = d.MaxTruckCount
+            });
+
+            var depts = await GetScopedDepartmentsAsync();
+            ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
 
             ViewBag.Suppliers = suppliers;
             ViewBag.SupplierName = supplierName;
@@ -488,11 +508,16 @@
                 }
                 if (driver == null)
                 {
+                    // فلو التحويل بيعتبر أي سائق جديد "داخلي" (Code == 1) بشكل افتراضي
+                    var internalDriverType = (await _driverTypeRepository.GetAllAsync())
+                        .FirstOrDefault(t => t.Code == 1) ?? (await _driverTypeRepository.GetAllAsync()).FirstOrDefault();
+
                     driver = new Driver
                     {
                         FullName = create.NewDriverName,
                         NationalId = create.NewDriverNationalId,
                         Phone = create.NewDriverPhone,
+                        DeiverTypeId = internalDriverType?.Id ?? 0,
                         CreatedById = currentUserId
                     };
                     await _driverRepository.AddAsync(driver);
@@ -509,6 +534,26 @@
 
             if (create.DepartmentId.HasValue && create.DepartmentId.Value > 0)
             {
+                // الرصيف بقى إجباري زي فلو التوريد بالظبط
+                if (!create.DockId.HasValue || create.DockId.Value <= 0)
+                {
+                    ModelState.AddModelError("DockId", "يرجى اختيار الرصيف للمتابعة.");
+                    create.Suppliers = await GetSuppliersAsync();
+                    ViewBag.Suppliers = create.Suppliers;
+                    ViewBag.SupplierName = create.SupplierName;
+                    return View(create);
+                }
+
+                var (isDockValid, dockErrorMessage) = await _dockAvailabilityService.ValidateDockSelectionAsync(create.DockId.Value, create.DepartmentId.Value);
+                if (!isDockValid)
+                {
+                    ModelState.AddModelError("DockId", dockErrorMessage ?? "الرصيف المختار غير متاح.");
+                    create.Suppliers = await GetSuppliersAsync();
+                    ViewBag.Suppliers = create.Suppliers;
+                    ViewBag.SupplierName = create.SupplierName;
+                    return View(create);
+                }
+
                 var allTransfers = await _transferRequestRepository.GetAllAsync();
                 int nextAviz = allTransfers.Count() + 1;
                 string avizNumber = $"AVIZ-{nextAviz:D4}";
@@ -522,6 +567,7 @@
                     PermitNumber = $"PER-TR-{DateTime.Now.Ticks % 100000}",
                     AvizNumber = avizNumber,
                     RequestStatusId = 1,
+                    DockId = create.DockId,
                     CreatedById = currentUserId.ToString(),
                     CreatedBy = currentUser!
                 };
@@ -603,8 +649,12 @@
                 return BadRequest(new { success = false, message = "بيانات إعداد النظام غير مكتملة (نوع التصريح / حالة الطلب)." });
             }
 
-            // فحص الرصيف المختار (لو المستخدم اختار واحد)
-            if (dto.DockId.HasValue && dto.DockId.Value > 0)
+            // الرصيف بقى إجباري
+            if (!dto.DockId.HasValue || dto.DockId.Value <= 0)
+            {
+                return BadRequest(new { success = false, message = "لازم تختار رصيف قبل تأكيد الطلب." });
+            }
+
             {
                 var (isValid, errorMessage) = await _dockAvailabilityService.ValidateDockSelectionAsync(dto.DockId.Value, dto.DepartmentId);
                 if (!isValid)

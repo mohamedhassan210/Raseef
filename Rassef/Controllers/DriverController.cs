@@ -447,7 +447,7 @@ namespace Rassef.Controllers
 
             if (create.SupplierId.HasValue && create.SupplierId.Value > 0)
             {
-                return RedirectToAction("CreateTruckWithDriver", "SupplierRequest", new { supplierId = create.SupplierId.Value, selectedDriverId = driver.Id, autoOpenModal = true });
+                return RedirectToAction("CreateTruckWithDriver", "SupplierRequest", new { supplierId = create.SupplierId.Value, selectedDriverId = driver.Id, autoOpenModal = true, departmentId = create.DepartmentId, dockId = create.DockId });
             }
 
             return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId });
@@ -593,13 +593,14 @@ namespace Rassef.Controllers
 
             var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
 
-            // Transfer flow only offers drivers whose DriverTypes.Code is 2
-            // (supplier flow's Driver/Index uses Code == 1).
+            // CORRECTED (per explicit instruction from the project owner):
+            // transfer flow only offers INTERNAL drivers — DriverTypes.Code == 1 —
+            // not code == 2 (that's the supplier/external flow).
             var drivers = await _driverRepository.GetAllAsync(query =>
                 query.Include(d => d.DeiverType));
 
             var driverList = drivers
-                .Where(d => !activeDriverIds.Contains(d.Id) && d.DeiverType?.Code == 2)
+                .Where(d => !activeDriverIds.Contains(d.Id) && d.DeiverType?.Code == 1)
                 .Select(d => new DriverListVM
                 {
                     Id = d.Id,
@@ -785,8 +786,12 @@ namespace Rassef.Controllers
                 return BadRequest(new { success = false, message = "بيانات إعداد النظام غير مكتملة (نوع التصريح / نوع البضاعة / حالة الطلب)." });
             }
 
-            // فحص الرصيف المختار (لو المستخدم اختار واحد)
-            if (dto.DockId.HasValue && dto.DockId.Value > 0)
+            // الرصيف بقى إجباري
+            if (!dto.DockId.HasValue || dto.DockId.Value <= 0)
+            {
+                return BadRequest(new { success = false, message = "لازم تختار رصيف قبل تأكيد الطلب." });
+            }
+
             {
                 var (isValid, errorMessage) = await _dockAvailabilityService.ValidateDockSelectionAsync(dto.DockId.Value, dto.DepartmentId);
                 if (!isValid)
