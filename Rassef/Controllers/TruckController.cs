@@ -423,10 +423,96 @@
             var depts = await GetScopedDepartmentsAsync();
             ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
 
+            // NEW — backs the permit-type dropdown added to the department/dock modal.
+            var permitTypesForView = await _permitTypeRepository.GetAllAsync();
+            model.PermitTypes = permitTypesForView.Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name }).ToList();
+
             ViewBag.Suppliers = suppliers;
             ViewBag.SupplierName = supplierName;
 
             return View(model);
+        }
+
+        // NEW — backs the driver search box on AddTraDriver (the page was missing one
+        // entirely). Mirrors SupplierRequestController.SearchDrivers exactly, except it
+        // filters to INTERNAL drivers (DeiverType.Code == 1) instead of external
+        // (Code == 2), matching the rest of the transfer flow.
+        [HttpGet]
+        public async Task<IActionResult> SearchDrivers(string? term)
+        {
+            var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
+
+            IReadOnlyList<Driver> drivers;
+
+            if (string.IsNullOrWhiteSpace(term))
+            {
+                drivers = await _driverRepository.GetAllAsync(q => q
+                    .Include(d => d.DeiverType)
+                    .Where(d => !d.IsDeleted && !activeDriverIds.Contains(d.Id) && d.DeiverType.Code == 1)
+                    .OrderByDescending(d => d.CreatedAT)
+                    .ThenByDescending(d => d.Id)
+                    .Take(6));
+            }
+            else
+            {
+                var trimmedTerm = term.Trim();
+                drivers = await _driverRepository.GetAllAsync(q => q
+                    .Include(d => d.DeiverType)
+                    .Where(d => !d.IsDeleted && !activeDriverIds.Contains(d.Id) && d.DeiverType.Code == 1 &&
+                        (d.FullName.Contains(trimmedTerm) ||
+                         d.Phone.Contains(trimmedTerm) ||
+                         d.NationalId.Contains(trimmedTerm)))
+                    .OrderByDescending(d => d.CreatedAT)
+                    .ThenByDescending(d => d.Id)
+                    .Take(20));
+            }
+
+            var result = drivers.Select(d => new DriverListVM
+            {
+                Id = d.Id,
+                FullName = d.FullName,
+                NationalId = d.NationalId,
+                Phone = d.Phone
+            });
+
+            return Json(result);
+        }
+
+        // NEW — factored out of the several `return View(create)` branches below. Each
+        // of those previously only reset create.Suppliers/ViewBag.Suppliers/
+        // ViewBag.SupplierName before redisplaying the form, leaving create.Drivers,
+        // create.AllDocks and ViewBag.Departments empty — so a validation error (e.g.
+        // "dock already full") would redisplay the page with an empty driver dropdown,
+        // no docks and no departments at all. This repopulates everything the GET
+        // action populates, so a redisplay after a validation error looks the same as
+        // a fresh load.
+        private async Task RepopulateAddTraDriverFormAsync(Rassef.ViewModels.Truck.AddTraTruckVM create)
+        {
+            var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
+            var allDrivers = await _driverRepository.GetAllAsync(query => query.Include(d => d.DeiverType));
+            var availableDrivers = allDrivers.Where(d => !activeDriverIds.Contains(d.Id) && d.DeiverType?.Code == 1).ToList();
+            create.Drivers = availableDrivers.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.FullName }).ToList();
+
+            var allDocksInfo = await _dockAvailabilityService.GetAllDocksAsync();
+            create.AllDocks = allDocksInfo.Select(d => new Rassef.ViewModels.Dock.DockOptionVM
+            {
+                Id = d.Id,
+                DockName = d.DockName,
+                DepartmentId = d.DepartmentId,
+                IsUnderMaintenance = d.IsUnderMaintenance,
+                Occupancy = d.Occupancy,
+                MaxTruckCount = d.MaxTruckCount
+            });
+
+            create.Suppliers = await GetSuppliersAsync();
+            ViewBag.Suppliers = create.Suppliers;
+            ViewBag.SupplierName = create.SupplierName;
+
+            var depts = await GetScopedDepartmentsAsync();
+            ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
+
+            var permitTypesForView = await _permitTypeRepository.GetAllAsync();
+            create.PermitTypes = permitTypesForView.Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name }).ToList();
         }
 
         // Create (POST)
@@ -454,9 +540,7 @@
                 if (activeTruckIds.Contains(existingTruck.Id))
                 {
                     ModelState.AddModelError("PlateNumber", "الشاحنة لديها دور نشط حالياً (في الانتظار أو قيد التفريغ). يجب إنهاء الدور السابق أولاً.");
-                    create.Suppliers = await GetSuppliersAsync();
-                    ViewBag.Suppliers = create.Suppliers;
-                    ViewBag.SupplierName = create.SupplierName;
+                    await RepopulateAddTraDriverFormAsync(create);
                     return View(create);
                 }
             }
@@ -464,9 +548,7 @@
             if (create.DriverId.HasValue && create.DriverId.Value > 0 && activeDriverIds.Contains(create.DriverId.Value))
             {
                 ModelState.AddModelError("DriverId", "السائق المختار لديه دور نشط حالياً. يجب اكتمال الدور السابق أولاً.");
-                create.Suppliers = await GetSuppliersAsync();
-                ViewBag.Suppliers = create.Suppliers;
-                ViewBag.SupplierName = create.SupplierName;
+                await RepopulateAddTraDriverFormAsync(create);
                 return View(create);
             }
 
@@ -481,13 +563,29 @@
             }
             else
             {
+                // CHANGED — same class of bug already fixed on the supplier side: was
+                // `TruckTypeId = 1`, a hardcoded FK assuming the internal truck type's
+                // database Id happens to be 1. Now looked up by TruckTypeCode == 1
+                // (فلو التحويل بيعتبر أي شاحنة جديدة "داخلية" بشكل افتراضي)، مع سقوط آمن
+                // على أول نوع موجود لو مفيش نوع بكود 1 أصلاً.
+                var allTruckTypesForNewTruck = await _truckTypeRepository.GetAllAsync();
+                var internalTruckType = allTruckTypesForNewTruck.FirstOrDefault(t => t.TruckTypeCode == 1)
+                    ?? allTruckTypesForNewTruck.FirstOrDefault();
+
+                if (internalTruckType == null)
+                {
+                    ModelState.AddModelError("", "لا توجد أنواع شاحنات مُعرّفة في النظام. يرجى إضافة نوع شاحنة أولاً قبل المتابعة.");
+                    await RepopulateAddTraDriverFormAsync(create);
+                    return View(create);
+                }
+
                 truck = new Truck
                 {
                     PlateNumber = plateNum,
                     PlateLetter = plateLet,
                     StorageCapacity = create.StorageCapacity ?? 0,
                     IsRefrigerated = create.TruckType == "تبريد",
-                    TruckTypeId = 1,
+                    TruckTypeId = internalTruckType.Id,
                     CreatedBy = currentUser
                 };
                 await _truckRepository.AddAsync(truck);
@@ -501,9 +599,7 @@
                 if (driver != null && activeDriverIds.Contains(driver.Id))
                 {
                     ModelState.AddModelError("NewDriverNationalId", "السائق لديه دور نشط حالياً. يجب اكتمال الدور السابق أولاً.");
-                    create.Suppliers = await GetSuppliersAsync();
-                    ViewBag.Suppliers = create.Suppliers;
-                    ViewBag.SupplierName = create.SupplierName;
+                    await RepopulateAddTraDriverFormAsync(create);
                     return View(create);
                 }
                 if (driver == null)
@@ -525,11 +621,22 @@
                 }
             }
 
+            // CHANGED — same class of bug as the truck/permit/status fallbacks above: was
+            // "any driver at all, or hardcode Id == 1" if nothing else was picked. Now
+            // scoped to internal drivers (Code == 1) like the rest of this flow, and
+            // surfaces a validation error instead of silently guessing driver 1.
             int finalDriverId = driver?.Id ?? (create.DriverId.HasValue && create.DriverId.Value > 0 ? create.DriverId.Value : 0);
             if (finalDriverId <= 0)
             {
-                var fallbackDriver = (await _driverRepository.GetAllAsync()).FirstOrDefault();
-                finalDriverId = fallbackDriver?.Id ?? 1;
+                var internalDriversForFallback = await _driverRepository.GetAllAsync(q => q.Include(d => d.DeiverType));
+                var fallbackDriver = internalDriversForFallback.FirstOrDefault(d => !activeDriverIds.Contains(d.Id) && d.DeiverType?.Code == 1);
+                if (fallbackDriver == null)
+                {
+                    ModelState.AddModelError("DriverId", "يرجى اختيار سائق أو إضافة سائق جديد.");
+                    await RepopulateAddTraDriverFormAsync(create);
+                    return View(create);
+                }
+                finalDriverId = fallbackDriver.Id;
             }
 
             if (create.DepartmentId.HasValue && create.DepartmentId.Value > 0)
@@ -538,9 +645,7 @@
                 if (!create.DockId.HasValue || create.DockId.Value <= 0)
                 {
                     ModelState.AddModelError("DockId", "يرجى اختيار الرصيف للمتابعة.");
-                    create.Suppliers = await GetSuppliersAsync();
-                    ViewBag.Suppliers = create.Suppliers;
-                    ViewBag.SupplierName = create.SupplierName;
+                    await RepopulateAddTraDriverFormAsync(create);
                     return View(create);
                 }
 
@@ -548,25 +653,61 @@
                 if (!isDockValid)
                 {
                     ModelState.AddModelError("DockId", dockErrorMessage ?? "الرصيف المختار غير متاح.");
-                    create.Suppliers = await GetSuppliersAsync();
-                    ViewBag.Suppliers = create.Suppliers;
-                    ViewBag.SupplierName = create.SupplierName;
+                    await RepopulateAddTraDriverFormAsync(create);
                     return View(create);
                 }
 
-                var allTransfers = await _transferRequestRepository.GetAllAsync();
-                int nextAviz = allTransfers.Count() + 1;
-                string avizNumber = $"AVIZ-{nextAviz:D4}";
+                // CHANGED — AvizNumber, PermitNumber and PermitTypeId are now real user
+                // input from the department/dock modal (TransferRequest already has all
+                // three fields) instead of being auto-generated / auto-picked. Same
+                // hardcoded-FK-fallback bug class as before if left unchecked, so these
+                // are validated explicitly rather than defaulted.
+                if (string.IsNullOrWhiteSpace(create.AvizNumber))
+                {
+                    ModelState.AddModelError("AvizNumber", "يرجى إدخال رقم الأفيز.");
+                    await RepopulateAddTraDriverFormAsync(create);
+                    return View(create);
+                }
+
+                if (string.IsNullOrWhiteSpace(create.PermitNumber))
+                {
+                    ModelState.AddModelError("PermitNumber", "يرجى إدخال رقم التصريح.");
+                    await RepopulateAddTraDriverFormAsync(create);
+                    return View(create);
+                }
+
+                if (!create.PermitTypeId.HasValue || create.PermitTypeId.Value <= 0)
+                {
+                    ModelState.AddModelError("PermitTypeId", "يرجى اختيار نوع الإذن.");
+                    await RepopulateAddTraDriverFormAsync(create);
+                    return View(create);
+                }
+
+                var chosenPermitType = await _permitTypeRepository.GetByIdAsync(create.PermitTypeId.Value);
+                if (chosenPermitType == null)
+                {
+                    ModelState.AddModelError("PermitTypeId", "نوع الإذن المختار غير موجود.");
+                    await RepopulateAddTraDriverFormAsync(create);
+                    return View(create);
+                }
+
+                var defaultStatusForTransfer = await _requestStatusRepository.FindAsync(s => true);
+                if (defaultStatusForTransfer == null)
+                {
+                    ModelState.AddModelError("", "بيانات إعداد النظام غير مكتملة (حالة الطلب). يرجى مراجعة الإعدادات.");
+                    await RepopulateAddTraDriverFormAsync(create);
+                    return View(create);
+                }
 
                 var req = new TransferRequest
                 {
                     DepartmentId = create.DepartmentId.Value,
                     TruckId = truck.Id,
                     DriverId = finalDriverId,
-                    PermitTypeId = 1,
-                    PermitNumber = $"PER-TR-{DateTime.Now.Ticks % 100000}",
-                    AvizNumber = avizNumber,
-                    RequestStatusId = 1,
+                    PermitTypeId = chosenPermitType.Id,
+                    PermitNumber = create.PermitNumber.Trim(),
+                    AvizNumber = create.AvizNumber.Trim(),
+                    RequestStatusId = defaultStatusForTransfer.Id,
                     DockId = create.DockId,
                     CreatedById = currentUserId.ToString(),
                     CreatedBy = currentUser!

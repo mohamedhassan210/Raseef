@@ -53,6 +53,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const dockDropdownList = document.getElementById('dock-dropdown-list');
     let selectedDockValue = null;
 
+    // NEW — نوع الإذن / رقم الأفيز / رقم التصريح (موجودين بس في مودال التحويل).
+    // كل العناصر دي مش موجودة في صفحة السبلاير، فكل الأكواد اللي بتستخدمها بتتأكد
+    // إنها موجودة الأول (if (element)) قبل ما تشتغل — مفيش أي تأثير على صفحة السبلاير.
+    const permitTypeDropdownContainer = document.getElementById('permit-type-dropdown-container');
+    const permitTypeDropdownHeader = document.getElementById('permit-type-dropdown-header');
+    const permitTypeSelectedValue = document.getElementById('permit-type-selected-value');
+    const permitTypeDropdownList = document.getElementById('permit-type-dropdown-list');
+    const permitTypeErrorMsg = document.getElementById('permit-type-error-msg');
+    const modalAvizNumberInput = document.getElementById('modalAvizNumber');
+    const modalPermitNumberInput = document.getElementById('modalPermitNumber');
+    const avizErrorMsg = document.getElementById('aviz-error-msg');
+    const permitNumberErrorMsg = document.getElementById('permit-number-error-msg');
+    let selectedPermitTypeValue = null;
+
+    const initPermitTypeDropdown = () => {
+        if (!permitTypeDropdownList) return;
+
+        const items = permitTypeDropdownList.querySelectorAll('.dropdown-item:not(.disabled)');
+        items.forEach(item => {
+            item.addEventListener('click', () => {
+                selectedPermitTypeValue = {
+                    id: item.getAttribute('data-id') || item.getAttribute('data-value'),
+                    name: item.textContent.trim()
+                };
+                if (permitTypeSelectedValue) {
+                    permitTypeSelectedValue.textContent = selectedPermitTypeValue.name;
+                    permitTypeSelectedValue.classList.remove('text-muted');
+                }
+                items.forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+                if (permitTypeDropdownContainer) permitTypeDropdownContainer.classList.remove('open');
+                if (permitTypeDropdownHeader) permitTypeDropdownHeader.classList.remove('error');
+                if (permitTypeErrorMsg) permitTypeErrorMsg.style.display = 'none';
+            });
+        });
+
+        if (permitTypeDropdownHeader) {
+            permitTypeDropdownHeader.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (permitTypeDropdownContainer) permitTypeDropdownContainer.classList.toggle('open');
+            });
+        }
+    };
+    initPermitTypeDropdown();
+
     const refreshDockOptions = (departmentId) => {
         if (!dockDropdownList) return;
 
@@ -291,9 +336,17 @@ document.addEventListener('DOMContentLoaded', () => {
         driverSearchInput.addEventListener('input', () => {
             const term = driverSearchInput.value.trim();
 
+            // CHANGED — endpoint is now configurable via window.routes.searchDriversUrl
+            // so this same script can back both the supplier picker (external drivers,
+            // /SupplierRequest/SearchDrivers) and the transfer picker (internal drivers,
+            // /Truck/SearchDrivers) without duplicating this whole file. Falls back to
+            // the original supplier endpoint if a page doesn't set one, so existing pages
+            // keep working unchanged.
+            const searchUrl = (window.routes && window.routes.searchDriversUrl) || '/SupplierRequest/SearchDrivers';
+
             clearTimeout(driverSearchDebounceTimer);
             driverSearchDebounceTimer = setTimeout(() => {
-                fetch(`/SupplierRequest/SearchDrivers?term=${encodeURIComponent(term)}`)
+                fetch(`${searchUrl}?term=${encodeURIComponent(term)}`)
                     .then(response => {
                         if (!response.ok) throw new Error('Search request failed');
                         return response.json();
@@ -333,18 +386,39 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     };
 
+    const confirmAviz = document.getElementById('confirm-aviz');
+    const confirmPermitNumber = document.getElementById('confirm-permit-number');
+    const confirmPermitType = document.getElementById('confirm-permit-type');
+
     const populateConfirmationData = (departmentName = "غير متوفر", dockName = "بدون رصيف محدد") => {
         if (confirmCompany) confirmCompany.textContent = pendingTruckInfo.company || "غير متوفر";
         if (confirmTruck) confirmTruck.textContent = pendingTruckInfo.truckPlate || "غير متوفر";
         if (confirmDriverName) confirmDriverName.textContent = pendingTruckInfo.driverName || "غير محدد";
         if (confirmDriverdep) confirmDriverdep.textContent = departmentName;
         if (confirmDriverDock) confirmDriverDock.textContent = dockName;
+
+        // NEW — لو العناصر دي موجودة (مودال التحويل بس) اعرض القيم اللي المستخدم دخّلها.
+        if (confirmAviz) confirmAviz.textContent = modalAvizNumberInput ? modalAvizNumberInput.value.trim() : '';
+        if (confirmPermitNumber) confirmPermitNumber.textContent = modalPermitNumberInput ? modalPermitNumberInput.value.trim() : '';
+        if (confirmPermitType) confirmPermitType.textContent = selectedPermitTypeValue ? selectedPermitTypeValue.name : '';
     };
 
     // ==========================================
     // 6. Department Custom Dropdown Logic (المودال)
     // ==========================================
     const initDepartmentDropdown = () => {
+        // CHANGED — the transfer page (AddTraDriver) renders #dept-dropdown-list empty
+        // and passes the department list as JSON (window.departmentsData) instead of
+        // server-rendering <div class="dropdown-item"> items, the same way the rest of
+        // the transfer flow (companyTransferDrivers.js) already does it. If the list is
+        // empty but the JSON is there, build the items first; the supplier page already
+        // renders its items server-side, so this is a no-op there.
+        if (deptDropdownList && deptDropdownList.children.length === 0 && Array.isArray(window.departmentsData) && window.departmentsData.length > 0) {
+            deptDropdownList.innerHTML = window.departmentsData
+                .map(dept => `<div class="dropdown-item" data-id="${dept.id}" data-value="${dept.id}">${dept.name}</div>`)
+                .join('');
+        }
+
         const deptItems = deptDropdownList ? deptDropdownList.querySelectorAll('.dropdown-item') : [];
 
         if (deptDropdownHeader) {
@@ -398,6 +472,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     return;
                 }
+
+                // NEW — الأفيز/التصريح/نوع الإذن، لو العناصر دي موجودة في الصفحة
+                // (يعني إحنا في مودال التحويل مش السبلاير).
+                let hasTransferExtrasError = false;
+                if (modalAvizNumberInput && !modalAvizNumberInput.value.trim()) {
+                    if (avizErrorMsg) avizErrorMsg.style.display = 'block';
+                    hasTransferExtrasError = true;
+                } else if (avizErrorMsg) {
+                    avizErrorMsg.style.display = 'none';
+                }
+
+                if (modalPermitNumberInput && !modalPermitNumberInput.value.trim()) {
+                    if (permitNumberErrorMsg) permitNumberErrorMsg.style.display = 'block';
+                    hasTransferExtrasError = true;
+                } else if (permitNumberErrorMsg) {
+                    permitNumberErrorMsg.style.display = 'none';
+                }
+
+                if (permitTypeDropdownList && !selectedPermitTypeValue) {
+                    if (permitTypeDropdownHeader) {
+                        permitTypeDropdownHeader.classList.add('error');
+                        permitTypeDropdownHeader.style.animation = 'shake 0.4s';
+                        setTimeout(() => permitTypeDropdownHeader.style.animation = '', 400);
+                    }
+                    if (permitTypeErrorMsg) permitTypeErrorMsg.style.display = 'block';
+                    hasTransferExtrasError = true;
+                }
+
+                if (hasTransferExtrasError) return;
+
                 populateConfirmationData(selectedDepartmentValue.name, selectedDockValue.name);
                 showConfirmationModal(confirmModal);
             });
@@ -702,6 +806,43 @@ document.addEventListener('DOMContentLoaded', () => {
                     form.appendChild(hiddenDock);
                 }
                 hiddenDock.value = selectedDockValue.id;
+            }
+
+            // NEW — الأفيز/التصريح/نوع الإذن، لو موجودين في الصفحة دي (مودال التحويل).
+            if (modalAvizNumberInput) {
+                let hiddenAviz = document.getElementById('hiddenAvizNumber');
+                if (!hiddenAviz) {
+                    hiddenAviz = document.createElement('input');
+                    hiddenAviz.type = 'hidden';
+                    hiddenAviz.id = 'hiddenAvizNumber';
+                    hiddenAviz.name = 'AvizNumber';
+                    form.appendChild(hiddenAviz);
+                }
+                hiddenAviz.value = modalAvizNumberInput.value.trim();
+            }
+
+            if (modalPermitNumberInput) {
+                let hiddenPermitNumber = document.getElementById('hiddenPermitNumber');
+                if (!hiddenPermitNumber) {
+                    hiddenPermitNumber = document.createElement('input');
+                    hiddenPermitNumber.type = 'hidden';
+                    hiddenPermitNumber.id = 'hiddenPermitNumber';
+                    hiddenPermitNumber.name = 'PermitNumber';
+                    form.appendChild(hiddenPermitNumber);
+                }
+                hiddenPermitNumber.value = modalPermitNumberInput.value.trim();
+            }
+
+            if (selectedPermitTypeValue) {
+                let hiddenPermitType = document.getElementById('hiddenPermitTypeId');
+                if (!hiddenPermitType) {
+                    hiddenPermitType = document.createElement('input');
+                    hiddenPermitType.type = 'hidden';
+                    hiddenPermitType.id = 'hiddenPermitTypeId';
+                    hiddenPermitType.name = 'PermitTypeId';
+                    form.appendChild(hiddenPermitType);
+                }
+                hiddenPermitType.value = selectedPermitTypeValue.id;
             }
 
             form.submit();

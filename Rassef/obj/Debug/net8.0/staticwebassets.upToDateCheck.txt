@@ -21,8 +21,8 @@ wwwroot\css\liveQueueBoard.css
 wwwroot\css\liveStatus.css
 wwwroot\css\receipt.css
 wwwroot\css\requestsQueue.css
-wwwroot\css\sidebar.css
 wwwroot\css\sidebar-widget.css
+wwwroot\css\sidebar.css
 wwwroot\css\site.css
 wwwroot\css\style.css
 wwwroot\css\suppliers.css
@@ -45,8 +45,8 @@ wwwroot\images\e5741a8d-d4c3-4033-be31-677436d6db15_Annotation 2025-05-07 143211
 wwwroot\images\f31b14ae-445f-489f-806e-d820452b4455_Annotation 2025-05-07 143211.png
 wwwroot\images\fcd6c037-7e5c-43be-8699-921a66bc63b5_download.jfif
 wwwroot\img\#U062e#U0644#U0641#U064a#U0629 #U0627#U0644#U0645#U0648#U0631#U062f#U064a#U0646.png
-wwwroot\img\e56105f0-6daa-4ef7-8e8b-a6fff6e0e796.png
 wwwroot\img\e56105f0-6daa-4ef7-8e8b-a6fff6e0e796-removebg-preview.png
+wwwroot\img\e56105f0-6daa-4ef7-8e8b-a6fff6e0e796.png
 wwwroot\img\fathallah icon light.svg
 wwwroot\img\fathallah icon.svg
 wwwroot\img\fathallah logo.svg
@@ -83,15 +83,8 @@ wwwroot\js\receipt.js
 wwwroot\js\sidebarToggle.js
 wwwroot\js\site.js
 wwwroot\js\suppliers.js
+wwwroot\js\supplyOrder.js
 wwwroot\js\viewRole.js
-wwwroot\lib\bootstrap\dist\css\bootstrap.css
-wwwroot\lib\bootstrap\dist\css\bootstrap.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap.min.css
-wwwroot\lib\bootstrap\dist\css\bootstrap.min.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css
-wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css
-wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css.map
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css
@@ -116,6 +109,14 @@ wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css
 wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css.map
 wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.min.css
 wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.min.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap.css
+wwwroot\lib\bootstrap\dist\css\bootstrap.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap.min.css
+wwwroot\lib\bootstrap\dist\css\bootstrap.min.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css
+wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css
+wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css.map
 wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js
 wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js.map
 wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js
@@ -129,15 +130,15 @@ wwwroot\lib\bootstrap\dist\js\bootstrap.js.map
 wwwroot\lib\bootstrap\dist\js\bootstrap.min.js
 wwwroot\lib\bootstrap\dist\js\bootstrap.min.js.map
 wwwroot\lib\bootstrap\LICENSE
-wwwroot\lib\jquery\dist\jquery.js
-wwwroot\lib\jquery\dist\jquery.min.js
-wwwroot\lib\jquery\dist\jquery.min.map
-wwwroot\lib\jquery\LICENSE.txt
+wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.js
+wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.min.js
+wwwroot\lib\jquery-validation-unobtrusive\LICENSE.txt
 wwwroot\lib\jquery-validation\dist\additional-methods.js
 wwwroot\lib\jquery-validation\dist\additional-methods.min.js
 wwwroot\lib\jquery-validation\dist\jquery.validate.js
 wwwroot\lib\jquery-validation\dist\jquery.validate.min.js
 wwwroot\lib\jquery-validation\LICENSE.md
-wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.js
-wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.min.js
-wwwroot\lib\jquery-validation-unobtrusive\LICENSE.txt
+wwwroot\lib\jquery\dist\jquery.js
+wwwroot\lib\jquery\dist\jquery.min.js
+wwwroot\lib\jquery\dist\jquery.min.map
+wwwroot\lib\jquery\LICENSE.txt

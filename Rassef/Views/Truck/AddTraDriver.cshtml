@@ -17,6 +17,14 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="~/css/addCar.css" asp-append-version="true">
 <link rel="stylesheet" href="~/css/companyCars.css" asp-append-version="true">
+@* FIX — this was missing. All the modal-popup CSS (.custom-modal-overlay,
+   .custom-modal-container, .active-modal, etc.) lives in companyDrivers.css, not
+   addCar.css. Without it the modals had no positioning/overlay/animation styles at
+   all, so they rendered as plain unstyled blocks stacked at the top of the page
+   instead of a centered popup — exactly what the screenshots showed. The supplier
+   page (CreateTruckWithDriver.cshtml) already loads all three together; this makes
+   AddTraDriver match it. *@
+<link rel="stylesheet" href="~/css/companyDrivers.css" asp-append-version="true">
 
 <main class="page-container">
 
@@ -44,7 +52,10 @@
     </div>
 
     <section class="form-card mt-3">
-        <form id="addCarForm" class="needs-validation" novalidate>
+        @* CHANGED — this tag was missing `method="post"` and any `asp-action`/`asp-controller`,
+           so submitting the form did a plain GET to the current URL instead of posting to
+           AddTraDriver. That's why nothing ever seemed to happen on submit. *@
+        <form asp-action="AddTraDriver" asp-controller="Truck" method="post" id="addCarForm" class="needs-validation" novalidate>
             @Html.AntiForgeryToken()
             <input type="hidden" name="SupplierName" value="@displaySupplierName" />
 
@@ -165,13 +176,32 @@
                                     </svg>
                                 </div>
                                 <div class="dropdown-list">
-                                    @if (Model?.Drivers != null && Model.Drivers.Any())
-                                    {
-                                        foreach (var driver in Model.Drivers)
+                                    @* CHANGED — added the search box and the #driverDropdownItems
+                                       wrapper. addCar.js's search logic (section 4b) looks for these
+                                       exact ids; without them it silently does nothing — no search box
+                                       showed, and the plain items here were never wired for clicks
+                                       (the generic dropdown loop explicitly skips #customDriverDropdown,
+                                       expecting section 4b to own it). *@
+                                    <div class="dropdown-search-wrapper px-2 pt-2">
+                                        <input type="text"
+                                               id="driverSearchInput"
+                                               class="form-control custom-input"
+                                               placeholder="ابحث بالاسم أو رقم الهاتف أو الرقم القومي"
+                                               autocomplete="off">
+                                    </div>
+                                    <div id="driverDropdownItems">
+                                        @if (Model?.Drivers != null && Model.Drivers.Any())
                                         {
-                                            <div class="dropdown-item" data-value="@driver.Value">@driver.Text</div>
+                                            foreach (var driver in Model.Drivers)
+                                            {
+                                                <div class="dropdown-item" data-value="@driver.Value">@driver.Text</div>
+                                            }
                                         }
-                                    }
+                                        else
+                                        {
+                                            <div class="dropdown-item disabled text-muted">لا يوجد سائقين متاحين حالياً</div>
+                                        }
+                                    </div>
                                 </div>
                             </div>
                             <div class="invalid-feedback mt-2" style="display: none;">يرجى اختيار سائق الشاحنة.</div>
@@ -196,10 +226,222 @@
 
 </main>
 
+@* CHANGED — this whole modal system was missing from the page. addCar.js expects
+   #custom-modal-overlay, #add-driver-modal, #department-modal (with #dept-dropdown-list
+   and #dock-dropdown-list) and #confirmation-modal to exist; without them the "+" button
+   (opens #add-driver-modal), the department/dock step and the confirmation step all
+   silently do nothing, because every handler in addCar.js guards on "if the element
+   exists". Copied from the supplier flow's CreateTruckWithDriver.cshtml, with the
+   department list left empty and built client-side from window.departmentsData instead
+   (this controller passes it as plain {id,name} objects, not SelectListItem — same
+   approach already used by Driver/TransferDrivers.cshtml elsewhere in this flow). *@
+<div id="custom-modal-overlay" class="custom-modal-overlay" aria-hidden="true">
+
+    <!-- Modal -1: Add New Driver Inline -->
+    <div id="add-driver-modal" class="custom-modal-container d-none" role="dialog" aria-modal="true" aria-labelledby="add-driver-modal-title">
+        <div class="modal-header-icon">
+            <div class="icon-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="modal-body text-end w-100 mt-3">
+            <h2 id="add-driver-modal-title" class="modal-title text-center" style="margin-bottom: 20px;">إضافة سائق جديد</h2>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">اسم السائق بالكامل</label>
+                <input type="text" class="form-control custom-input" id="inlineDriverFullName" placeholder="ادخل اسم السائق">
+                <div class="invalid-feedback text-end mt-1" id="inlineDriverNameErr" style="display:none; color:#dc3545;">يرجى إدخال اسم السائق.</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">الرقم القومي (14 رقم)</label>
+                <input type="text" class="form-control custom-input" id="inlineDriverNationalId" placeholder="ادخل الرقم القومي (14 رقم)" maxlength="14" dir="rtl">
+                <div class="invalid-feedback text-end mt-1" id="inlineDriverNationalIdErr" style="display:none; color:#dc3545;">الرقم القومي يجب أن يتكون من 14 رقماً.</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">رقم الهاتف</label>
+                <input type="tel" class="form-control custom-input" id="inlineDriverPhone" placeholder="ادخل رقم الهاتف (11 رقم مصري)" maxlength="11" dir="rtl">
+                <div class="invalid-feedback text-end mt-1" id="inlineDriverPhoneErr" style="display:none; color:#dc3545;">يرجى إدخال رقم هاتف مصري صحيح (11 رقماً يبدأ بـ 010 أو 011 أو 012 أو 015).</div>
+            </div>
+        </div>
+
+        <div class="modal-actions mt-3">
+            <button id="btn-cancel-add-driver" class="btn-secondary-custom" type="button">إلغاء</button>
+            <button id="btn-save-inline-driver" class="btn-primary-custom" type="button">التالي (اختيار القسم)</button>
+        </div>
+    </div>
+
+    <!-- Modal 0: Department Selection -->
+    <div id="department-modal" class="custom-modal-container d-none" role="dialog" aria-modal="true" aria-labelledby="department-modal-title">
+        <div class="modal-header-icon">
+            <div class="icon-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <rect x="9" y="3" width="6" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="2" />
+                    <rect x="3" y="17" width="6" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="2" />
+                    <rect x="15" y="17" width="6" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="2" />
+                    <path d="M12 7v5M6 17v-3h12v3M18 14v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="modal-body text-center w-100 mt-4">
+            <h2 id="department-modal-title" class="modal-title" style="margin-bottom: 24px;">اختر القسم</h2>
+
+            <div class="custom-dropdown" id="dept-dropdown-container">
+                <div class="dropdown-header" id="dept-dropdown-header">
+                    <span class="selected-value text-muted" id="dept-selected-value">اختر القسم</span>
+                    <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#EB842D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+
+                <div class="dropdown-list" id="dept-dropdown-list"></div>
+
+                <div class="invalid-feedback text-right mt-2" id="dept-error-msg" style="display: none; color: #dc3545; font-size: 0.95rem; font-weight: 500;">
+                    يرجى اختيار القسم للمتابعة.
+                </div>
+            </div>
+
+            <!-- الرصيف (اختياري) — بيتفلتر تلقائياً حسب القسم المختار فوق -->
+            <div class="custom-dropdown mt-3" id="dock-dropdown-container">
+                <div class="dropdown-header" id="dock-dropdown-header">
+                    <span class="selected-value text-muted" id="dock-selected-value">اختر القسم أولاً</span>
+                    <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#EB842D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="dropdown-list" id="dock-dropdown-list"></div>
+            </div>
+
+            @* NEW — التصريح والأفيز بقوا بيانات بيدخلها المستخدم بدل ما يتولّدوا تلقائي،
+               ونوع الإذن بقى اختيار من قائمة حقيقية، مطابق لحقول TransferRequest. *@
+            <div class="mt-3 text-end">
+                <label class="form-label fw-bold">رقم الأفيز</label>
+                <input type="text" class="form-control custom-input" id="modalAvizNumber" placeholder="ادخل رقم الأفيز">
+                <div class="invalid-feedback text-end mt-1" id="aviz-error-msg" style="display:none; color:#dc3545;">يرجى إدخال رقم الأفيز.</div>
+            </div>
+
+            <div class="mt-3 text-end">
+                <label class="form-label fw-bold">رقم التصريح</label>
+                <input type="text" class="form-control custom-input" id="modalPermitNumber" placeholder="ادخل رقم التصريح">
+                <div class="invalid-feedback text-end mt-1" id="permit-number-error-msg" style="display:none; color:#dc3545;">يرجى إدخال رقم التصريح.</div>
+            </div>
+
+            <div class="custom-dropdown mt-3" id="permit-type-dropdown-container">
+                <div class="dropdown-header" id="permit-type-dropdown-header">
+                    <span class="selected-value text-muted" id="permit-type-selected-value">اختر نوع الإذن</span>
+                    <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#EB842D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="dropdown-list" id="permit-type-dropdown-list">
+                    @if (Model?.PermitTypes != null && Model.PermitTypes.Any())
+                    {
+                        foreach (var permitType in Model.PermitTypes)
+                        {
+                            <div class="dropdown-item" data-id="@permitType.Value" data-value="@permitType.Value">@permitType.Text</div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="dropdown-item disabled text-muted">لا توجد أنواع أذونات متاحة</div>
+                    }
+                </div>
+                <div class="invalid-feedback text-right mt-2" id="permit-type-error-msg" style="display: none; color: #dc3545; font-size: 0.95rem; font-weight: 500;">
+                    يرجى اختيار نوع الإذن.
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-actions mt-4" style="margin-top: 32px !important;">
+            <button id="btn-confirm-dept" class="btn-primary-custom w-100" type="button" aria-label="تأكيد القسم">تأكيد</button>
+        </div>
+    </div>
+
+    <!-- Modal 1: Data Confirmation -->
+    <div id="confirmation-modal" class="custom-modal-container d-none" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+        <div class="modal-header-icon">
+            <div class="icon-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-question-lg" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M4.475 5.458c-.284 0-.514-.237-.47-.517C4.28 3.24 5.576 2 7.825 2c2.25 0 3.767 1.36 3.767 3.215 0 1.344-.665 2.288-1.79 2.973-1.1.659-1.414 1.118-1.414 2.01v.03a.5.5 0 0 1-.5.5h-.77a.5.5 0 0 1-.5-.495l-.003-.2c-.043-1.221.477-2.001 1.645-2.712 1.03-.632 1.397-1.135 1.397-2.028 0-.979-.758-1.698-1.926-1.698-1.009 0-1.71.529-1.938 1.402-.066.254-.278.461-.54.461h-.777ZM7.496 14c.622 0 1.095-.474 1.095-1.09 0-.618-.473-1.092-1.095-1.092-.606 0-1.087.474-1.087 1.091S6.89 14 7.496 14" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="modal-body data-grid mt-4 firstModelcontent">
+            <div class="data-row">
+                <span class="data-label">الشركة :</span>
+                <span class="data-value" id="confirm-company"></span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">السيارة :</span>
+                <span class="data-value" id="confirm-truck"></span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">السائق :</span>
+                <span class="data-value" id="confirm-driver-name"></span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">القسم :</span>
+                <span class="data-value" id="confirm-driver-dep"></span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">الرصيف :</span>
+                <span class="data-value" id="confirm-driver-dock"></span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">رقم الأفيز :</span>
+                <span class="data-value" id="confirm-aviz"></span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">رقم التصريح :</span>
+                <span class="data-value" id="confirm-permit-number"></span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">نوع الإذن :</span>
+                <span class="data-value" id="confirm-permit-type"></span>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button id="btn-edit" class="btn-secondary-custom" type="button" aria-label="تعديل البيانات">تعديل</button>
+            <button id="btn-confirm" class="btn-primary-custom" type="button" aria-label="تأكيد البيانات">تأكيد</button>
+        </div>
+    </div>
+
+</div>
+
 <script>
     window.routes = {
-        truckIndex: '@Url.Action("MainTraDrivers", "Driver")'
+        truckIndex: '@Url.Action("MainTraDrivers", "Truck")',
+        searchDriversUrl: '@Url.Action("SearchDrivers", "Truck")'
     };
+
+    // CHANGED — dept list serialized the same safe way Driver/TransferDrivers.cshtml
+    // does it (Json.Serialize over the raw ViewBag object), since ViewBag.Departments
+    // here holds anonymous {id,name} objects rather than SelectListItem.
+    window.departmentsData = @Html.Raw(Json.Serialize(ViewBag.Departments ?? new List<object>()));
+
+    // CHANGED — was missing entirely, so refreshDockOptions() in addCar.js always saw
+    // an empty dock list. Model.AllDocks is the strongly-typed DockOptionVM collection
+    // (not ViewBag), so this serializes directly — same shape as CreateTruckWithDriver.
+    window.allDocks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        (Model?.AllDocks ?? Enumerable.Empty<Rassef.ViewModels.Dock.DockOptionVM>()).Select(d => new {
+            id = d.Id,
+            name = d.DockName,
+            departmentId = d.DepartmentId,
+            occupancy = d.Occupancy,
+            maxTruckCount = d.MaxTruckCount,
+            isUnderMaintenance = d.IsUnderMaintenance,
+            isSelectable = d.IsSelectable,
+            disabledReasonLabel = d.DisabledReasonLabel
+        })
+    ));
 </script>
 
 <script>

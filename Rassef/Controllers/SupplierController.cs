@@ -37,6 +37,32 @@ namespace Rassef.Controllers
         }
 
         /// <summary>
+        /// NEW — يبحث عن مورد بكود المورد (SupCode) بدل الاسم أو الـ Id، ويرجع
+        /// النتيجة كـ JSON. مستخدم في نافذة "أمر توريد" على شاشة اختيار الخدمة
+        /// (توريد/تحويل)، عشان تاخد المستخدم على طول لصفحة اختيار الشاحنة بدل
+        /// ما يمر على قائمة الموردين ويدور عليه بنفسه.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> FindByCode(string? code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return Json(new { found = false, message = "يرجى إدخال رقم أمر التوريد." });
+            }
+
+            var trimmedCode = code.Trim();
+            var suppliers = await _supplierRepository.GetAllAsync(q => q.Where(s => s.SupCode == trimmedCode));
+            var supplier = suppliers.FirstOrDefault();
+
+            if (supplier == null)
+            {
+                return Json(new { found = false, message = "لا يوجد مورد بهذا الرقم. يرجى التأكد من الرقم والمحاولة مرة أخرى." });
+            }
+
+            return Json(new { found = true, supplierId = supplier.Id, supplierName = supplier.Name });
+        }
+
+        /// <summary>
         /// عرض تفاصيل المورد والطلبات المرتبطة به
         /// Displays supplier details and associated request statistics
         /// </summary>
