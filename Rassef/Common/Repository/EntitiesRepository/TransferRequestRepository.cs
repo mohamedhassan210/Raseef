@@ -1,4 +1,4 @@
-
+﻿
 
 namespace Rassef.Common.Repository.EntitiesRepository
 {
@@ -19,6 +19,7 @@ namespace Rassef.Common.Repository.EntitiesRepository
                 .Include(x => x.PermitType)
                 .Include(x => x.RequestStatus)
                 .Include(x => x.CreatedBy)
+                .Include(x => x.Caller)
                 .Include(x => x.QueueTickets)
                     .ThenInclude(q => q.TicketStatus)
                 .Include(x => x.QueueTickets)

@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "ArZViZMmJqizRPWBDipV6/AW1LIVx/b8shuuUC2XzVg=",
+  "Hash": "+Ig260z1RBcTscV02hGySVc0fSRuwo96E/ThnHy9xpU=",
   "Source": "Rassef",
   "BasePath": "_content/Rassef",
   "Mode": "Default",
@@ -1291,8 +1291,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "mo7q4j9j33",
-      "Integrity": "ZqnooTwILPJLbm76JhrJWAmdA2m8Jwh2tB/R46nc4GY=",
+      "Fingerprint": "gideuowctb",
+      "Integrity": "GIYPQpTnAC7FQ1egSlXmqNarcipGMcQbZfFMFCjfZ1c=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\addCar.js"
@@ -1781,6 +1781,27 @@
       "OriginalItemSpec": "wwwroot\\js\\receipt.js"
     },
     {
+      "Identity": "X:\\Repos\\Rassef\\wwwroot\\js\\requestsExport.js",
+      "SourceId": "Rassef",
+      "SourceType": "Discovered",
+      "ContentRoot": "X:\\Repos\\Rassef\\wwwroot\\",
+      "BasePath": "_content/Rassef",
+      "RelativePath": "js/requestsExport#[.{fingerprint}]?.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "4w48fmylij",
+      "Integrity": "PE52xQp5KfeaT/7hn8W9UBRKV7JltSMRr78cOjvcyME=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\requestsExport.js"
+    },
+    {
       "Identity": "X:\\Repos\\Rassef\\wwwroot\\js\\sidebarToggle.js",
       "SourceId": "Rassef",
       "SourceType": "Discovered",
@@ -1842,6 +1863,27 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\suppliers.js"
+    },
+    {
+      "Identity": "X:\\Repos\\Rassef\\wwwroot\\js\\supplyOrder.js",
+      "SourceId": "Rassef",
+      "SourceType": "Discovered",
+      "ContentRoot": "X:\\Repos\\Rassef\\wwwroot\\",
+      "BasePath": "_content/Rassef",
+      "RelativePath": "js/supplyOrder#[.{fingerprint}]?.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "mpero4uue2",
+      "Integrity": "xnQlINvbvVKx5iS13Wcm7RaTa3fdHkXlUfRpTII8u/U=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\supplyOrder.js"
     },
     {
       "Identity": "X:\\Repos\\Rassef\\wwwroot\\js\\viewRole.js",
@@ -7820,6 +7862,51 @@
       ]
     },
     {
+      "Route": "js/addCar.gideuowctb.js",
+      "AssetFile": "X:\\Repos\\Rassef\\wwwroot\\js\\addCar.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "44505"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"GIYPQpTnAC7FQ1egSlXmqNarcipGMcQbZfFMFCjfZ1c=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 28 Sep 2026 08:16:48 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "gideuowctb"
+        },
+        {
+          "Name": "label",
+          "Value": "js/addCar.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-GIYPQpTnAC7FQ1egSlXmqNarcipGMcQbZfFMFCjfZ1c="
+        }
+      ]
+    },
+    {
       "Route": "js/addCar.js",
       "AssetFile": "X:\\Repos\\Rassef\\wwwroot\\js\\addCar.js",
       "Selectors": [],
@@ -7830,7 +7917,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "35456"
+          "Value": "44505"
         },
         {
           "Name": "Content-Type",
@@ -7838,11 +7925,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"ZqnooTwILPJLbm76JhrJWAmdA2m8Jwh2tB/R46nc4GY=\""
+          "Value": "\"GIYPQpTnAC7FQ1egSlXmqNarcipGMcQbZfFMFCjfZ1c=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 21 Sep 2026 04:32:55 GMT"
+          "Value": "Mon, 28 Sep 2026 08:16:48 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -7852,52 +7939,7 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-ZqnooTwILPJLbm76JhrJWAmdA2m8Jwh2tB/R46nc4GY="
-        }
-      ]
-    },
-    {
-      "Route": "js/addCar.mo7q4j9j33.js",
-      "AssetFile": "X:\\Repos\\Rassef\\wwwroot\\js\\addCar.js",
-      "Selectors": [],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "35456"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "text/javascript"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"ZqnooTwILPJLbm76JhrJWAmdA2m8Jwh2tB/R46nc4GY=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Mon, 21 Sep 2026 04:32:55 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "max-age=31536000, immutable"
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "fingerprint",
-          "Value": "mo7q4j9j33"
-        },
-        {
-          "Name": "label",
-          "Value": "js/addCar.js"
-        },
-        {
-          "Name": "integrity",
-          "Value": "sha256-ZqnooTwILPJLbm76JhrJWAmdA2m8Jwh2tB/R46nc4GY="
+          "Value": "sha256-GIYPQpTnAC7FQ1egSlXmqNarcipGMcQbZfFMFCjfZ1c="
         }
       ]
     },
@@ -9788,6 +9830,88 @@
       ]
     },
     {
+      "Route": "js/requestsExport.4w48fmylij.js",
+      "AssetFile": "X:\\Repos\\Rassef\\wwwroot\\js\\requestsExport.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "4540"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"PE52xQp5KfeaT/7hn8W9UBRKV7JltSMRr78cOjvcyME=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 28 Sep 2026 08:38:55 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "4w48fmylij"
+        },
+        {
+          "Name": "label",
+          "Value": "js/requestsExport.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-PE52xQp5KfeaT/7hn8W9UBRKV7JltSMRr78cOjvcyME="
+        }
+      ]
+    },
+    {
+      "Route": "js/requestsExport.js",
+      "AssetFile": "X:\\Repos\\Rassef\\wwwroot\\js\\requestsExport.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "4540"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"PE52xQp5KfeaT/7hn8W9UBRKV7JltSMRr78cOjvcyME=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 28 Sep 2026 08:38:55 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-PE52xQp5KfeaT/7hn8W9UBRKV7JltSMRr78cOjvcyME="
+        }
+      ]
+    },
+    {
       "Route": "js/sidebarToggle.js",
       "AssetFile": "X:\\Repos\\Rassef\\wwwroot\\js\\sidebarToggle.js",
       "Selectors": [],
@@ -10030,6 +10154,88 @@
         {
           "Name": "integrity",
           "Value": "sha256-4NaSZ4nscJSFfBR4rFaU90y436+dIrmzaqIixOnoTjY="
+        }
+      ]
+    },
+    {
+      "Route": "js/supplyOrder.js",
+      "AssetFile": "X:\\Repos\\Rassef\\wwwroot\\js\\supplyOrder.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3674"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"xnQlINvbvVKx5iS13Wcm7RaTa3fdHkXlUfRpTII8u/U=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 29 Sep 2026 09:44:02 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-xnQlINvbvVKx5iS13Wcm7RaTa3fdHkXlUfRpTII8u/U="
+        }
+      ]
+    },
+    {
+      "Route": "js/supplyOrder.mpero4uue2.js",
+      "AssetFile": "X:\\Repos\\Rassef\\wwwroot\\js\\supplyOrder.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3674"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"xnQlINvbvVKx5iS13Wcm7RaTa3fdHkXlUfRpTII8u/U=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 29 Sep 2026 09:44:02 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "mpero4uue2"
+        },
+        {
+          "Name": "label",
+          "Value": "js/supplyOrder.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-xnQlINvbvVKx5iS13Wcm7RaTa3fdHkXlUfRpTII8u/U="
         }
       ]
     },
@@ -14812,7 +15018,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sun, 20 Sep 2026 07:19:30 GMT"
+          "Value": "Tue, 29 Sep 2026 09:59:51 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -14849,7 +15055,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sun, 20 Sep 2026 07:19:30 GMT"
+          "Value": "Tue, 29 Sep 2026 09:59:51 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -14886,7 +15092,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sun, 20 Sep 2026 07:19:30 GMT"
+          "Value": "Tue, 29 Sep 2026 09:59:51 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -14931,7 +15137,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sun, 20 Sep 2026 07:19:30 GMT"
+          "Value": "Tue, 29 Sep 2026 09:59:51 GMT"
         },
         {
           "Name": "Cache-Control",

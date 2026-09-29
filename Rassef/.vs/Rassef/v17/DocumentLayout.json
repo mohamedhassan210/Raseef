@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "X:\\Repos\\Rassef\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|x:\\repos\\rassef\\views\\truck\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:views\\truck\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|x:\\repos\\rassef\\views\\administration\\transferrequests.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:views\\administration\\transferrequests.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|x:\\repos\\rassef\\models\\entities\\transferrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:models\\entities\\transferrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -47,6 +55,32 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "X:\\Repos\\Rassef\\Views\\Truck\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\Truck\\Index.cshtml",
+              "ToolTip": "X:\\Repos\\Rassef\\Views\\Truck\\Index.cshtml*",
+              "RelativeToolTip": "Views\\Truck\\Index.cshtml*",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-09-29T10:09:28.693Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "TransferRequests.cshtml",
+              "DocumentMoniker": "X:\\Repos\\Rassef\\Views\\Administration\\TransferRequests.cshtml",
+              "RelativeDocumentMoniker": "Views\\Administration\\TransferRequests.cshtml",
+              "ToolTip": "X:\\Repos\\Rassef\\Views\\Administration\\TransferRequests.cshtml",
+              "RelativeToolTip": "Views\\Administration\\TransferRequests.cshtml",
+              "ViewState": "AgIAAEkCAAAAAAAAAAAawG4CAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-09-29T09:51:34.161Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "TransferRequest.cs",
               "DocumentMoniker": "X:\\Repos\\Rassef\\Models\\Entities\\TransferRequest.cs",
               "RelativeDocumentMoniker": "Models\\Entities\\TransferRequest.cs",
@@ -54,12 +88,11 @@
               "RelativeToolTip": "Models\\Entities\\TransferRequest.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-22T11:26:24.857Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-22T11:26:24.857Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "SupplierRequest.cs",
               "DocumentMoniker": "X:\\Repos\\Rassef\\Models\\Entities\\SupplierRequest.cs",
               "RelativeDocumentMoniker": "Models\\Entities\\SupplierRequest.cs",
@@ -71,7 +104,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "Recript.cshtml",
               "DocumentMoniker": "X:\\Repos\\Rassef\\Views\\Driver\\Recript.cshtml",
               "RelativeDocumentMoniker": "Views\\Driver\\Recript.cshtml",
@@ -83,7 +116,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "DriverController.cs",
               "DocumentMoniker": "X:\\Repos\\Rassef\\Controllers\\DriverController.cs",
               "RelativeDocumentMoniker": "Controllers\\DriverController.cs",
@@ -95,7 +128,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "TicketEngineService.cs",
               "DocumentMoniker": "X:\\Repos\\Rassef\\Common\\Services\\TicketEngineService.cs",
               "RelativeDocumentMoniker": "Common\\Services\\TicketEngineService.cs",
@@ -107,7 +140,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 7,
               "Title": "appsettings.Development.json",
               "DocumentMoniker": "X:\\Repos\\Rassef\\appsettings.Development.json",
               "RelativeDocumentMoniker": "appsettings.Development.json",

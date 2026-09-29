@@ -19,6 +19,16 @@ namespace Rassef.ViewModels.Truck
 
         public int? DepartmentId { get; set; }
         public int? DockId { get; set; }
+
+        // NEW — the department/dock modal now also collects these (previously the
+        // controller auto-generated AvizNumber/PermitNumber and picked "any" permit
+        // type); TransferRequest already has all three fields, so they're now real
+        // user input instead of guessed defaults.
+        public string? AvizNumber { get; set; }
+        public string? PermitNumber { get; set; }
+        public int? PermitTypeId { get; set; }
+        public IEnumerable<SelectListItem> PermitTypes { get; set; } = new List<SelectListItem>();
+
         public IEnumerable<Rassef.ViewModels.Dock.DockOptionVM> AllDocks { get; set; }
             = new List<Rassef.ViewModels.Dock.DockOptionVM>();
 

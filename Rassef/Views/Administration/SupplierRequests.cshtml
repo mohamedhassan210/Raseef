@@ -329,6 +329,7 @@
                         string statusText = isCompleted ? "تم" : (isInProgress ? "جاري" : "إنتظار");
 
                         <div class="queue-row-card"
+                             data-id="@item.Id"
                              data-ticket="@item.TicketNumber"
                              data-driver="@item.DriverName"
                              data-truck="@item.TruckPlateNumber"
@@ -430,6 +431,8 @@
             </div>
         </main>
     </div>
+
+    <script src="~/js/requestsExport.js" asp-append-version="true"></script>
 
     <!-- CLIENT FILTER & SEARCH SCRIPT -->
     <script>
@@ -589,31 +592,30 @@
             // Initial run so the default "تحرير" filter applies on load.
             filterRows();
 
-            // Export to CSV
+            // Export to Excel (server-side) — بيبعت الطلبات الظاهرة + الفلاتر الحالية
             const btnExport = document.getElementById("btnExport");
-            if (btnExport) {
-                btnExport.addEventListener("click", () => {
-                    let csv = "\uFEFFرقم الدور,الحالة,السائق,الشاحنة,الرصيف,القسم,الشركة,الموظف,الوقت والتاريخ\n";
-                    cards.forEach(card => {
-                        if (card.style.display !== "none") {
-                            const t = card.dataset.ticket;
-                            const st = card.dataset.statusText || "";
-                            const dr = card.dataset.driver;
-                            const tr = card.dataset.truck;
-                            const dk = card.dataset.dock;
-                            const dp = card.dataset.department;
-                            const sp = card.dataset.supplier;
-                            const emp = card.dataset.employee;
-                            const dt = card.dataset.date;
-                            csv += `"${t}","${st}","${dr}","${tr}","${dk}","${dp}","${sp}","${emp}","${dt}"\n`;
-                        }
-                    });
-                    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `طلبات_التوريد_${new Date().toISOString().slice(0,10)}.csv`;
-                    a.click();
+            if (btnExport && window.RequestsExport) {
+                window.RequestsExport.init({
+                    button: btnExport,
+                    endpoint: '@Url.Action("Supplier", "RequestsExport")',
+                    filePrefix: 'طلبات_التوريد',
+                    getState: () => {
+                        const activeFilter = document.querySelector("#dateFilterGroup .btn-filter-pill.active")?.dataset.filter || "all";
+                        const dateState = window.RequestsExport.buildDateState(
+                            activeFilter,
+                            customDateFrom ? customDateFrom.value : "",
+                            customDateTo ? customDateTo.value : "");
+                        return {
+                            ids: Array.from(cards)
+                                .filter(c => c.style.display !== "none")
+                                .map(c => Number(c.dataset.id)),
+                            mode: dateState.mode,
+                            from: dateState.from,
+                            to: dateState.to,
+                            department: selectedDepartment,
+                            search: (searchInput.value || "").trim()
+                        };
+                    }
                 });
             }
         });

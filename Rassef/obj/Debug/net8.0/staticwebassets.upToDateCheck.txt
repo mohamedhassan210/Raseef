@@ -80,9 +80,11 @@ wwwroot\js\intro.js
 wwwroot\js\liveStatus.js
 wwwroot\js\main.js
 wwwroot\js\receipt.js
+wwwroot\js\requestsExport.js
 wwwroot\js\sidebarToggle.js
 wwwroot\js\site.js
 wwwroot\js\suppliers.js
+wwwroot\js\supplyOrder.js
 wwwroot\js\viewRole.js
 wwwroot\lib\bootstrap\dist\css\bootstrap.css
 wwwroot\lib\bootstrap\dist\css\bootstrap.css.map
