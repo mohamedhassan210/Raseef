@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 
 namespace Rassef.Common.Services
 {
@@ -16,6 +16,11 @@ namespace Rassef.Common.Services
         private readonly ITransferRequestRepository _transferRequestRepository;
         private readonly Rassef.Common.Interfaces.IDockAvailabilityService _dockAvailabilityService;
         private readonly Microsoft.AspNetCore.SignalR.IHubContext<Rassef.Hubs.QueueHub> _hubContext;
+        // NEW — عشان نقدر نلف العمليات اللي بتعمل أكتر من SaveChangesAsync في عملية
+        // منطقية واحدة (زي قفل الرصيف + تحديث حالة التذكرة) جوه Transaction واحدة
+        // ذرية، بدل ما يحصل Save جزئي لو السيرفر وقع أو الاتصال اتقطع في النص.
+        private readonly ApplicationDbContext _context;
+        private readonly Microsoft.Extensions.Logging.ILogger<TicketEngineService> _logger;
 
         // Concurrency Guard: منع أي Race Condition أثناء استدعاء الأدوار أو توليد التذاكر المتزامنة
         private static readonly System.Threading.SemaphoreSlim _concurrencyLock = new System.Threading.SemaphoreSlim(1, 1);
@@ -32,7 +37,9 @@ namespace Rassef.Common.Services
             ISupplierRequestRepository supplierRequestRepository,
             ITransferRequestRepository transferRequestRepository,
             Rassef.Common.Interfaces.IDockAvailabilityService dockAvailabilityService,
-            Microsoft.AspNetCore.SignalR.IHubContext<Rassef.Hubs.QueueHub> hubContext)
+            Microsoft.AspNetCore.SignalR.IHubContext<Rassef.Hubs.QueueHub> hubContext,
+            ApplicationDbContext context,
+            Microsoft.Extensions.Logging.ILogger<TicketEngineService> logger)
         {
             _departmentRepository = departmentRepository;
             _ticketRepository = ticketRepository;
@@ -46,6 +53,8 @@ namespace Rassef.Common.Services
             _transferRequestRepository = transferRequestRepository;
             _dockAvailabilityService = dockAvailabilityService;
             _hubContext = hubContext;
+            _context = context;
+            _logger = logger;
         }
 
         /// <summary>
@@ -55,35 +64,41 @@ namespace Rassef.Common.Services
         /// </summary>
         private async Task RecordCallerAsync(QueueTicket ticket, int callerUserId)
         {
-            if (ticket.SupplierRequestId.HasValue)
+            // CHANGED — تسجيل موظف الاستدعاء بيانات تدقيق (Audit) مش جزء أساسي من
+            // عملية الاستدعاء. قبل كده أي فشل هنا (عمود ناقص، FK، عطل اتصال) كان بيوقف
+            // الاستدعاء كله ويرجّع خطأ حتى لو حالة الدور اتحفظت فعلاً. دلوقتي بنسجل
+            // الفشل في الـ logs ونكمل.
+            try
             {
-                var sr = await _supplierRequestRepository.GetByIdAsync(ticket.SupplierRequestId.Value);
-                if (sr != null)
+                if (ticket.SupplierRequestId.HasValue)
                 {
-                    sr.CallerId = callerUserId;
-                    sr.MarkAsUpdated();
-                    _supplierRequestRepository.Update(sr);
-                    await _supplierRequestRepository.SaveChangesAsync();
+                    var sr = await _supplierRequestRepository.GetByIdAsync(ticket.SupplierRequestId.Value);
+                    if (sr != null)
+                    {
+                        sr.CallerId = callerUserId;
+                        sr.MarkAsUpdated();
+                        _supplierRequestRepository.Update(sr);
+                        await _supplierRequestRepository.SaveChangesAsync();
+                    }
+                }
+                else if (ticket.TransferRequestId.HasValue)
+                {
+                    var tr = await _transferRequestRepository.GetByIdAsync(ticket.TransferRequestId.Value);
+                    if (tr != null)
+                    {
+                        tr.CallerId = callerUserId;
+                        tr.MarkAsUpdated();
+                        _transferRequestRepository.Update(tr);
+                        await _transferRequestRepository.SaveChangesAsync();
+                    }
                 }
             }
-            else if (ticket.TransferRequestId.HasValue)
+            catch (Exception ex)
             {
-                var tr = await _transferRequestRepository.GetByIdAsync(ticket.TransferRequestId.Value);
-                if (tr != null)
-                {
-                    tr.CallerId = callerUserId;
-                    tr.MarkAsUpdated();
-                    _transferRequestRepository.Update(tr);
-                    await _transferRequestRepository.SaveChangesAsync();
-                }
+                _logger.LogWarning(ex, "تعذر تسجيل موظف الاستدعاء {CallerId} للتذكرة {TicketId}.", callerUserId, ticket.Id);
             }
         }
 
-        /// <summary>
-        /// بيبعت إشعار لكل الشاشات وصفحات متابعة الدور المتصلة إن حاجة في الطابور
-        /// اتغيّرت، عشان كل واحدة تروح تجيب حالتها المحدّثة (بدل ما السيرفر يحسب
-        /// ويبعت بيانات كل تذكرة لوحدها).
-        /// </summary>
         private Task NotifyQueueUpdatedAsync()
             => _hubContext.Clients.All.SendAsync("QueueUpdated");
 
@@ -388,6 +403,32 @@ namespace Rassef.Common.Services
             await _concurrencyLock.WaitAsync();
             try
             {
+                return await CallNextTicketCoreAsync(departmentId, userId, warehouseId);
+            }
+            catch (Exception ex)
+            {
+                // NEW — نفس المبدأ المطبّق في UpdateTicketStatusAsync: الميثود دي
+                // كمان بتعمل أكتر من SaveChangesAsync منفصلة (قفل الدور الحالي، قفل
+                // رصيفه، فتح الدور التالي)، فمعرّضة لنفس مخاطر العطل الجزئي تحت أي
+                // اتصال قاعدة بيانات غير مستقر. سجّلنا الخطأ هنا بدل ما يختفي بصمت؛
+                // لفّها في Transaction واحدة زي الميثود التانية ممكن يتعمل كخطوة
+                // تانية لو الموضوع اتأكد إنه بيتكرر هنا كمان.
+                _logger.LogError(ex, "فشل استدعاء الدور التالي (القسم {DepartmentId}).", departmentId);
+                return new TicketStatusUpdateResult
+                {
+                    Success = false,
+                    Message = "تعذر إتمام العملية بسبب خطأ في قاعدة البيانات. [تفاصيل فنية: " + ex.GetBaseException().Message + "]"
+                };
+            }
+            finally
+            {
+                _concurrencyLock.Release();
+            }
+        }
+
+        private async Task<TicketStatusUpdateResult> CallNextTicketCoreAsync(int? departmentId, int userId, int? warehouseId = null)
+        {
+            {
                 var allStatuses = await _ticketStatusRepository.GetAllAsync();
                 var inProgressStatus = allStatuses.FirstOrDefault(s =>
                 {
@@ -476,44 +517,53 @@ namespace Rassef.Common.Services
                     })
                     .ToList();
 
-                foreach (var cur in currentInProgressTickets)
-                {
-                    var dbCur = await _ticketRepository.GetByIdAsync(cur.Id);
-                    if (dbCur != null)
-                    {
-                        dbCur.TicketStatusId = completedStatus?.Id ?? 3;
-                        dbCur.ExitTime = DateTimeOffset.Now;
-                        dbCur.MarkAsUpdated();
-                        _ticketRepository.Update(dbCur);
-                    }
-                }
+                // CHANGED — قفل الدور الحالي + تفريغ رصيفه في Transaction واحدة ذرية.
+                // قبل كده كانوا SaveChanges منفصلين: لو حصل عطل بينهم الدور يتقفل والرصيف
+                // يفضل مشغول (وده سبب "الرصيف مش بيرجع فاضي"). كمان شلنا
+                // finishedTicketIds.Contains(...) من جوه الـ SQL (OPENJSON مش على 2014)
+                // وبنفلتر التعيينات النشطة في الذاكرة — عددها صغير جداً.
                 if (currentInProgressTickets.Any())
                 {
-                    await _ticketRepository.SaveChangesAsync();
-                }
-
-                // Bug fix — كان بيقفل الدور القديم بس مش بيفرّغ الرصيف
-                // المرتبط بيه، فالسعة (Occupancy) كانت بتفضل زي ما هي حتى
-                // بعد ما الشاحنة تخرج فعلياً. دلوقتي بنقفل أي DockAssignment
-                // لسه نشط لكل دور بيتقفل هنا (FinishedAt = دلوقتي).
-                if (currentInProgressTickets.Any())
-                {
-                    var finishedTicketIds = currentInProgressTickets.Select(t => t.Id).ToList();
-                    var now = DateTimeOffset.Now;
-                    var openAssignments = await _dockAssignmentRepository.GetAllAsync(
-                        query => query.Where(a => !a.IsDeleted && finishedTicketIds.Contains(a.TicketId) && a.FinishedAt > now));
-
-                    foreach (var assignment in openAssignments)
+                    var finishedTicketIds = currentInProgressTickets.Select(t => t.Id).ToHashSet();
+                    var closeStrategy = _context.Database.CreateExecutionStrategy();
+                    await closeStrategy.ExecuteAsync(async () =>
                     {
-                        assignment.FinishedAt = now;
-                        assignment.MarkAsUpdated();
-                        _dockAssignmentRepository.Update(assignment);
-                    }
+                        await using var closeTx = await _context.Database.BeginTransactionAsync();
+                        try
+                        {
+                            var closeNow = DateTimeOffset.Now;
 
-                    if (openAssignments.Any())
-                    {
-                        await _dockAssignmentRepository.SaveChangesAsync();
-                    }
+                            foreach (var cur in currentInProgressTickets)
+                            {
+                                var dbCur = await _ticketRepository.GetByIdAsync(cur.Id);
+                                if (dbCur != null)
+                                {
+                                    dbCur.TicketStatusId = completedStatus?.Id ?? 3;
+                                    dbCur.ExitTime = closeNow;
+                                    dbCur.MarkAsUpdated();
+                                    _ticketRepository.Update(dbCur);
+                                }
+                            }
+
+                            var activeAssignments = await _dockAssignmentRepository.GetAllAsync(
+                                query => query.Where(a => !a.IsDeleted && a.FinishedAt > closeNow));
+
+                            foreach (var assignment in activeAssignments.Where(a => finishedTicketIds.Contains(a.TicketId)))
+                            {
+                                assignment.FinishedAt = closeNow;
+                                assignment.MarkAsUpdated();
+                                _dockAssignmentRepository.Update(assignment);
+                            }
+
+                            await _ticketRepository.SaveChangesAsync();
+                            await closeTx.CommitAsync();
+                        }
+                        catch
+                        {
+                            await closeTx.RollbackAsync();
+                            throw;
+                        }
+                    });
                 }
 
                 // 2. فحص استدعاء الدور التالي من قائمة الانتظار
@@ -576,16 +626,39 @@ namespace Rassef.Common.Services
                     };
                 }
             }
-            finally
-            {
-                _concurrencyLock.Release();
-            }
         }
 
         public async Task<TicketStatusUpdateResult> UpdateTicketStatusAsync(int ticketId, string targetStatusName, int userId)
         {
             await _concurrencyLock.WaitAsync();
             try
+            {
+                return await UpdateTicketStatusCoreAsync(ticketId, targetStatusName, userId);
+            }
+            catch (Exception ex)
+            {
+                // NEW — قبل كده أي استثناء هنا (مثلاً timeout أو قطع اتصال مع قاعدة
+                // البيانات) كان بيطلع من الميثود دي غير ملتقط، يوصل لـ CheckoutTicket
+                // في الكنترولر من غير try/catch هناك كمان، فالـ Response اللي بيوصل
+                // للمتصفح مش JSON سليم، والـ JS بيفشل وهو بيعمل res.json() ويطلع
+                // رسالة عامة "حدث خطأ في الاتصال بالخادم" من غير أي تفاصيل. دلوقتي
+                // بيتسجل الخطأ الحقيقي في الـ logs (بالتاريخ ورقم التذكرة) وبيرجع
+                // رسالة واضحة للمستخدم بدل ما يختفي الطلب بصمت.
+                _logger.LogError(ex, "فشل تحديث حالة التذكرة {TicketId} إلى {TargetStatus}.", ticketId, targetStatusName);
+                return new TicketStatusUpdateResult
+                {
+                    Success = false,
+                    Message = "تعذر إتمام العملية بسبب خطأ في قاعدة البيانات. [تفاصيل فنية: " + ex.GetBaseException().Message + "]"
+                };
+            }
+            finally
+            {
+                _concurrencyLock.Release();
+            }
+        }
+
+        private async Task<TicketStatusUpdateResult> UpdateTicketStatusCoreAsync(int ticketId, string targetStatusName, int userId)
+        {
             {
                 var ticketToUpdate = await _ticketRepository.GetByIdAsync(ticketId);
                 if (ticketToUpdate == null)
@@ -613,37 +686,63 @@ namespace Rassef.Common.Services
                 }
 
                 var norm = targetStatusName.Replace("إ", "ا").Trim();
-                if (norm.Contains("مكتمل") || norm.Contains("تم") || norm.Contains("خروج") || norm.Contains("منتهي"))
+
+                // CHANGED — الكود ده كان بيعمل SaveChangesAsync مرتين منفصلتين: مرة
+                // لقفل تعيين الرصيف (DockAssignment) ومرة لحفظ حالة التذكرة. لو حصل
+                // أي عطل أو انقطاع في الاتصال بين الاتنين (شائع جداً لما السيرفر
+                // بيتكلم مع SQL Server قديم زي 2014 من عميل/درايفر أحدث)، كانت
+                // النتيجة إما: الرصيف اتقفل والتذكرة فضلت "جاري"، أو العكس — حالة
+                // غير متسقة في قاعدة البيانات مفيش منها رجوع إلا يدوي. دلوقتي الاتنين
+                // بقوا جوه Transaction واحدة ذرية: يا يتسجلوا مع بعض، يا محصلش حاجة
+                // خالص ويرجع خطأ واضح يتسجل في الـ logs. استخدمنا CreateExecutionStrategy
+                // لأن الـ DbContext مضبوط على EnableRetryOnFailure، والمكتبة مش بتسمح
+                // بـ BeginTransactionAsync يدوي من غيرها.
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(async () =>
                 {
-                    ticketToUpdate.ExitTime = DateTimeOffset.Now;
-
-                    // Bug fix — نفس إصلاح CallNextTicketAsync: لازم نفرّغ
-                    // الرصيف المرتبط بالتذكرة لما هي كمان تتقفل من هنا
-                    // (زي مسار تسجيل الخروج من ExitGate)
-                    var now = DateTimeOffset.Now;
-                    var openAssignments = await _dockAssignmentRepository.GetAllAsync(
-                        query => query.Where(a => !a.IsDeleted && a.TicketId == ticketId && a.FinishedAt > now));
-
-                    foreach (var assignment in openAssignments)
+                    await using var transaction = await _context.Database.BeginTransactionAsync();
+                    try
                     {
-                        assignment.FinishedAt = now;
-                        assignment.MarkAsUpdated();
-                        _dockAssignmentRepository.Update(assignment);
-                    }
+                        if (norm.Contains("مكتمل") || norm.Contains("تم") || norm.Contains("خروج") || norm.Contains("منتهي"))
+                        {
+                            ticketToUpdate.ExitTime = DateTimeOffset.Now;
 
-                    if (openAssignments.Any())
+                            // Bug fix — نفس إصلاح CallNextTicketAsync: لازم نفرّغ
+                            // الرصيف المرتبط بالتذكرة لما هي كمان تتقفل من هنا
+                            // (زي مسار تسجيل الخروج من ExitGate)
+                            var now = DateTimeOffset.Now;
+                            var openAssignments = await _dockAssignmentRepository.GetAllAsync(
+                                query => query.Where(a => !a.IsDeleted && a.TicketId == ticketId && a.FinishedAt > now));
+
+                            foreach (var assignment in openAssignments)
+                            {
+                                assignment.FinishedAt = now;
+                                assignment.MarkAsUpdated();
+                                _dockAssignmentRepository.Update(assignment);
+                            }
+
+                            if (openAssignments.Any())
+                            {
+                                await _dockAssignmentRepository.SaveChangesAsync();
+                            }
+                        }
+                        else if (norm.Contains("جاري") || norm.Contains("تنفيذ") || norm.Contains("تشغيل"))
+                        {
+                            ticketToUpdate.EntryTime = DateTimeOffset.Now;
+                        }
+
+                        ticketToUpdate.MarkAsUpdated();
+                        _ticketRepository.Update(ticketToUpdate);
+                        await _ticketRepository.SaveChangesAsync();
+
+                        await transaction.CommitAsync();
+                    }
+                    catch
                     {
-                        await _dockAssignmentRepository.SaveChangesAsync();
+                        await transaction.RollbackAsync();
+                        throw;
                     }
-                }
-                else if (norm.Contains("جاري") || norm.Contains("تنفيذ") || norm.Contains("تشغيل"))
-                {
-                    ticketToUpdate.EntryTime = DateTimeOffset.Now;
-                }
-
-                ticketToUpdate.MarkAsUpdated();
-                _ticketRepository.Update(ticketToUpdate);
-                await _ticketRepository.SaveChangesAsync();
+                });
 
                 var tickets = await _ticketRepository.GetAllAsync(query => query
                     .Where(t => t.Id == ticketId)
@@ -684,10 +783,6 @@ namespace Rassef.Common.Services
                     DepartmentName = ticketDetails?.Department?.Name ?? "غير محدد",
                     DockName = dockAssignment?.Dock?.DockName ?? "A1"
                 };
-            }
-            finally
-            {
-                _concurrencyLock.Release();
             }
         }
     }

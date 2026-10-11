@@ -12,6 +12,12 @@ namespace Rassef.Dependencyinjection
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), sqlOptions =>
                 {
+                    // FIX — SQL Server 2014 (compat level 120). EF Core 8 بيترجم أي
+                    // list.Contains(x.Id) جوه Query لـ OPENJSON، والـ OPENJSON مش موجودة
+                    // قبل SQL Server 2016 (compat 130) فبتفشل Query بخطأ في قاعدة البيانات.
+                    // الخيار ده بيخلي EF يرجع للترجمة القديمة (IN (...)) المتوافقة مع 2014.
+                    sqlOptions.UseCompatibilityLevel(120);
+
                     sqlOptions.EnableRetryOnFailure(
                         maxRetryCount: 5,
                         maxRetryDelay: TimeSpan.FromSeconds(30),
@@ -62,7 +68,6 @@ namespace Rassef.Dependencyinjection
             services.AddScoped<IPermitTypeRepository, PermitTypeRepository>();
             services.AddScoped<IRequestStatusRepository, RequestStatusRepository>();
             services.AddScoped<ExcelExportService>();
-            services.AddScoped<RequestsExcelReportService>();
             services.AddScoped<IWarehouseRepository, WarehouseRepository>();
             services.AddScoped<IShiftRepository, ShiftRepository>();
             services.AddScoped<IQueueSettingsRepository, QueueSettingsRepository>();

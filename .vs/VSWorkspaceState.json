@@ -1,8 +1,10 @@
 {
   "ExpandedNodes": [
     "",
-    "\\Rassef"
+    "\\Rassef",
+    "\\Rassef\\Views",
+    "\\Rassef\\Views\\Truck"
   ],
-  "SelectedNode": "\\Rassef\\Rassef.sln",
+  "SelectedNode": "\\Rassef\\Views\\Truck\\Index.cshtml",
   "PreviewInSolutionExplorer": false
 }

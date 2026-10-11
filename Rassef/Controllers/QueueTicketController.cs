@@ -15,6 +15,7 @@ namespace Rassef.Controllers
         private readonly IRepository<Dock> _dockRepository;
         private readonly IUserRepository _userRepository;
         private readonly ITicketEngineService _ticketEngineService;
+        private readonly Microsoft.Extensions.Logging.ILogger<QueueTicketController> _logger; // NEW
 
         public QueueTicketController(
             IRepository<QueueSettings> queueSettingsRepository,
@@ -26,7 +27,8 @@ namespace Rassef.Controllers
             IRepository<SupplierRequest> supplierRequestRepository,
             IRepository<Dock> dockRepository,
             IUserRepository userRepository,
-            ITicketEngineService ticketEngineService)
+            ITicketEngineService ticketEngineService,
+            Microsoft.Extensions.Logging.ILogger<QueueTicketController> logger) // NEW
         {
             _ticketRepository = ticketRepository;
             _departmentRepository = departmentRepository;
@@ -38,6 +40,7 @@ namespace Rassef.Controllers
             _dockRepository = dockRepository;
             _userRepository = userRepository;
             _ticketEngineService = ticketEngineService;
+            _logger = logger; // NEW
         }
         /// <summary>
         /// صفحة قائمة الأدوار الحية (Gate Live Queue)
@@ -731,7 +734,26 @@ namespace Rassef.Controllers
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             int currentUserId = int.TryParse(userIdClaim, out var uId) ? uId : 1;
 
-            var updateResult = await _ticketEngineService.UpdateTicketStatusAsync(ticket.Id, "مكتمل", currentUserId);
+            // CHANGED — لو UpdateTicketStatusAsync رمى استثناء (مش حالة "فشل منطقي"
+            // عادية زي تذكرة مش موجودة، ده عطل حقيقي زي timeout في الاتصال
+            // بقاعدة البيانات)، كان بيوصل هنا من غير try/catch فيطلع الـ Response
+            // كصفحة خطأ HTML مش JSON. الـ JS في exitGate.js بيعمل await res.json()
+            // على طول، فده كان بيفشل برسالة عامة "حدث خطأ في الاتصال بالخادم" —
+            // وده بالظبط شكل العطل اللي ممكن يحصل لآخر تذكرة في سلسلة عمليات خروج
+            // سريعة لما الاتصال بقاعدة البيانات بطيء أو غير مستقر (زي الحالة مع
+            // سيرفر SQL أقدم من اللي الدرايفر بيستهدفه). دلوقتي بيترجع JSON واضح
+            // دايماً مهما حصل.
+            TicketStatusUpdateResult updateResult;
+            try
+            {
+                updateResult = await _ticketEngineService.UpdateTicketStatusAsync(ticket.Id, "مكتمل", currentUserId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "فشل تسجيل خروج التذكرة {TicketId} (كود البحث: {Query}).", ticket.Id, cleanQuery);
+                return Json(new { success = false, message = "تعذر تسجيل الخروج بسبب خطأ في قاعدة البيانات. [تفاصيل فنية: " + ex.GetBaseException().Message + "]" });
+            }
+
             if (!updateResult.Success)
             {
                 return Json(new { success = false, message = updateResult.Message });
