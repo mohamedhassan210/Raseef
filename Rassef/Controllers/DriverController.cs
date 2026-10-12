@@ -615,6 +615,10 @@ namespace Rassef.Controllers
             var depts = await GetScopedDepartmentsAsync();
             ViewBag.Departments = depts.Select(d => new { id = d.Id, name = d.Name }).ToList();
 
+            // NEW — أنواع الإذن لقائمة "نوع الإذن" في مودال اختيار القسم
+            var permitTypes = await _permitTypeRepository.GetAllAsync();
+            ViewBag.PermitTypes = permitTypes.Select(p => new { id = p.Id, name = p.Name }).ToList();
+
             var docks = await _dockAvailabilityService.GetAllDocksAsync();
             ViewBag.AllDocks = docks.Select(d => new
             {
@@ -682,8 +686,10 @@ namespace Rassef.Controllers
                 return View(create);
             }
 
+            // CHANGED — explicitly look up the INTERNAL driver type (Code == 1) instead
+            // of "first available", which could pick an external type (Code == 2).
             var allDriverTypes = await _driverTypeRepository.GetAllAsync();
-            var defaultDriverType = allDriverTypes.FirstOrDefault();
+            var defaultDriverType = allDriverTypes.FirstOrDefault(t => t.Code == 1) ?? allDriverTypes.FirstOrDefault();
             int driverTypeId;
 
             if (defaultDriverType == null)
@@ -717,8 +723,14 @@ namespace Rassef.Controllers
             await _driverRepository.AddAsync(driver);
             await _driverRepository.SaveChangesAsync();
 
-            // يمكنك التوجيه لصفحة الشاحنات مع إرجاع الـ truckId و supplierId إذا أردت متابعة الشاحنة
-            return RedirectToAction(nameof(Index), new { supplierId = create.SupplierId, id = create.TruckId });
+            // CHANGED — was RedirectToAction(Index, {supplierId...}) which is the SUPPLIER
+            // driver picker and bounced to Supplier/Index in the transfer flow. Now goes
+            // back to the transfer driver list for the same truck.
+            if (create.TruckId.HasValue && create.TruckId.Value > 0)
+            {
+                return RedirectToAction("TransferDrivers", "Driver", new { id = create.TruckId.Value });
+            }
+            return RedirectToAction("MainTraDrivers", "Truck");
         }
 
         [HttpPost]

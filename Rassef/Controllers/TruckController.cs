@@ -433,10 +433,9 @@
             return View(model);
         }
 
-        // NEW — backs the driver search box on AddTraDriver (the page was missing one
-        // entirely). Mirrors SupplierRequestController.SearchDrivers exactly, except it
-        // filters to INTERNAL drivers (DeiverType.Code == 1) instead of external
-        // (Code == 2), matching the rest of the transfer flow.
+        // NEW — backs the driver search box on AddTraDriver. Mirrors
+        // SupplierRequestController.SearchDrivers, except it filters to INTERNAL
+        // drivers (DeiverType.Code == 1) instead of external (Code == 2).
         [HttpGet]
         public async Task<IActionResult> SearchDrivers(string? term)
         {
@@ -478,14 +477,8 @@
             return Json(result);
         }
 
-        // NEW — factored out of the several `return View(create)` branches below. Each
-        // of those previously only reset create.Suppliers/ViewBag.Suppliers/
-        // ViewBag.SupplierName before redisplaying the form, leaving create.Drivers,
-        // create.AllDocks and ViewBag.Departments empty — so a validation error (e.g.
-        // "dock already full") would redisplay the page with an empty driver dropdown,
-        // no docks and no departments at all. This repopulates everything the GET
-        // action populates, so a redisplay after a validation error looks the same as
-        // a fresh load.
+        // NEW — repopulates everything the GET populates, so a redisplay after a
+        // validation error looks the same as a fresh load.
         private async Task RepopulateAddTraDriverFormAsync(Rassef.ViewModels.Truck.AddTraTruckVM create)
         {
             var (activeDriverIds, _) = await GetActiveDriverAndTruckIdsAsync();
@@ -563,11 +556,9 @@
             }
             else
             {
-                // CHANGED — same class of bug already fixed on the supplier side: was
-                // `TruckTypeId = 1`, a hardcoded FK assuming the internal truck type's
-                // database Id happens to be 1. Now looked up by TruckTypeCode == 1
-                // (فلو التحويل بيعتبر أي شاحنة جديدة "داخلية" بشكل افتراضي)، مع سقوط آمن
-                // على أول نوع موجود لو مفيش نوع بكود 1 أصلاً.
+                // CHANGED — was `TruckTypeId = 1`, a hardcoded FK assuming the internal
+                // truck type's database Id happens to be 1. Now looked up by
+                // TruckTypeCode == 1, falling back to the first existing type.
                 var allTruckTypesForNewTruck = await _truckTypeRepository.GetAllAsync();
                 var internalTruckType = allTruckTypesForNewTruck.FirstOrDefault(t => t.TruckTypeCode == 1)
                     ?? allTruckTypesForNewTruck.FirstOrDefault();
@@ -621,10 +612,6 @@
                 }
             }
 
-            // CHANGED — same class of bug as the truck/permit/status fallbacks above: was
-            // "any driver at all, or hardcode Id == 1" if nothing else was picked. Now
-            // scoped to internal drivers (Code == 1) like the rest of this flow, and
-            // surfaces a validation error instead of silently guessing driver 1.
             int finalDriverId = driver?.Id ?? (create.DriverId.HasValue && create.DriverId.Value > 0 ? create.DriverId.Value : 0);
             if (finalDriverId <= 0)
             {
@@ -658,10 +645,7 @@
                 }
 
                 // CHANGED — AvizNumber, PermitNumber and PermitTypeId are now real user
-                // input from the department/dock modal (TransferRequest already has all
-                // three fields) instead of being auto-generated / auto-picked. Same
-                // hardcoded-FK-fallback bug class as before if left unchecked, so these
-                // are validated explicitly rather than defaulted.
+                // input from the department/dock modal instead of being auto-generated.
                 if (string.IsNullOrWhiteSpace(create.AvizNumber))
                 {
                     ModelState.AddModelError("AvizNumber", "يرجى إدخال رقم الأفيز.");
@@ -782,12 +766,33 @@
                 return BadRequest(new { success = false, message = "لم يتم العثور على المستخدم." });
             }
 
-            var defaultPermit = (await _permitTypeRepository.GetAllAsync()).FirstOrDefault();
-            var defaultStatus = (await _requestStatusRepository.GetAllAsync()).FirstOrDefault();
-
-            if (defaultPermit == null || defaultStatus == null)
+            // CHANGED — رقم الأفيز ورقم التصريح ونوع الإذن بقوا بيانات إجبارية بيدخلها
+            // المستخدم (زي صفحة إضافة شاحنة جديدة) بدل ما كانوا بيتولّدوا تلقائي.
+            if (string.IsNullOrWhiteSpace(dto.AvizNumber))
             {
-                return BadRequest(new { success = false, message = "بيانات إعداد النظام غير مكتملة (نوع التصريح / حالة الطلب)." });
+                return BadRequest(new { success = false, message = "يرجى إدخال رقم الأفيز." });
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.PermitNumber))
+            {
+                return BadRequest(new { success = false, message = "يرجى إدخال رقم التصريح." });
+            }
+
+            if (!dto.PermitTypeId.HasValue || dto.PermitTypeId.Value <= 0)
+            {
+                return BadRequest(new { success = false, message = "يرجى اختيار نوع الإذن." });
+            }
+
+            var chosenPermit = await _permitTypeRepository.GetByIdAsync(dto.PermitTypeId.Value);
+            if (chosenPermit == null)
+            {
+                return BadRequest(new { success = false, message = "نوع الإذن المختار غير موجود." });
+            }
+
+            var defaultStatus = (await _requestStatusRepository.GetAllAsync()).FirstOrDefault();
+            if (defaultStatus == null)
+            {
+                return BadRequest(new { success = false, message = "بيانات إعداد النظام غير مكتملة (حالة الطلب)." });
             }
 
             // الرصيف بقى إجباري
@@ -804,18 +809,14 @@
                 }
             }
 
-            var allTransfers = await _transferRequestRepository.GetAllAsync();
-            int nextAvizNumber = allTransfers.Count() + 1;
-            string avizNumber = $"AVIZ-{nextAvizNumber:D4}";
-
             var transferRequest = new TransferRequest
             {
                 TruckId = truck.Id,
                 DriverId = driver.Id,
                 DepartmentId = department.Id,
-                PermitTypeId = defaultPermit.Id,
-                PermitNumber = $"PER-TR-{DateTime.Now.Ticks % 100000}",
-                AvizNumber = avizNumber,
+                PermitTypeId = chosenPermit.Id,
+                PermitNumber = dto.PermitNumber.Trim(),
+                AvizNumber = dto.AvizNumber.Trim(),
                 RequestStatusId = defaultStatus.Id,
                 DockId = dto.DockId is > 0 ? dto.DockId : null,
                 CreatedById = currentUser.Id.ToString(),

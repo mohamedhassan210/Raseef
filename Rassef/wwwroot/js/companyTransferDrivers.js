@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
 
     const searchInput = document.getElementById('search-input');
     const cardsContainer = document.getElementById('cards-container');
@@ -34,6 +34,89 @@ document.addEventListener('DOMContentLoaded', () => {
     const dockSelectedValue = document.getElementById('dock-selected-value');
     const dockDropdownList = document.getElementById('dock-dropdown-list');
     let selectedDockValue = null;
+
+    // NEW — رقم الأفيز / رقم التصريح / نوع الإذن (إجبارية، زي صفحة إضافة شاحنة جديدة)
+    const modalAvizNumberInput = document.getElementById('modalAvizNumber');
+    const modalPermitNumberInput = document.getElementById('modalPermitNumber');
+    const avizErrorMsg = document.getElementById('aviz-error-msg');
+    const permitNumberErrorMsg = document.getElementById('permit-number-error-msg');
+    const permitTypeDropdownContainer = document.getElementById('permit-type-dropdown-container');
+    const permitTypeDropdownHeader = document.getElementById('permit-type-dropdown-header');
+    const permitTypeSelectedValue = document.getElementById('permit-type-selected-value');
+    const permitTypeDropdownList = document.getElementById('permit-type-dropdown-list');
+    const permitTypeErrorMsg = document.getElementById('permit-type-error-msg');
+    const confirmAviz = document.getElementById('confirm-aviz');
+    const confirmPermitNumber = document.getElementById('confirm-permit-number');
+    const confirmPermitType = document.getElementById('confirm-permit-type');
+    let selectedPermitTypeValue = null;
+
+    const closeAllDropdowns = (except) => {
+        [deptDropdownContainer, dockDropdownContainer, permitTypeDropdownContainer].forEach(d => {
+            if (d && d !== except) d.classList.remove('open');
+        });
+    };
+
+    const resetPermitFields = () => {
+        if (modalAvizNumberInput) modalAvizNumberInput.value = '';
+        if (modalPermitNumberInput) modalPermitNumberInput.value = '';
+        if (avizErrorMsg) avizErrorMsg.style.display = 'none';
+        if (permitNumberErrorMsg) permitNumberErrorMsg.style.display = 'none';
+        selectedPermitTypeValue = null;
+        if (permitTypeSelectedValue) {
+            permitTypeSelectedValue.textContent = 'اختر نوع الإذن';
+            permitTypeSelectedValue.classList.add('text-muted');
+        }
+        if (permitTypeDropdownHeader) permitTypeDropdownHeader.classList.remove('error');
+        if (permitTypeErrorMsg) permitTypeErrorMsg.style.display = 'none';
+        if (permitTypeDropdownList) permitTypeDropdownList.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
+        if (permitTypeDropdownContainer) permitTypeDropdownContainer.classList.remove('open');
+    };
+
+    const initPermitTypeDropdown = () => {
+        if (!permitTypeDropdownList) return;
+
+        const permitTypes = Array.isArray(window.permitTypesData) ? window.permitTypesData : [];
+
+        permitTypeDropdownList.innerHTML = permitTypes.length > 0
+            ? permitTypes.map(pt =>
+                `<div class="dropdown-item" data-id="${pt.id}" data-value="${pt.name}">${pt.name}</div>`
+              ).join('')
+            : `<div class="dropdown-item disabled text-muted">لا توجد أنواع أذونات متاحة</div>`;
+
+        const items = permitTypeDropdownList.querySelectorAll('.dropdown-item:not(.disabled)');
+        items.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectedPermitTypeValue = {
+                    id: parseInt(item.getAttribute('data-id')),
+                    name: item.getAttribute('data-value')
+                };
+                permitTypeSelectedValue.textContent = selectedPermitTypeValue.name;
+                permitTypeSelectedValue.classList.remove('text-muted');
+                items.forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+                permitTypeDropdownContainer.classList.remove('open');
+                permitTypeDropdownHeader.classList.remove('error');
+                if (permitTypeErrorMsg) permitTypeErrorMsg.style.display = 'none';
+            });
+        });
+
+        permitTypeDropdownHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeAllDropdowns(permitTypeDropdownContainer);
+            permitTypeDropdownContainer.classList.toggle('open');
+            permitTypeDropdownHeader.classList.remove('error');
+            if (permitTypeErrorMsg) permitTypeErrorMsg.style.display = 'none';
+        });
+
+        // ضغطة على أي مكان فاضي جوه المودال تقفل القوائم المفتوحة
+        if (deptModal) {
+            deptModal.addEventListener('click', (e) => {
+                if (!e.target.closest('.custom-dropdown')) closeAllDropdowns(null);
+            });
+        }
+    };
+    initPermitTypeDropdown();
 
     const refreshDockOptions = (departmentId) => {
         if (!dockDropdownList) return;
@@ -82,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dockDropdownHeader) {
         dockDropdownHeader.addEventListener('click', (e) => {
             e.stopPropagation();
+            closeAllDropdowns(dockDropdownContainer);
             dockDropdownContainer.classList.toggle('open');
         });
     }
@@ -144,6 +228,10 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmDriverName.textContent = driverName;
         confirmDriverdep.textContent = departmentName;
         if (confirmDriverDock) confirmDriverDock.textContent = dockName;
+
+        if (confirmAviz) confirmAviz.textContent = modalAvizNumberInput ? modalAvizNumberInput.value.trim() : '';
+        if (confirmPermitNumber) confirmPermitNumber.textContent = modalPermitNumberInput ? modalPermitNumberInput.value.trim() : '';
+        if (confirmPermitType) confirmPermitType.textContent = selectedPermitTypeValue ? selectedPermitTypeValue.name : '';
     };
 
     const attachSelectionEvents = () => {
@@ -164,6 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 deptItems.forEach(i => i.classList.remove('selected'));
                 deptDropdownContainer.classList.remove('open');
                 refreshDockOptions(null);
+                resetPermitFields();
 
                 localStorage.setItem('pendingDriver', JSON.stringify({
                     name: driverName,
@@ -191,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         deptDropdownHeader.addEventListener('click', (e) => {
             e.stopPropagation();
+            closeAllDropdowns(deptDropdownContainer);
             deptDropdownContainer.classList.toggle('open');
             deptDropdownHeader.classList.remove('error');
             deptErrorMsg.style.display = 'none';
@@ -229,6 +319,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (dockDropdownHeader) dockDropdownHeader.classList.add('error');
                 return;
             }
+
+            // NEW — رقم الأفيز / رقم التصريح / نوع الإذن إجبارية
+            let hasPermitError = false;
+
+            if (modalAvizNumberInput && !modalAvizNumberInput.value.trim()) {
+                if (avizErrorMsg) avizErrorMsg.style.display = 'block';
+                hasPermitError = true;
+            } else if (avizErrorMsg) {
+                avizErrorMsg.style.display = 'none';
+            }
+
+            if (modalPermitNumberInput && !modalPermitNumberInput.value.trim()) {
+                if (permitNumberErrorMsg) permitNumberErrorMsg.style.display = 'block';
+                hasPermitError = true;
+            } else if (permitNumberErrorMsg) {
+                permitNumberErrorMsg.style.display = 'none';
+            }
+
+            if (permitTypeDropdownList && !selectedPermitTypeValue) {
+                if (permitTypeDropdownHeader) permitTypeDropdownHeader.classList.add('error');
+                if (permitTypeErrorMsg) permitTypeErrorMsg.style.display = 'block';
+                hasPermitError = true;
+            }
+
+            if (hasPermitError) return;
 
             const pendingData = JSON.parse(localStorage.getItem('pendingDriver')) || {};
             pendingData.department = selectedDepartmentValue;
@@ -276,7 +391,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 truckId: parseInt(window.pageData?.truckId) || 0,
                 driverId: parseInt(pendingData.driverId || pendingData.id) || 0,
                 departmentId: selectedDepartmentValue ? selectedDepartmentValue.id : 0,
-                dockId: selectedDockValue ? selectedDockValue.id : null
+                dockId: selectedDockValue ? selectedDockValue.id : null,
+                avizNumber: modalAvizNumberInput ? modalAvizNumberInput.value.trim() : '',
+                permitNumber: modalPermitNumberInput ? modalPermitNumberInput.value.trim() : '',
+                permitTypeId: selectedPermitTypeValue ? selectedPermitTypeValue.id : null
             };
 
             let ticketInfo = null;

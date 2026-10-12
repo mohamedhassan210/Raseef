@@ -495,7 +495,6 @@ namespace Rassef.Controllers
         public async Task<IActionResult> CallStation(int? departmentId)
         {
             var model = await BuildCallStationVM(departmentId);
-            ViewBag.Departments = await GetScopedDepartmentsAsync();
             return View("CallStation", model);
         }
 

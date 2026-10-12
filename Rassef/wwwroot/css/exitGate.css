@@ -49,7 +49,7 @@ body {
 }
 
 .brand-fathalla { height: 50px; }
-.brand-raseefy { height: 68px; }
+.brand-raseefy { height: clamp(36px, 4.2vw, 68px); width: auto; max-width: 100%; }
 
 .exit-title-box h1 {
     color: var(--status-done);

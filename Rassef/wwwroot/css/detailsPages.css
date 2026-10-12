@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --font-arabic: 'IBM Plex Sans Arabic', sans-serif;
     --primary-color: #EA7318;
     --primary-hover: #D1620E;
@@ -94,8 +94,9 @@ body {
 }
 
 .header-logo-raseef {
-    height: 42px;
+    height: clamp(26px, 3vw, 42px);
     width: auto;
+    max-width: 100%;
 }
 
 /* Back Button */

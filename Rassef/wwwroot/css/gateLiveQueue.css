@@ -68,7 +68,9 @@ body {
 }
 
 .brand-raseefy {
-    height: 70px;
+    height: clamp(34px, 4.4vw, 70px);
+    width: auto;
+    max-width: 100%;
 }
 
 .header-title-box {

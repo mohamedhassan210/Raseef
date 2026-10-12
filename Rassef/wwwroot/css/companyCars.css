@@ -1,4 +1,4 @@
-@import url('https://googleapis.com');
+﻿@import url('https://googleapis.com');
 @import url('https://googleapis.com');
 /* ==========================================================================
    Design System Tokens & Root Variables
@@ -67,7 +67,7 @@ body {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 24px;
-    padding: 8px 180px;
+    padding: 8px clamp(12px, 9.4vw, 180px);
     flex-shrink: 0; /* منع الهيدر من التقلص والانضغاط */
 }
 
@@ -91,7 +91,9 @@ body {
 }
 
 .logo-raseefy {
-    max-height: 70px;
+    height: clamp(34px, 4.4vw, 70px);
+    width: auto;
+    max-width: 100%;
     object-fit: contain;
 }
 
@@ -454,5 +456,13 @@ body {
 
     .search-input {
         font-size: 0.95rem;
+    }
+}
+
+/* RESPONSIVE LOGO — الهيدر بيتحول لعمود على التابلت/الموبايل، فلوجو رصيف بيتحجّم
+   حسب عرض الشاشة بدل ما يفضل بحجم الديسكتوب الثابت. */
+@media (max-width: 768px) {
+    .logo-raseefy {
+        height: clamp(38px, 11vw, 56px);
     }
 }

@@ -2,7 +2,6 @@
 @{
     ViewData["Title"] = "شاشة استدعاء الأدوار المتتالية — Next Station";
     Layout = null;
-    var departments = ViewBag.Departments as IEnumerable<Rassef.Models.Entities.Department>;
 }
 
 <!DOCTYPE html>
@@ -46,21 +45,8 @@
         </header>
 
         <!-- Top Bar -->
-        <section class="station-top-bar">
-            <div class="dept-select-group">
-                <label for="stationDeptSelect"><i class="fas fa-filter"></i> القسم المستهدف:</label>
-                <select id="stationDeptSelect" class="dept-select">
-                    <option value="">كل الأقسام</option>
-                    @if (departments != null)
-                    {
-                        foreach (var d in departments)
-                        {
-                            <option value="@d.Id">@d.Name</option>
-                        }
-                    }
-                </select>
-            </div>
-
+        @* CHANGED — فلتر "القسم المستهدف" اتشال بالكامل؛ الاستدعاء بقى دايماً على كل الأقسام. *@
+        <section class="station-top-bar" style="justify-content: flex-end;">
             <div style="display: flex; gap: 12px; align-items: center;">
                 <a asp-controller="QueueTicket" asp-action="LiveQueue" target="_blank" rel="noopener" class="btn-secondary-action" style="background: #FFF3E0; color: var(--primary-orange); border-color: #FFCC80; text-decoration: none; padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fas fa-tv"></i> شاشة العرض المباشرة 📺

@@ -1,4 +1,4 @@
-@import url('https://googleapis.com');
+﻿@import url('https://googleapis.com');
 
 /* ==========================================
    1. GLOBAL & RESET
@@ -175,7 +175,7 @@ body.is-loading {
 
 @media (max-width: 400px) {
     .raseefi-logo {
-        max-width: 10px;
+        max-width: 140px;
     }
 
     .fathalla-logo {

@@ -92,7 +92,9 @@ body {
 }
 
 .logo-raseefy {
-    max-height: 60px;
+    height: clamp(32px, 3.8vw, 60px);
+    width: auto;
+    max-width: 100%;
     object-fit: contain;
 }
 
@@ -483,5 +485,13 @@ body {
 
     .custom-input, .dropdown-header, .submit-btn {
         font-size: 0.95rem;
+    }
+}
+
+/* RESPONSIVE LOGO — الهيدر بيتحول لعمود على التابلت/الموبايل، فلوجو رصيف بيتحجّم
+   حسب عرض الشاشة بدل ما يفضل بحجم الديسكتوب الثابت. */
+@media (max-width: 768px) {
+    .logo-raseefy {
+        height: clamp(38px, 11vw, 56px);
     }
 }

@@ -13,6 +13,32 @@
 
 <link rel="stylesheet" href="~/css/companyDrivers.css" asp-append-version="true" />
 
+@* NEW — حقول رقم الأفيز/رقم التصريح في مودال اختيار القسم. الصفحة دي مبتحمّلش
+   addCar.css فكلاس .custom-input مكنش متنسق هنا، فاتحط تنسيقه محلياً. *@
+<style>
+    #department-modal .permit-field { margin-top: 16px; text-align: right; }
+    #department-modal .permit-field label { display: block; font-weight: 600; margin-bottom: 8px; color: #332D24; text-align: right; }
+    #department-modal .permit-field .custom-input {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1.5px solid rgba(235, 132, 45, 0.35);
+        border-radius: 8px;
+        font-size: 1rem;
+        background-color: transparent;
+        color: #332D24;
+        text-align: right;
+        box-shadow: none;
+    }
+    #department-modal .permit-field .custom-input::placeholder { color: #b5aba2; font-weight: 400; }
+    #department-modal .permit-field .custom-input:focus {
+        outline: none;
+        border-color: #EB842D;
+        box-shadow: 0 0 0 3px rgba(235, 132, 45, 0.15);
+        background-color: #fff;
+    }
+    #department-modal .permit-field .field-error { display: none; color: #dc3545; font-size: 0.9rem; margin-top: 6px; text-align: right; }
+</style>
+
 <main class="page-container">
 
     <header class="page-header">
@@ -135,6 +161,32 @@
                 </div>
                 <div class="dropdown-list" id="dock-dropdown-list"></div>
             </div>
+
+            @* NEW — رقم الأفيز + رقم التصريح + نوع الإذن (نفس حقول صفحة إضافة شاحنة جديدة) *@
+            <div class="permit-field">
+                <label for="modalAvizNumber">رقم الأفيز</label>
+                <input type="text" class="custom-input" id="modalAvizNumber" placeholder="ادخل رقم الأفيز" autocomplete="off">
+                <div class="field-error" id="aviz-error-msg">يرجى إدخال رقم الأفيز.</div>
+            </div>
+
+            <div class="permit-field">
+                <label for="modalPermitNumber">رقم التصريح</label>
+                <input type="text" class="custom-input" id="modalPermitNumber" placeholder="ادخل رقم التصريح" autocomplete="off">
+                <div class="field-error" id="permit-number-error-msg">يرجى إدخال رقم التصريح.</div>
+            </div>
+
+            <div class="custom-dropdown mt-3" id="permit-type-dropdown-container">
+                <div class="dropdown-header" id="permit-type-dropdown-header">
+                    <span class="selected-value text-muted" id="permit-type-selected-value">اختر نوع الإذن</span>
+                    <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="#EB842D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="dropdown-list" id="permit-type-dropdown-list"></div>
+                <div class="invalid-feedback text-right mt-2" id="permit-type-error-msg" style="display: none; color: #dc3545; font-size: 0.95rem; font-weight: 500;">
+                    يرجى اختيار نوع الإذن.
+                </div>
+            </div>
         </div>
 
         <div class="modal-actions mt-4" style="margin-top: 32px !important;">
@@ -172,6 +224,18 @@
                 <span class="data-label">الرصيف :</span>
                 <span class="data-value" id="confirm-driver-dock"></span>
             </div>
+            <div class="data-row">
+                <span class="data-label">رقم الأفيز :</span>
+                <span class="data-value" id="confirm-aviz"></span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">رقم التصريح :</span>
+                <span class="data-value" id="confirm-permit-number"></span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">نوع الإذن :</span>
+                <span class="data-value" id="confirm-permit-type"></span>
+            </div>
         </div>
 
         <div class="modal-actions">
@@ -207,6 +271,7 @@
     <script>
         window.departmentsData = @Html.Raw(Json.Serialize(ViewBag.Departments ?? new List<object>()));
         window.allDocks = @Html.Raw(Json.Serialize(ViewBag.AllDocks ?? new List<object>()));
+        window.permitTypesData = @Html.Raw(Json.Serialize(ViewBag.PermitTypes ?? new List<object>()));
         window.pageData = {
             truckId: @(ViewBag.TruckId ?? 0),
             companyName: 'تحويل داخلي',

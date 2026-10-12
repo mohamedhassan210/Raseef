@@ -44,8 +44,9 @@ html, body {
 }
 
 .brand-logo-raseefy {
-    max-height: 55px;
+    max-height: clamp(32px, 3.6vw, 55px);
     width: auto;
+    max-width: 100%;
 }
 
 .brand-logo-fathalla {

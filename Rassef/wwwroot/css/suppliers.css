@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    1. Design System Tokens & Root Variables
    ========================================================================== */
 :root {
@@ -90,7 +90,10 @@ html, body {
 }
 
 .logo-raseefy {
-    height: 70px;
+    height: clamp(34px, 4.4vw, 70px);
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
 }
 
 .title-wrapper {
@@ -435,5 +438,13 @@ html, body {
 
     .supplier-name {
         font-size: 1.2rem;
+    }
+}
+
+/* RESPONSIVE LOGO — الهيدر بيتحول لعمود على التابلت/الموبايل، فلوجو رصيف بيتحجّم
+   حسب عرض الشاشة بدل ما يفضل بحجم الديسكتوب الثابت. */
+@media (max-width: 768px) {
+    .logo-raseefy {
+        height: clamp(38px, 11vw, 56px);
     }
 }

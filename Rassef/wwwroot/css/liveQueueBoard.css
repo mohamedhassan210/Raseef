@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --font-arabic: 'IBM Plex Sans Arabic', sans-serif;
     --primary-color: #EA7318;
     --primary-hover: #D1620E;
@@ -56,8 +56,9 @@ body {
 }
 
 .board-logo-raseef {
-    height: 52px;
+    height: clamp(30px, 3.4vw, 52px);
     width: auto;
+    max-width: 100%;
 }
 
 .board-title-center {

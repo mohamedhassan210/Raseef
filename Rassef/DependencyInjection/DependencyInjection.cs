@@ -68,6 +68,7 @@ namespace Rassef.Dependencyinjection
             services.AddScoped<IPermitTypeRepository, PermitTypeRepository>();
             services.AddScoped<IRequestStatusRepository, RequestStatusRepository>();
             services.AddScoped<ExcelExportService>();
+            services.AddScoped<RequestsExcelReportService>();
             services.AddScoped<IWarehouseRepository, WarehouseRepository>();
             services.AddScoped<IShiftRepository, ShiftRepository>();
             services.AddScoped<IQueueSettingsRepository, QueueSettingsRepository>();

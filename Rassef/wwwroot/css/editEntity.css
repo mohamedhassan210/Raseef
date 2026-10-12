@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    editEntity.css — Shared CSS for TruckEdit and DriverEdit views
    ============================================================ */
 
@@ -54,7 +54,10 @@ body {
 }
 
 .logo-raseefy {
-    height: 38px;
+    height: clamp(28px, 3vw, 38px);
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
 }
 
 .main-title {
