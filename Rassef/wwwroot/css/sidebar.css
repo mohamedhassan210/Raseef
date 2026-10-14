@@ -1,4 +1,4 @@
-/*
+﻿/*
  * sidebar.css — Single Source of Truth for Unified Admin Sidebar
  * Color: #e67e22 | Width: 280px
  */
@@ -334,3 +334,28 @@ html, body {
    كانت بتتحكم في فتح/قفل السايدبار بطريقة الكلاس القديمة (.active)، ودلوقتي
    السايدبار بقى Bootstrap Offcanvas حقيقي (.offcanvas/.offcanvas-start) وبيتحكم
    في حاله بنفسه عن طريق data-bs-toggle، مش عن طريق CSS هنا. */
+
+/* ==========================================================================
+   RESPONSIVE OVERRIDES
+   القواعد فوق (.dashboard-main / .header-title / .dashboard-header) معلّمة
+   !important، وده كان بيلغي قواعد الموبايل اللي في dashboard.css و
+   detailsPages.css: padding 40px من الجنبين وعنوان 34px فاضلين على الموبايل
+   (80px من 360px ضايعين). الإلغاءات دي بنفس الـ !important عشان تكسبهم.
+   ========================================================================== */
+@media (max-width: 1024px) {
+    .dashboard-main { padding: 20px !important; }
+}
+
+@media (max-width: 900px) {
+    .header-title { font-size: 26px !important; }
+}
+
+@media (max-width: 575.98px) {
+    .dashboard-main { padding: 16px 12px 28px !important; }
+    .header-title { font-size: 22px !important; }
+    .dashboard-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px;
+    }
+}

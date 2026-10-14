@@ -1,4 +1,4 @@
-@import url('https://googleapis.com');
+﻿/* @import url('https://googleapis.com');  — رابط غير صالح كان بيعمل طلب شبكة فاشل في كل تحميل */
  
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -36,11 +36,26 @@
         transition: transform 600ms var(--easing-apple), opacity 600ms var(--easing-apple);
     }
 
-    /* التحكم في حجم لوجو رصيفي */
+    /* التحكم في حجم اللوجوهات — fluid بدل الأحجام الثابتة، وكانت inline في الـ view
+       (80px / 200px) فكانت بتتجاهل أي CSS responsive وبتتصادم على الشاشات الصغيرة.
+       #logo-raseefi = لوجو فتح الله (التسمية قديمة)، #logo-fathalla = لوجو رصيف. */
     #logo-raseefi img {
-        width: 90px; /* يمكنك تغيير هذا الرقم للمقاس الذي تريده */
+        width: clamp(44px, 6vw, 80px);
         max-width: 100%;
         height: auto;
+    }
+    #logo-fathalla img {
+        width: clamp(96px, 15vw, 200px);
+        max-width: 100%;
+        height: auto;
+    }
+    .logo-wrapper { flex-shrink: 0; }
+
+    /* الزرار (☰) بتاع القايمة ثابت أعلى اليمين (fixed) فلازم الهيدر يسيب له مكان وإلا
+       بيركب على لوجو فتح الله. padding الهيدر الجانبي بقى fluid بدل px-5 الثابت (3rem). */
+    .app-header.px-5 {
+        padding-inline: clamp(0.75rem, 3vw, 3rem) !important;
+        padding-inline-start: 4.25rem !important;
     }
 
     .brand-logo { max-height: 52px; width: auto; }
@@ -62,7 +77,7 @@
     .panel-supply .panel-content { left: 75%; transform: translate(-50%, -50%); opacity: 1; }
 
     .panel-title {
-        font-size: clamp(2.5rem, 5vw, 6rem);
+        font-size: clamp(1.5rem, 5vw, 6rem);
         font-weight: 700;
         white-space: nowrap;
         transition: all var(--duration-standard) var(--easing-apple);
@@ -111,4 +126,22 @@
 .logout-btn:hover {
     background-color: #c82333;
     transform: scale(1.05);
+}
+
+/* RESPONSIVE — شاشات الموبايل والتابلت */
+.viewport-canvas { height: 100vh; height: 100dvh; }
+.panel-content { max-width: 46%; }
+
+@media (max-width: 480px) {
+    .stepback-btn {
+        width: 46px;
+        height: 46px;
+        left: 12px;
+        bottom: 12px;
+    }
+}
+
+/* على الشاشات الضيقة عنوان اللوحة بيلف على سطرين بدل ما يتقص خارج الشاشة */
+@media (max-width: 575.98px) {
+    .panel-title { white-space: normal; line-height: 1.25; }
 }

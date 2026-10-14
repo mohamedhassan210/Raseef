@@ -302,3 +302,20 @@ body {
     from { opacity: 0; transform: translateY(-6px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ==========================================================================
+   RESPONSIVE — موبايل
+   كان حقل الكود (flex:1) بيرفض يصغر عن عرضه الأصلي (min-width:auto للـ input) فزرار
+   "فحص" كان بيطلع برّه الشاشة (scroll أفقي على 360px). دلوقتي الحقل بيصغر، وعلى
+   الشاشات الضيقة الزرار بينزل تحت الحقل بعرض كامل.
+   ========================================================================== */
+.code-input { min-width: 0; }
+
+@media (max-width: 576px) {
+    .exit-container { padding: 16px 12px 40px; }
+    .exit-title-box h1 { font-size: clamp(1.35rem, 6.5vw, 1.8rem); }
+    .code-input-group { flex-direction: column; }
+    .code-input { font-size: 1.1rem; padding: 12px 14px; letter-spacing: 1px; }
+    .btn-search-code { justify-content: center; padding: 13px 26px; }
+    .preview-grid { grid-template-columns: 1fr; }
+}

@@ -494,6 +494,18 @@ namespace Rassef.Controllers
         [HttpGet]
         public async Task<IActionResult> CallStation(int? departmentId)
         {
+            // CHANGED — مفيش خيار "كل الأقسام" في فلتر المحطة: دايماً قسم معيّن. لو مفيش
+            // قسم جاي في الرابط (أو القسم مش من أقسام المخزن الحالي) بنبدأ بأول قسم، وده
+            // نفس القسم المتحدد تلقائياً في القايمة فالحالة والقايمة متطابقين.
+            var departments = (await GetScopedDepartmentsAsync()).ToList();
+            if (!departmentId.HasValue || departments.All(d => d.Id != departmentId.Value))
+            {
+                departmentId = departments.FirstOrDefault()?.Id;
+            }
+
+            ViewBag.Departments = departments;
+            ViewBag.SelectedDepartmentId = departmentId;
+
             var model = await BuildCallStationVM(departmentId);
             return View("CallStation", model);
         }

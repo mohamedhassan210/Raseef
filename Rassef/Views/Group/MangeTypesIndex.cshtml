@@ -1,4 +1,4 @@
-@model Rassef.ViewModels.Group.TypesManagementVM
+﻿@model Rassef.ViewModels.Group.TypesManagementVM
 @{
     Layout = null;
     ViewData["Title"] = "إدارة الإختيارات";
@@ -173,6 +173,15 @@
             .types-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+        }
+
+        /* RESPONSIVE — الموبايل: شريط التحكم (مربع البحث 280px ثابت) كان بيخرج برّه الشاشة،
+           والكروت تبقى في عمود واحد. */
+        @@media (max-width: 600px) {
+            .controls-row { flex-wrap: wrap; }
+            .controls-right { flex-wrap: wrap; width: 100%; gap: 12px; }
+            .search-box-custom { width: 100%; flex: 1 1 100%; }
+            .types-grid { grid-template-columns: 1fr; }
         }
 
         .type-card {

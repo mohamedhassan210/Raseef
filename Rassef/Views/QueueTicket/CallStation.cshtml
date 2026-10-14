@@ -1,5 +1,7 @@
 ﻿@model Rassef.ViewModels.QueueTicket.CallStationVM
 @{
+    var departments = (ViewBag.Departments as IEnumerable<Rassef.Models.Entities.Department>) ?? Enumerable.Empty<Rassef.Models.Entities.Department>();
+    var selectedDepartmentId = ViewBag.SelectedDepartmentId as int?;
     ViewData["Title"] = "شاشة استدعاء الأدوار المتتالية — Next Station";
     Layout = null;
 }
@@ -45,8 +47,19 @@
         </header>
 
         <!-- Top Bar -->
-        @* CHANGED — فلتر "القسم المستهدف" اتشال بالكامل؛ الاستدعاء بقى دايماً على كل الأقسام. *@
-        <section class="station-top-bar" style="justify-content: flex-end;">
+        <section class="station-top-bar">
+            @* CHANGED — خيار "كل الأقسام" اتشال من القايمة: لازم يتحدد قسم معيّن، وأول قسم
+               بيتختار تلقائياً (الكنترولر بيبني الحالة لنفس القسم). *@
+            <div class="dept-select-group">
+                <label for="stationDeptSelect"><i class="fas fa-filter"></i> القسم المستهدف:</label>
+                <select id="stationDeptSelect" class="dept-select">
+                    @foreach (var d in departments)
+                    {
+                        <option value="@d.Id" selected="@(selectedDepartmentId == d.Id)">@d.Name</option>
+                    }
+                </select>
+            </div>
+
             <div style="display: flex; gap: 12px; align-items: center;">
                 <a asp-controller="QueueTicket" asp-action="LiveQueue" target="_blank" rel="noopener" class="btn-secondary-action" style="background: #FFF3E0; color: var(--primary-orange); border-color: #FFCC80; text-decoration: none; padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fas fa-tv"></i> شاشة العرض المباشرة 📺
