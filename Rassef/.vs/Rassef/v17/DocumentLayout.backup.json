@@ -1,9 +1,25 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\Repos\\Rassef\\",
+  "WorkspaceRootPath": "D:\\Raseef\\Rassef\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|d:\\repos\\rassef\\views\\authentication\\suportra.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|d:\\raseef\\rassef\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|d:\\raseef\\rassef\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|d:\\raseef\\rassef\\dependencyinjection\\dependencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:dependencyinjection\\dependencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|d:\\raseef\\rassef\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|d:\\raseef\\rassef\\views\\authentication\\suportra.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{83BFCB38-BE58-46AE-888B-3CCDA7DE83A7}|Rassef.csproj|solutionrelative:views\\authentication\\suportra.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     }
   ],
@@ -14,7 +30,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Bookmark",
@@ -26,13 +42,65 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "DependencyInjection.cs",
+              "DocumentMoniker": "D:\\Raseef\\Rassef\\DependencyInjection\\DependencyInjection.cs",
+              "RelativeDocumentMoniker": "DependencyInjection\\DependencyInjection.cs",
+              "ToolTip": "D:\\Raseef\\Rassef\\DependencyInjection\\DependencyInjection.cs",
+              "RelativeToolTip": "DependencyInjection\\DependencyInjection.cs",
+              "ViewState": "AgIAAAEAAAAAAAAAAAAiwAwAAABZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-22T13:00:37.778Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Raseef\\Rassef\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "D:\\Raseef\\Rassef\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAABMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-22T12:59:56.779Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\Raseef\\Rassef\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "D:\\Raseef\\Rassef\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-10-22T12:58:26.161Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "appsettings.Development.json",
+              "DocumentMoniker": "D:\\Raseef\\Rassef\\appsettings.Development.json",
+              "RelativeDocumentMoniker": "appsettings.Development.json",
+              "ToolTip": "D:\\Raseef\\Rassef\\appsettings.Development.json",
+              "RelativeToolTip": "appsettings.Development.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-10-22T12:58:20.609Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "SupOrTra.cshtml",
-              "DocumentMoniker": "D:\\Repos\\Rassef\\Views\\Authentication\\SupOrTra.cshtml",
+              "DocumentMoniker": "D:\\Raseef\\Rassef\\Views\\Authentication\\SupOrTra.cshtml",
               "RelativeDocumentMoniker": "Views\\Authentication\\SupOrTra.cshtml",
-              "ToolTip": "D:\\Repos\\Rassef\\Views\\Authentication\\SupOrTra.cshtml*",
-              "RelativeToolTip": "Views\\Authentication\\SupOrTra.cshtml*",
-              "ViewState": "AgIAAKUAAAAAAAAAAAAYwLEAAAAAAAAAAAAAAA==",
+              "ToolTip": "D:\\Raseef\\Rassef\\Views\\Authentication\\SupOrTra.cshtml",
+              "RelativeToolTip": "Views\\Authentication\\SupOrTra.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-10-14T16:32:53.445Z",
               "EditorCaption": ""

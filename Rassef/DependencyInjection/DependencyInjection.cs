@@ -68,7 +68,6 @@ namespace Rassef.Dependencyinjection
             services.AddScoped<IPermitTypeRepository, PermitTypeRepository>();
             services.AddScoped<IRequestStatusRepository, RequestStatusRepository>();
             services.AddScoped<ExcelExportService>();
-            services.AddScoped<RequestsExcelReportService>();
             services.AddScoped<IWarehouseRepository, WarehouseRepository>();
             services.AddScoped<IShiftRepository, ShiftRepository>();
             services.AddScoped<IQueueSettingsRepository, QueueSettingsRepository>();
@@ -137,13 +136,17 @@ namespace Rassef.Dependencyinjection
 
         public static WebApplication AddMiddleWares(this WebApplication app)
         {
-            app.UseExceptionHandler(options =>
-            {
-                options.Run(async context =>
-                {
-                    context.Response.Redirect("/Home/Error");
-                });
-            });
+            // CHANGED — قبل كده:
+            //   1) GlobalExceptionHandling كان بيرد على كل استثناء بـ JSON خام فيه رسالة الاستثناء
+            //      الداخلية (والـ stack trace في Development) وده اللي كان بيظهر للمستخدم، وكان بيمنع
+            //      الـ handler اللي هنا من إنه يشتغل أصلاً.
+            //   2) الصفحة /Home/Error اللي بيحوّل عليها مكانتش موجودة.
+            // دلوقتي: طلبات المتصفح بتتعرض لها صفحة خطأ ودودة (Home/Error) بنفس الرابط ومن غير تفاصيل
+            // تقنية، وطلبات AJAX بتاخد JSON مختصر. التفاصيل الكاملة في الـ logs بنفس رقم المرجع.
+            app.UseExceptionHandler("/Home/Error");
+
+            // نفس الصفحة الودودة لأي 404/403/... من غير محتوى (رابط غلط مثلاً) بدل شاشة المتصفح الفاضية
+            app.UseStatusCodePagesWithReExecute("/Home/Error", "?code={0}");
 
             // Production Security Headers
             app.Use(async (context, next) =>

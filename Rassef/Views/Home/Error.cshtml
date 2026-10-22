@@ -1,0 +1,155 @@
+﻿@{
+    Layout = null;
+    var statusCode = ViewBag.StatusCode as int? ?? 500;
+    var title = ViewBag.ErrorTitle as string ?? "حدثت مشكلة";
+    var message = ViewBag.ErrorMessage as string ?? "حدثت مشكلة غير متوقعة. برجاء التواصل مع الدعم الفني.";
+    var traceId = ViewBag.TraceId as string;
+    ViewData["Title"] = title + " — رصيف";
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --font-arabic: 'IBM Plex Sans Arabic', sans-serif;
+            --primary-color: #EA7318;
+            --primary-hover: #D1620E;
+            --bg-page: #FAF0E6;
+            --card-bg: #FFFDFB;
+            --text-dark: #2B241D;
+            --text-muted: #82756A;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-arabic);
+            background-color: var(--bg-page);
+            color: var(--text-dark);
+            direction: rtl;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .error-card {
+            background-color: var(--card-bg);
+            border: 2px solid #EFA267;
+            border-radius: 24px;
+            padding: clamp(28px, 6vw, 48px) clamp(20px, 5vw, 36px);
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 12px 32px rgba(234, 115, 24, 0.12);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .error-icon-circle {
+            width: 88px;
+            height: 88px;
+            background-color: #FFF1E3;
+            border: 2px solid #F8D3B0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 38px;
+            margin-bottom: 8px;
+        }
+
+        .error-title { font-size: 26px; font-weight: 800; color: var(--text-dark); }
+
+        .error-text {
+            font-size: 16px;
+            line-height: 1.9;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .error-ref {
+            font-size: 12px;
+            color: var(--text-muted);
+            word-break: break-all;
+            background: #FFF7EF;
+            border: 1px dashed #F8D3B0;
+            border-radius: 10px;
+            padding: 6px 12px;
+        }
+
+        .error-actions {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .btn-main, .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 16px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color .2s ease, transform .2s ease;
+        }
+
+        .btn-main { background-color: var(--primary-color); color: #fff; border: 2px solid var(--primary-color); }
+        .btn-main:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); transform: translateY(-1px); color: #fff; }
+        .btn-secondary { background-color: #fff; color: var(--primary-color); border: 2px solid var(--primary-color); }
+        .btn-secondary:hover { background-color: #FFF1E3; transform: translateY(-1px); }
+
+        @@media (max-width: 480px) {
+            .error-actions { flex-direction: column; }
+            .btn-main, .btn-secondary { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <main class="error-card" role="main">
+        <div class="error-icon-circle" aria-hidden="true">
+            <i class="fa-solid @(statusCode == 404 ? "fa-magnifying-glass" : "fa-triangle-exclamation")"></i>
+        </div>
+
+        <h1 class="error-title">@title</h1>
+        <p class="error-text">@message</p>
+
+        @if (!string.IsNullOrWhiteSpace(traceId))
+        {
+            <div class="error-ref">رقم المرجع للدعم الفني: <bdi dir="ltr">@traceId</bdi></div>
+        }
+
+        <div class="error-actions">
+            <button type="button" class="btn-secondary" onclick="if (history.length > 1) { history.back(); } else { location.href = '@Url.Action("Intro", "Authentication")'; }">
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                رجوع
+            </button>
+            <a class="btn-main" asp-controller="Authentication" asp-action="Intro">
+                <i class="fa-solid fa-house" aria-hidden="true"></i>
+                الصفحة الرئيسية
+            </a>
+        </div>
+    </main>
+</body>
+</html>

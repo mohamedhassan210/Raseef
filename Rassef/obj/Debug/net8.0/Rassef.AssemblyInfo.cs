@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Rassef")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+145d5f6aeada7148c7b17b138063bea00bd0226b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9455d91ee1553ec56818be2560e6ced559d4df4f")]
 [assembly: System.Reflection.AssemblyProductAttribute("Rassef")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Rassef")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

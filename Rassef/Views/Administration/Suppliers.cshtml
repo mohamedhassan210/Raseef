@@ -1,4 +1,4 @@
-@model IEnumerable<Rassef.ViewModels.Supplier.SupplierListVM>
+﻿@model IEnumerable<Rassef.ViewModels.Supplier.SupplierListVM>
 @{
     Layout = null;
 }
@@ -297,13 +297,9 @@
                 });
             }
 
-            // Export to Excel
+            // Export to Excel — من السيرفر (Header/Footer موحّدين + الفلاتر المطبّقة)
             if (exportBtn) {
                 exportBtn.addEventListener('click', () => {
-                    if (!window.XLSX) {
-                        alert("مكتبة التصدير غير محملة.");
-                        return;
-                    }
                     const dataToExport = filterData().map(s => ({
                         "اسم المورد": s.name,
                         "رقم الهاتف": s.phone,
@@ -311,14 +307,20 @@
                         "الموظف المضيف": s.host
                     }));
 
-                    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-                    const workbook = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(workbook, worksheet, "الموردين");
-                    XLSX.writeFile(workbook, "قائمة_الموردين.xlsx");
+                    window.ExcelReport.exportObjects({
+                        title: 'الموردين',
+                        fileName: 'قائمة_الموردين',
+                        rows: dataToExport,
+                        filterLines: window.ExcelReport.searchFilterLines(state.searchTerm)
+                    });
                 });
             }
         });
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        window.appRoutes = window.appRoutes || {};
+        window.appRoutes.reportExportTable = '@Url.Action("Table", "ReportExport")';
+    </script>
+    <script src="~/js/excelReport.js" asp-append-version="true"></script>
 </body>
 </html>

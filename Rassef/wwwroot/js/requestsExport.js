@@ -1,4 +1,4 @@
-// تصدير Excel لصفحتي طلبات التوريد / التحويل.
+﻿// تصدير Excel لصفحتي طلبات التوريد / التحويل.
 // الصفحة بتفلتر الكروت عند الـ Browser، فهنا بنجمع الطلبات الظاهرة فعلاً + الفلاتر
 // المطبّقة (تاريخ / قسم / بحث) ونبعتهم للسيرفر، والسيرفر بيرجّع ملف .xlsx كامل
 // (موظف الحجز، موظف الخدمة، مدة الانتظار، مدة الخدمة + Header وFooter).
@@ -75,11 +75,25 @@ window.RequestsExport = (function () {
                 });
 
                 if (!response.ok) {
-                    let message = 'تعذر تصدير الملف. يرجى المحاولة مرة أخرى.';
+                    // رسالة أوضح حسب نوع الخطأ + تسجيل التفاصيل في الـ Console لتشخيص أي عطل بسرعة
+                    let message = null;
+                    let snippet = '';
                     try {
-                        const err = await response.json();
-                        if (err && err.message) message = err.message;
-                    } catch (e) { /* الرد مش JSON */ }
+                        const text = await response.text();
+                        snippet = text.slice(0, 500);
+                        try {
+                            const err = JSON.parse(text);
+                            if (err && err.message) message = err.message;
+                        } catch (e) { /* الرد مش JSON (مثلاً صفحة خطأ HTML) */ }
+                    } catch (e) { /* مفيش body */ }
+
+                    if (!message) {
+                        if (response.status === 401) message = 'انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.';
+                        else if (response.status === 403) message = 'ليس لديك صلاحية لتصدير هذا الملف.';
+                        else message = `تعذر تصدير الملف (خطأ ${response.status}). يرجى المحاولة مرة أخرى؛ إذا تكررت المشكلة أبلغ الدعم الفني.`;
+                    }
+
+                    console.error('[RequestsExport] export failed', response.status, response.url, snippet);
                     alert(message);
                     return;
                 }

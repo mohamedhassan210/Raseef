@@ -40,6 +40,8 @@
                asp-action="ExportToExcel"
                asp-route-fromTime="@ViewBag.FromTime"
                asp-route-toTime="@ViewBag.ToTime"
+               asp-route-statusFilter="@ViewBag.CurrentStatus"
+               asp-route-search="@ViewBag.Search"
                class="export-btn">
                 <span>تصدير</span>
                 <i class="bi bi-box-arrow-up-right"></i>

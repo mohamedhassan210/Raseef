@@ -1,4 +1,4 @@
-@model IEnumerable<Rassef.ViewModels.Administration.TruckListVM>
+﻿@model IEnumerable<Rassef.ViewModels.Administration.TruckListVM>
 @{
     Layout = null;
 }
@@ -153,7 +153,11 @@
         };
     </script>
 
+    <script>
+        window.appRoutes = window.appRoutes || {};
+        window.appRoutes.reportExportTable = '@Url.Action("Table", "ReportExport")';
+    </script>
+    <script src="~/js/excelReport.js" asp-append-version="true"></script>
     <script src="~/js/dashboard.js" asp-append-version="true"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>

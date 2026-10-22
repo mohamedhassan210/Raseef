@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Security.Claims;
 using Rassef.Filters;
 using Rassef.ViewModels.Administration;
 using AppUser = Rassef.Models.Identity.User;
@@ -19,30 +18,20 @@ namespace Rassef.Controllers
         private const string Placeholder = "—";
         private const int MaxRowsPerExport = 50000;
 
-        private static readonly string[] ArabicMonths =
-        {
-            "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
-            "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
-        };
-
         private readonly ITransferRequestRepository _transferRepository;
         private readonly ISupplierRequestRepository _supplierRepository;
-        private readonly IUserRepository _userRepository;
-        private readonly IRepository<Warehouse> _warehouseRepository;
-        private readonly RequestsExcelReportService _reportService;
+        private readonly ApplicationDbContext _db;
 
+        // CHANGED — مفيش RequestsExcelReportService بالـ DI: بناء الملف بقى static
+        // (ExcelReportBuilder)، فالتصدير مبيقعش لو تسجيل خدمة اتمسح من DependencyInjection.cs.
         public RequestsExportController(
             ITransferRequestRepository transferRepository,
             ISupplierRequestRepository supplierRepository,
-            IUserRepository userRepository,
-            IRepository<Warehouse> warehouseRepository,
-            RequestsExcelReportService reportService)
+            ApplicationDbContext db)
         {
             _transferRepository = transferRepository;
             _supplierRepository = supplierRepository;
-            _userRepository = userRepository;
-            _warehouseRepository = warehouseRepository;
-            _reportService = reportService;
+            _db = db;
         }
 
         // ===================== طلبات التحويل =====================
@@ -90,9 +79,9 @@ namespace Rassef.Controllers
                 });
             }
 
-            var meta = await BuildMetaAsync("طلبات تحويل", "طلبات التحويل", input);
-            var bytes = _reportService.Build(meta, headers, rows);
-            return File(bytes, ExcelContentType, $"TransferRequests_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+            var meta = await ExportMetaHelper.BuildAsync(HttpContext, _db, "طلبات تحويل", "طلبات التحويل", BuildFilterLines(input));
+            var bytes = ExcelReportBuilder.BuildFromStrings(meta, headers, rows);
+            return File(bytes, ExcelReportBuilder.ContentType, $"TransferRequests_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
         }
 
         // ===================== طلبات التوريد =====================
@@ -141,94 +130,23 @@ namespace Rassef.Controllers
                 });
             }
 
-            var meta = await BuildMetaAsync("طلبات توريد", "طلبات التوريد", input);
-            var bytes = _reportService.Build(meta, headers, rows);
-            return File(bytes, ExcelContentType, $"SupplierRequests_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+            var meta = await ExportMetaHelper.BuildAsync(HttpContext, _db, "طلبات توريد", "طلبات التوريد", BuildFilterLines(input));
+            var bytes = ExcelReportBuilder.BuildFromStrings(meta, headers, rows);
+            return File(bytes, ExcelReportBuilder.ContentType, $"SupplierRequests_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
         }
 
-        // ===================== Header / Footer =====================
-
-        private const string ExcelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-
-        private async Task<RequestsReportMeta> BuildMetaAsync(string title, string sheetName, RequestsExportInput input)
-        {
-            var user = await GetCurrentUserAsync();
-            var issuedByName = UserDisplayName(user);
-            var issuedBy = issuedByName == Placeholder ? "غير معروف" : issuedByName;
-
-            return new RequestsReportMeta
-            {
-                Title = title,
-                SheetName = sheetName,
-                WarehouseName = await ResolveWarehouseNameAsync(user),
-                FilterLines = BuildFilterLines(input),
-                IssuedBy = issuedBy,
-                IssuedAt = DateTime.Now
-            };
-        }
-
-        private async Task<AppUser?> GetCurrentUserAsync()
-        {
-            var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (!int.TryParse(idStr, out var userId)) return null;
-            return await _userRepository.GetByIdAsync(userId);
-        }
-
-        /// <summary>
-        /// المخزن الحالي من كوكي SelectedWarehouseId (نفس الاتفاق المستخدم في باقي المشروع)،
-        /// ولو مش موجود بنرجع لآخر مخزن اختاره المستخدم.
-        /// </summary>
-        private async Task<string?> ResolveWarehouseNameAsync(AppUser? user)
-        {
-            int? warehouseId = null;
-            if (Request.Cookies.TryGetValue("SelectedWarehouseId", out var cookieValue)
-                && int.TryParse(cookieValue, out var parsed))
-            {
-                warehouseId = parsed;
-            }
-            warehouseId ??= user?.LastPickedWarehouseId;
-
-            if (!warehouseId.HasValue) return null;
-
-            var warehouse = await _warehouseRepository.GetByIdAsync(warehouseId.Value);
-            return string.IsNullOrWhiteSpace(warehouse?.Name) ? null : warehouse!.Name;
-        }
+        // ===================== سطور الفلاتر =====================
 
         /// <summary>سطور الفلاتر بتتكتب بس لو الفلتر مطبّق فعلاً.</summary>
         private static List<string> BuildFilterLines(RequestsExportInput input)
         {
-            var lines = new List<string>();
-            var mode = (input.Mode ?? "all").Trim().ToLowerInvariant();
-
-            var hasFrom = TryParseDate(input.From, out var from);
-            var hasTo = TryParseDate(input.To, out var to);
-
-            switch (mode)
-            {
-                case "today":
-                    if (hasFrom) lines.Add($"التاريخ: {FormatDate(from)}");
-                    break;
-
-                case "month":
-                    if (hasFrom) lines.Add($"الشهر: {ArabicMonths[from.Month - 1]} {from.Year}");
-                    break;
-
-                case "week":
-                    if (hasFrom && hasTo) lines.Add($"الفترة: من {FormatDate(from)} إلى {FormatDate(to)} (آخر 7 أيام)");
-                    break;
-
-                case "custom":
-                    if (hasFrom && hasTo) lines.Add($"الفترة: من {FormatDate(from)} إلى {FormatDate(to)}");
-                    else if (hasFrom) lines.Add($"الفترة: من {FormatDate(from)}");
-                    else if (hasTo) lines.Add($"الفترة: حتى {FormatDate(to)}");
-                    break;
-            }
+            var lines = ExportFilterText.FromDateMode(input.Mode, input.From, input.To);
 
             if (!string.IsNullOrWhiteSpace(input.Department))
                 lines.Add($"القسم: {input.Department.Trim()}");
 
-            if (!string.IsNullOrWhiteSpace(input.Search))
-                lines.Add($"بحث: {input.Search.Trim()}");
+            var search = ExportFilterText.Search(input.Search);
+            if (search != null) lines.Add(search);
 
             return lines;
         }
@@ -326,10 +244,5 @@ namespace Rassef.Controllers
         private static string FormatDateTime(DateTimeOffset value) =>
             value.ToString("dd/MM/yyyy hh:mm tt", CultureInfo.InvariantCulture);
 
-        private static string FormatDate(DateTime value) =>
-            value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-
-        private static bool TryParseDate(string? text, out DateTime value) =>
-            DateTime.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out value);
     }
 }

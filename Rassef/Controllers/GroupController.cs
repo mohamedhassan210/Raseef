@@ -1,4 +1,4 @@
-using Rassef.Common.Interfaces;
+﻿using Rassef.Common.Interfaces;
 using Rassef.Filters;
 using Rassef.ViewModels.Authentication.Identity;
 using Rassef.ViewModels.Group;
@@ -285,7 +285,9 @@ namespace Rassef.Controllers
             {
                 var assembly = System.Reflection.Assembly.GetExecutingAssembly();
                 var controllerTypes = assembly.GetTypes()
-                    .Where(type => typeof(Controller).IsAssignableFrom(type) && !type.IsAbstract)
+                    .Where(type => typeof(Controller).IsAssignableFrom(type) && !type.IsAbstract
+                                   && !Rassef.Common.Helpers.PermissionHelper.InfrastructureControllers
+                                        .Contains(type.Name.Replace("Controller", "")))
                     .ToList();
 
                 var existingPermissions = await _permissionRepo.GetAllAsync();

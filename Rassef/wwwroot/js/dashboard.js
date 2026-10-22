@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
 
     // DOM Elements
     const tableBody = document.getElementById('employeeTableBody');
@@ -221,10 +221,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }));
 
             // إنشاء وتنزيل ملف الإكسل
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "الموظفين");
-            XLSX.writeFile(workbook, "Employees_Export.xlsx");
+            // CHANGED — التصدير بقى من السيرفر (Header/Footer موحّدين + الفلاتر المطبّقة) بدل SheetJS من الـ CDN
+            window.ExcelReport.exportObjects({
+                title: 'الموظفين',
+                fileName: 'Employees_Export',
+                rows: excelData,
+                filterLines: window.ExcelReport.searchFilterLines(typeof state !== 'undefined' ? state.searchTerm : '')
+            });
         });
     }
 
@@ -438,10 +441,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 "الموظف المضيف": t.host || '--'
             }));
 
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "الشاحنات");
-            XLSX.writeFile(workbook, "Trucks_Export.xlsx");
+            // CHANGED — التصدير بقى من السيرفر (Header/Footer موحّدين + الفلاتر المطبّقة) بدل SheetJS من الـ CDN
+            window.ExcelReport.exportObjects({
+                title: 'الشاحنات',
+                fileName: 'Trucks_Export',
+                rows: excelData,
+                filterLines: window.ExcelReport.searchFilterLines(typeof state !== 'undefined' ? state.searchTerm : '')
+            });
         });
     }
 
@@ -698,10 +704,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             });
 
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "الشاحنات");
-            XLSX.writeFile(workbook, "Trucks_Export.xlsx");
+            // CHANGED — التصدير بقى من السيرفر (Header/Footer موحّدين + الفلاتر المطبّقة) بدل SheetJS من الـ CDN
+            window.ExcelReport.exportObjects({
+                title: 'الشاحنات',
+                fileName: 'Trucks_Export',
+                rows: excelData,
+                filterLines: window.ExcelReport.searchFilterLines(typeof state !== 'undefined' ? state.searchTerm : '')
+            });
         });
     }
 
@@ -948,10 +957,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     };
                 });
 
-                const worksheet = XLSX.utils.json_to_sheet(excelData);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "الشاحنات");
-                XLSX.writeFile(workbook, "Trucks_Export.xlsx");
+                // CHANGED — التصدير بقى من السيرفر (Header/Footer موحّدين + الفلاتر المطبّقة) بدل SheetJS من الـ CDN
+                window.ExcelReport.exportObjects({
+                    title: 'الشاحنات',
+                    fileName: 'Trucks_Export',
+                    rows: excelData,
+                    filterLines: window.ExcelReport.searchFilterLines(typeof state !== 'undefined' ? state.searchTerm : '')
+                });
             });
         }
 
@@ -1179,10 +1191,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     "الكود": emp.code || '--'
                 }));
 
-                const worksheet = XLSX.utils.json_to_sheet(excelData);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "الموظفين");
-                XLSX.writeFile(workbook, "Employees_Export.xlsx");
+                // CHANGED — التصدير بقى من السيرفر (Header/Footer موحّدين + الفلاتر المطبّقة) بدل SheetJS من الـ CDN
+                window.ExcelReport.exportObjects({
+                    title: 'الموظفين',
+                    fileName: 'Employees_Export',
+                    rows: excelData,
+                    filterLines: window.ExcelReport.searchFilterLines(typeof state !== 'undefined' ? state.searchTerm : '')
+                });
             });
         }
 
@@ -1415,10 +1430,13 @@ if (document.getElementById('driverTableBody')) {
                 };
             });
 
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "السائقين");
-            XLSX.writeFile(workbook, "Drivers_Export.xlsx");
+            // CHANGED — التصدير بقى من السيرفر (Header/Footer موحّدين + الفلاتر المطبّقة) بدل SheetJS من الـ CDN
+            window.ExcelReport.exportObjects({
+                title: 'السائقين',
+                fileName: 'Drivers_Export',
+                rows: excelData,
+                filterLines: window.ExcelReport.searchFilterLines(typeof state !== 'undefined' ? state.searchTerm : '')
+            });
         });
     }
 
@@ -1641,10 +1659,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     "الرقم القومي": emp.nationalId || '--',
                     "الكود": emp.code || '--'
                 }));
-                const worksheet = XLSX.utils.json_to_sheet(excelData);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "الموظفين");
-                XLSX.writeFile(workbook, "Employees_Export.xlsx");
+                // CHANGED — التصدير بقى من السيرفر (Header/Footer موحّدين + الفلاتر المطبّقة) بدل SheetJS من الـ CDN
+                window.ExcelReport.exportObjects({
+                    title: 'الموظفين',
+                    fileName: 'Employees_Export',
+                    rows: excelData,
+                    filterLines: window.ExcelReport.searchFilterLines(typeof state !== 'undefined' ? state.searchTerm : '')
+                });
             });
         }
 
@@ -1873,10 +1894,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         "الموظف المضيف": t.host || '--'
                     };
                 });
-                const worksheet = XLSX.utils.json_to_sheet(excelData);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "الشاحنات");
-                XLSX.writeFile(workbook, "Trucks_Export.xlsx");
+                // CHANGED — التصدير بقى من السيرفر (Header/Footer موحّدين + الفلاتر المطبّقة) بدل SheetJS من الـ CDN
+                window.ExcelReport.exportObjects({
+                    title: 'الشاحنات',
+                    fileName: 'Trucks_Export',
+                    rows: excelData,
+                    filterLines: window.ExcelReport.searchFilterLines(typeof state !== 'undefined' ? state.searchTerm : '')
+                });
             });
         }
 
@@ -2092,10 +2116,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     "الموظف المضيف": d.host || '--'
                 }));
 
-                const worksheet = XLSX.utils.json_to_sheet(excelData);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "السائقين");
-                XLSX.writeFile(workbook, "Drivers_Export.xlsx");
+                // CHANGED — التصدير بقى من السيرفر (Header/Footer موحّدين + الفلاتر المطبّقة) بدل SheetJS من الـ CDN
+                window.ExcelReport.exportObjects({
+                    title: 'السائقين',
+                    fileName: 'Drivers_Export',
+                    rows: excelData,
+                    filterLines: window.ExcelReport.searchFilterLines(typeof state !== 'undefined' ? state.searchTerm : '')
+                });
             });
         }
 

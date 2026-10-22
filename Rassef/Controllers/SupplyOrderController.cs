@@ -1,14 +1,15 @@
-namespace Rassef.Controllers
+﻿namespace Rassef.Controllers
 {
     public class SupplyOrderController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly ExcelExportService _excelService;
 
-        public SupplyOrderController(ApplicationDbContext context, ExcelExportService excelService)
+        // CHANGED — شلنا ExcelExportService من الـ constructor: لو تسجيله اتمسح من
+        // DependencyInjection.cs الـ controller كله كان بيقع (مش بس التصدير). التصدير بقى
+        // بيستخدم ExcelReportBuilder (static) فمفيش حاجة تتسجّل.
+        public SupplyOrderController(ApplicationDbContext context)
         {
             _context = context;
-            _excelService = excelService;
         }
 
         /// <summary>
@@ -22,6 +23,55 @@ namespace Rassef.Controllers
             ViewBag.ToTime = toTime?.ToString("yyyy-MM-ddTHH:mm");
             ViewBag.CurrentStatus = statusFilter;
             ViewBag.Search = search;
+            var result = await BuildReportAsync(fromTime, toTime, statusFilter, search);
+
+            return View(result);
+        }
+
+        /// <summary>
+        /// تصدير تقرير أوامر التوريد إلى ملف Excel (.xlsx)
+        /// CHANGED — بيطبّق نفس فلاتر الصفحة بالظبط (من/إلى + الحالة + البحث، كان بياخد
+        /// من/إلى بس)، ونفس بيانات الجدول، ومعاه Header (العنوان + المخزن + الفلاتر)
+        /// وFooter (محرّر التقرير + تاريخ الإصدار).
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> ExportToExcel(DateTime? fromTime, DateTime? toTime, string? statusFilter, string? search)
+        {
+            var report = await BuildReportAsync(fromTime, toTime, statusFilter, search);
+
+            var headers = new List<string>
+            {
+                "رقم الدور", "اسم السائق", "رقم السيارة", "الرصيف", "القسم", "الحالة", "وقت الدخول"
+            };
+
+            var rows = report.Select(x => new[]
+            {
+                x.QueueNumber,
+                x.DriverName,
+                x.TruckPlate,
+                x.DockName,
+                x.DepartmentName,
+                x.StatusName,
+                x.EntryTime.ToString("yyyy-MM-dd hh:mm tt", System.Globalization.CultureInfo.InvariantCulture)
+            }).ToList();
+
+            var filterLines = new List<string>();
+            var period = ExportFilterText.Period(fromTime, toTime);
+            if (period != null) filterLines.Add(period);
+            if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "الكل") filterLines.Add($"الحالة: {statusFilter}");
+            var searchLine = ExportFilterText.Search(search);
+            if (searchLine != null) filterLines.Add(searchLine);
+
+            var meta = await ExportMetaHelper.BuildAsync(HttpContext, _context, "أوامر التوريد", "أوامر التوريد", filterLines);
+            var bytes = ExcelReportBuilder.BuildFromStrings(meta, headers, rows);
+
+            return File(bytes, ExcelReportBuilder.ContentType, $"SupplyOrders_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+        }
+
+        /// <summary>نفس الاستعلام والفلاتر للصفحة وللتصدير — عشان الملف يطابق اللي المستخدم شايفه.</summary>
+        private async Task<List<SupplyOrderReportViewModel>> BuildReportAsync(
+            DateTime? fromTime, DateTime? toTime, string? statusFilter, string? search)
+        {
             var query = _context.SupplierRequests
                 .Include(x => x.Driver)
                 .Include(x => x.Truck)
@@ -48,7 +98,7 @@ namespace Rassef.Controllers
                                       || x.QueueTickets.Any(q => q.TicketNumber != null && q.TicketNumber.Contains(search)));
             }
 
-            var result = await query.Select(x => new SupplyOrderReportViewModel
+            return await query.Select(x => new SupplyOrderReportViewModel
             {
                 RequestId = x.Id,
                 QueueNumber = x.QueueTickets.Select(q => q.TicketNumber).FirstOrDefault() ?? "N/A",
@@ -64,45 +114,6 @@ namespace Rassef.Controllers
                             .Select(da => da.Dock != null ? da.Dock.DockName : "A1")
                             .FirstOrDefault() ?? "A1"
             }).ToListAsync();
-
-            return View(result);
-        }
-
-        /// <summary>
-        /// تصدير تقرير أوامر التوريد إلى ملف Excel
-        /// Exports supply orders report to Excel (.xlsx) file
-        /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> ExportToExcel(DateTime? fromTime, DateTime? toTime)
-        {
-            var query = _context.SupplierRequests
-                .Include(x => x.Driver)
-                .Include(x => x.Truck)
-                .Include(x => x.Department)
-                .Include(x => x.RequestStatus)
-                .Include(x => x.QueueTickets)
-                .AsQueryable();
-
-            if (fromTime.HasValue) query = query.Where(x => x.CreatedAT >= fromTime.Value);
-            if (toTime.HasValue) query = query.Where(x => x.CreatedAT <= toTime.Value);
-
-            var reportData = await query.Select(x => new
-            {
-                رقم_الدور = x.QueueTickets.Select(q => q.TicketNumber).FirstOrDefault() ?? "N/A",
-                اسم_السائق = x.Driver != null ? x.Driver.FullName : x.DriverPhone,
-                رقم_السيارة = x.Truck != null ? $"{x.Truck.PlateLetter} {x.Truck.PlateNumber}" : "",
-                القسم = x.Department != null ? x.Department.Name : "",
-                الحالة = x.RequestStatus != null ? x.RequestStatus.Name : "",
-                وقت_الدخول = x.CreatedAT.ToString("yyyy-MM-dd hh:mm tt")
-            }).ToListAsync();
-
-            var fileBytes = _excelService.ExportToExcel(reportData, "طلبات التوريد");
-
-            return File(
-                fileBytes,
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                $"SupplyOrders_{DateTime.Now:yyyyMMdd_HHmm}.xlsx"
-            );
         }
 
         /// <summary>
