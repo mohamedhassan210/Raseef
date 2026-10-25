@@ -1,7 +1,10 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\Rassef",
+    "\\Rassef\\Views",
+    "\\Rassef\\Views\\Authentication"
   ],
-  "SelectedNode": "\\D:\\Raseef",
+  "SelectedNode": "\\Rassef\\Views\\Authentication\\SupOrTra.cshtml",
   "PreviewInSolutionExplorer": false
 }

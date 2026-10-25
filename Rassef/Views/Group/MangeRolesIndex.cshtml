@@ -1,4 +1,4 @@
-@model Rassef.ViewModels.Group.RolesManagementVM
+﻿@model Rassef.ViewModels.Group.RolesManagementVM
 @{
     Layout = null;
     ViewData["Title"] = "إدارة الأدوار";
@@ -17,6 +17,57 @@
     <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true">
     <link rel="stylesheet" href="~/css/groupRolePages.css" asp-append-version="true">
     <link rel="stylesheet" href="~/css/detailsPages.css" asp-append-version="true">
+    <style>
+        /* NEW — زرار تعديل اسم العرض في آخر كل صف + مودال التعديل */
+        .permissions-table td.col-actions { text-align: center; white-space: nowrap; width: 1%; }
+        .btn-edit-permission {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #fff; color: var(--primary-color, #EA7318);
+            border: 1.5px solid var(--primary-color, #EA7318); border-radius: 10px;
+            padding: 6px 14px; font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer;
+            transition: background-color .15s ease, color .15s ease;
+        }
+        .btn-edit-permission:hover { background: var(--primary-color, #EA7318); color: #fff; }
+        .custom-name-badge {
+            display: inline-block; margin-inline-start: 8px; padding: 1px 8px; border-radius: 20px;
+            background: #FFF1E3; border: 1px solid #F8D3B0; color: #B45309; font-size: 11px; font-weight: 700;
+        }
+        /* خاصية hidden الافتراضية بتتلغي بأي display في الـ CSS، فلازم نثبّتها هنا */
+        .custom-name-badge[hidden] { display: none; }
+        .perm-modal-overlay {
+            position: fixed; inset: 0; background: rgba(43, 36, 29, .55); z-index: 5000;
+            display: none; align-items: center; justify-content: center; padding: 16px;
+        }
+        .perm-modal-overlay.open { display: flex; }
+        .perm-modal {
+            background: #fff; border-radius: 18px; width: 100%; max-width: 480px; padding: 26px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, .25); direction: rtl; text-align: right;
+        }
+        .perm-modal h3 { font-size: 20px; font-weight: 800; margin: 0 0 14px; color: #2B241D; }
+        .perm-modal .perm-meta {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; direction: ltr; justify-content: flex-end;
+        }
+        .perm-modal .perm-meta span {
+            background: #F7F1EA; border-radius: 8px; padding: 4px 10px; font-size: 13px; color: #6B5F54; font-weight: 600;
+        }
+        .perm-modal label { display: block; font-weight: 700; margin-bottom: 6px; color: #2B241D; }
+        .perm-modal input[type="text"] {
+            width: 100%; box-sizing: border-box; padding: 11px 14px; border: 1.5px solid #E3C9B0; border-radius: 10px;
+            font-family: inherit; font-size: 15px; text-align: right;
+        }
+        .perm-modal input[type="text"]:focus { outline: none; border-color: var(--primary-color, #EA7318); box-shadow: 0 0 0 3px rgba(234, 115, 24, .15); }
+        .perm-modal .perm-hint { font-size: 12.5px; color: #82756A; margin-top: 6px; }
+        .perm-modal .perm-error { display: none; color: #C62828; font-size: 13.5px; font-weight: 600; margin-top: 8px; }
+        .perm-modal .perm-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+        .perm-modal .perm-actions button {
+            font-family: inherit; font-weight: 700; font-size: 15px; border-radius: 10px; padding: 10px 20px; cursor: pointer;
+        }
+        .perm-btn-save { background: var(--primary-color, #EA7318); color: #fff; border: 2px solid var(--primary-color, #EA7318); flex: 1 1 auto; }
+        .perm-btn-save:disabled { opacity: .6; cursor: not-allowed; }
+        .perm-btn-reset { background: #fff; color: #6B5F54; border: 2px solid #D9CCBF; }
+        .perm-btn-cancel { background: #fff; color: var(--primary-color, #EA7318); border: 2px solid var(--primary-color, #EA7318); }
+        @@media (max-width: 480px) { .perm-modal { padding: 18px; } .perm-modal .perm-actions button { flex: 1 1 100%; } }
+    </style>
 </head>
 <body>
 
@@ -143,9 +194,10 @@
                 <table class="permissions-table">
                     <thead>
                         <tr>
-                            <th style="width: 30%;">Controller</th>
-                            <th style="width: 30%;">Action</th>
-                            <th style="width: 40%;">Description</th>
+                            <th style="width: 26%;">Controller</th>
+                            <th style="width: 26%;">Action</th>
+                            <th style="width: 38%;">اسم العرض</th>
+                            <th style="width: 10%;">تعديل</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -156,14 +208,29 @@
                                 <tr>
                                     <td style="font-weight: 700;">@p.Controller</td>
                                     <td style="font-weight: 600; color: var(--primary-color);">@p.Action</td>
-                                    <td style="color: var(--text-muted);">@p.Description</td>
+                                    <td style="color: var(--text-muted);">
+                                        <span class="perm-display-name">@p.DisplayName</span>
+                                        <span class="custom-name-badge" @(p.IsCustom ? "" : "hidden")>مخصّص</span>
+                                    </td>
+                                    <td class="col-actions">
+                                        <button type="button" class="btn-edit-permission"
+                                                data-id="@p.Id"
+                                                data-controller="@p.Controller"
+                                                data-action="@p.Action"
+                                                data-name="@p.DisplayName"
+                                                data-custom="@(p.IsCustom ? "1" : "0")"
+                                                aria-label="تعديل اسم عرض @p.Action">
+                                            <i class="fas fa-pen"></i>
+                                            <span>تعديل</span>
+                                        </button>
+                                    </td>
                                 </tr>
                             }
                         }
                         else
                         {
                             <tr>
-                                <td colspan="3" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                <td colspan="4" style="text-align: center; padding: 30px; color: var(--text-muted);">
                                     لا توجد صلاحيات مسجلة
                                 </td>
                             </tr>
@@ -174,7 +241,118 @@
         </main>
     </div>
 
+    <!-- NEW — مودال تعديل اسم عرض الصلاحية -->
+    <div id="permNameModal" class="perm-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="permNameTitle">
+        <div class="perm-modal">
+            <h3 id="permNameTitle">تعديل اسم عرض الصلاحية</h3>
+            <div class="perm-meta">
+                <span id="permNameController"></span>
+                <span id="permNameAction"></span>
+            </div>
+            <label for="permNameInput">اسم العرض</label>
+            <input type="text" id="permNameInput" maxlength="250" autocomplete="off" placeholder="اكتب الاسم الذي سيظهر للمسؤول">
+            <div class="perm-hint">ده الاسم اللي هيظهر في شاشة إدارة صلاحيات المجموعات. مفيش أي تأثير على صلاحيات المستخدمين.</div>
+            <div id="permNameError" class="perm-error"></div>
+            <div class="perm-actions">
+                <button type="button" id="permNameSave" class="perm-btn-save">حفظ</button>
+                <button type="button" id="permNameReset" class="perm-btn-reset" style="display:none;">استعادة الاسم الافتراضي</button>
+                <button type="button" id="permNameCancel" class="perm-btn-cancel">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ===== تعديل اسم عرض الصلاحية =====
+        (function () {
+            const modal = document.getElementById('permNameModal');
+            const input = document.getElementById('permNameInput');
+            const errorBox = document.getElementById('permNameError');
+            const saveBtn = document.getElementById('permNameSave');
+            const resetBtn = document.getElementById('permNameReset');
+            const cancelBtn = document.getElementById('permNameCancel');
+            const ctrlLabel = document.getElementById('permNameController');
+            const actLabel = document.getElementById('permNameAction');
+            const updateUrl = '@Url.Action("UpdatePermissionDisplayName", "Group")';
+            let currentButton = null;
+
+            function openModal(btn) {
+                currentButton = btn;
+                ctrlLabel.textContent = btn.dataset.controller;
+                actLabel.textContent = btn.dataset.action;
+                input.value = btn.dataset.name || '';
+                errorBox.style.display = 'none';
+                resetBtn.style.display = btn.dataset.custom === '1' ? '' : 'none';
+                modal.classList.add('open');
+                setTimeout(() => { input.focus(); input.select(); }, 30);
+            }
+
+            function closeModal() {
+                modal.classList.remove('open');
+                currentButton = null;
+            }
+
+            function showError(msg) {
+                errorBox.textContent = msg;
+                errorBox.style.display = 'block';
+            }
+
+            async function save(reset) {
+                if (!currentButton) return;
+                const name = reset ? '' : input.value.trim();
+                if (!reset && name.length === 0) {
+                    showError('اكتب اسم العرض، أو اضغط "استعادة الاسم الافتراضي".');
+                    return;
+                }
+
+                const tokenInput = document.querySelector('#refreshPermissionsTokenForm input[name="__RequestVerificationToken"]');
+                const body = new FormData();
+                body.append('__RequestVerificationToken', tokenInput.value);
+                body.append('id', currentButton.dataset.id);
+                body.append('displayName', name);
+
+                saveBtn.disabled = true;
+                resetBtn.disabled = true;
+                try {
+                    const response = await fetch(updateUrl, { method: 'POST', body });
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        showError(data.message || 'تعذر حفظ الاسم.');
+                        return;
+                    }
+
+                    // تحديث الصف في الصفحة من غير reload
+                    const row = currentButton.closest('tr');
+                    row.querySelector('.perm-display-name').textContent = data.displayName;
+                    const badge = row.querySelector('.custom-name-badge');
+                    if (badge) badge.hidden = !data.isCustom;
+                    currentButton.dataset.name = data.displayName;
+                    currentButton.dataset.custom = data.isCustom ? '1' : '0';
+
+                    closeModal();
+                    showRefreshAlert(document.getElementById('refreshPermissionsAlert'), true, data.message);
+                } catch (err) {
+                    showError('حدث خطأ أثناء الاتصال بالخادم. يرجى المحاولة مرة أخرى.');
+                } finally {
+                    saveBtn.disabled = false;
+                    resetBtn.disabled = false;
+                }
+            }
+
+            document.querySelectorAll('.btn-edit-permission').forEach(btn =>
+                btn.addEventListener('click', () => openModal(btn)));
+            saveBtn.addEventListener('click', () => save(false));
+            resetBtn.addEventListener('click', () => save(true));
+            cancelBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+            document.addEventListener('keydown', (e) => {
+                if (!modal.classList.contains('open')) return;
+                if (e.key === 'Escape') closeModal();
+                if (e.key === 'Enter' && document.activeElement === input) { e.preventDefault(); save(false); }
+            });
+        })();
+
         async function refreshPermissions(button) {
             const tokenInput = document.querySelector('#refreshPermissionsTokenForm input[name="__RequestVerificationToken"]');
             const alertBox = document.getElementById('refreshPermissionsAlert');

@@ -1,4 +1,4 @@
-@model Rassef.ViewModels.Authentication.Identity.GroupPermissionsViewModel
+﻿@model Rassef.ViewModels.Authentication.Identity.GroupPermissionsViewModel
 @using Rassef.Common.Helpers
 @{
     Layout = null;
@@ -142,7 +142,7 @@
                                                        value="true"
                                                        onchange="onActionCheckChanged(@i)"
                                                        @(act.IsSelected ? "checked" : "") />
-                                                <span>@PermissionDisplayNames.GetActionDisplayName(ctrl.ControllerName, act.ActionName)</span>
+                                                <span>@PermissionDisplayNames.ResolveActionDisplayName(ctrl.ControllerName, act.ActionName, act.Description)</span>
                                             </label>
                                         }
                                     </div>

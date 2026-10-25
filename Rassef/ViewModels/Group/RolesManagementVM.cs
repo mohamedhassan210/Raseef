@@ -12,5 +12,11 @@
         public string Controller { get; set; } = string.Empty;
         public string Action { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+
+        /// <summary>اسم العرض الفعلي (المخصّص لو اتعدّل، وإلا الاسم العربي الافتراضي)</summary>
+        public string DisplayName { get; set; } = string.Empty;
+
+        /// <summary>true لو الاسم اتعدّل يدوياً (عشان نظهر شارة "مخصّص" وزرار "استعادة الاسم الافتراضي")</summary>
+        public bool IsCustom { get; set; }
     }
 }
